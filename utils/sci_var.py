@@ -85,7 +85,7 @@ class PseudoNetCDFVariable(ndarray):
     but unlike that type, provides a contructor for variables that could be used
     without adding it to the parent file
     """
-    def __new__(subtype,parent,name,typecode,dimensions,values=None):
+    def __new__(subtype,parent,name,typecode,dimensions,values=None,units=None):
         """
         Creates a variable using the dimensions as defined in
         the parent object
@@ -101,13 +101,16 @@ class PseudoNetCDFVariable(ndarray):
           shape.append(parent.dimensions[d])
         
         if values==None:
-        	result=zeros(shape,typecode).view(subtype)
+            result=zeros(shape,typecode).view(subtype)
         else:
-        	result=values.view(subtype)
+            result=values.view(subtype)
 
         result.__dict__={
             'typecode': lambda: typecode,
             'dimensions': tuple(dimensions),
+            'units': units,
+            'long_name': name,
+            'var_desc': name
           }
         return result
 
@@ -123,17 +126,39 @@ class PseudoNetCDFVariable(ndarray):
         """
         self[...]=value
 
+class PseudoIOAPIVariable(PseudoNetCDFVariable):
+    def __init__(self,parent,name,typecode,dimensions,values=None,units=None):
+        """
+        Creates a variable using the dimensions as defined in
+        the parent object
+        
+        parent: an object with a dimensions variable
+        name: name for variable
+        typecode: numpy style typecode
+        dimensions: a typle of dimension names to be used from
+                    parrent
+        """
+        self.__dict__.update({
+            'units': units,
+            'long_name': name,
+            'var_desc': name
+          })
+
 class PseudoNetCDFVariables(defaultdict):
     def __init__(self,func,keys):
-            self.__func=func
-            self.__keys=keys
+        self.__func=func
+        self.__keys=keys
     def __missing__(self,k):
-    		if k in self.keys():
-	            return self.__func(k)
-	        else:
-	            raise KeyError
+        if k in self.keys():
+            return self.__func(k)
+        else:
+            raise KeyError, "missing %s" % (k,)
+
+    def addkey(self,k):
+        self.__keys.append(k)
+
     def keys(self):
-            return self.__keys
+        return self.__keys
 
 class Pseudo2NetCDF:
     """
@@ -248,8 +273,8 @@ class PseudoNetCDFTest(unittest.TestCase):
         tncf.createDimension('ROW',5)
         tncf.createDimension('COL',6)
 
-        const=lambda *args,**kwds: arange(reduce(operator.mul,args[1:])).reshape((kwds['t'],kwds['l'],kwds['r'],kwds['c']))
-        tncf.variables=PseudoNetCDFVariables(tncf,['NO','O3'],('TIME','LAY','ROW','COL'),const,(24,4,5,6),{'t':24,'l':4,'r':5,'c':6},'f')
+        const=lambda *args,**kwds: PseudoNetCDFVariable(tncf,args[0],'f',('TIME','LAY','ROW','COL'),arange(24*4*5*6).reshape((24,4,5,6)))
+        tncf.variables=PseudoNetCDFVariables(const,['NO','O3'])
         self.assert_((tncf.variables['O3'].getValue()==arange(24*4*5*6).reshape(24,4,5,6)).all())
         
         
