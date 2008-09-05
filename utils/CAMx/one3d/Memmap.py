@@ -85,7 +85,7 @@ class one3d(PseudoNetCDFFile):
         lays=self.dimensions['LAY']
         rows=self.dimensions['ROW']
         cols=self.dimensions['COL']
-        return self.__decorator(k,PseudoNetCDFVariable(self,k,'f',('TSTEP','LAY','ROW','COL'),self.__memmap.reshape(self.__records,self.__record_items)[:,3:-1].reshape(tsteps,lays,rows,cols)))
+        return self.__decorator(k,PseudoNetCDFVariable(self,k,'f',('TSTEP','LAY','ROW','COL'),values=self.__memmap.reshape(self.__records,self.__record_items)[:,3:-1].reshape(tsteps,lays,rows,cols)))
 
 class TestMemmap(unittest.TestCase):
     def runTest(self):

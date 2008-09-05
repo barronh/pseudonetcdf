@@ -87,11 +87,11 @@ class height_pressure(PseudoNetCDFFile):
         buf=self.__memmap[out_idx==0].reshape(lays*2*times,2)
         if not (buf[:,0]==buf[:,1]).all():
             raise ValueError,"Buffer"
-        v=self.variables['HGHT']=PseudoNetCDFVariable(self,'HGHT','f',('TSTEP','LAY','ROW','COL'),self.__memmap[out_idx==1].reshape(times,lays,rows,cols))
+        v=self.variables['HGHT']=PseudoNetCDFVariable(self,'HGHT','f',('TSTEP','LAY','ROW','COL'),values=self.__memmap[out_idx==1].reshape(times,lays,rows,cols))
         v.units='m'
         v.long_name='HGHT'.ljust(16)
         v.var_desc='Top Height'
-        v=self.variables['PRES']=PseudoNetCDFVariable(self,'PRES','f',('TSTEP','LAY','ROW','COL'),self.__memmap[out_idx==2].reshape(times,lays,rows,cols))
+        v=self.variables['PRES']=PseudoNetCDFVariable(self,'PRES','f',('TSTEP','LAY','ROW','COL'),values=self.__memmap[out_idx==2].reshape(times,lays,rows,cols))
         v.units='hPA'
         v.long_name='PRES'.ljust(16)
         v.var_desc='Pressure at center'

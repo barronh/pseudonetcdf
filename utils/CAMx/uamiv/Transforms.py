@@ -66,7 +66,7 @@ class osat(PseudoNetCDFFile):
 		var_indices=self.__indices(var_id_names)
 		dimensions=('TSTEP','VAR','LAY','ROW','COL')
 		outvals=self.__child.__memmap__[:,:,var_indices,:,:].swapaxes(1,2)
-		v=PseudoNetCDFVariable(self,key,'f',dimensions,outvals)
+		v=PseudoNetCDFVariable(self,key,'f',dimensions,values=outvals)
 		v.units='ppm'
 		v.long_name=v.var_desc=key.ljust(16)
 		v.VAR_NAMES=''.join([nm.ljust(16) for nm in var_id_names])

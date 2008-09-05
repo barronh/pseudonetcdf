@@ -11,7 +11,7 @@ class height_pressure_plus(add_derived):
     __addvars__=['DEPTH']
     def __DEPTH__(self):
         val=CAMxHeightToDepth(self.variables['HGHT'])
-        var=PseudoNetCDFVariable(self,'DEPTH','f',('TSTEP','LAY','ROW','COL'),val)
+        var=PseudoNetCDFVariable(self,'DEPTH','f',('TSTEP','LAY','ROW','COL'),values=val)
         var.units='m'
         var.long_name='RATE'.ljust(16)
         var.var_desc='RATE'.ljust(16)

@@ -85,16 +85,16 @@ class temperature(PseudoNetCDFFile):
         buf=self.__memmap[out_idx==0].reshape((lays+1)*times,2)
         if not (buf[:,0]==buf[:,1]).all():
             raise ValueError,"Buffer"
-        v=self.variables['SURFTEMP']=PseudoNetCDFVariable(self,'SURFTEMP','f',('TSTEP','ROW','COL'),self.__memmap[out_idx==1].reshape(times,rows,cols))
+        v=self.variables['SURFTEMP']=PseudoNetCDFVariable(self,'SURFTEMP','f',('TSTEP','ROW','COL'),values=self.__memmap[out_idx==1].reshape(times,rows,cols))
         v.units='K'
         v.long_name='SURFTEMP'
         v.var_desc='SURFTEMP'
-        v=self.variables['AIRTEMP']=PseudoNetCDFVariable(self,'AIRTEMP','f',('TSTEP','LAY','ROW','COL'),self.__memmap[out_idx==2].reshape(times,lays,rows,cols))
+        v=self.variables['AIRTEMP']=PseudoNetCDFVariable(self,'AIRTEMP','f',('TSTEP','LAY','ROW','COL'),values=self.__memmap[out_idx==2].reshape(times,lays,rows,cols))
         v.units='K'
         v.long_name='AIRTEMP'
         v.var_desc='AIRTEMP'
 
-        self.variables['TFLAG']=PseudoNetCDFVariable(self,'TFLAG','f',('TSTEP','VAR','DATE-TIME'),ConvertCAMxTime(self.__memmap[out_idx==4].view('>i'),self.__memmap[out_idx==3],2))        
+        self.variables['TFLAG']=PseudoNetCDFVariable(self,'TFLAG','f',('TSTEP','VAR','DATE-TIME'),values=ConvertCAMxTime(self.__memmap[out_idx==4].view('>i'),self.__memmap[out_idx==3],2))        
 
         return self.variables[key]
     

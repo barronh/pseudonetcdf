@@ -105,8 +105,8 @@ class wind(PseudoNetCDFFile):
         time=self.__memmap[out_idx==3].reshape(tsteps,(out_idx==3).sum()/tsteps)[:,1]
 
         self.variables['TFLAG']=ConvertCAMxTime(date,time,2)
-        self.variables['U']=self.__decorator('U',PseudoNetCDFVariable(self,'U','f',('TSTEP','LAY','ROW','COL'),self.__memmap[out_idx==1].reshape(tsteps,lays,2,rows,cols)[:,:,0,:,:]))
-        self.variables['V']=self.__decorator('V',PseudoNetCDFVariable(self,'V','f',('TSTEP','LAY','ROW','COL'),self.__memmap[out_idx==1].reshape(tsteps,lays,2,rows,cols)[:,:,1,:,:]))
+        self.variables['U']=self.__decorator('U',PseudoNetCDFVariable(self,'U','f',('TSTEP','LAY','ROW','COL'),values=self.__memmap[out_idx==1].reshape(tsteps,lays,2,rows,cols)[:,:,0,:,:]))
+        self.variables['V']=self.__decorator('V',PseudoNetCDFVariable(self,'V','f',('TSTEP','LAY','ROW','COL'),values=self.__memmap[out_idx==1].reshape(tsteps,lays,2,rows,cols)[:,:,1,:,:]))
         
     
 class TestMemmap(unittest.TestCase):

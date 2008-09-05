@@ -109,7 +109,7 @@ class ipr(PseudoNetCDFFile):
     	if proc_spc=='TFLAG':
     	    time=self.variables['TIME_%s'  % self.spcnames[0][1].strip()]
     	    date=self.variables['DATE_%s'  % self.spcnames[0][1].strip()]
-    	    self.variables['TFLAG']=PseudoNetCDFVariable(self,'proc_spc','i',('TSTEP','VAR','DATE-TIME'),ConvertCAMxTime(date[:,0,0,0],time[:,0,0,0],self.dimensions['VAR']))
+    	    self.variables['TFLAG']=PseudoNetCDFVariable(self,'proc_spc','i',('TSTEP','VAR','DATE-TIME'),values=ConvertCAMxTime(date[:,0,0,0],time[:,0,0,0],self.dimensions['VAR']))
     	    return self.variables['TFLAG']
         for k in self.__invariables:
             try:
@@ -125,7 +125,7 @@ class ipr(PseudoNetCDFFile):
                 spcprocs=self.__readalltime(spc)
                 for p,plong in self.proc_dict.iteritems():
                     var_name=p+'_'+spc
-                    tmpv=PseudoNetCDFVariable(self,var_name,'f',('TSTEP','LAY','ROW','COL'),spcprocs[p])
+                    tmpv=PseudoNetCDFVariable(self,var_name,'f',('TSTEP','LAY','ROW','COL'),values=spcprocs[p])
                     self.__invariables.append(var_name)
                     tmpv.units='umol/hr'
                     tmpv.var_desc=(var_name).ljust(16)

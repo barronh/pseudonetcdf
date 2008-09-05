@@ -381,7 +381,7 @@ class uamiv_new(PseudoNetCDFFile):
         vals=vals.reshape(self.NSTEPS,self.NLAYS,self.__time_spc_layer_slice)
         vals=vals[:,:,12:-1]
         vals=vals.reshape(self.NSTEPS,self.NLAYS,self.NROWS,self.NCOLS)
-        vals=PseudoNetCDFVariable(self,spc,'f',('TSTEP','LAY','ROW','COL'),vals)
+        vals=PseudoNetCDFVariable(self,spc,'f',('TSTEP','LAY','ROW','COL'),values=vals)
         vals.units={'AVERAGE   ':'ppm','AIRQUALITY':'ppm','EMISSIONS ':'mol'}[self.NAME].ljust(16)
         vals.long_name=vals.var_desc=spc.ljust(16)
         return vals

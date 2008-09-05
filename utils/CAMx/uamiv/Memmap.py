@@ -156,7 +156,7 @@ class uamiv(PseudoNetCDFFile):
 		spc_index=self.__var_names__.index(k)
 		dimensions=('TSTEP','LAY','ROW','COL')
 		outvals=self.__memmap__[:,spc_index,:,:,:]
-		return self.__decorator(k,PseudoNetCDFVariable(self,k,'f',dimensions,outvals))
+		return self.__decorator(k,PseudoNetCDFVariable(self,k,'f',dimensions,values=outvals))
 
 class TestMemmap(unittest.TestCase):
     def runTest(self):

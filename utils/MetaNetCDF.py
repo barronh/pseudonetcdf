@@ -68,7 +68,7 @@ class time_avg_new_unit(PseudoNetCDFFile):
 		var=self.__file.variables[k]
 		if outunit==None:
 			outunit=var.units
-		return PseudoNetCDFVariableConvertUnit(self.__decorator(var,PseudoNetCDFVariable(self,k,var.typecode(),var.dimensions,CenterTime(var))),outunit)
+		return PseudoNetCDFVariableConvertUnit(self.__decorator(var,PseudoNetCDFVariable(self,k,var.typecode(),var.dimensions,values=CenterTime(var))),outunit)
 	
 	def __decorator(self,ovar,nvar):
 		for a,v in ovar.__dict__.iteritems():
@@ -186,7 +186,7 @@ class MetaNetCDF(PseudoNetCDFFile):
 			if k in f.variables.keys():
 				v=f.variables[k]
 				if k=='TFLAG':
-					v=PseudoNetCDFVariable(self,'TFLAG','i',v.dimensions,v[:,[0],:].repeat(self.dimensions['VAR'],1))
+					v=PseudoNetCDFVariable(self,'TFLAG','i',v.dimensions,values=array(v)[:,[0],:].repeat(self.dimensions['VAR'],1))
 					v.long_name='TFLAG'.ljust(16)
 					v.var_desc='TFLAG'.ljust(16)
 					v.units='DATE-TIME'

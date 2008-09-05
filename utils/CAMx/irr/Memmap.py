@@ -69,7 +69,7 @@ class irr(PseudoNetCDFFile):
     def __variables(self,rxn):
     	if rxn=='TFLAG':
     		return ConvertCAMxTime(self.__memmaps[:,0,0,0]['DATE'],self.__memmaps[:,0,0,0]['TIME'],self.dimensions['VAR'])
-        return self.__decorator(rxn,PseudoNetCDFVariable(self,rxn,'f',('TSTEP','LAY','ROW','COL'),self.__memmaps[:,:,:,:][rxn]))
+        return self.__decorator(rxn,PseudoNetCDFVariable(self,rxn,'f',('TSTEP','LAY','ROW','COL'),values=self.__memmaps[:,:,:,:][rxn]))
 
     def __readheader(self):
         """

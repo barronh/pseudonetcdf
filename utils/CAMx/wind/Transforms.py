@@ -45,7 +45,7 @@ class wind_center_time_cell(PseudoNetCDFFile):
                 preproc=CenterTime
                 
             var=self.__windfile.variables[k]
-            v=PseudoNetCDFVariable(self,k,'f',('TSTEP','LAY','ROW','COL'),preproc(var))
+            v=PseudoNetCDFVariable(self,k,'f',('TSTEP','LAY','ROW','COL'),values=preproc(var))
             v.units=var.units
             v.long_name=k.ljust(16)
             v.var_desc=(k+' at center').ljust(16)

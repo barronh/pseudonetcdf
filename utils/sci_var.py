@@ -41,7 +41,7 @@ def PseudoNetCDFVariableConvertUnit(var,outunit):
     shape=var.shape
     for i,d in enumerate(var.dimensions):
         do.dimensions[d]=shape[i]
-    outvar=PseudoNetCDFVariable(do,var.long_name.strip(),var.typecode(),var.dimensions,convert(var,var.units,outunit))
+    outvar=PseudoNetCDFVariable(do,var.long_name.strip(),var.typecode(),var.dimensions,values=convert(var,var.units,outunit))
     for k,v in var.__dict__.iteritems():
         setattr(outvar,k,v)
     outvar.units=outunit
@@ -85,7 +85,7 @@ class PseudoNetCDFVariable(ndarray):
     but unlike that type, provides a contructor for variables that could be used
     without adding it to the parent file
     """
-    def __new__(subtype,parent,name,typecode,dimensions,values=None,units=None):
+    def __new__(subtype,parent,name,typecode,dimensions,**kwds):
         """
         Creates a variable using the dimensions as defined in
         the parent object
@@ -95,23 +95,29 @@ class PseudoNetCDFVariable(ndarray):
         typecode: numpy style typecode
         dimensions: a typle of dimension names to be used from
                     parrent
+        kwds: Dictionary of keywords to be added as properties
+              to the variable.  **The keyword 'values' is a special 
+              case that will be used as the starting values of 
+              the array
+              
         """
         shape=[]
         for d in dimensions:
           shape.append(parent.dimensions[d])
         
-        if values==None:
-            result=zeros(shape,typecode).view(subtype)
+        if 'values' in kwds.keys():
+            result=kwds.pop('values')
         else:
-            result=values.view(subtype)
-
+            result=zeros(shape,typecode)
+        
+        result=result.view(subtype)
+        
         result.__dict__={
             'typecode': lambda: typecode,
-            'dimensions': tuple(dimensions),
-            'units': units,
-            'long_name': name,
-            'var_desc': name
+            'dimensions': tuple(dimensions)
           }
+        for k,v in kwds.iteritems():
+            setattr(result,k,v)
         return result
 
     def getValue(self):
@@ -139,26 +145,59 @@ class PseudoIOAPIVariable(PseudoNetCDFVariable):
                     parrent
         """
         self.__dict__.update({
-            'units': units,
-            'long_name': name,
-            'var_desc': name
+            'long_name': name.ljust(16),
+            'var_desc': name.ljust(16)
           })
 
 class PseudoNetCDFVariables(defaultdict):
+    """
+    PseudoNetCDFVariables provides a special implementation
+    of the default dictionary that provides efficient access 
+    to variables of a PseudoNetCDFFile.  PseudoNetCDFFiles may
+    have large variables that should only be loaded if accessed.
+    PseudoNetCDFVariables allows a user to specify a function
+    that can create variables on demand.
+    """
     def __init__(self,func,keys):
+        """
+        func: Function that takes a key and provides a 
+              PseudoNetCDFVariable
+        keys: list of keys that the dictionary should
+              act as if it has
+        """
         self.__func=func
         self.__keys=keys
     def __missing__(self,k):
+        """
+        If the dictionary does not have a key, check if the
+        user has provided that key.  If so, call the user 
+        specifie function to create the variable.
+        """
         if k in self.keys():
             return self.__func(k)
         else:
             raise KeyError, "missing %s" % (k,)
 
     def addkey(self,k):
+        """
+        Allow the user to extend keys after the object
+        has been created.
+        """
         self.__keys.append(k)
 
     def keys(self):
         return self.__keys
+    
+    def has_key(self,k):
+        return k in self.keys()
+    
+    def iteritems(self):
+        for k in self.keys():
+            yield k,self[k]
+    
+    def iterkeys(self):
+        for k in self.keys():
+            yield k
 
 class Pseudo2NetCDF:
     """
@@ -273,7 +312,7 @@ class PseudoNetCDFTest(unittest.TestCase):
         tncf.createDimension('ROW',5)
         tncf.createDimension('COL',6)
 
-        const=lambda *args,**kwds: PseudoNetCDFVariable(tncf,args[0],'f',('TIME','LAY','ROW','COL'),arange(24*4*5*6).reshape((24,4,5,6)))
+        const=lambda *args,**kwds: PseudoNetCDFVariable(tncf,args[0],'f',('TIME','LAY','ROW','COL'),values=arange(24*4*5*6).reshape((24,4,5,6)))
         tncf.variables=PseudoNetCDFVariables(const,['NO','O3'])
         self.assert_((tncf.variables['O3'].getValue()==arange(24*4*5*6).reshape(24,4,5,6)).all())
         

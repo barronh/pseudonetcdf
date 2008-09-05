@@ -153,7 +153,7 @@ class point_source(PseudoNetCDFFile):
         
         self.variables['TFLAG']=ConvertCAMxTime(bdates,btimes,self.dimensions['VAR'])
         self.variables['ETFLAG']=ConvertCAMxTime(edates,etimes,self.dimensions['VAR'])
-        v=self.variables['NSTKS']=PseudoNetCDFVariable(self,'NSTKS','i',('TSTEP',),array(nstk_hdr))
+        v=self.variables['NSTKS']=PseudoNetCDFVariable(self,'NSTKS','i',('TSTEP',),values=array(nstk_hdr))
         v.units='#'.ljust(16)
         v.long_name='NSTKS'.ljust(16)
         v.var_desc=v.long_name
@@ -162,7 +162,7 @@ class point_source(PseudoNetCDFFile):
         if k in ['TFLAG','ETFLAG','NSTKS']:
             return self.variables[k]
         elif k in ['XSTK','YSTK','HSTK','DSTK','TSTK','VSTK']:
-            v=PseudoNetCDFVariable(self,k,'f',('NSTK',),self.__stk_props[k])
+            v=PseudoNetCDFVariable(self,k,'f',('NSTK',),values=self.__stk_props[k])
             v.units={'XSTK':'m','YSTK':'m','HSTK':'m','DSTK':'m','TSTK':'K','VSTK':'m/h'}[k]
             v.long_name=k.ljust(16)
             v.var_desc=k.ljust(16)
@@ -176,7 +176,7 @@ class point_source(PseudoNetCDFFile):
             v.assignValue(self.__hourly_stk_props[:,:,['',' ','KCELL','FLOW','PLMHT'].index(k)])
             return v
         elif k in self.__spc_names:
-            v=PseudoNetCDFVariable(self,k,'f',('TSTEP','NSTK'),self.__emiss_data[:,self.__getspcidx(k),:])
+            v=PseudoNetCDFVariable(self,k,'f',('TSTEP','NSTK'),values=self.__emiss_data[:,self.__getspcidx(k),:])
             v.units='mole/hr'.ljust(16)
             v.long_name=k.ljust(16)
             v.var_desc=k.ljust(16)

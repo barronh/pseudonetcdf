@@ -11,7 +11,7 @@ from pyPA.utils.sci_var import PseudoNetCDFFile, \
                     PseudoIOAPIVariable, \
                     PseudoNetCDFVariables, \
                     PseudoNetCDFVariableConvertUnit
-
+ncf=NetCDFFile
 #==================================================================
 #                                                             time_avg_new_unit 
 class time_avg_new_unit(PseudoNetCDFFile):
@@ -38,7 +38,7 @@ class time_avg_new_unit(PseudoNetCDFFile):
         var=self.__file.variables[k]
         if outunit==None:
             outunit=var.units
-        return PseudoNetCDFVariableConvertUnit(self.__decorator(var,PseudoNetCDFVariable(self,k,var.typecode(),var.dimensions,CenterTime(var))),outunit)
+        return PseudoNetCDFVariableConvertUnit(self.__decorator(var,PseudoNetCDFVariable(self,k,var.typecode(),var.dimensions,values=CenterTime(var))),outunit)
     
     def __decorator(self,ovar,nvar):
         for a,v in ovar.__dict__.iteritems():
@@ -80,7 +80,7 @@ class wind_center_time_cell(PseudoNetCDFFile):
         for k in ['UWIND','VWIND']:
             preproc=CenterCMAQWind   
             var=self.__windfile.variables[k]
-            v=PseudoNetCDFVariable(self,k,'f',('TSTEP','LAY','ROW','COL'),preproc(var))
+            v=PseudoNetCDFVariable(self,k,'f',('TSTEP','LAY','ROW','COL'),values=preproc(var))
             v.units=var.units
             v.long_name=k.ljust(16)
             v.var_desc=(k+' at center').ljust(16)
@@ -113,7 +113,7 @@ class MetaMetPlusAirMols(add_derived):
         P=array(self.variables['PRES'])*100. #PA
         
         R=8.314472 #m**3 x Pa x K**-1 x mol**-1
-        airmols=PseudoNetCDFVariable(self,'AIRMOLS','f',('TSTEP','LAY','ROW','COL'),P*V/R/T)
+        airmols=PseudoNetCDFVariable(self,'AIRMOLS','f',('TSTEP','LAY','ROW','COL'),values=P*V/R/T)
         airmols.units='moles'
         airmols.long_name='AIRMOLS'.ljust(16)
         airmols.var_desc='AIRMOLS'.ljust(16)
@@ -140,21 +140,23 @@ def cmaq_pa_master(paths_and_readers,tslice=slice(None),kslice=slice(None),jslic
 	"""
 	files=[]
 	for p,r in paths_and_readers:
-		files.append(r(p))
+		files.append(eval(r)(p))
 	master_file=file_master(files)
 	def InitLambda(x,tslice,kslice,jslice,islice):
-		return lambda self: PseudoIOAPIVariable(self,x,'f',('TSTEP','LAY','ROW','COL'),self.variables[x][:-1,:,:,:][tslice,kslice,jslice,islice],units=self.variabes[x].units)
+		return lambda self: PseudoIOAPIVariable(self,x,'f',('TSTEP','LAY','ROW','COL'),values=self.variables[x][:-1,:,:,:][tslice,kslice,jslice,islice],units=self.variables[x].units)
 	def FinalLambda(x,tslice,kslice,jslice,islice):
-		return lambda self: PseudoIOAPIVariable(self,x,'f',('TSTEP','LAY','ROW','COL'),self.variables[x][1:,:,:,:][tslice,kslice,jslice,islice],units=self.variabes[x].units)
+		return lambda self: PseudoIOAPIVariable(self,x,'f',('TSTEP','LAY','ROW','COL'),values=self.variables[x][1:,:,:,:][tslice,kslice,jslice,islice],units=self.variables[x].units)
+	def MetLambda(x,tslice,kslice,jslice,islice):
+		return lambda self: PseudoIOAPIVariable(self,x,'f',('TSTEP','LAY','ROW','COL'),values=CenterTime(self.variables[x])[tslice,kslice,jslice,islice],units=self.variables[x].units)
 	for k in master_file.variables.keys():
 		if '_' not in k and k!='TFLAG':
 			master_file.addMetaVariable('INIT_'+k,InitLambda(k,tslice,kslice,jslice,islice))
 			master_file.addMetaVariable('FCONC_'+k,FinalLambda(k,tslice,kslice,jslice,islice))
 			master_file.addMetaVariable('INITIAL_'+k,InitLambda(k,tslice,kslice,jslice,islice))
 			master_file.addMetaVariable('FINAL_'+k,FinalLambda(k,tslice,kslice,jslice,islice))
-	master_file.addMetaVariable('CONC_AIRMOLS',lambda self: PseudoIOAPIVariable(self,'CONC_AIRMOLS','f',('TSTEP','LAY','ROW','COL'),CenterTime(self.variables['PRES'][:,:,:,:]/8.314472/self.variables['TA']),units='moles/m**3'))
-	master_file.addMetaVariable('AIRMOLS',lambda self: PseudoIOAPIVariable(self,'AIRMOLS','f',('TSTEP','LAY','ROW','COL'),self.variables['CONC_AIRMOLS']*self.XCELL*self.YCELL*2*CenterTime(self.variables['ZF'][:,:,:,:]-self.variables['ZH'][:,:,:,:]),units='moles'))
-	master_file.addMetaVariable('INVAIRMOLS',lambda self: PseudoIOAPIVariable(self,'INVAIRMOLS','f',('TSTEP','LAY','ROW','COL'),1/self.variables['AIRMOLS'][:,:,:,:],units='moles'))
-	master_file.addMetaVariable('DEFAULT_SHAPE',lambda self: PseudoIOAPIVariable(self,'DEFAULT_SHAPE','f',('TSTEP','LAY','ROW','COL'),ones(self.variables['PRES'].shape,'bool'),units='on/off'))
+	master_file.addMetaVariable('CONC_AIRMOLS',lambda self: PseudoIOAPIVariable(self,'CONC_AIRMOLS','f',('TSTEP','LAY','ROW','COL'),values=CenterTime(self.variables['PRES'][:,:,:,:]/8.314472/self.variables['TA'])[tslice,kslice,jslice,islice],units='moles/m**3'))
+	master_file.addMetaVariable('AIRMOLS',lambda self: PseudoIOAPIVariable(self,'AIRMOLS','f',('TSTEP','LAY','ROW','COL'),values=self.variables['CONC_AIRMOLS']*self.XCELL*self.YCELL*2*CenterTime(self.variables['ZF'][:,:,:,:]-self.variables['ZH'][:,:,:,:])[tslice,kslice,jslice,islice],units='moles'))
+	master_file.addMetaVariable('INVAIRMOLS',lambda self: PseudoIOAPIVariable(self,'INVAIRMOLS','f',('TSTEP','LAY','ROW','COL'),values=1/self.variables['AIRMOLS'][:,:,:,:],units='moles'))
+	master_file.addMetaVariable('DEFAULT_SHAPE',lambda self: PseudoIOAPIVariable(self,'DEFAULT_SHAPE','f',('TSTEP','LAY','ROW','COL'),values=ones(self.variables['PRES'][tslice,kslice,jslice,islice].shape,'bool'),units='on/off'))
 	
 	return master_file

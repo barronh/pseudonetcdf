@@ -60,7 +60,7 @@ class cloud_rain(PseudoNetCDFFile):
         lays=self.dimensions['LAY']
         rows=self.dimensions['ROW']
         cols=self.dimensions['COL']
-        v=PseudoNetCDFVariable(self,key,'f',('TSTEP','LAY','ROW','COL'),self.__memmap[vals_idx].reshape(times,lays,rows,cols))
+        v=PseudoNetCDFVariable(self,key,'f',('TSTEP','LAY','ROW','COL'),values=self.__memmap[vals_idx].reshape(times,lays,rows,cols))
         v.units={'COD':'None'}.get(key,'g/m**3')
         v.long_name=key
         v.var_desc=key

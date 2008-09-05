@@ -101,7 +101,7 @@ class ipr(PseudoNetCDFFile):
         if proc_spc in self.__ipr_record_type.names:
         	proc=proc_spc
         	proc_spc=proc_spc+'_'+self.spcnames[0]
-        	return PseudoNetCDFVariable(self,proc_spc,'f',('TSTEP','LAY','ROW','COL'),self.__memmaps[:,0,:,:,:][proc])
+        	return PseudoNetCDFVariable(self,proc_spc,'f',('TSTEP','LAY','ROW','COL'),values=self.__memmaps[:,0,:,:,:][proc])
         if proc_spc=='TFLAG':
             return ConvertCAMxTime(self.variables['DATE'][:,0,0,0],self.variables['TIME'][:,0,0,0],self.dimensions['VAR'])
         for k in self.__ipr_record_type.names:
@@ -109,7 +109,7 @@ class ipr(PseudoNetCDFFile):
             spc=proc_spc[len(k)+1:]
             if proc==k and spc in self.spcnames:
                 spc=self.spcnames.index(spc)
-                return self.__decorator(proc_spc,PseudoNetCDFVariable(self,proc_spc,'f',('TSTEP','LAY','ROW','COL'),self.__memmaps[:,spc,:,:,:][proc]))
+                return self.__decorator(proc_spc,PseudoNetCDFVariable(self,proc_spc,'f',('TSTEP','LAY','ROW','COL'),values=self.__memmaps[:,spc,:,:,:][proc]))
         raise KeyError, "Bad!"
                 
                 

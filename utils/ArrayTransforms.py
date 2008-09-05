@@ -83,7 +83,7 @@ def ConvertCAMxTime(date,time,nvars):
 	while time.max()<10000:
 		time*=100
 	
-	a=PseudoNetCDFVariable(f,'TFLAG','i',('TSTEP','VAR','DATE-TIME'),a[:,[0],:].repeat(nvars,1))
+	a=PseudoNetCDFVariable(f,'TFLAG','i',('TSTEP','VAR','DATE-TIME'),values=a[:,[0],:].repeat(nvars,1))
 	a.units='DATE-TIME'.ljust(16)
 	a.long_name='TFLAG'.ljust(16)
 	a.var_desc=a.long_name
