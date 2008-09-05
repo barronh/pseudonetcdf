@@ -119,7 +119,8 @@ class TestMemmap(unittest.TestCase):
         pass
                
     def testCR(self):
-        crfile=cloud_rain('../../../../testdata/met/camx_cr.20000825.hgbpa_04km.TCEQuh1_eta.v43',65,83)
+        import pyPA.testcase
+        crfile=cloud_rain(pyPA.testcase.CAMxCloudRain,65,83)
         crfile.variables['TFLAG']
         self.assert_((crfile.variables['CLOUD'].mean(0).mean(1).mean(1)==array([  1.19793136e-02,   0.00000000e+00,   0.00000000e+00,
          7.77061632e-06,   6.17987826e-05,   1.97532892e-04,

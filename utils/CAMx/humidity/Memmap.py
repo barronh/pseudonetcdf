@@ -35,7 +35,8 @@ class TestMemmap(unittest.TestCase):
         pass
 
     def testHUM(self):
-        humfile=humidity('../../../../testdata/met/camx_hum.20000825.hgbpa_04km.TCEQuh1_eta.v43',65,83)
+        import pyPA.testcase
+        humfile=humidity(pyPA.testcase.CAMxHumidity,65,83)
         humfile.variables['TFLAG']
         self.assert_((humfile.variables['HUM'].mean(0).mean(1).mean(1)==array([ 28327.7109375 ,  28029.41601562,  27792.1484375 ,  27532.6171875 ,
          27164.37109375,  26810.52929688,  26387.734375  ,  25897.83984375,

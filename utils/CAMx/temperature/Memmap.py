@@ -105,7 +105,8 @@ class TestMemmap(unittest.TestCase):
         pass
 
     def testTEMP(self):
-        tempfile=temperature('../../../../testdata/met/camx_temp.20000825.hgbpa_04km.TCEQuh1_eta.v43',65,83)
+        import pyPA.testcase
+        tempfile=temperature(pyPA.testcase.CAMxTemperature,65,83)
         tempfile.variables['TFLAG']
         self.assert_((tempfile.variables['AIRTEMP'].mean(0).mean(1).mean(1)==array([300.78424072265625, 
                300.6566162109375, 300.28036499023438, 299.61105346679688, 298.90249633789062, 

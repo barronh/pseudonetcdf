@@ -94,7 +94,8 @@ class TestMemmap(unittest.TestCase):
         pass
         
     def testKV(self):
-        vdfile=one3d('../../../../testdata/met/camx_kv.20000825.hgbpa_04km.TCEQuh1_eta.v43.tke',65,83)
+        import pyPA.testcase
+        vdfile=one3d(pyPA.testcase.CAMxVerticalDiffusivity,65,83)
         vdfile.variables['TFLAG']
         self.assert_((vdfile.variables['UNKNOWN'].mean(0).mean(1).mean(1)==array([  13.65080357,   34.39198303,   68.02783966,   95.5898819 ,
           109.25765991,  112.92014313,  108.32209778,   97.25794983,

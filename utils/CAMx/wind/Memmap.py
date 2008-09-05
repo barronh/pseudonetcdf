@@ -116,7 +116,8 @@ class TestMemmap(unittest.TestCase):
         pass
 
     def testWD(self):
-        wdfile=wind('../../../../testdata/met/camx_wind.20000825.hgbpa_04km.TCEQuh1_eta.v43',65,83)
+        import pyPA.testcase
+        wdfile=wind(pyPA.testcase.CAMxWind,65,83)
         wdfile.variables['TFLAG']
         self.assert_((wdfile.variables['V'].mean(0).mean(1).mean(1)==array([ 1.11006343,  1.55036175,  2.00059319,  2.1433928 ,  2.22216082,
         2.32335973,  2.35524583,  2.35921693,  2.33058643,  2.28071952,
@@ -125,6 +126,6 @@ class TestMemmap(unittest.TestCase):
         0.8800422 ,  1.38759625,  1.08145201, -0.32430261, -2.38370752,
        -4.76881075, -7.09392786, -5.76552343],dtype='f')).all())
        
-               
+TestSuite=unittest.makeSuite(TestMemmap,'test')               
 if __name__ == '__main__':
     unittest.main()

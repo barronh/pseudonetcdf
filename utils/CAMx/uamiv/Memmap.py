@@ -158,18 +158,14 @@ class uamiv(PseudoNetCDFFile):
 		outvals=self.__memmap__[:,spc_index,:,:,:]
 		return self.__decorator(k,PseudoNetCDFVariable(self,k,'f',dimensions,outvals))
 
-class TestuamivMemmap(unittest.TestCase):
+class TestMemmap(unittest.TestCase):
     def runTest(self):
         pass
     def setUp(self):
         pass
-    def testAVG(self):
-        #emissfile=uamiv('../../../../testdata/camxoutput/camx420_cb4.20000816.hgb8h.base1b.psito2n2.TCEQuh1_eta_tke.avrg')
-        #t=emissfile.variables['TFLAG']
-        pass
-    
     def testGE(self):
-        emissfile=uamiv('../../../../testdata/ei/camx_cb4_ei_lo.20000825.hgb8h.base1b.psito2n2.hgbpa_04km')
+        import pyPA.testcase
+        emissfile=uamiv(pyPA.testcase.CAMxAreaEmissions)
         emissfile.variables['TFLAG']
         v=emissfile.variables['NO']
         self.assert_((emissfile.variables['NO'].mean(1).mean(1).mean(1)==array([  52.05988312,   51.58646774,   51.28796387,   55.63090134,
@@ -178,6 +174,22 @@ class TestuamivMemmap(unittest.TestCase):
          174.36567688,  180.03359985,  173.81938171,  180.50257874,
          178.56637573,  161.35736084,  110.38669586,   97.90225983,
          89.08138275,   81.10474396,   73.36611938,   58.82622528],dtype='f')).all())
+
+    def testAvg(self):
+        import pyPA.testcase
+        emissfile=uamiv(pyPA.testcase.CAMxAverage)
+        emissfile.variables['TFLAG']
+        v=emissfile.variables['NO']
+        self.assert_((v.mean(1).mean(1).mean(1)==array([  9.44490694e-06,   2.17493564e-07,   6.08432686e-07,   9.48155161e-07,
+         1.15099192e-05,   1.02132122e-04,   2.57815613e-04,   3.35910037e-04,
+         3.17813188e-04,   2.51695659e-04,   1.85225872e-04,   1.40698961e-04,
+         1.16110547e-04,   1.04519037e-04,   1.00367179e-04,   9.81789271e-05,
+         8.98482831e-05,   6.31201983e-05,   2.18762198e-05,   1.78832056e-06,
+         1.20556749e-07,   1.57714638e-07,   1.82648236e-07,   2.02759026e-07],dtype='f')).all())
+
+    def testInst(self):
+        from warnings import warn
+        warn("Instantaneous file test not implemented")
        
 if __name__ == '__main__':
     unittest.main()

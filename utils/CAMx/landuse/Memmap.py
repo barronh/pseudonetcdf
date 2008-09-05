@@ -56,8 +56,8 @@ class TestMemmap(unittest.TestCase):
         pass
                
     def testLU(self):
-        
-        lufile=landuse('../../../../testdata/met/camx_landuse.hgbpa_04km',65,83)
+        import pyPA.testcase
+        lufile=landuse(pyPA.testcase.CAMxLandUse,65,83)
         self.assert_((lufile.variables['FLAND'].mean(1).mean(1)==array([ 0.02158891223, 0.07436342537, 0.01858459227, 0.0509638451 , 0.08883236349, 0.17303463817, 0.33603012562, 0.00156044273, 0.05768220499, 0.1666303575 , 0.01072917785],dtype='f')).all())
 
 if __name__ == '__main__':

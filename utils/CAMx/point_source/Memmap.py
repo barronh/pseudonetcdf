@@ -184,22 +184,22 @@ class point_source(PseudoNetCDFFile):
         else:
             raise KeyError, "Unknown key %s" % k
 
-class TestRead(unittest.TestCase):
+class TestMemmap(unittest.TestCase):
     def runTest(self):
         pass
     def setUp(self):
         pass
         
     def testPT(self):
-        emissfile=point_source('../../../../testdata/ei/camx_cb4_ei_el.20000825.hgb8h.base1b.psito2n2')
+        import pyPA.testcase
+        emissfile=point_source(pyPA.testcase.CAMxPointSource)
+        warn("Check for 'reasonability'; test not complete")
         for k in emissfile.variables.keys():
             v=emissfile.variables[k]
             if k in ['TFLAG','ETFLAG']:
                 print k,v[[0,-1],0,:]
             else:
                 print k,v.min(),v.mean(),v.max()
-        import pdb; pdb.set_trace()
-        self.assert_(1==2)
 
 if __name__ == '__main__':
     unittest.main()

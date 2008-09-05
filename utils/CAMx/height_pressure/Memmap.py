@@ -106,7 +106,8 @@ class TestMemmap(unittest.TestCase):
         pass
 
     def testHP(self):
-        hpfile=height_pressure('../../../../testdata/met/camx_zp.20000825.hgbpa_04km.TCEQuh1_eta.v43',65,83)
+        import pyPA.testcase
+        hpfile=height_pressure(pyPA.testcase.CAMxHeightPressure,65,83)
         hpfile.variables['TFLAG']
         self.assert_((hpfile.variables['HGHT'].mean(0).mean(1).mean(1)==array([    33.890625  ,     84.93463135,    170.56620789,    256.90753174,
           343.97067261,    431.7701416 ,    520.31616211,    609.62701416,
