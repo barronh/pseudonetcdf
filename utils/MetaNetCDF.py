@@ -143,9 +143,13 @@ class newresolution(PseudoNetCDFFile):
 			v=self.__method(ov)
 			Pseudo2NetCDF().addVariableProperties(ov,v)
 			return v
-		
-		
-class file_master(PseudoNetCDFFile):
+				
+class MetaNetCDF(PseudoNetCDFFile):
+	__metavars__={}
+	def addMetaVariable(self,key,func):
+		self.variables.addkey(key)
+		self.__metavars__[key]=func
+
 	def __init__(self,files):
 		self.__files=files
 		self.dimensions={}
@@ -174,7 +178,10 @@ class file_master(PseudoNetCDFFile):
 				except:
 					pass
 			raise AttributeError, "%s not found" % k
+
 	def __variables(self,k):
+		if k in self.__metavars__.keys():
+			return self.__metavars__[k](self)
 		for f in self.__files:
 			if k in f.variables.keys():
 				v=f.variables[k]
@@ -185,8 +192,9 @@ class file_master(PseudoNetCDFFile):
 					v.units='DATE-TIME'
 					
 				if v.shape[1]==1 and k=='LAY' and k in self.dimensions.keys():
-					dims=v.dimensions
+					dims=list(v.dimensions)
 					dims[1]='SURFLAY'
-					v.dimensions=dims
+					v.dimensions=tuple(dims)
 				return v
 		raise KeyError,'%s not in any files' % k
+file_master=MetaNetCDF
