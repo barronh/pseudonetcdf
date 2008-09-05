@@ -338,6 +338,8 @@ class TestFileUtils(unittest.TestCase):
         self.assertEquals(self.tmprf.tell(),204)
         self.failIf(self.tmprf.next())
         self.tmprf.previous()
+        self.assertEquals(self.tmprf.tell(),180)
+        self.tmprf.previous()
         self.assertEquals(self.tmprf.tell(),92)
         self.tmprf.previous()
         self.assertEquals(self.tmprf.tell(),4)
@@ -356,7 +358,7 @@ class TestFileUtils(unittest.TestCase):
         self.tmprf._newrecord(0)
 
         #Necessary because written to anticipate fortran swapping of axes
-        read_into(self.tmprf,dest.swapaxes(0,1),'','f')
+        read_into(self.tmprf,dest,'','f')
         self.assert_((arange(20,dtype='f').reshape((4,5))==dest).all())
     
     def testInt(self):

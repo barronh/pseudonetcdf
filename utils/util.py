@@ -196,6 +196,7 @@ import unittest
 
 class CompareTime(unittest.TestCase):
     def testCompare(self):
+        from timetuple import cmp_time
         assert cmp_time((1.0, 2), (2.0,2)) < 0
         assert cmp_time((2.0, 2), (2.0,2)) == 0
         assert cmp_time((3.0, 2), (2.0,3)) < 0
