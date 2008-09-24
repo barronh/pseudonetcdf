@@ -138,6 +138,7 @@ def cmaq_pa_master(paths_and_readers,tslice=slice(None),kslice=slice(None),jslic
 	   islice -  - same as tslice, but for columns
 			  
 	"""
+	from pyPA.pappt.kvextract import tops2shape,pblhghts2tops
 	files=[]
 	for p,r in paths_and_readers:
 		files.append(eval(r)(p))
@@ -157,6 +158,6 @@ def cmaq_pa_master(paths_and_readers,tslice=slice(None),kslice=slice(None),jslic
 	master_file.addMetaVariable('CONC_AIRMOLS',lambda self: PseudoIOAPIVariable(self,'CONC_AIRMOLS','f',('TSTEP','LAY','ROW','COL'),values=CenterTime(self.variables['PRES'][:,:,:,:]/8.314472/self.variables['TA'])[tslice,kslice,jslice,islice],units='moles/m**3'))
 	master_file.addMetaVariable('AIRMOLS',lambda self: PseudoIOAPIVariable(self,'AIRMOLS','f',('TSTEP','LAY','ROW','COL'),values=self.variables['CONC_AIRMOLS']*self.XCELL*self.YCELL*2*CenterTime(self.variables['ZF'][:,:,:,:]-self.variables['ZH'][:,:,:,:])[tslice,kslice,jslice,islice],units='moles'))
 	master_file.addMetaVariable('INVAIRMOLS',lambda self: PseudoIOAPIVariable(self,'INVAIRMOLS','f',('TSTEP','LAY','ROW','COL'),values=1/self.variables['AIRMOLS'][:,:,:,:],units='moles'))
-	master_file.addMetaVariable('DEFAULT_SHAPE',lambda self: PseudoIOAPIVariable(self,'DEFAULT_SHAPE','f',('TSTEP','LAY','ROW','COL'),values=ones(self.variables['PRES'][tslice,kslice,jslice,islice].shape,'bool'),units='on/off'))
+	master_file.addMetaVariable('DEFAULT_SHAPE',lambda self: PseudoIOAPIVariable(self,'DEFAULT_SHAPE','f',('TSTEP','LAY','ROW','COL'),values=tops2shape(pblhghts2tops(self.variables['PBL'],self.variables['ZF']),self.variables['ZF'].shape)[tslice,kslice,jslice,islice],units='on/off'))
 	
 	return master_file

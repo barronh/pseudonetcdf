@@ -176,7 +176,7 @@ class PseudoNetCDFVariables(defaultdict):
         if k in self.keys():
             return self.__func(k)
         else:
-            raise KeyError, "missing %s" % (k,)
+            raise KeyError, 'missing "%s"' % (k,)
 
     def addkey(self,k):
         """
