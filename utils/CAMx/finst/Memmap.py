@@ -5,6 +5,7 @@ ChangedBy  = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
 
 __all__=['uamiv']
+from warnings import warn
 #Distribution packages
 import unittest
 import struct
@@ -40,7 +41,7 @@ class finst(PseudoNetCDFFile):
 	__idum=0
 	__rdum=0.
 	__buffersize=4
-	def __init__(self,rf):
+	def __init__(self,rf,mode='r'):
 		"""
 		Initialization included reading the header and learning
 		about the format.
@@ -52,7 +53,7 @@ class finst(PseudoNetCDFFile):
 		# Establish dimensions
 		self.dimensions={'DATE-TIME': 2 }
 
-		self.__readheader()
+		self.__readheader(mode)
 		
 		# Add IOAPI metavariables
 		nlays=self.NLAYS=self.dimensions['LAY']
@@ -67,8 +68,8 @@ class finst(PseudoNetCDFFile):
 		self.variables=PseudoNetCDFVariables(self.__variables,self.__var_names__+['TFLAG'])
 
 		# Initialize time maps
-		date=self.__memmap__['DATE']
-		time=self.__memmap__['TIME']
+		date=self.__memmap__['DATE']['DATE']
+		time=self.__memmap__['DATE']['TIME']
 		self.variables['TFLAG']=ConvertCAMxTime(date,time,self.NVARS)
 		self.SDATE,self.STIME=self.variables['TFLAG'][0,0,:]
 		
@@ -80,7 +81,7 @@ class finst(PseudoNetCDFFile):
 		f.close()
 		return flen
 
-	def __readheader(self):
+	def __readheader(self,mode):
 		start=0
 		end=0
 		#start+=self.__buffersize
@@ -98,34 +99,31 @@ class finst(PseudoNetCDFFile):
 		del f
 		self.__var_names__=[i.strip() for i in self.SPECIES.tolist()]
 
-		self.__memmap__=memmap(self.__rffile,'>f','r',offset=offset)
-
-		start=0 #skip end and start buffer
-		end=start+self.__nestparmsfmt.itemsize/4*self.NNEST		
-		self.NEST_PARMS=self.__memmap__[start:end].view(self.__nestparmsfmt)
-
-		date_time_block_size=4
-		spc_1_lay_block_size=self.NEST_PARMS['nx']*self.NEST_PARMS['ny']+2
-		grid_block_sizes=(self.NSPEC*self.NEST_PARMS['nz']*spc_1_lay_block_size)
+		self.NEST_PARMS=memmap(self.__rffile,dtype=self.__nestparmsfmt,mode=mode,offset=offset,shape=self.NNEST)
+		
+		offset+=self.__nestparmsfmt.itemsize*self.NNEST
+		
+		date_fmt=dtype(dict(names=['SPAD','TIME','DATE','EPAD'],formats=['>i','>f','>i','>i']))
+		spc_1_lay_fmt=[]
+		for i in range(self.NNEST):
+			spc_1_lay_fmt.append( dtype( dict( names = ['SPAD', 'DATA', 'EPAD'], formats = ['>i', '(%d,%d)>f' % (self.NEST_PARMS[i]['ny'], self.NEST_PARMS[i]['nx']), '>i'] ) ) )
+		
 		grid_fmt=[]
 		for i in range(self.NNEST):
-			grid_fmt.append('>%df' % int(grid_block_sizes[i]))
-		data_block_size=date_time_block_size+grid_block_sizes.sum()
-
-		ntimes=float(self.__memmap__.size-end)/data_block_size
+			grid_fmt.append( dtype( dict( names=self.__var_names__, formats=[dtype( ( spc_1_lay_fmt[i], ( int(self.NEST_PARMS[i]['nz']), ) ) )]*self.NSPEC ) ) )
+		
+		
+		self.__memmap__=memmap(self.__rffile, mode=mode, offset=offset, dtype=dtype(dict(names=['DATE']+['grid%d' % i for i in range(self.NNEST)],formats=[date_fmt]+grid_fmt)))
+		
+		ntimes=self.__memmap__.shape[0]
 		if int(ntimes)!=ntimes:
 			raise ValueError, "Not an even number of times"
-		ntimes=int(ntimes)
 
 		self.createDimension('TSTEP',ntimes)
 		self.createDimension('VAR',self.NSPEC)
 		self.chooseGrid(0)
 		
-		start=end
-		end=start+ntimes*data_block_size
-		if end!=self.__memmap__.size:
-			raise ValueError, "Dimensions do not match file"
-		self.__memmap__=self.__memmap__[start:].view(dtype(dict(names=['SPAD','TIME','DATE','EPAD']+['grid%d' % i for i in range(self.NNEST)],formats=['>i','>f','>i','>i']+grid_fmt)))
+		
 		
 	def chooseGrid(self,ngrid):
 		self.createDimension('LAY',self.NEST_PARMS[ngrid]['nz'])
@@ -133,58 +131,44 @@ class finst(PseudoNetCDFFile):
 		self.createDimension('ROW',self.NEST_PARMS[ngrid]['ny'])
 		self.CURRENT_GRID='grid%d' % ngrid
 
-	def __decorator(self,name,pncfv):
-		if name=='EMISSIONS ':
-			decor=lambda spc: dict(units='umol/hr', var_desc=spc.ljust(16), long_name=spc.ljust(16))
-		else:
-			decor=lambda spc: dict(units='ppm', var_desc=spc.ljust(16), long_name=spc.ljust(16))
-
-		for k,v in decor(name).iteritems():
-			setattr(pncfv,k,v)
-		return pncfv
+	def sync(self):
+		pass
+	
+	def close(self):
+		self.sync()
+		self.__memmap__.close()
 		
 	def __variables(self,k):
-		spc_index=self.__var_names__.index(k)
 		dimensions=('TSTEP','LAY','ROW','COL')
 		ntimes=self.dimensions['TSTEP']
 		nx=self.dimensions['COL']
 		ny=self.dimensions['ROW']
 		nz=self.dimensions['LAY']
-		outvals=self.__memmap__[self.CURRENT_GRID].view('>f').reshape(ntimes,self.NSPEC,nz,ny*nx+2)[:,:,:,1:-1].reshape(ntimes,self.NSPEC,nz,ny,nx)[:,spc_index,:,:,:]
+		
+		outvals=self.__memmap__[self.CURRENT_GRID][k]['DATA'][:,:,:,:]
+
 		return PseudoNetCDFVariable(self,k,'f',dimensions,values=outvals,units='ppm')
 
 class TestMemmap(unittest.TestCase):
-    def runTest(self):
-        pass
-    def setUp(self):
-        pass
-    def testGE(self):
-        import pyPA.testcase
-        emissfile=uamiv(pyPA.testcase.CAMxAreaEmissions)
-        emissfile.variables['TFLAG']
-        v=emissfile.variables['NO']
-        self.assert_((emissfile.variables['NO'].mean(1).mean(1).mean(1)==array([  52.05988312,   51.58646774,   51.28796387,   55.63090134,
-         63.95315933,  105.3456192 ,  158.26776123,  152.04057312,
-         147.32403564,  154.80661011,  164.03274536,  171.88658142,
-         174.36567688,  180.03359985,  173.81938171,  180.50257874,
-         178.56637573,  161.35736084,  110.38669586,   97.90225983,
-         89.08138275,   81.10474396,   73.36611938,   58.82622528],dtype='f')).all())
+	def runTest(self):
+		pass
+	def setUp(self):
+		pass
 
-    def testAvg(self):
-        import pyPA.testcase
-        emissfile=uamiv(pyPA.testcase.CAMxAverage)
-        emissfile.variables['TFLAG']
-        v=emissfile.variables['NO']
-        self.assert_((v.mean(1).mean(1).mean(1)==array([  9.44490694e-06,   2.17493564e-07,   6.08432686e-07,   9.48155161e-07,
-         1.15099192e-05,   1.02132122e-04,   2.57815613e-04,   3.35910037e-04,
-         3.17813188e-04,   2.51695659e-04,   1.85225872e-04,   1.40698961e-04,
-         1.16110547e-04,   1.04519037e-04,   1.00367179e-04,   9.81789271e-05,
-         8.98482831e-05,   6.31201983e-05,   2.18762198e-05,   1.78832056e-06,
-         1.20556749e-07,   1.57714638e-07,   1.82648236e-07,   2.02759026e-07],dtype='f')).all())
-
-    def testInst(self):
-        from warnings import warn
-        warn("Instantaneous file test not implemented")
-       
+	def testFinst(self):
+		import pyPA.testcase
+		finstfile=finst(pyPA.testcase.CAMxFinst)
+		vars=[i for i in finstfile.variables.keys() if i!='TFLAG']
+		for var in vars:
+			v=finstfile.variables[var]
+			warn("Test case is not fully implemented.  Review values for 'reasonability.'")
+			datetime=finstfile.variables['TFLAG']
+			date=datetime[:,0,0]
+			time=datetime[:,0,1]
+			minv=v.min(1).min(1).min(1)
+			meanv=v.mean(1).mean(1).mean(1)
+			maxv=v.max(1).max(1).max(1)
+			for i,(d,t) in enumerate(datetime[:,0,:]):
+				print var,d,t,minv[i],meanv[i],maxv[i]
 if __name__ == '__main__':
-    unittest.main()
+	unittest.main()
