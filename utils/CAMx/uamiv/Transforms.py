@@ -1,74 +1,113 @@
 __all__=['osat']
-from numpy import array
-
+from numpy import array,zeros
+from warnings import warn
+import unittest
 from pyPA.utils.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoNetCDFVariable
 from pyPA.utils.CAMxFiles import uamiv
 
 class osat(PseudoNetCDFFile):
+	"""
+	OSAT provides a way of slicing and summing tagged species.
+	
+	sources - dictionary of name and id for CAMx source codes 
+	          (i.e. {'SOURCES1-5': '001','002','003','004','005'})
+	regions - dictionary of name and id for CAMx region codes  
+	          (i.e. {'REGIONS1-5': '001','002','003','004','005'})
+	
+	Example:
+		# Source and regions definitions
+		sources={'SOURCES1-5': '001','002','003','004','005'}
+		regions={'REGIONS1-5': '001','002','003','004','005'}
+		# File initiation
+		osatfile=osat('path',sources,regions)
+		# Variable (v) would return the sum of all O3V for all five 
+		# sources and all five regions
+		v=osatfile.variables['O3V_SOURCES1-5_REGIONS1-5'] 
+		
+	"""
 	__delim='_'
-	def __init__(self,rffile,groups,regions):
+	def __init__(self,rffile,sources={},regions={}):
 		self.__child=uamiv(rffile)
-		self.__groupsbyId=dict([('%03d' % (i+1),group) for i,group in enumerate(groups)])
-		self.__groupsbyId['000']='XXX'
-		self.__regionsbyId=dict([('%03d' % (i+1),region) for i,region in enumerate(regions)])
-		self.__regionsbyId['IC']='IC'
-		self.__regionsbyId['BC']='BC'
-		self.__regionsbyNm=dict([(v,k) for k,v in self.__regionsbyId.iteritems()])
-		self.__groupsbyNm=dict([(v,k) for k,v in self.__groupsbyId.iteritems()])
-		self.dimensions=self.__child.dimensions.copy()
-		spc_keys=[k for k in self.__child.variables.keys() if k[:3] in ['NOX','VOC','O3N','O3V']]
-		time_keys=[k for k in self.__child.variables.keys() if k[:1] in ['I','D']]
-		time_dim_keys=[(k[:1],k[1:6],k[6:]) for k in time_keys]
-		split_names=[(k[:3],self.__groupsbyId[k[3:6]],self.__regionsbyId[k[6:]]) for k in spc_keys]
-		named_keys=[self.__delim.join(k) for k in split_names]
-		group_keys=list(set([k[0]+self.__delim+k[1]+self.__delim for k in split_names]))
-		region_keys=list(set([k[0]+self.__delim*2+k[2] for k in split_names]))
+		
+		# Use Use all species based keys
+		self.__sourcesbyNm=dict([(k[3:6],k[3:6]) for k in self.__child.variables.keys() if k[:3] in ('NOX','VOC','O3V','O3N')])
+		self.__regionsbyNm=dict([(k[6:],k[6:]) for k in self.__child.variables.keys() if k[:3] in ('NOX','VOC','O3V','O3N')])
+		
+		# Create global keys
+		self.__sourcesbyNm['']=tuple(self.__sourcesbyNm.keys())
+		self.__regionsbyNm['']=tuple(self.__regionsbyNm.keys())
+		
+		# Update with user supplied keys
+		self.__sourcesbyNm.update(sources)
+		self.__regionsbyNm.update(regions)
 
-		o3_keys=list(set([k[0]+self.__delim*2 for k in split_names]))
-		self.variables=PseudoNetCDFVariables(self.__variables,spc_keys+time_dim_keys+named_keys+group_keys+region_keys+o3_keys)
+		self.dimensions=self.__child.dimensions.copy()
+
+		spc_keys=['NOX','VOC','O3N','O3V']
+		time_keys=['I','D']
+		time_dim_keys=[(k[:1],k[1:6],k[6:]) for k in time_keys]
+		allkeys=[i for i in self.__child.variables.keys()]
+		for skey in spc_keys:
+			for src in self.__sourcesbyNm.keys():
+				for reg in self.__regionsbyNm.keys():
+					allkeys.append(self.__delim.join([skey,src,reg]))
+		allkeys=[i for i in set(allkeys)]
+		self.variables=PseudoNetCDFVariables(self.__variables,allkeys)
 	def __indices(self,keys):
 		return [self.__child.__var_names__.index(k) for k in keys]
 
 	def __var_id_names(self,var_name):
-		if var_name in self.__child.variables.keys():
-			keys=[var_name]
-		elif var_name[:3] in ['O3N','O3V','NOX','VOC']:
-			spc,group,region=var_name.split(self.__delim)
-			espc=len(spc)
-			egrp=3+len(group)
-			ereg=6+len(region)
-			keys=[k for k in self.__child.__var_names__ if spc=='' or spc==k[0:espc]]
-			keys=[k for k in keys if group=='' or group==self.__groupsbyId[k[3:egrp]]]
-			keys=[k for k in keys if region=='' or region==self.__regionsbyId[k[6:ereg]]]
-		elif var_name[:1] in ['I','D']:
-			spc,group,region=var_name.split(self.__delim)
-			espc=1
-			edayhr=1+5
-			ereg=6+len(region)
-			keys=[k for k in self.__child.__var_names__ if spc=='' or spc==k[0:espc]]
-			keys=[k for k in keys if group=='' or group==self.__groupsbyId[k[1:edayhr]]]
-			keys=[k for k in keys if region=='' or region==self.__regionsbyId[k[6:ereg]]]
+		components=var_name.split(self.__delim)
+		if len(components)==1:
+			keys=components
+		else:
+			spc,source,region=components
+			keys=[]
+			sources=self.__sourcesbyNm[source]
+			regions=self.__regionsbyNm[region]
+			for source in sources:
+				for region in regions:
+					key=spc+source+region
+					if key in self.__child.variables.keys():
+						keys.append(key)
 		return keys
-
-	def __var_nm_names(self,var_name):
-		keys=self.__var_id_names(var_name)
-		if var_name[:1] in ['I','D']:
-			keys=[self.__delim.join([k[:1],self.__groupsbyId[k[1:6]],self.__regionsbyId[k[6:]]]) for k in keys]
-		elif var_name[:3] in ['O3N','O3V','NOX','VOC']:
-			keys=[self.__delim.join([k[:3],self.__groupsbyId[k[3:6]],self.__regionsbyId[k[6:]]]) for k in keys]
 		
-		return keys
-
 	def __variables(self,key):
 		var_id_names=self.__var_id_names(key)
-		var_nm_names=self.__var_nm_names(key)
+		#var_nm_names=self.__var_nm_names(key)
 		
 		var_indices=self.__indices(var_id_names)
+		cnt=False
+		if len(var_id_names)>1:
+			outvals=zeros((self.dimensions['TSTEP'],self.dimensions['LAY'],self.dimensions['ROW'],self.dimensions['COL']),dtype='>f')
+			for k in var_id_names:
+				outvals[...]+=self.__child.variables[k]
+		else:
+			outvals=self.__child.variables[key]
+			
 		dimensions=('TSTEP','VAR','LAY','ROW','COL')
-		outvals=self.__child.__memmap__[:,:,var_indices,:,:].swapaxes(1,2)
 		v=PseudoNetCDFVariable(self,key,'f',dimensions,values=outvals)
 		v.units='ppm'
 		v.long_name=v.var_desc=key.ljust(16)
 		v.VAR_NAMES=''.join([nm.ljust(16) for nm in var_id_names])
-		v.VAR_NAME_DESCS=''.join([nm.ljust(16) for nm in var_nm_names])
+		#v.VAR_NAME_DESCS=''.join([nm.ljust(16) for nm in var_nm_names])
 		return v
+
+class TestMemmap(unittest.TestCase):
+	def runTest(self):
+		pass
+	def setUp(self):
+		pass
+	def testOSAT(self):
+		from pyPA.testcase import CAMxOSATInst
+		warn("OSAT test is not implemented: review output for reasonabilty")
+		o=osat(CAMxOSATInst)
+		k='NOX__'
+		
+		v=o.variables[k]
+		print k,v.VAR_NAMES
+		print v.sum(),v.min(),v.mean(),v.max()
+		keys=[k for k in o._osat__child.variables.keys() if k[:3]=='NOX']
+		for k in keys:
+			v=o.variables[k]
+			print k,v.sum(),v.min(),v.mean(),v.max()
