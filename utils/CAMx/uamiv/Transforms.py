@@ -16,8 +16,8 @@ class osat(PseudoNetCDFFile):
 	
 	Example:
 		# Source and regions definitions
-		sources={'SOURCES1-5': '001','002','003','004','005'}
-		regions={'REGIONS1-5': '001','002','003','004','005'}
+		sources={'SOURCES1-5': ('001','002','003','004','005')}
+		regions={'REGIONS1-5': ('001','002','003','004','005')}
 		# File initiation
 		osatfile=osat('path',sources,regions)
 		# Variable (v) would return the sum of all O3V for all five 
@@ -37,6 +37,13 @@ class osat(PseudoNetCDFFile):
 		self.__sourcesbyNm['']=tuple(self.__sourcesbyNm.keys())
 		self.__regionsbyNm['']=tuple(self.__regionsbyNm.keys())
 		
+		for k,v in sources:
+			if type(v)==str:
+				sources[k]=(v,)
+		for k,v in regions:
+			if type(v)==str:
+				regions[k]=(v,)
+		
 		# Update with user supplied keys
 		self.__sourcesbyNm.update(sources)
 		self.__regionsbyNm.update(regions)
@@ -48,8 +55,8 @@ class osat(PseudoNetCDFFile):
 		time_dim_keys=[(k[:1],k[1:6],k[6:]) for k in time_keys]
 		allkeys=[i for i in self.__child.variables.keys()]
 		for skey in spc_keys:
-			for src in self.__sourcesbyNm.keys():
-				for reg in self.__regionsbyNm.keys():
+			for src in sources.keys()+['']:
+				for reg in regions.keys()+['']:        
 					allkeys.append(self.__delim.join([skey,src,reg]))
 		allkeys=[i for i in set(allkeys)]
 		self.variables=PseudoNetCDFVariables(self.__variables,allkeys)
@@ -83,7 +90,7 @@ class osat(PseudoNetCDFFile):
 			for k in var_id_names:
 				outvals[...]+=self.__child.variables[k]
 		else:
-			outvals=self.__child.variables[key]
+			outvals=self.__child.variables[var_id_names[0]]
 			
 		dimensions=('TSTEP','VAR','LAY','ROW','COL')
 		v=PseudoNetCDFVariable(self,key,'f',dimensions,values=outvals)
