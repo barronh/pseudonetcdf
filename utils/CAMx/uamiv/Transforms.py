@@ -37,10 +37,10 @@ class osat(PseudoNetCDFFile):
 		self.__sourcesbyNm['']=tuple(self.__sourcesbyNm.keys())
 		self.__regionsbyNm['']=tuple(self.__regionsbyNm.keys())
 		
-		for k,v in sources:
+		for k,v in sources.iteritems():
 			if type(v)==str:
 				sources[k]=(v,)
-		for k,v in regions:
+		for k,v in regions.iteritems():
 			if type(v)==str:
 				regions[k]=(v,)
 		
