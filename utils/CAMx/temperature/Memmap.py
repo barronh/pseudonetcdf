@@ -94,7 +94,9 @@ class temperature(PseudoNetCDFFile):
         v.long_name='AIRTEMP'
         v.var_desc='AIRTEMP'
 
-        self.variables['TFLAG']=PseudoNetCDFVariable(self,'TFLAG','f',('TSTEP','VAR','DATE-TIME'),values=ConvertCAMxTime(self.__memmap[out_idx==4].view('>i'),self.__memmap[out_idx==3],2))        
+        date=self.__memmap[out_idx==date].view('>i')[0:None:lays+1]
+        time=self.__memmap[out_idx==time].view('>i')[0:None:lays+1]
+        self.variables['TFLAG']=PseudoNetCDFVariable(self,'TFLAG','f',('TSTEP','VAR','DATE-TIME'),values=ConvertCAMxTime(date,time,2))        
 
         return self.variables[key]
     
