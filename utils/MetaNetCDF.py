@@ -146,11 +146,7 @@ class newresolution(PseudoNetCDFFile):
 				
 class MetaNetCDF(PseudoNetCDFFile):
 	__metavars__={}
-	def addMetaVariable(self,key,func):
-		self.variables.addkey(key)
-		self.__metavars__[key]=func
-
-	def __init__(self,files):
+	def __init__(self,files): # 'files' is a list of files; a file is a NetCDFFile or a PseudoNetCDFFile
 		self.__files=files
 		self.dimensions={}
 		keys=[]
@@ -197,4 +193,9 @@ class MetaNetCDF(PseudoNetCDFFile):
 					v.dimensions=tuple(dims)
 				return v
 		raise KeyError,'%s not in any files' % k
+
+	def addMetaVariable(self,key,func):
+		self.variables.addkey(key)
+		self.__metavars__[key]=func
+
 file_master=MetaNetCDF

@@ -4,7 +4,10 @@ RevisionNum= "$LastChangedRevision$"
 ChangedBy  = "$LastChangedBy$"
 __version__ = RevisionNum
 
-from collections import defaultdict
+try:
+    from collections import defaultdict
+except:
+    from pyPA.utils.util import defaultdict
 s2min=lambda a: a/60.
 min2h=lambda a: a/60.
 s2h=lambda a: min2h(s2min(a))

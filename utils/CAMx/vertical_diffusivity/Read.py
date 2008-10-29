@@ -14,7 +14,10 @@ import os,sys
 
 #Site-Packages
 from numpy import zeros,array,where,memmap,newaxis,dtype
-from pynetcdf import NetCDFFile as ncf
+try:
+    from Scientific.IO.NetCDF import NetCDFFile as ncf
+except:
+    from pynetcdf import NetCDFFile as ncf
 
 #This Package modules
 from pyPA.utils.timetuple import timediff,timeadd,timerange

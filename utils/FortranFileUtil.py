@@ -258,8 +258,8 @@ def read_into(rf, dest, id_fmt, data_fmt='f'):
     if rf.eof(): raise EOFError()
     
     id = rf.unpack(id_fmt)
-
-    dest[...] = rf.aread(data_fmt,reduce(mul,dest.shape)).reshape(dest.shape)
+    rd = rf.aread(data_fmt,reduce(mul,dest.shape))
+    dest[...] = rd.reshape(dest.shape)
     return id
 
 def writeline(d,fmt,ForceBig=True):

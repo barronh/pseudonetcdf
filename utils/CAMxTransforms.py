@@ -1,4 +1,7 @@
-from pynetcdf import NetCDFFile
+try:
+    from Scientific.IO.NetCDF import NetCDFFile as ncf
+except:
+    from pynetcdf import NetCDFFile as ncf
 from sci_var import PseudoNetCDFFile, PseudoIOAPIVariable
 from CAMx.wind.Transforms import wind_center_time_cell
 from CAMx.height_pressure.Transforms import height_pressure_center_time_plus, \
@@ -18,8 +21,6 @@ from sci_var import PseudoNetCDFFile, \
 					PseudoNetCDFVariables, \
 					PseudoNetCDFVariable
 
-
-ncf=NetCDFFile
 								 
 #==================================================================
 

@@ -14,7 +14,10 @@ import os,sys
 
 #Site-Packages
 from numpy import zeros,array,where,memmap,newaxis,dtype
-from pynetcdf import NetCDFFile as ncf
+try:
+    from Scientific.IO.NetCDF import NetCDFFile as ncf
+except:
+    from pynetcdf import NetCDFFile as ncf
 
 #This Package modules
 from pyPA.utils.timetuple import timediff,timeadd,timerange
@@ -265,7 +268,7 @@ class point_source(PseudoNetCDFFile):
         for ti,(d,t) in enumerate(self.timerange()):
             for spc in range(1,len(self.spcnames)+1):
                 yield d,t,spc
-                
+
     __iter__=iterkeys
     
     def getArray(self):
@@ -276,7 +279,7 @@ class point_source(PseudoNetCDFFile):
         return a.copy()
 
     def timerange(self):
-        return timerange((self.start_date,self.start_time),(self.end_date,self.end_time),self.time_step)
+        return timerange((self.start_date,self.start_time),(self.end_date,self.end_time),self.time_step,eod=24)
 
 class TestRead(unittest.TestCase):
     def runTest(self):

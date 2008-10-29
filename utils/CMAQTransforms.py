@@ -2,7 +2,10 @@ from numpy import array,ones
 from pyPA.utils.MetaNetCDF import add_derived, \
                                   file_master
 from pyPA.utils.ArrayTransforms import CenterTime
-from pynetcdf import NetCDFFile
+try:
+    from Scientific.IO.NetCDF import NetCDFFile as ncf
+except:
+    from pynetcdf import NetCDFFile as ncf
 from pyPA.utils.ArrayTransforms import CenterCMAQWind, \
                                        CenterTime
 from pyPA.utils.units import F2K
@@ -11,7 +14,7 @@ from pyPA.utils.sci_var import PseudoNetCDFFile, \
                     PseudoIOAPIVariable, \
                     PseudoNetCDFVariables, \
                     PseudoNetCDFVariableConvertUnit
-ncf=NetCDFFile
+
 #==================================================================
 #                                                             time_avg_new_unit 
 class time_avg_new_unit(PseudoNetCDFFile):
