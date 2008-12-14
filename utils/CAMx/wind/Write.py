@@ -25,6 +25,8 @@ from pyPA.utils.util import cartesian,sliceit
 from pyPA.utils.FortranFileUtil import OpenRecordFile,read_into,writeline,Int2Asc,Asc2Int
 from pyPA.utils.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
 
+__all__ = ['write_wind']
+
 def write_wind(sdate,stime,time_step,vals,lstagger=None):
     """
     Takes an iterable and some defining information

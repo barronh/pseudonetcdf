@@ -5,6 +5,7 @@ ChangedBy  = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
 
 __all__=['wind']
+
 #Distribution packages
 import unittest
 import struct
