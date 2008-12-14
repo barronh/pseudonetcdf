@@ -25,6 +25,8 @@ from pyPA.utils.util import cartesian,sliceit
 from pyPA.utils.FortranFileUtil import OpenRecordFile,read_into,writeline,Int2Asc,Asc2Int
 from pyPA.utils.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
 
+__all__ = ['write_point']
+
 def write_point(start_date,start_time,time_step,hdr,vals):
     #Internalize header
     hdr=[h for h in hdr]
