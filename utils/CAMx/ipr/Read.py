@@ -59,37 +59,7 @@ class ipr(PseudoNetCDFFile):
         if proc_dict!=None:
             self.proc_dict=proc_dict
         else:
-            self.proc_dict={
-                'INIT': 'Initial concentration', 
-                'CHEM': 'Chemistry', 
-                'EMIS': 'Area emissions',
-                'PTEMIS': 'Point source emissions', 
-                'PIG': 'Plume-in-Grid change', 
-                'A_W': 'West boundary advection', 
-                'A_E': 'East boundary advection', 
-                'A_S': 'South boundary advection', 
-                'A_N': 'North boundary advection', 
-                'A_B': 'Bottom boundary advection', 
-                'A_T': 'Top boundary advection', 
-                'DIL': 'Dilution in the vertical', 
-                'D_W': 'West boundary diffusion', 
-                'D_E': 'East boundary diffusion', 
-                'D_S': 'South boundary diffusion', 
-                'D_N': 'North boundary diffusion', 
-                'D_B': 'Bottom boundary diffusion', 
-                'D_T': 'Top boundary diffusion', 
-                'DDEP': 'Dry deposition', 
-                'WDEP': 'Wet deposition', 
-                'AERCHEM': 'Aerosol chemistry', 
-                'FCONC': 'Final concentration', 
-                'UCNV': 'Units conversion', 
-                'AVOL': 'Average cell volume', 
-                'DATE': 'DATE', 
-                'TIME': 'TIME', 
-                'K': 'K', 
-                'J': 'J', 
-                'I': 'I'
-                }
+            self.proc_dict=None
         self.__rffile=file(rf)
         self.__rffile.seek(0,2)
         if self.__rffile.tell()<2147483648L:
@@ -109,11 +79,11 @@ class ipr(PseudoNetCDFFile):
         
 
     def __variables(self,proc_spc):
-    	if proc_spc=='TFLAG':
-    	    time=self.variables['TIME_%s'  % self.spcnames[0][1].strip()]
-    	    date=self.variables['DATE_%s'  % self.spcnames[0][1].strip()]
-    	    self.variables['TFLAG']=PseudoNetCDFVariable(self,'proc_spc','i',('TSTEP','VAR','DATE-TIME'),values=ConvertCAMxTime(date[:,0,0,0],time[:,0,0,0],self.dimensions['VAR']))
-    	    return self.variables['TFLAG']
+        if proc_spc=='TFLAG':
+            time=self.variables['TIME_%s'  % self.spcnames[0][1].strip()]
+            date=self.variables['DATE_%s'  % self.spcnames[0][1].strip()]
+            self.variables['TFLAG']=PseudoNetCDFVariable(self,'proc_spc','i',('TSTEP','VAR','DATE-TIME'),values=ConvertCAMxTime(date[:,0,0,0],time[:,0,0,0],self.dimensions['VAR']))
+            return self.variables['TFLAG']
         for k in self.__invariables:
             try:
                 del self.variables[k]
@@ -185,6 +155,48 @@ class ipr(PseudoNetCDFFile):
         self.prcnames=[]
         self.NPROCESS=fromfile(self.__rffile,dtype=dtype(dict(names=['SPAD','NPRCS','EPAD'],formats=['>i','>i','>i'])),count=1)['NPRCS']
         self.__ipr_record_type=self.__ipr_record_type[self.NPROCESS[0]]
+        
+        if self.proc_dict is None:
+            self.proc_dict={
+                'INIT': 'Initial concentration', 
+                'CHEM': 'Chemistry', 
+                'EMIS': 'Area emissions',
+                'PTEMIS': 'Point source emissions', 
+                'PIG': 'Plume-in-Grid change', 
+                'A_W': 'West boundary advection', 
+                'A_E': 'East boundary advection', 
+                'A_S': 'South boundary advection', 
+                'A_N': 'North boundary advection', 
+                'A_B': 'Bottom boundary advection', 
+                'A_T': 'Top boundary advection', 
+                'DIL': 'Dilution in the vertical', 
+                'D_W': 'West boundary diffusion', 
+                'D_E': 'East boundary diffusion', 
+                'D_S': 'South boundary diffusion', 
+                'D_N': 'North boundary diffusion', 
+                'D_B': 'Bottom boundary diffusion', 
+                'D_T': 'Top boundary diffusion', 
+                'DDEP': 'Dry deposition', 
+                'WDEP': 'Wet deposition', 
+                'FCONC': 'Final concentration', 
+                'UCNV': 'Units conversion', 
+                'AVOL': 'Average cell volume', 
+                'DATE': 'DATE', 
+                'TIME': 'TIME', 
+                'K': 'K', 
+                'J': 'J', 
+                'I': 'I'
+                }
+            if self.NPROCESS[0] == 24:
+                self.proc_dict['AERCHEM'] = 'Aerosol chemistry'
+            elif self.NPROCESS[0] == 24:
+                self.proc_dict['INORGACHEM'] = 'Inorganic Aerosol chemistry'
+                self.proc_dict['ORGACHEM'] = 'Organic Aerosol chemistry'
+                self.proc_dict['AQACHEM'] = 'Aqueous Aerosol chemistry'
+            else:
+                warn('Unknown version; cannot add aerosol chemistry') 
+
+        
         self.prcnames=fromfile(self.__rffile,dtype=dtype(dict(names=['SPAD','PROCESS','EPAD'],formats=['>i','>25S','>i'])),count=self.NPROCESS)
         self.__data_start_byte=self.__rffile.tell()
         
