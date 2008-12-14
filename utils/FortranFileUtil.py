@@ -22,6 +22,8 @@ from operator import mul
 #otherwise use numeric
 from numpy import array,zeros,reshape,product,shape,transpose,fromfile
 
+__all__ = ['platform_is_bigendian', 'freadnumpy', 'freadstruct', 'fread', 'needs_byteswap', 'check_read', 'RecordFile', 'unpack_from_file', 'seek_to_record', 'read_into', 'writeline', 'OpenRecordFile', 'Int2Asc', 'Asc2Int']
+
 platform_is_bigendian = (sys.byteorder != 'little')
 
 def freadnumpy(ifile,count,read_type,return_type=None,byteswap=False):

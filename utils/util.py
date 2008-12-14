@@ -1,3 +1,13 @@
+"""
+.. _util
+:mod:`util` -- pyPA utilities
+==============================
+
+.. module:: util
+   :platform: Unix, Windows
+   :synopsis: Provides unclassified general utilities used in :ref:`pyPA`
+.. moduleauthor:: Barron Henderson <barronh@unc.edu>
+"""
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
 RevisionNum= "$LastChangedRevision$"
@@ -6,6 +16,9 @@ __version__ = RevisionNum
 
 from warnings import warn
 from datetime import datetime
+
+__all__ = ['defaultdict', 'sliceit', 'getheights', 'stopwatch', 'descendAttrDict', 'AttrDict', 'cartesian', 'add_tuple', 'toints', 'superTuple', 'AlwaysEquals']
+
 class defaultdict(dict):
     def __init__(self, default_factory=None, *a, **kw):
         if (default_factory is not None and                 not hasattr(default_factory, '__call__')):
@@ -60,77 +73,46 @@ def getheights(file):
         heights.append(reduce(operator.add,thisht)/len(thisht))
     return heights
 
-def ijpbl_from_string(xmlpath,pblstr,dtidx,add):
-    """
-    Function creates the ijpbl portion of the pyPA
-    xml document using variables from the old dat file
-    
-    xmlpath - path to xml document
-    pblstr - space delimited string of integers
-    dtidx - zero based index for date in xml document
-    add - Creates hours between 0 and 24 if missing
-    """
-    import sys
-    from pyPA.utils.util import job_info_xml
-    from pyPA.kvextract import add_top_xml
-    
-    job=job_info_xml(xmlpath,dtidx)
-    pbl=pbl.strip().split(" ")
-    pbldict={}
-    for hr,p in enumerate(pbl):
-        try:
-            ply=poly(job.geometry[str(hr*100)])
-        except KeyError:
-            print >> sys.stderr, "New Geometry not provided for %d, using the previous" % (hr * 100,)
-            pass
-        except:
-            raise
-        pbldict[(hr*100,job.stime[0])]=dict([((i,j),int(p)) for (i,j) in ply.cells()])
-    
-    add_top_xml(xmlpath,job.stime,pbldict,add)
-
 class stopwatch:
-	"""
-	Example use
-	t=stopwatch()
-	print 1
-	print t()
-	"""
-	def __init__(self):
-		self.start=datetime.now()
-	def __call__(self):
-		new=datetime.now()
-		result=new-self.start
-		self.start=new
-		return result
-
-class descendAttrDict(dict):
-	def __init__(self,d):
-		for k,v in d.iteritems():
-			if type(v)==dict:
-				self[k]=descendAttrDict(v)
-			else:
-				self[k]=v
-	def __getattr__(self,key):
-		return self[key]
+    """
+    Example use
+    t=stopwatch()
+    print 1
+    print t()
+    """
+    def __init__(self):
+        self.start=datetime.now()
+    def __call__(self):
+        new=datetime.now()
+        result=new-self.start
+        self.start=new
+        return result
 
 class AttrDict(dict):
     """For easy access to values"""
-    def __init__(self,d):
-        for k,v in d.iteritems():
+    def __new__(cls,*args,**kwds):
+    	result = dict.__new__(cls,*args,**kwds)
+    	return result
+    	
+    def __init__(self,*args,**kwds):
+    	dict.__init__(self, *args, **kwds)
+        for k,v in self.iteritems():
             if type(v)==dict:
-                self[k]=descendAttrDict(v)
+                self[k]=AttrDict(v)
             else:
                 self[k]=v
                 
     def __setattr__(self, attr, value):
         self[attr] = value
-
+        
     def __getattr__(self, attr):
         try:
             return self[attr]
         except KeyError:
             raise AttributeError(attr)
+
+descendAttrDict=AttrDict
+
 
 def cartesian(x, y):
     """Iterator for an 'outer' or cartesian join of

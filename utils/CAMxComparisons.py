@@ -1,3 +1,13 @@
+"""
+.. _CAMxComparisons
+:mod:`CAMxComparisons` -- CAMx Comparisons utilities
+====================================================
+
+.. module:: CAMxComparisons
+   :platform: Unix, Windows
+   :synopsis: Provides CAMx Comparison utilities used in :ref:`pyPA`
+.. moduleauthor:: Barron Henderson <barronh@unc.edu>
+"""
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
 RevisionNum= "$LastChangedRevision$"
@@ -6,6 +16,8 @@ __version__ = RevisionNum
 
 from pyPA.utils.CAMxFiles import gridded_emissions,point_source
 from pyPA.utils.sci_var import PseudoNetCDFFile as pncf
+
+__all__ = ['grid_diff', 'grid_diff_sum', 'point_compare', 'emiss_compare']
 
 def grid_diff(outfile,infile1,infile2):
     """Grid compare compares gridded emission files

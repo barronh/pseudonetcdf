@@ -4,6 +4,8 @@ RevisionNum= "$LastChangedRevision$"
 ChangedBy  = "$LastChangedBy$"
 __version__ = RevisionNum
 
+__all__ = ['irr2ncf', 'ipr2ncf']
+
 def irr2ncf(irrinf,irroutf,lay=None,row=None,col=None,verbose=False):
     """
     Convert the CAMx irr files for the 4-k and 1-k simulations to the NetCDF format

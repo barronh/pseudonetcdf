@@ -15,6 +15,8 @@ from pyPA.utils.sci_var import PseudoNetCDFFile, \
                     PseudoNetCDFVariables, \
                     PseudoNetCDFVariableConvertUnit
 
+__all__ = ['time_avg_new_unit', 'wind_center_time_cell', 'pypass_cmaq_met_master', 'pypass_cmaq_emiss_master', 'MetaMetPlusAirMols', 'cmaq_pa_master']
+
 #==================================================================
 #                                                             time_avg_new_unit 
 class time_avg_new_unit(PseudoNetCDFFile):
@@ -123,44 +125,44 @@ class MetaMetPlusAirMols(add_derived):
         return airmols
 
 def cmaq_pa_master(paths_and_readers,tslice=slice(None),kslice=slice(None),jslice=slice(None),islice=slice(None)):
-	"""
-	CMAQ PA Master presents a single interface for CMAQ PA, IRR, and 
-	Instantaneous concentration files.
-	
-	paths_and_readers - iterable of iterables (n x 2) where each element of the
-						primary iterable is an iterable containing a file path 
-						and a reader for that path.  The reader is expected to
-						present the Scientific.IO.NetCDF.NetCDFFile file inter-
-						face.
-	
-	optional:
-	   tslice - slice object used to window the time period from the 
-				instantaneous concentration file to match the PA domain
-	   kslice - same as tslice, but for layers
-	   jslice - same as tslice, but for rows
-	   islice -  - same as tslice, but for columns
-			  
-	"""
-	from pyPA.pappt.kvextract import tops2shape,pblhghts2tops
-	files=[]
-	for p,r in paths_and_readers:
-		files.append(eval(r)(p))
-	master_file=file_master(files)
-	def InitLambda(x,tslice,kslice,jslice,islice):
-		return lambda self: PseudoIOAPIVariable(self,x,'f',('TSTEP','LAY','ROW','COL'),values=self.variables[x][:-1,:,:,:][tslice,kslice,jslice,islice],units=self.variables[x].units)
-	def FinalLambda(x,tslice,kslice,jslice,islice):
-		return lambda self: PseudoIOAPIVariable(self,x,'f',('TSTEP','LAY','ROW','COL'),values=self.variables[x][1:,:,:,:][tslice,kslice,jslice,islice],units=self.variables[x].units)
-	def MetLambda(x,tslice,kslice,jslice,islice):
-		return lambda self: PseudoIOAPIVariable(self,x,'f',('TSTEP','LAY','ROW','COL'),values=CenterTime(self.variables[x])[tslice,kslice,jslice,islice],units=self.variables[x].units)
-	for k in master_file.variables.keys():
-		if '_' not in k and k!='TFLAG':
-			master_file.addMetaVariable('INIT_'+k,InitLambda(k,tslice,kslice,jslice,islice))
-			master_file.addMetaVariable('FCONC_'+k,FinalLambda(k,tslice,kslice,jslice,islice))
-			master_file.addMetaVariable('INITIAL_'+k,InitLambda(k,tslice,kslice,jslice,islice))
-			master_file.addMetaVariable('FINAL_'+k,FinalLambda(k,tslice,kslice,jslice,islice))
-	master_file.addMetaVariable('CONC_AIRMOLS',lambda self: PseudoIOAPIVariable(self,'CONC_AIRMOLS','f',('TSTEP','LAY','ROW','COL'),values=CenterTime(self.variables['PRES'][:,:,:,:]/8.314472/self.variables['TA'])[tslice,kslice,jslice,islice],units='moles/m**3'))
-	master_file.addMetaVariable('AIRMOLS',lambda self: PseudoIOAPIVariable(self,'AIRMOLS','f',('TSTEP','LAY','ROW','COL'),values=self.variables['CONC_AIRMOLS']*self.XCELL*self.YCELL*2*CenterTime(self.variables['ZF'][:,:,:,:]-self.variables['ZH'][:,:,:,:])[tslice,kslice,jslice,islice],units='moles'))
-	master_file.addMetaVariable('INVAIRMOLS',lambda self: PseudoIOAPIVariable(self,'INVAIRMOLS','f',('TSTEP','LAY','ROW','COL'),values=1/self.variables['AIRMOLS'][:,:,:,:],units='moles'))
-	master_file.addMetaVariable('DEFAULT_SHAPE',lambda self: PseudoIOAPIVariable(self,'DEFAULT_SHAPE','f',('TSTEP','LAY','ROW','COL'),values=tops2shape(pblhghts2tops(self.variables['PBL'],self.variables['ZF']),self.variables['ZF'].shape)[tslice,kslice,jslice,islice],units='on/off'))
-	
-	return master_file
+    """
+    CMAQ PA Master presents a single interface for CMAQ PA, IRR, and 
+    Instantaneous concentration files.
+    
+    paths_and_readers - iterable of iterables (n x 2) where each element of the
+                        primary iterable is an iterable containing a file path 
+                        and a reader for that path.  The reader is expected to
+                        present the Scientific.IO.NetCDF.NetCDFFile file inter-
+                        face.
+    
+    optional:
+       tslice - slice object used to window the time period from the 
+                instantaneous concentration file to match the PA domain
+       kslice - same as tslice, but for layers
+       jslice - same as tslice, but for rows
+       islice -  - same as tslice, but for columns
+              
+    """
+    from pyPA.pappt.kvextract import tops2shape,pblhghts2tops
+    files=[]
+    for p,r in paths_and_readers:
+        files.append(eval(r)(p))
+    master_file=file_master(files)
+    def InitLambda(x,tslice,kslice,jslice,islice):
+        return lambda self: PseudoIOAPIVariable(self,x,'f',('TSTEP','LAY','ROW','COL'),values=self.variables[x][:-1,:,:,:][tslice,kslice,jslice,islice],units=self.variables[x].units)
+    def FinalLambda(x,tslice,kslice,jslice,islice):
+        return lambda self: PseudoIOAPIVariable(self,x,'f',('TSTEP','LAY','ROW','COL'),values=self.variables[x][1:,:,:,:][tslice,kslice,jslice,islice],units=self.variables[x].units)
+    def MetLambda(x,tslice,kslice,jslice,islice):
+        return lambda self: PseudoIOAPIVariable(self,x,'f',('TSTEP','LAY','ROW','COL'),values=CenterTime(self.variables[x])[tslice,kslice,jslice,islice],units=self.variables[x].units)
+    for k in master_file.variables.keys():
+        if '_' not in k and k!='TFLAG':
+            master_file.addMetaVariable('INIT_'+k,InitLambda(k,tslice,kslice,jslice,islice))
+            master_file.addMetaVariable('FCONC_'+k,FinalLambda(k,tslice,kslice,jslice,islice))
+            master_file.addMetaVariable('INITIAL_'+k,InitLambda(k,tslice,kslice,jslice,islice))
+            master_file.addMetaVariable('FINAL_'+k,FinalLambda(k,tslice,kslice,jslice,islice))
+    master_file.addMetaVariable('CONC_AIRMOLS',lambda self: PseudoIOAPIVariable(self,'CONC_AIRMOLS','f',('TSTEP','LAY','ROW','COL'),values=CenterTime(self.variables['PRES'][:,:,:,:]/8.314472/self.variables['TA'])[tslice,kslice,jslice,islice],units='moles/m**3'))
+    master_file.addMetaVariable('AIRMOLS',lambda self: PseudoIOAPIVariable(self,'AIRMOLS','f',('TSTEP','LAY','ROW','COL'),values=self.variables['CONC_AIRMOLS']*self.XCELL*self.YCELL*2*CenterTime(self.variables['ZF'][:,:,:,:]-self.variables['ZH'][:,:,:,:])[tslice,kslice,jslice,islice],units='moles'))
+    master_file.addMetaVariable('INVAIRMOLS',lambda self: PseudoIOAPIVariable(self,'INVAIRMOLS','f',('TSTEP','LAY','ROW','COL'),values=1/self.variables['AIRMOLS'][:,:,:,:],units='moles'))
+    master_file.addMetaVariable('DEFAULT_SHAPE',lambda self: PseudoIOAPIVariable(self,'DEFAULT_SHAPE','f',('TSTEP','LAY','ROW','COL'),values=tops2shape(pblhghts2tops(self.variables['PBL'],self.variables['ZF']),self.variables['ZF'].shape)[tslice,kslice,jslice,islice],units='on/off'))
+    
+    return master_file

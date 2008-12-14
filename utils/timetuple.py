@@ -4,6 +4,8 @@ RevisionNum= "$LastChangedRevision$"
 ChangedBy  = "$LastChangedBy$"
 __version__ = RevisionNum
 
+__all__ = ['timerange', 'timediff', 'timeadd', 'cmp_time']
+
 def timerange((date1,time1),(date2,time2), step=100, eod=2400.0):
     """Iterater of time tuples between start and end (not end inclusive)
     

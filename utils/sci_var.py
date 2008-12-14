@@ -36,6 +36,8 @@ are attached and the arrays implement the Scientific.IO.NetCDF.NetCDFVariable
 interfaces.
 """
 
+__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFVariableConvertUnit', 'PseudoNetCDFFileMemmap', 'PseudoNetCDFVariable', 'PseudoIOAPIVariable', 'PseudoNetCDFVariables', 'Pseudo2NetCDF']
+
 def PseudoNetCDFVariableConvertUnit(var,outunit):
     do=AttrDict({'dimensions':{}})
     shape=var.shape
@@ -110,7 +112,7 @@ class PseudoNetCDFVariable(ndarray):
         else:
             result=zeros(shape,typecode)
         
-        result=result.view(subtype)
+        result=result[:].view(subtype)
         
         result.__dict__={
             'typecode': lambda: typecode,
@@ -146,7 +148,8 @@ class PseudoIOAPIVariable(PseudoNetCDFVariable):
         """
         self.__dict__.update({
             'long_name': name.ljust(16),
-            'var_desc': name.ljust(16)
+            'var_desc': name.ljust(16),
+            'units': units
           })
 
 class PseudoNetCDFVariables(defaultdict):

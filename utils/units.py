@@ -8,6 +8,9 @@ try:
     from collections import defaultdict
 except:
     from pyPA.utils.util import defaultdict
+
+__all__ = ['F2C', 'F2K', 'K2C', 'K2F', 'KCMAQ2F', 'M2km', 'MPS2kph', 'convert', 'converter', 'converters_dict', 'km2m', 'm2ft', 'm2km', 'm2miles', 'min2h', 'molespsCMAQ2molesph', 'mps2kmps', 'mps2kph', 'mps2milesph', 'mps2milesps', 's2h', 's2min']
+
 s2min=lambda a: a/60.
 min2h=lambda a: a/60.
 s2h=lambda a: min2h(s2min(a))
@@ -29,12 +32,12 @@ mps2milesps=lambda a: a*0.000621371192
 molespsCMAQ2molesph=lambda a: a*60*60
 
 class converters_dict(defaultdict):
-	def __init__(self,dct):
-		for k,v in dct.iteritems():
-			self[k]=v
-	def __missing__(self,key):
-		if type(key)==tuple and key[0]==key[1]:
-			return lambda a: a
+    def __init__(self,dct):
+        for k,v in dct.iteritems():
+            self[k]=v
+    def __missing__(self,key):
+        if type(key)==tuple and key[0]==key[1]:
+            return lambda a: a
             
 converter=converters_dict({('s','min'): s2min, \
                            ('min','h'): min2h, \
