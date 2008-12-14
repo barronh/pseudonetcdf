@@ -91,11 +91,11 @@ class stopwatch:
 class AttrDict(dict):
     """For easy access to values"""
     def __new__(cls,*args,**kwds):
-    	result = dict.__new__(cls,*args,**kwds)
-    	return result
-    	
+        result = dict.__new__(cls,*args,**kwds)
+        return result
+        
     def __init__(self,*args,**kwds):
-    	dict.__init__(self, *args, **kwds)
+        dict.__init__(self, *args, **kwds)
         for k,v in self.iteritems():
             if type(v)==dict:
                 self[k]=AttrDict(v)
