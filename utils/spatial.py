@@ -72,7 +72,7 @@ class poly(object):
         """
         
         pts={}
-        envelope = cartesian(range(min(self.xp),max(self.xp)+1),range(min(self.yp),max(self.yp)+1))
+        envelope = [[(i,j) for j in range(min(self.yp),max(self.yp)+1)] for i in range(min(self.xp),max(self.xp)+1)]
         while True:
             try:
                 pt=envelope.next()

@@ -8,7 +8,7 @@
    :synopsis: Provides unclassified general utilities used in :ref:`pyPA`
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-__all__ = ['defaultdict', 'sliceit', 'getheights', 'stopwatch', 'descendAttrDict', 'AttrDict', 'cartesian', 'add_tuple', 'toints', 'superTuple', 'AlwaysEquals']
+__all__ = ['defaultdict', 'getheights', 'stopwatch', 'descendAttrDict', 'AttrDict', 'add_tuple', 'toints', 'superTuple', 'AlwaysEquals']
 
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
@@ -52,15 +52,6 @@ class defaultdict(dict):
     def __repr__(self):
         return 'defaultdict(%s, %s)' % (self.default_factory,
                                         dict.__repr__(self))        
-
-def sliceit(args):
-    if type(args)==slice:
-       return args
-       
-    try:
-        return slice(*args)
-    except TypeError:
-        return slice(args,args+1)
 
 def getheights(file):
     warn("get heights has been deprecated in favor of hp.variables['HGHT']",DeprecationWarning)
@@ -114,14 +105,6 @@ class AttrDict(dict):
 descendAttrDict=AttrDict
 
 
-def cartesian(x, y):
-    """Iterator for an 'outer' or cartesian join of
-    x iterator and y iterator
-    """
-    for i in x:
-        for j in y:
-            yield i,j
-
 def add_tuple(t1, t2):
     """Add tuple 1 values to tuple 2 values
     """
@@ -171,15 +154,3 @@ class AlwaysEquals:
     def __eq__(self, other):
         return True
     
-#
-# Test cases
-#        
-import unittest
-
-class CompareTime(unittest.TestCase):
-    def testCompare(self):
-        from timetuple import cmp_time
-        assert cmp_time((1.0, 2), (2.0,2)) < 0
-        assert cmp_time((2.0, 2), (2.0,2)) == 0
-        assert cmp_time((3.0, 2), (2.0,3)) < 0
-        assert cmp_time((3.0, 3), (2.0,3)) > 0

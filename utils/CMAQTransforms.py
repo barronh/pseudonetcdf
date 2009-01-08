@@ -1,14 +1,13 @@
 __all__ = ['time_avg_new_unit', 'wind_center_time_cell', 'pypass_cmaq_met_master', 'pypass_cmaq_emiss_master', 'MetaMetPlusAirMols', 'cmaq_pa_master']
 
 from numpy import array,ones
-from pyPA.utils.MetaNetCDF import add_derived, \
+from PseudoNetCDF.MetaNetCDF import add_derived, \
                                   file_master
-from pyPA.utils.ArrayTransforms import CenterTime
 from pyPA.netcdf import NetCDFFile as ncf
-from pyPA.utils.ArrayTransforms import CenterCMAQWind, \
+from camxfiles.ArrayTransforms import CenterCMAQWind, \
                                        CenterTime
-from pyPA.utils.units import F2K
-from pyPA.utils.sci_var import PseudoNetCDFFile, \
+from PseudoNetCDF.units import F2K
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, \
                     PseudoNetCDFVariable, \
                     PseudoIOAPIVariable, \
                     PseudoNetCDFVariables, \
