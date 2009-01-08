@@ -26,10 +26,7 @@ try:
     from collections import defaultdict
 except:
     from util import defaultdict
-try:
-    from Scientific.IO.NetCDF import NetCDFFile as ncf
-except:
-    from pynetcdf import NetCDFFile as ncf
+from pyPA.netcdf import NetCDFFile
     
 from numpy import arange
 from tempfile import NamedTemporaryFile as tnf
@@ -220,7 +217,7 @@ class Pseudo2NetCDF:
             tfile=tnf(mode='w+b')
             npath=tfile.name
 
-        nfile=ncf(npath,'w')
+        nfile=NetCDFFile(npath,'w')
         self.addDimensions(pfile,nfile)
         self.addGlobalProperties(pfile,nfile)
         self.addVariables(pfile,nfile)

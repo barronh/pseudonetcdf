@@ -1,9 +1,6 @@
 __all__ = ['point_source_newvarnames', 'pypass_camx_met_master', 'camx_pa_master', 'hght2dz', 'hght2zh', 'pypass_camx_emiss_master']
 
-try:
-    from Scientific.IO.NetCDF import NetCDFFile as ncf
-except:
-    from pynetcdf import NetCDFFile as ncf
+from pyPA.netcdf import NetCDFFile as ncf
 from numpy import zeros
 from ArrayTransforms import CenterTime
 from sci_var import PseudoNetCDFFile, PseudoIOAPIVariable

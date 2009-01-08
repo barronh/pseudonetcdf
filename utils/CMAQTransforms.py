@@ -4,10 +4,7 @@ from numpy import array,ones
 from pyPA.utils.MetaNetCDF import add_derived, \
                                   file_master
 from pyPA.utils.ArrayTransforms import CenterTime
-try:
-    from Scientific.IO.NetCDF import NetCDFFile as ncf
-except:
-    from pynetcdf import NetCDFFile as ncf
+from pyPA.netcdf import NetCDFFile as ncf
 from pyPA.utils.ArrayTransforms import CenterCMAQWind, \
                                        CenterTime
 from pyPA.utils.units import F2K
