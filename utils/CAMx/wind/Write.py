@@ -1,3 +1,5 @@
+__all__ = ['write_wind']
+
 HeadURL="$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxWrite.py $"
 ChangeDate = "$LastChangedDate$"
 RevisionNum= "$LastChangedRevision$"
@@ -24,8 +26,6 @@ from pyPA.utils.timetuple import timediff,timeadd,timerange
 from pyPA.utils.util import cartesian,sliceit
 from pyPA.utils.FortranFileUtil import OpenRecordFile,read_into,writeline,Int2Asc,Asc2Int
 from pyPA.utils.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
-
-__all__ = ['write_wind']
 
 def write_wind(sdate,stime,time_step,vals,lstagger=None):
     """

@@ -1,4 +1,5 @@
 __all__=['osat']
+
 from numpy import array,zeros
 from warnings import warn
 import unittest

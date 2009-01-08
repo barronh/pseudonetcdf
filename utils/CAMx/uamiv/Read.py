@@ -1,3 +1,5 @@
+__all__=['uamiv']
+
 HeadURL="$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxRead.py $"
 ChangeDate = "$LastChangedDate$"
 RevisionNum= "$LastChangedRevision$"
@@ -32,7 +34,6 @@ checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
 
-__all__=['uamiv']
 class uamiv(PseudoNetCDFFile):
     """
     This class is intended to provide an interface to the

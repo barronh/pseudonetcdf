@@ -1,3 +1,5 @@
+__all__=['irr']
+
 HeadURL="$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxRead.py $"
 ChangeDate = "$LastChangedDate$"
 RevisionNum= "$LastChangedRevision$"
@@ -31,8 +33,6 @@ listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
-
-__all__=['irr']
 
 class irr(PseudoNetCDFFile):
     """

@@ -1,6 +1,6 @@
-from numpy import array
-
 __all__ = ['ncf2one3d']
+
+from numpy import array
 
 def ncf2one3d(ncffile,outpath,key='KV',tflag='TFLAG'):
     outfile=file(outpath,'wb')

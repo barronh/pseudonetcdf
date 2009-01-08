@@ -1,10 +1,11 @@
+__all__=['irr']
+
 HeadURL="$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxMemmap.py $"
 ChangeDate = "$LastChangedDate$"
 RevisionNum= "$LastChangedRevision$"
 ChangedBy  = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
 
-__all__=['irr']
 #Distribution packages
 import unittest
 import struct

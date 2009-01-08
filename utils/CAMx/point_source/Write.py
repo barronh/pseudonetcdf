@@ -1,3 +1,5 @@
+__all__ = ['write_point']
+
 HeadURL="$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxWrite.py $"
 ChangeDate = "$LastChangedDate$"
 RevisionNum= "$LastChangedRevision$"
@@ -24,8 +26,6 @@ from pyPA.utils.timetuple import timediff,timeadd,timerange
 from pyPA.utils.util import cartesian,sliceit
 from pyPA.utils.FortranFileUtil import OpenRecordFile,read_into,writeline,Int2Asc,Asc2Int
 from pyPA.utils.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
-
-__all__ = ['write_point']
 
 def write_point(start_date,start_time,time_step,hdr,vals):
     #Internalize header
