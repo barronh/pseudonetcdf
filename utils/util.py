@@ -8,6 +8,8 @@
    :synopsis: Provides unclassified general utilities used in :ref:`pyPA`
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
+__all__ = ['defaultdict', 'sliceit', 'getheights', 'stopwatch', 'descendAttrDict', 'AttrDict', 'cartesian', 'add_tuple', 'toints', 'superTuple', 'AlwaysEquals']
+
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
 RevisionNum= "$LastChangedRevision$"
@@ -16,8 +18,6 @@ __version__ = RevisionNum
 
 from warnings import warn
 from datetime import datetime
-
-__all__ = ['defaultdict', 'sliceit', 'getheights', 'stopwatch', 'descendAttrDict', 'AttrDict', 'cartesian', 'add_tuple', 'toints', 'superTuple', 'AlwaysEquals']
 
 class defaultdict(dict):
     def __init__(self, default_factory=None, *a, **kw):

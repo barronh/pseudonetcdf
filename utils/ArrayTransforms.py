@@ -8,6 +8,8 @@
    :synopsis: Provides utilities for array shape and type manipulation.
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
+__all__ = ['interior_vertex_func', 'CenterTime', 'CenterLay', 'CenterRow', 'CenterCol', 'CenterRowCol', 'CenterTimeRowCol', 'CenterCMAQWind', 'CenterCAMxWind', 'CenterCAMxU', 'CenterCAMxV', 'BoundToDiff', 'CAMxHeightToDepth', 'ConvertCAMxTime']
+
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
 RevisionNum= "$LastChangedRevision$"
@@ -19,8 +21,6 @@ from numpy import mean, array,sum,arange,zeros,newaxis
 from warnings import warn
 from pyPA.utils.sci_var import PseudoNetCDFVariable
 from pyPA.utils.util import AttrDict,descendAttrDict
-
-__all__ = ['interior_vertex_func', 'CenterTime', 'CenterLay', 'CenterRow', 'CenterCol', 'CenterRowCol', 'CenterTimeRowCol', 'CenterCMAQWind', 'CenterCAMxWind', 'CenterCAMxU', 'CenterCAMxV', 'BoundToDiff', 'CAMxHeightToDepth', 'ConvertCAMxTime']
 
 def interior_vertex_func(a,dims=(-1,-2),func=sum):
     if func not in (sum,mean):

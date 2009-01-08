@@ -1,5 +1,7 @@
 #!/usr/bin/env python2.4
 
+__all__ = ['platform_is_bigendian', 'freadnumpy', 'freadstruct', 'fread', 'needs_byteswap', 'check_read', 'RecordFile', 'unpack_from_file', 'seek_to_record', 'read_into', 'writeline', 'OpenRecordFile', 'Int2Asc', 'Asc2Int']
+
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
 RevisionNum= "$LastChangedRevision$"
@@ -21,8 +23,6 @@ from operator import mul
 #use numpy if available
 #otherwise use numeric
 from numpy import array,zeros,reshape,product,shape,transpose,fromfile
-
-__all__ = ['platform_is_bigendian', 'freadnumpy', 'freadstruct', 'fread', 'needs_byteswap', 'check_read', 'RecordFile', 'unpack_from_file', 'seek_to_record', 'read_into', 'writeline', 'OpenRecordFile', 'Int2Asc', 'Asc2Int']
 
 platform_is_bigendian = (sys.byteorder != 'little')
 

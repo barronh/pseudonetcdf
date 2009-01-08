@@ -9,12 +9,6 @@
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
 
-HeadURL="$HeadURL$"
-ChangeDate = "$LastChangedDate$"
-RevisionNum= "$LastChangedRevision$"
-ChangedBy  = "$LastChangedBy$"
-__version__ = RevisionNum
-
 __all__=['units', \
          'CAMxFiles', \
          'CAMxTransforms', \
@@ -26,3 +20,10 @@ __all__=['units', \
          'xml', \
          'spatial', \
          'CAMx']
+         
+HeadURL="$HeadURL$"
+ChangeDate = "$LastChangedDate$"
+RevisionNum= "$LastChangedRevision$"
+ChangedBy  = "$LastChangedBy$"
+__version__ = RevisionNum
+

@@ -1,3 +1,20 @@
+__doc__="""
+Scientific data has dimensions that have physical meaning and values
+only have meaning in the context of their units.  This module implements
+numpy arrays that are aware of their dimensions trying to vaguely adhere
+to the Common Data Model from Unitdata at UCAR.
+
+Each variable has as a property its dimensions names (dimensions).  Further,
+each dimension name exists as a property and contains a one dimensional array
+of values associated with that dimension.
+
+For the purposes of ease of use, the standard properties of netCDF files
+are attached and the arrays implement the Scientific.IO.NetCDF.NetCDFVariable
+interfaces.
+"""
+
+__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFVariableConvertUnit', 'PseudoNetCDFFileMemmap', 'PseudoNetCDFVariable', 'PseudoIOAPIVariable', 'PseudoNetCDFVariables', 'Pseudo2NetCDF']
+
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
 RevisionNum= "$LastChangedRevision$"
@@ -20,23 +37,6 @@ from types import MethodType
 from pyPA.utils.units import convert
 from pyPA.utils.util import AttrDict
 import operator,re,tempfile,warnings,sys,unittest
-
-__doc__="""
-Scientific data has dimensions that have physical meaning and values
-only have meaning in the context of their units.  This module implements
-numpy arrays that are aware of their dimensions trying to vaguely adhere
-to the Common Data Model from Unitdata at UCAR.
-
-Each variable has as a property its dimensions names (dimensions).  Further,
-each dimension name exists as a property and contains a one dimensional array
-of values associated with that dimension.
-
-For the purposes of ease of use, the standard properties of netCDF files
-are attached and the arrays implement the Scientific.IO.NetCDF.NetCDFVariable
-interfaces.
-"""
-
-__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFVariableConvertUnit', 'PseudoNetCDFFileMemmap', 'PseudoNetCDFVariable', 'PseudoIOAPIVariable', 'PseudoNetCDFVariables', 'Pseudo2NetCDF']
 
 def PseudoNetCDFVariableConvertUnit(var,outunit):
     do=AttrDict({'dimensions':{}})

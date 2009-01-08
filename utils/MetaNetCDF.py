@@ -1,3 +1,5 @@
+__all__ = ['add_derived', 'time_avg_new_unit', 'window', 'newresolution', 'MetaNetCDF', 'WindowFromFile', 'file_master']
+
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
 RevisionNum= "$LastChangedRevision$"
@@ -20,8 +22,6 @@ from pyPA.utils.sci_var import PseudoNetCDFFile, \
 from pyPA.utils.ArrayTransforms import CenterCAMxWind, \
                             CenterTime, \
                             CAMxHeightToDepth
-
-__all__ = ['add_derived', 'time_avg_new_unit', 'window', 'newresolution', 'MetaNetCDF', 'WindowFromFile', 'file_master']
 
 class add_derived(PseudoNetCDFFile):
     """add_derived provides a simple interface to add derived variables

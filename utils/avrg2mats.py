@@ -1,9 +1,3 @@
-HeadURL="$HeadURL$"
-ChangeDate = "$LastChangedDate$"
-RevisionNum= "$LastChangedRevision$"
-ChangedBy  = "$LastChangedBy$"
-__version__ = RevisionNum
-
 """Create model prediction "MATS-format" ascii file
 
 usage:
@@ -11,6 +5,15 @@ from avrg2mats import *
 
 This file official source is $HeadURL$
 """
+
+__all__ = [ "getDataArray", "writeMATSmodel", "getLatLongArray" ] 
+
+
+HeadURL="$HeadURL$"
+ChangeDate = "$LastChangedDate$"
+RevisionNum= "$LastChangedRevision$"
+ChangedBy  = "$LastChangedBy$"
+__version__ = RevisionNum
 
 ChangeDate = "$LastChangedDate$"
 RevisionNum= "$LastChangedRevision$"
@@ -33,8 +36,6 @@ from XML2Dicts import GetXMLRootAttrs, XML2DomainDict
 # import pyPA utils
 #from pyPA.utils.CAMxFiles import gridded_emissions as ge
 from CAMxFiles import gridded_emissions as ge
-
-__all__ = [ "getDataArray", "writeMATSmodel", "getLatLongArray" ] 
 
 def getDataArray(
         inputtemplate="test/camx420_cb4.%d.hgb8h.b1b.psito2n2.TCEQuh1_eta_tke.PA.favrg.hgbpa_04k", 

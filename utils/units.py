@@ -1,3 +1,5 @@
+__all__ = ['F2C', 'F2K', 'K2C', 'K2F', 'KCMAQ2F', 'M2km', 'MPS2kph', 'convert', 'converter', 'converters_dict', 'km2m', 'm2ft', 'm2km', 'm2miles', 'min2h', 'molespsCMAQ2molesph', 'mps2kmps', 'mps2kph', 'mps2milesph', 'mps2milesps', 's2h', 's2min']
+
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
 RevisionNum= "$LastChangedRevision$"
@@ -8,8 +10,6 @@ try:
     from collections import defaultdict
 except:
     from pyPA.utils.util import defaultdict
-
-__all__ = ['F2C', 'F2K', 'K2C', 'K2F', 'KCMAQ2F', 'M2km', 'MPS2kph', 'convert', 'converter', 'converters_dict', 'km2m', 'm2ft', 'm2km', 'm2miles', 'min2h', 'molespsCMAQ2molesph', 'mps2kmps', 'mps2kph', 'mps2milesph', 'mps2milesps', 's2h', 's2min']
 
 s2min=lambda a: a/60.
 min2h=lambda a: a/60.

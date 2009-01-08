@@ -1,3 +1,5 @@
+__all__ = ['pnpoly', 'poly', 'gridconverter', 'grid', 'lccConv']
+
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
 RevisionNum= "$LastChangedRevision$"
@@ -6,8 +8,6 @@ __version__ = RevisionNum
 
 from math import cos,log,radians,degrees,pi,tan,sin,sqrt,atan
 from warnings import warn
-
-__all__ = ['pnpoly', 'poly', 'gridconverter', 'grid', 'lccConv']
 
 def pnpoly((x,y),poly):
     """

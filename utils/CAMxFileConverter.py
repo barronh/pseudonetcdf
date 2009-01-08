@@ -1,10 +1,10 @@
+__all__ = ['irr2ncf', 'ipr2ncf']
+
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
 RevisionNum= "$LastChangedRevision$"
 ChangedBy  = "$LastChangedBy$"
 __version__ = RevisionNum
-
-__all__ = ['irr2ncf', 'ipr2ncf']
 
 def irr2ncf(irrinf,irroutf,lay=None,row=None,col=None,verbose=False):
     """
