@@ -44,9 +44,9 @@ def grid_diff_sum(outfile,infile1,infile2,hourly=True):
     for k,v in tempncf.variables.iteritems():
         tv=outfile.createVariable(k,'f',{True: ('TSTEP',),False: ()}[hourly])
         if hourly:
-            tv.assignValue(v.sum(-1).sum(-1).sum(-1))
+            tv[:] = v.sum(-1).sum(-1).sum(-1)
         else:
-            tv.assignValue(v.sum())
+            tv[:] = v.sum()
 
 def point_compare(outfile,infile1,infile2,spc_wt=1,hourly=True):
     """Point compare compares point emission files

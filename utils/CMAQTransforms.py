@@ -30,7 +30,7 @@ class time_avg_new_unit(PseudoNetCDFFile):
         self.variables=PseudoNetCDFVariables(self.__variables,self.__file.variables.keys())
         self.__timeslice={True:slice(1,None),False:slice(None,-1)}[endhour]
         v=self.createVariable('TFLAG','i',('TSTEP','VAR','DATE-TIME'),keep=True)
-        v.assignValue(self.__file.variables['TFLAG'][self.__timeslice])
+        v[:] = self.__file.variables['TFLAG'][self.__timeslice])
         v.long_name='Time flag'
         v.units='DATE-TIME'
 
@@ -75,7 +75,7 @@ class wind_center_time_cell(PseudoNetCDFFile):
         
     def __add_variables(self):
         v=self.createVariable('TFLAG','i',('TSTEP','VAR','DATE-TIME'),keep=True)
-        v.assignValue(self.__windfile.variables['TFLAG'][self.__timeslice])
+        v[:] = self.__windfile.variables['TFLAG'][self.__timeslice]
         v.long_name='Time flag'
         v.units='DATE-TIME'
         for k in ['UWIND','VWIND']:

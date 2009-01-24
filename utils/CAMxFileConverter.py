@@ -93,7 +93,7 @@ def irr2ncf(irrinf,irroutf,lay=None,row=None,col=None,verbose=False):
     for rxn in rxn_iter:
             print >> sys.stderr, rxn
             tmp_var=irroutf.variables[rxn]
-            tmp_var.assignValue(0)
+            tmp_var[:] = 0
             tmp_var[:,:,rowwindow,colwindow]=irrinf.variables[rxn]
             irroutf.sync()
     
