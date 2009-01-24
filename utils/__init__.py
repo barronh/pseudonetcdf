@@ -1,4 +1,4 @@
-"""
+__doc__ = """
 .. _utils
 :mod:`utils` -- pyPA utilities
 ==============================

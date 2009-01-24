@@ -1,4 +1,4 @@
-"""Create model prediction "MATS-format" ascii file
+__doc__ = """Create model prediction "MATS-format" ascii file
 
 usage:
 from avrg2mats import *

@@ -1,4 +1,4 @@
-"""
+__doc__ = """
 .. _CAMxComparisons
 :mod:`CAMxComparisons` -- CAMx Comparisons utilities
 ====================================================
