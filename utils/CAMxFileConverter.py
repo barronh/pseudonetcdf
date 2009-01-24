@@ -202,7 +202,7 @@ def ipr2ncf(iprinf,iproutf,lay=None,row=None,col=None,verbose=False):
             prc_spc=prc.strip()+'_'+spc.strip()
             print >> sys.stderr, prc_spc
             tmp_var=iproutf.variables[prc_spc]
-            tmp_var.assignValue(0)
+            tmp_var[:] = 0
             tmp_var[:,:,rowwindow,colwindow]=iprinf.variables[prc_spc]
             iproutf.sync()
     
