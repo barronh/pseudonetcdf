@@ -4,7 +4,7 @@ from numpy import array,ones
 from PseudoNetCDF.MetaNetCDF import add_derived, \
                                   file_master
 from pyPA.netcdf import NetCDFFile as ncf
-from camxfiles.ArrayTransforms import CenterCMAQWind, \
+from PseudoNetCDF.ArrayTransforms import CenterCMAQWind, \
                                        CenterTime
 from PseudoNetCDF.units import F2K
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, \

@@ -21,3 +21,8 @@ RevisionNum= "$LastChangedRevision$"
 ChangedBy  = "$LastChangedBy$"
 __version__ = RevisionNum
 
+import CAMxFiles
+import CAMxTransforms
+import util
+import xml
+import spatial
