@@ -55,7 +55,7 @@ class defaultdict(dict):
 
 def getheights(file):
     warn("get heights has been deprecated in favor of hp.variables['HGHT']",DeprecationWarning)
-    from pyPA.utils.CAMxFiles import height_pressure
+    from CAMxFiles import height_pressure
     import operator
     hp=height_pressure(file)
     heights=[]
