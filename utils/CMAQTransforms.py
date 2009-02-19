@@ -3,7 +3,7 @@ __all__ = ['time_avg_new_unit', 'wind_center_time_cell', 'pypass_cmaq_met_master
 from numpy import array,ones
 from PseudoNetCDF.MetaNetCDF import add_derived, \
                                   file_master
-from pyPA.netcdf import NetCDFFile as ncf
+from ..netcdf import NetCDFFile as ncf
 from PseudoNetCDF.ArrayTransforms import CenterCMAQWind, \
                                        CenterTime
 from PseudoNetCDF.units import F2K
@@ -139,7 +139,7 @@ def cmaq_pa_master(paths_and_readers,tslice=slice(None),kslice=slice(None),jslic
        islice -  - same as tslice, but for columns
               
     """
-    from pyPA.pappt.kvextract import tops2shape,pblhghts2tops
+    from ..pappt.kvextract import tops2shape,pblhghts2tops
     files=[]
     for p,r in paths_and_readers:
         files.append(eval(r)(p))

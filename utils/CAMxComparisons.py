@@ -16,7 +16,7 @@ RevisionNum= "$LastChangedRevision$"
 ChangedBy  = "$LastChangedBy$"
 __version__ = RevisionNum
 
-from pyPA.utils.CAMxFiles import gridded_emissions,point_source
+from CAMxFiles import gridded_emissions,point_source
 from PseudoNetCDF.sci_var import PseudoNetCDFFile as pncf
 
 def grid_diff(outfile,infile1,infile2):

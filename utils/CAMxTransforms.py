@@ -1,6 +1,6 @@
 __all__ = ['point_source_newvarnames', 'pypass_camx_met_master', 'camx_pa_master', 'hght2dz', 'hght2zh', 'pypass_camx_emiss_master']
 
-from pyPA.netcdf import NetCDFFile as ncf
+from ..netcdf import NetCDFFile as ncf
 from numpy import zeros
 from PseudoNetCDF.ArrayTransforms import CenterTime
 from PseudoNetCDF.camxfiles.wind.Transforms import wind_center_time_cell
@@ -79,7 +79,7 @@ def camx_pa_master(paths_and_readers,tslice=slice(None),kslice=slice(None),jslic
               
     """
     def defaultshape(self):
-        from pyPA.pappt.kvextract import tops2shape, vertcamx
+        from ..pappt.kvextract import tops2shape, vertcamx
         
         old_shape=[i for i in self.variables['UCNV_O3'].shape]
         new_shape=[i for i in self.variables['UCNV_O3'].shape]
