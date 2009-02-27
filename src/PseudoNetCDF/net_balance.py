@@ -289,9 +289,9 @@ class mrgaloft(pncf):
             except EOFError:
                 raise StopIteration 
 
-import PseudoNetCDF.testcase
 class TestReaders(unittest.TestCase):
     def setUp(self):
+        import PseudoNetCDF.testcase
         self.netfile=PseudoNetCDF.testcase.net_file
         self.mrgfile=PseudoNetCDF.testcase.mrg_file
         
