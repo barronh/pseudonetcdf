@@ -1,4 +1,5 @@
 from distutils.core import setup
+from setuptools import setup
 import os
 import sys
 from warnings import warn
