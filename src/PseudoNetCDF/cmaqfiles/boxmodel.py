@@ -16,6 +16,8 @@ def box_model_mrg(conc_path, irr_path, start_datetime):
     
     conc=fromstring(data_block, dtype='f', sep='\t').view(line_format)
     result = PseudoNetCDFFile()
+    result.SDATE = int(start_datetime.strftime('%Y%j'))
+    result.STIME = int(start_datetime.strftime('%H%M%S'))
     result.createDimension('TSTEP', conc.shape[0]-1)
     result.createDimension('PROCESS', 2)
     result.createDimension('REACTIONS', irr_values.shape[1]-2)
