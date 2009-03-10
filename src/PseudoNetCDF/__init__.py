@@ -4,7 +4,7 @@ NetCDF and manipulating or extending existing NetCDF
 like files
 """
 
-__all__ = ['sci_var', 'MetaNetCDF', 'units', 'ArrayTransforms', 'camxfiles', 'test']
+__all__ = ['sci_var', 'MetaNetCDF', 'units', 'ArrayTransforms', 'camxfiles', 'test', 'pncdump']
 
 import sci_var
 import MetaNetCDF
