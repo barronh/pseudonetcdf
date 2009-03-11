@@ -30,11 +30,11 @@ class ffi1001(PseudoNetCDFFile):
             elif li == 9:
                 units.append(l.replace('\n', ''))
             elif li == 11:
-                scales = l.split()
+                scales = [eval(i) for i in l.split()]
                 if set([float(s) for s in scales]) != set([1.]):
                     raise ValueError, "Unsupported: scaling is unsupported.  data is scaled by %s" % (str(scales),)
             elif li == 12:
-                missing = l.split()
+                missing = [eval(i) for i in l.split()]
             elif li > 12 and li <= 12+len(missing):
                 nameunit = l.replace('\n','').split(',')
                 name = nameunit[0].strip()
@@ -71,7 +71,7 @@ class ffi1001(PseudoNetCDFFile):
             tmpvar = self.variables[var] = PseudoNetCDFVariable(self, var, 'f', ('POINTS',), values = vals)
             tmpvar.units = unit
 
-            tmpvar.fillvalue = miss
+            tmpvar.fill_value = miss
             tmpvar.scale = scale
             tmpvar[:] = dat
         
@@ -79,7 +79,7 @@ class ffi1001(PseudoNetCDFFile):
         self.date_objs = self.SDATE + vectorize(lambda s: timedelta(seconds = int(s), microseconds = (s - int(s)) * 1.E6 ))(self.variables[self.TFLAG]).view(type = ndarray)
         self.createDimension('YYYYMMDDTHHMMSS.microS', 22)
         var = self.createVariable('TFLAG', 'c', ('POINTS', 'YYYYMMDDTHHMMSS.microS'))
-        var[:] = array([d.strftime('%Y%m%dT%H%M%S.%f') for d in self.date_objs], dtype = '|S22').view('|S1').reshape(self.date_objs.shape[0], self.dimensions['YYYYMMDDTHHMMSS.microS'])
+        var[:] = array(['%(Y)04d%(m)02d%(d)02dT%(H)02d%(M)02d%(S)02d.%(f)06d' % dict(Y = d.year, m = d.month, d = d.day, H = d.hour, M = d.minute, S = d.second, f = d.microsecond) for d in self.date_objs], dtype = '|S22').view('|S1').reshape(self.date_objs.shape[0], self.dimensions['YYYYMMDDTHHMMSS.microS'])
         var.units = 'YYYYMMDDTHHMMSS.microS'
-        var.fillvalue = ''
+        var.fill_value = ''
         var.scale = 1.
