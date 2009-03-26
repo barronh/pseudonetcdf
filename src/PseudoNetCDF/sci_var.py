@@ -115,10 +115,14 @@ class PseudoNetCDFVariable(ndarray):
         
         result=result[:].view(subtype)
         
-        result.__dict__={
-            'typecode': lambda: typecode,
-            'dimensions': tuple(dimensions)
-          }
+        if hasattr(result, '__dict__'):
+            result.__dict__['typecode'] = lambda: typecode
+            result.__dict__['dimensions'] = tuple(dimensions)
+        else:
+            result.__dict__={
+                'typecode': lambda: typecode,
+                'dimensions': tuple(dimensions)
+            }
         for k,v in kwds.iteritems():
             setattr(result,k,v)
         return result
