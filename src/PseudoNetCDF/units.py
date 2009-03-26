@@ -39,6 +39,12 @@ mps2kmps=lambda a: a*.001
 mps2milesph=lambda a: a*2.23693629
 mps2milesps=lambda a: a*0.000621371192
 molespsCMAQ2molesph=lambda a: a*60*60
+ppm2ppb = lambda a: a * 1000.
+ppb2ppt = lambda a: a * 1000.
+ppt2ppb = lambda a: a / 1000.
+ppb2ppm = lambda a: a / 1000.
+ppm2ppt = lambda a: ppm2ppb(ppb2ppt(a))
+ppt2ppm = lambda a: ppt2ppb(ppb2ppm(a))
 
 class converters_dict(defaultdict):
     def __init__(self,dct):
@@ -66,8 +72,14 @@ converter=converters_dict({('s','min'): s2min, \
                            ('K','C'): K2C, \
                            ('K','F'): K2F, \
                            ('K               ','deg_F'): KCMAQ2F, \
-                           ('K','deg_F'): K2F} \
-                           )
+                           ('K','deg_F'): K2F, \
+                           ('ppm', 'ppb'): ppm2ppb, \
+                           ('ppb', 'ppt'): ppb2ppt, \
+                           ('ppt', 'ppb'): ppt2ppb, \
+                           ('ppb', 'ppm'): ppb2ppm, \
+                           ('ppt', 'ppm'): ppt2ppm, \
+                           ('ppm', 'ppt'): ppm2ppt \
+                           })
 
 def convert(var, inunit, outunit):
     """

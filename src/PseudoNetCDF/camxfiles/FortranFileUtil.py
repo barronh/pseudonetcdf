@@ -1,5 +1,3 @@
-#!/usr/bin/env python2.4
-
 __all__ = ['platform_is_bigendian', 'freadnumpy', 'freadstruct', 'fread', 'needs_byteswap', 'check_read', 'RecordFile', 'unpack_from_file', 'seek_to_record', 'read_into', 'writeline', 'OpenRecordFile', 'Int2Asc', 'Asc2Int']
 
 __doc__ = """

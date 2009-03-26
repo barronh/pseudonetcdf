@@ -14,7 +14,7 @@ __doc__ = """
 """
 
 from warnings import warn
-warn("Code uses deprecated module timetuple; code should be converted to rely on datetime and dateutil")
+warn(PendingDeprecationWarning("Time tuple will be replaced by datetime and dateutil"))
 
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
