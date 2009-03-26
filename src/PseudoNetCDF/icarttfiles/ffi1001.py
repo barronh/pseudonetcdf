@@ -12,8 +12,12 @@ def get_lodval(v):
     except:
         return v
 
-loddelim = re.compile('(;\s)|,|\s')
+loddelim = re.compile('(;\s?)|,|\s')
 
+DATE_LINE = 7
+UNIT_LINE = 9
+SCALE_LINE = 11
+MISSING_LINE = 12
 class ffi1001(PseudoNetCDFFile):
     def __init__(self,path):
         self.dimensions = {}
@@ -27,48 +31,60 @@ class ffi1001(PseudoNetCDFFile):
         
         n, self.fmt = l.split()
         n_user_comments = 0
+        n_special_comments = 0
         self.n_header_lines = int(n)
-        for li in range(self.n_header_lines-1):
-            li += 2
-            l = f.readline()
-            if li == 7:
-                l = l.replace(',', '').split()
-                SDATE = " ".join(l[:3])
-                WDATE = " ".join(l[3:])
-                self.SDATE = datetime.strptime(SDATE, '%Y %m %d')
-                self.WDATE = datetime.strptime(WDATE, '%Y %m %d')
-            elif li == 9:
-                units.append(l.replace('\n', ''))
-            elif li == 11:
-                scales = [eval(i) for i in l.split()]
-                if set([float(s) for s in scales]) != set([1.]):
-                    raise ValueError, "Unsupported: scaling is unsupported.  data is scaled by %s" % (str(scales),)
-            elif li == 12:
-                missing = [eval(i) for i in l.split()]
-            elif li > 12 and li <= 12+len(missing):
-                nameunit = l.replace('\n','').split(',')
-                name = nameunit[0].strip()
-                if len(nameunit) > 1:
-                    units.append(nameunit[1])
-                elif re.compile('(.*)\((.*)\)').match(nameunit[0]):
-                    desc_groups = re.compile('(.*)\((.*)\).*').match(nameunit[0]).groups()
-                    name = desc_groups[0].strip()
-                    units.append(desc_groups[1].strip())
-                elif '_' in name:
-                    units.append(name.split('_')[1])
-                else:
-                    warn('Could not find unit in string: "%s"' % l)
-                    units.append(name)
-            elif li == 12+len(missing)+2:
-                n_user_comments = int(l.replace('\n',''))
-            elif li > 12+len(missing)+2 and li < self.n_header_lines:
-                colon_pos = l.find(':')
-                k = l[:colon_pos].strip()
-                v = l[colon_pos+1:].strip()
-                setattr(self,k,v)
-            elif li == self.n_header_lines:
-                variables = l.replace(',','').split()
-                self.TFLAG = variables[0]
+        try:
+            for li in range(self.n_header_lines-1):
+                li += 2
+                l = f.readline()
+                LAST_VAR_DESC_LINE = 12+len(missing)
+                SPECIAL_COMMENT_COUNT_LINE = LAST_VAR_DESC_LINE + 1
+                LAST_SPECIAL_COMMENT_LINE = SPECIAL_COMMENT_COUNT_LINE + n_special_comments
+                USER_COMMENT_COUNT_LINE = 12+len(missing)+2+n_special_comments
+                if li == DATE_LINE:
+                    l = l.replace(',', '').split()
+                    SDATE = " ".join(l[:3])
+                    WDATE = " ".join(l[3:])
+                    self.SDATE = datetime.strptime(SDATE, '%Y %m %d')
+                    self.WDATE = datetime.strptime(WDATE, '%Y %m %d')
+                elif li == UNIT_LINE:
+                    units.append(l.replace('\n', ''))
+                elif li == SCALE_LINE:
+                    scales = [eval(i) for i in l.split()]
+                    if set([float(s) for s in scales]) != set([1.]):
+                        raise ValueError, "Unsupported: scaling is unsupported.  data is scaled by %s" % (str(scales),)
+                elif li == MISSING_LINE:
+                    missing = [eval(i) for i in l.split()]
+                elif li > MISSING_LINE and li <= LAST_VAR_DESC_LINE:
+                    nameunit = l.replace('\n','').split(',')
+                    name = nameunit[0].strip()
+                    if len(nameunit) > 1:
+                        units.append(nameunit[1])
+                    elif re.compile('(.*)\((.*)\)').match(nameunit[0]):
+                        desc_groups = re.compile('(.*)\((.*)\).*').match(nameunit[0]).groups()
+                        name = desc_groups[0].strip()
+                        units.append(desc_groups[1].strip())
+                    elif '_' in name:
+                        units.append(name.split('_')[1])
+                    else:
+                        warn('Could not find unit in string: "%s"' % l)
+                        units.append(name)
+                elif li == SPECIAL_COMMENT_COUNT_LINE:
+                    n_special_comments = int(l.replace('\n', ''))
+                elif li > SPECIAL_COMMENT_COUNT_LINE and li <= LAST_SPECIAL_COMMENT_LINE:
+                    pass
+                elif li == USER_COMMENT_COUNT_LINE:
+                    n_user_comments = int(l.replace('\n',''))
+                elif li > USER_COMMENT_COUNT_LINE and li < self.n_header_lines:
+                    colon_pos = l.find(':')
+                    k = l[:colon_pos].strip()
+                    v = l[colon_pos+1:].strip()
+                    setattr(self,k,v)
+                elif li == self.n_header_lines:
+                    variables = l.replace(',','').split()
+                    self.TFLAG = variables[0]
+        except:
+            raise SyntaxError, "Error parsing icartt file %s" % path
 
         missing = missing[:1]+missing
         scales = [1.]+scales
