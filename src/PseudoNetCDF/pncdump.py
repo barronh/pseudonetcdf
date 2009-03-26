@@ -32,6 +32,7 @@ from optparse import OptionParser
 import textwrap
 import sys
 import os
+import operator
 
 class pncdump_parser(OptionParser):
     def __init__(self, *args, **kwds):
@@ -101,7 +102,8 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                    int32 = "%i", \
                    int64 = "%i", \
                    str = "%s", \
-                   bool = "%s")
+                   bool = "%s", \
+                   string8 = "'%s'")
     float_fmt = "%%.%df" % (float_precision,)
     int_fmt = "%i"
     # initialize indentation as 8 characters
@@ -131,8 +133,9 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         float64='double', \
                         int32='integer', \
                         int64='long', \
-                        bool='bool')[var.dtype.name]
-        sys.stdout.write(1*indent+("%s %s%s;\n" % (var_type, var_name,str(var.dimensions).replace('\'',''))))
+                        bool='bool', \
+                        string8='char')[var.dtype.name]
+        sys.stdout.write(1*indent+("%s %s%s;\n" % (var_type, var_name,str(var.dimensions).replace('\'','').replace(',)',')'))))
         for prop_name, prop in var.__dict__.iteritems():
             if isinstance(prop,property_types):
                 sys.stdout.write(2*indent+("%s:%s = \"%s\" ;\n" % (var_name,prop_name,prop)))
@@ -188,23 +191,30 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                             sys.stdout.close()
                             exit()
                 else:
-                    for hri, hr in enumerate(var):
-                        for layi, lay in enumerate(hr):
-                            for rowi, row in enumerate(lay):
-                                fmt = ', '.join(row.size * [formats[var.dtype.name]])
-                                array_str = fmt % tuple(row)
-                                if hri == (f.dimensions['TSTEP']-1) and \
-                                   layi == (f.dimensions['LAY']-1) and \
-                                   rowi == (f.dimensions['ROW']-1):
-                                    array_str += ";"
-                                else:
-                                    array_str += ","
-
-                                try:
-                                    sys.stdout.write(textwrap.fill(array_str, line_length, initial_indent = '  ', subsequent_indent = '    '))
-                                    sys.stdout.write('\n')
-                                except IOError:
-                                    exit()
+                    dimensions = [f.dimensions[d] for d in var.dimensions]
+                    if len(dimensions) > 1:
+                        first_dim = reduce(operator.mul,dimensions[:-1])
+                        second_dim = dimensions[-1]
+                        shape = [first_dim, second_dim]
+                    else:
+                        shape = [1]+dimensions
+                    
+                    var2d = var[:].reshape(shape)
+                    fmt = ', '.join(shape[-1] * [formats[var.dtype.name]])
+                    for rowi, row in enumerate(var2d):
+                        array_str = fmt % tuple(row)
+                        if rowi == (shape[0]-1):
+                            array_str += ';'
+                        else:
+                            array_str += ','
+                            
+                        try:
+                            sys.stdout.write(textwrap.fill(array_str, line_length, initial_indent = '  ', subsequent_indent = '    '))
+                            sys.stdout.write('\n')
+                        except IOError:
+                            exit()
+                                            
+                    
         except KeyboardInterrupt:
             sys.stdout.flush()
             exit()
