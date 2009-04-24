@@ -23,6 +23,7 @@ __version__ = RevisionNum
 
 from numpy import array, zeros, ndarray, isscalar
 from collections import defaultdict
+from warnings import warn
 from netcdf import NetCDFFile
     
 from numpy import arange
@@ -129,33 +130,45 @@ class PseudoNetCDFVariable(ndarray):
 
     def getValue(self):
         """
-        Return a array style variable
+        Return scalar value
         """
         return self.item()
   
     def assignValue(self,value):
         """
-        assign value to variable value
+        assign value to scalar variable
         """
         self.itemset(value)
 
-def PseudoIOAPIVariable(self,parent,name,typecode,dimensions,values=None,units=None):
-        """
-        Creates a variable using the dimensions as defined in
-        the parent object
-        
-        parent: an object with a dimensions variable
-        name: name for variable
-        typecode: numpy style typecode
-        dimensions: a typle of dimension names to be used from
-                    parrent
-        """
-        self.__dict__.update({
-            'long_name': name.ljust(16),
-            'var_desc': name.ljust(16),
-            'units': units
-          })
+def PseudoIOAPIVariable(parent,name,typecode,dimensions,**kwds):
+    """
+    Creates a variable using the dimensions as defined in
+    the parent object
+    
+    parent: an object with a dimensions variable
+    name: name for variable
+    typecode: numpy style typecode
+    dimensions: a typle of dimension names to be used from
+                parent
+    units: default = none
+    long_name: default = name
+    var_desc: default = name
+    """
 
+    retval = PseudoNetCDFVariable(parent, name, typecode, dimensions, **kwds)
+
+    if not kwds.has_key('units'):
+        warn('IOAPI variables must have units; %s has been initialized with "None" units')
+        retval.units = 'None'
+        
+    if not kwds.has_key('long_name'):
+        retval.long_name = name.ljust(16)
+
+    if not kwds.has_key('var_desc'):
+        retval.var_desc = name.ljust(80)
+
+    return retval
+    
 class PseudoNetCDFVariables(defaultdict):
     """
     PseudoNetCDFVariables provides a special implementation
