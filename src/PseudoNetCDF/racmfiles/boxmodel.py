@@ -2,6 +2,13 @@ from ..sci_var import PseudoNetCDFFile
 from numpy import array, dtype, fromstring, newaxis, vectorize
 from datetime import timedelta, datetime
 
+def box_model_irr(irr_path, start_datetime):
+    retval = box_model_conc(irr_path, start_datetime)
+    for spc, var in retval.variables.iteritems():
+        if spc not in ('TFLAG',):
+            var.units = '%s/h' % (var.units.strip(),)
+
+    return retval
 def box_model_conc(conc_path, start_datetime):
     lines = file(conc_path,'r').readlines()[3:]
     
