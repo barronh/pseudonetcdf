@@ -16,7 +16,7 @@ __doc__ = """
 from numpy import array,zeros
 from warnings import warn
 import unittest
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoNetCDFVariable
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoIOAPIVariable
 from Memmap import uamiv
 
 class osat(PseudoNetCDFFile):
@@ -107,9 +107,7 @@ class osat(PseudoNetCDFFile):
             outvals=self.__child.variables[var_id_names[0]]
             
         dimensions=('TSTEP','VAR','LAY','ROW','COL')
-        v=PseudoNetCDFVariable(self,key,'f',dimensions,values=outvals)
-        v.units='ppm'
-        v.long_name=v.var_desc=key.ljust(16)
+        v=PseudoIOAPIVariable(self,key,'f',dimensions,values=outvals, units = 'ppm')
         v.VAR_NAMES=''.join([nm.ljust(16) for nm in var_id_names])
         #v.VAR_NAME_DESCS=''.join([nm.ljust(16) for nm in var_nm_names])
         return v

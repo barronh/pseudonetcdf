@@ -33,7 +33,7 @@ from PseudoNetCDF.netcdf import NetCDFFile as ncf
 from PseudoNetCDF.camxfiles.timetuple import timediff,timeadd,timerange
 from PseudoNetCDF.camxfiles.util import sliceit
 from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile,read_into,Int2Asc,Asc2Int
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoIOAPIVariable, PseudoNetCDFVariables
 
 
 #for use in identifying uncaught nan
@@ -411,9 +411,9 @@ class uamiv_new(PseudoNetCDFFile):
         vals=vals.reshape(self.NSTEPS,self.NLAYS,self.__time_spc_layer_slice)
         vals=vals[:,:,12:-1]
         vals=vals.reshape(self.NSTEPS,self.NLAYS,self.NROWS,self.NCOLS)
-        vals=PseudoNetCDFVariable(self,spc,'f',('TSTEP','LAY','ROW','COL'),values=vals)
-        vals.units={'AVERAGE   ':'ppm','AIRQUALITY':'ppm','EMISSIONS ':'mol'}[self.NAME].ljust(16)
-        vals.long_name=vals.var_desc=spc.ljust(16)
+        units={'AVERAGE   ':'ppm','AIRQUALITY':'ppm','EMISSIONS ':'mol'}[self.NAME].ljust(16)
+        vals=PseudoIOAPIVariable(self,spc,'f',('TSTEP','LAY','ROW','COL'),values=vals, units = units)
+
         return vals
 
     def __setdimensions(self):

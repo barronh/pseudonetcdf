@@ -27,7 +27,7 @@ from numpy import zeros,array,where,memmap,newaxis,dtype,nan
 #This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timediff,timeadd
 from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoIOAPIVariable, PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 #for use in identifying uncaught nan
@@ -170,21 +170,12 @@ class uamiv(PseudoNetCDFFile):
         
         self.__memmap__=memmap(self.__rffile,mode=self.__mode,dtype=data_block_fmt,offset=offset)
 
-    def __decorator(self,name,pncfv):
-        if name=='EMISSIONS ':
-            decor=lambda spc: dict(units='umol/hr', var_desc=spc.ljust(16), long_name=spc.ljust(16))
-        else:
-            decor=lambda spc: dict(units='ppm', var_desc=spc.ljust(16), long_name=spc.ljust(16))
-
-        for k,v in decor(name).iteritems():
-            setattr(pncfv,k,v)
-        return pncfv
-        
     def __variables(self,k):
         spc_index=self.__var_names__.index(k)
         dimensions=('TSTEP','LAY','ROW','COL')
         outvals=self.__memmap__[k]['DATA']
-        return self.__decorator(k,PseudoNetCDFVariable(self,k,'f',dimensions,values=outvals))
+        units = {'EMISSIONS ':'umol/hr'}.get(self.NAME,'ppm')
+        return PseudoIOAPIVariable(self,k,'f',dimensions,values=outvals, units = units)
 
     def sync(self):
         pass
