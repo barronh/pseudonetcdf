@@ -73,7 +73,7 @@ def box_model_mrg(conc_path, irr_path, start_datetime):
     t_tflag = start_datetime+vectorize(lambda m: timedelta(minutes = m))(conc['Time'].astype('d'))
     tflag[:, :, 0] = vectorize(lambda d: int(d.strftime('%Y%j')))(t_tflag[1:,newaxis])
     tflag[:, :, 1] = vectorize(lambda d: int(d.strftime('%H%M%S')))(t_tflag[1:,newaxis])
-    result.Reactions = ''.join(['RXN_%02d'.ljust(16) % ri for ri in range(1,result.dimensions['REACTIONS']+1)])
+    result.Reactions = ''.join(['IRR_%d'.ljust(16) % ri for ri in range(1,result.dimensions['REACTIONS']+1)])
     result.Species = ''.join([spc_name.ljust(16) for spc_name in spc_names if spc_name not in ['Time', 'AIR']])
     result.Process = 'INIT'.ljust(16)+'CHEM'.ljust(16)+'FCONC'.ljust(16)
     
