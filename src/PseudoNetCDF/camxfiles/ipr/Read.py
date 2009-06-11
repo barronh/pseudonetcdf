@@ -231,7 +231,7 @@ class ipr(PseudoNetCDFFile):
                 }
             if self.NPROCESS[0] == 24:
                 self.proc_dict['AERCHEM'] = 'Aerosol chemistry'
-            elif self.NPROCESS[0] == 24:
+            elif self.NPROCESS[0] == 26:
                 self.proc_dict['INORGACHEM'] = 'Inorganic Aerosol chemistry'
                 self.proc_dict['ORGACHEM'] = 'Organic Aerosol chemistry'
                 self.proc_dict['AQACHEM'] = 'Aqueous Aerosol chemistry'
