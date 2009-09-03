@@ -1,12 +1,14 @@
-from distutils.core import setup
-from setuptools import setup
+try:
+    from setuptools import setup
+except:
+    from distutils.core import setup
 import os
 import sys
 from warnings import warn
-netcdf_pkgs = [('pynetcdf', 'NetCDFFile'), ('netCDF3', 'Dataset'), \
-               ('netCDF4', 'Dataset'), ('Scientific.IO.NetCDF', 'NetCDFFile'), \
+netcdf_pkgs = [('netCDF4', 'Dataset'), \
+               ('netCDF3', 'Dataset'), \
                ('pupynere', 'NetCDFFile')]
-for pkg, reader in netcdf_pkgs:
+for pkg, reader, object in netcdf_pkgs:
     try:
         NetCDFFile = getattr(__import__(pkg, fromlist = [reader]),reader)
         print >> file(os.path.join('src', 'PseudoNetCDF', 'netcdf.py'),'wb'), """
