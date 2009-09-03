@@ -12,6 +12,7 @@ __doc__ = """
               be called as a script for ncdump style output.
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-__all__=['boxmodel']
+__all__=['boxmodel', 'pa']
 
 import boxmodel
+import pa
