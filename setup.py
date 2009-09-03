@@ -8,7 +8,7 @@ from warnings import warn
 netcdf_pkgs = [('netCDF4', 'Dataset'), \
                ('netCDF3', 'Dataset'), \
                ('pupynere', 'NetCDFFile')]
-for pkg, reader, object in netcdf_pkgs:
+for pkg, reader in netcdf_pkgs:
     try:
         NetCDFFile = getattr(__import__(pkg, fromlist = [reader]),reader)
         print >> file(os.path.join('src', 'PseudoNetCDF', 'netcdf.py'),'wb'), """
