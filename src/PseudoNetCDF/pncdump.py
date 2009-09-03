@@ -24,7 +24,7 @@ Example implementation usage:
     python -m PseudoNetCDF.pncdump camx_kv.20000825.hgbpa_04km.TCEQuh1_eta.v43.tke 65 83
 """
 
-__all__=['pncdump','dump_from_cmd_line', 'pncdump_parser', 'pncdump_parseri']
+__all__=['pncdump','dump_from_cmd_line', 'pncdump_parser']
 from numpy import float32, float64, int32, int64, uint32, uint64, ndenumerate, savetxt
 from warnings import warn
 from optparse import OptionParser
@@ -146,7 +146,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
     sys.stdout.write("\n\n// global properties:\n")
     for prop_name, prop in f.__dict__.iteritems():
         if isinstance(prop,property_types):
-            sys.stdout.write(2*indent+(":%s = %s ;\n" % (prop_name, repr(prop))))
+            sys.stdout.write(2*indent+(":%s = %s ;\n" % (prop_name, repr(prop).replace("'",'"'))))
 
     if not header:
         # Error trapping prevents the user from getting an error
