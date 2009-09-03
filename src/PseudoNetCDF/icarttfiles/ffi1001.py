@@ -48,7 +48,7 @@ class ffi1001(PseudoNetCDFFile):
                     self.SDATE = datetime.strptime(SDATE, '%Y %m %d')
                     self.WDATE = datetime.strptime(WDATE, '%Y %m %d')
                 elif li == UNIT_LINE:
-                    units.append(l.replace('\n', ''))
+                    units.append(l.replace('\n', '').replace('\r', '').strip())
                 elif li == SCALE_LINE:
                     scales = [eval(i) for i in l.split()]
                     if set([float(s) for s in scales]) != set([1.]):
@@ -59,16 +59,16 @@ class ffi1001(PseudoNetCDFFile):
                     nameunit = l.replace('\n','').split(',')
                     name = nameunit[0].strip()
                     if len(nameunit) > 1:
-                        units.append(nameunit[1])
+                        units.append(nameunit[1].strip())
                     elif re.compile('(.*)\((.*)\)').match(nameunit[0]):
                         desc_groups = re.compile('(.*)\((.*)\).*').match(nameunit[0]).groups()
                         name = desc_groups[0].strip()
                         units.append(desc_groups[1].strip())
                     elif '_' in name:
-                        units.append(name.split('_')[1])
+                        units.append(name.split('_')[1].strip())
                     else:
                         warn('Could not find unit in string: "%s"' % l)
-                        units.append(name)
+                        units.append(name.strip())
                 elif li == SPECIAL_COMMENT_COUNT_LINE:
                     n_special_comments = int(l.replace('\n', ''))
                 elif li > SPECIAL_COMMENT_COUNT_LINE and li <= LAST_SPECIAL_COMMENT_LINE:
@@ -130,6 +130,7 @@ class ffi1001(PseudoNetCDFFile):
             tmpvar = self.variables[var] = PseudoNetCDFVariable(self, var, 'f', ('POINTS',), values = vals)
             tmpvar.units = unit
 
+            tmpvar.missing_value = miss
             tmpvar.fill_value = miss
             tmpvar.scale = scale
 
