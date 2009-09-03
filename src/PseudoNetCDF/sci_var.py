@@ -107,7 +107,12 @@ class PseudoNetCDFVariable(ndarray):
         """
         shape=[]
         for d in dimensions:
-          shape.append(parent.dimensions[d])
+          dim = parent.dimensions[d]
+
+          # Adding support for netCDF3 dimension objects
+          if not isinstance(dim, int):
+            dim = len(dim)
+          shape.append(dim)
         
         if 'values' in kwds.keys():
             result=kwds.pop('values')
@@ -219,6 +224,32 @@ class PseudoNetCDFVariables(defaultdict):
         for k in self.keys():
             yield k
 
+def get_ncf_object(path_or_object, mode):
+    from os.path import exists, isfile
+    from netcdf import NetCDFFile
+    read_only = ('r', 'r+', 'rs', 'rs+', 'r+s')
+    if isinstance(path_or_object, str):
+        if exists(path_or_object):
+            if isfile(path_or_object):
+                ncf_object = NetCDFFile(path_or_object, mode)
+            elif isdir(path_or_object):
+                raise ValueError, "Got directory at %s; not sure what to do" % path_or_object
+            else:
+                raise ValueError, "Expected file or directory at %s" % path_or_object
+        elif mode not in read_only:
+            ncf_object = NetCDFFile(path_or_object, mode)
+        else:
+            raise IOError, "Cannot open missing file for reading"
+    elif isinstance(path_or_object, NetCDFFile) or isinstance(path_or_object, PseudoNetCDFFile):
+        return path_or_object
+    elif path_or_object is None and mode not in read_only:
+        tfile=tnf(mode='w+b')
+        npath=tfile.name
+        ncf_object=NetCDFFile(npath,mode)
+    else:
+        raise ValueError, "Not a path; not a netCDF file; not a PseudoNetCDF file... I don't know what to do"
+    return ncf_object
+                
 class Pseudo2NetCDF:
     """
     Pseudo2NetCDF is a base class for conversion.  Properties and methods can
@@ -233,11 +264,8 @@ class Pseudo2NetCDF:
     ignore_global_properties=['variables','dimensions']
     ignore_variable_properties=['typecode','dimensions']
     def convert(self,pfile,npath=None):
-        if npath==None:
-            tfile=tnf(mode='w+b')
-            npath=tfile.name
-
-        nfile=NetCDFFile(npath,'w')
+        pfile = get_ncf_object(pfile, 'r')
+        nfile = get_ncf_object(npath, 'w')
         self.addDimensions(pfile,nfile)
         self.addGlobalProperties(pfile,nfile)
         self.addVariables(pfile,nfile)
@@ -245,7 +273,10 @@ class Pseudo2NetCDF:
         
     def addDimensions(self,pfile,nfile):
         for d,v in pfile.dimensions.iteritems():
-            if d=='TSTEP' and type(nfile)!=PseudoNetCDFFile:
+            if not isinstance(v, (int, long)) and v is not None:
+                v = len(v)
+                
+            if d=='TSTEP' and not isinstance(nfile, PseudoNetCDFFile):
                 nfile.createDimension(d,None)
             else:
                 nfile.createDimension(d,v)
@@ -254,25 +285,39 @@ class Pseudo2NetCDF:
     def addGlobalProperties(self,pfile,nfile):
         for k in [k for k in pfile.__dict__.keys() if k not in self.ignore_global_properties and self.ignore_global_re.match(k)==None]:
             value=getattr(pfile,k)
-            if type(value)!=MethodType:
-                setattr(nfile,k,value)
+            if not isinstance(value, MethodType):
+                try:
+                    setattr(nfile,k,value)
+                except:
+                    warn("Could not add %s to file" % k)
 
     def addVariableProperties(self,pvar,nvar):
         for a in [k for k in pvar.__dict__.keys() if k not in self.ignore_variable_properties and self.ignore_variable_re.match(k)==None]:
             value=getattr(pvar,a)
-            if type(value)!=MethodType:
-                setattr(nvar,a,value)
+            if not isinstance(value, MethodType):
+                try:
+                    setattr(nvar,a,value)
+                except:
+                    warn("Could not add %s to variable" % k)
     
     def addVariable(self,pfile,nfile,k):
         pvar=pfile.variables[k]
-        nvar=nfile.createVariable(k,pvar.typecode(),pvar.dimensions)
+        try:
+            typecode = pvar.typecode()
+        except:
+            typecode = pvar[:].dtype.char
+            
+        nvar=nfile.createVariable(k,typecode,pvar.dimensions)
         if isscalar(nvar):
             nvar.assignValue(pvar)
         else:
-            nvar[:] = pvar
+            nvar[:] = pvar[:]
         self.addVariableProperties(pvar,nvar)
         nfile.sync()
-        nfile.flush()
+        try:
+            nfile.flush()
+        except:
+            pass
         del pvar,nvar
 
     def addVariables(self,pfile,nfile):
