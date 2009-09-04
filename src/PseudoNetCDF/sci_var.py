@@ -263,6 +263,8 @@ class Pseudo2NetCDF:
     ignore_variable_re=re.compile('^_\w*__\w*')
     ignore_global_properties=['variables','dimensions']
     ignore_variable_properties=['typecode','dimensions']
+    unlimited_dimensions = []
+    create_variable_kwds = {}
     def convert(self,pfile,npath=None):
         pfile = get_ncf_object(pfile, 'r')
         nfile = get_ncf_object(npath, 'w')
@@ -273,13 +275,12 @@ class Pseudo2NetCDF:
         
     def addDimensions(self,pfile,nfile):
         for d,v in pfile.dimensions.iteritems():
-            if not isinstance(v, (int, long)) and v is not None:
+            if d in self.unlimited_dimensions:
+                v = None
+            elif not isinstance(v, (int, long)) and v is not None:
                 v = len(v)
-                
-            if d=='TSTEP' and not isinstance(nfile, PseudoNetCDFFile):
-                nfile.createDimension(d,None)
-            else:
-                nfile.createDimension(d,v)
+            
+            nfile.createDimension(d,v)
         nfile.sync()
     
     def addGlobalProperties(self,pfile,nfile):
@@ -307,7 +308,8 @@ class Pseudo2NetCDF:
         except:
             typecode = pvar[:].dtype.char
             
-        nvar=nfile.createVariable(k,typecode,pvar.dimensions)
+        nvar=nfile.createVariable(k,typecode,pvar.dimensions, **self.create_variable_kwds)
+
         if isscalar(nvar):
             nvar.assignValue(pvar)
         else:
