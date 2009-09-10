@@ -126,7 +126,7 @@ class ffi1001(PseudoNetCDFFile):
         data = data.swapaxes(0,1)
         self.createDimension('POINTS', ndatalines)
         for var, scale, miss, unit, dat, llod_flag, llod_val, ulod_flag, ulod_val in zip(variables, scales, missing, units, data, llod_flags, llod_values, ulod_flags, ulod_values):
-            vals = MaskedArray(dat, mask = dat == miss)
+            vals = MaskedArray(dat, mask = dat == miss, fill_value = miss)
             tmpvar = self.variables[var] = PseudoNetCDFVariable(self, var, 'f', ('POINTS',), values = vals)
             tmpvar.units = unit
 
@@ -142,8 +142,6 @@ class ffi1001(PseudoNetCDFFile):
                 tmpvar.ulod_flag = ulod_flag
                 tmpvar.ulod_value = ulod_val
 
-            tmpvar[:] = dat
-        
         
         self.date_objs = self.SDATE + vectorize(lambda s: timedelta(seconds = int(s), microseconds = (s - int(s)) * 1.E6 ))(self.variables[self.TFLAG]).view(type = ndarray)
         self.createDimension('YYYYMMDDTHHMMSS.microS', 22)
