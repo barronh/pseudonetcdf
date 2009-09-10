@@ -22,6 +22,7 @@ ChangedBy  = "$LastChangedBy$"
 __version__ = RevisionNum
 
 from numpy import array, zeros, ndarray, isscalar
+from numpy.ma import MaskedArray
 from collections import defaultdict
 from warnings import warn
 from netcdf import NetCDFFile
@@ -105,20 +106,22 @@ class PseudoNetCDFVariable(ndarray):
               the array
               
         """
-        shape=[]
-        for d in dimensions:
-          dim = parent.dimensions[d]
-
-          # Adding support for netCDF3 dimension objects
-          if not isinstance(dim, int):
-            dim = len(dim)
-          shape.append(dim)
-        
         if 'values' in kwds.keys():
             result=kwds.pop('values')
+            if isinstance(result, MaskedArray):
+                subtype = PseudoNetCDFMaskedVariable
         else:
+            shape=[]
+            for d in dimensions:
+                dim = parent.dimensions[d]
+    
+                # Adding support for netCDF3 dimension objects
+                if not isinstance(dim, int):
+                    dim = len(dim)
+                shape.append(dim)
+            
             result=zeros(shape,typecode)
-        
+
         result=result[:].view(subtype)
         
         if hasattr(result, '__dict__'):
@@ -129,6 +132,10 @@ class PseudoNetCDFVariable(ndarray):
                 'typecode': lambda: typecode,
                 'dimensions': tuple(dimensions)
             }
+        if isinstance(result, PseudoNetCDFMaskedVariable):
+            if not (kwds.has_key('missing_value') or kwds.has_key('_FillValue')):
+                kwds['missing_value'] = result.fill_value
+                
         for k,v in kwds.iteritems():
             setattr(result,k,v)
         return result
@@ -145,6 +152,9 @@ class PseudoNetCDFVariable(ndarray):
         """
         self.itemset(value)
 
+class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, MaskedArray):
+    pass
+    
 def PseudoIOAPIVariable(parent,name,typecode,dimensions,**kwds):
     """
     Creates a variable using the dimensions as defined in
@@ -312,8 +322,11 @@ class Pseudo2NetCDF:
 
         if isscalar(nvar):
             nvar.assignValue(pvar)
+        elif isinstance(pvar[:], MaskedArray):
+            nvar[:] = pvar[:].filled()
         else:
             nvar[:] = pvar[:]
+            
         self.addVariableProperties(pvar,nvar)
         nfile.sync()
         try:
