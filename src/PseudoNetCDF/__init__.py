@@ -12,7 +12,8 @@ __all__ = ['sci_var',
            'test',
            'pncdump',
            'cmaqfiles',
-           'racmfiles']
+           'racmfiles',
+           'icarttfiles']
 import sci_var
 from sci_var import *
 __all__ += sci_var.__all__
@@ -23,4 +24,5 @@ import units
 import camxfiles
 import cmaqfiles
 import racmfiles
+import icarttfiles
 import test
