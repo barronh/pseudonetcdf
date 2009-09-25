@@ -281,6 +281,7 @@ class Pseudo2NetCDF:
         self.addDimensions(pfile,nfile)
         self.addGlobalProperties(pfile,nfile)
         self.addVariables(pfile,nfile)
+        nfile.sync()
         return nfile
         
     def addDimensions(self,pfile,nfile):

@@ -4,5 +4,5 @@ from netcdf import NetCDFFile
 
 def pncgen(f,outpath, mode='w'):
     p2n = Pseudo2NetCDF()
-    p2n.convert(f, outpath)
+    return p2n.convert(f, outpath)
     
