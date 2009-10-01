@@ -59,6 +59,10 @@ class PseudoNetCDFFile(object):
         self.dimensions={}
     
     def createDimension(self,name,length):
+        try:
+            length = len(length)
+        except:
+            pass
         self.dimensions[name]=length
     
     def createVariable(self,name,type,dimensions,keep=True):
@@ -259,7 +263,20 @@ def get_ncf_object(path_or_object, mode):
     else:
         raise ValueError, "Not a path; not a netCDF file; not a PseudoNetCDF file... I don't know what to do"
     return ncf_object
-                
+
+def get_dimension_length(pfile, key):
+    dim = pfile.dimsensions[key]
+    if dim is None:
+        for k in pfile.variables.keys():
+            v = pfile.variables[k]
+            if key in v.dimensions:
+                return v[:].shape[list(v.dimensions).index(key)]
+        return 0
+    elif isinstance(dim, int):
+        return dim
+    else:
+        return len(d)
+
 class Pseudo2NetCDF:
     """
     Pseudo2NetCDF is a base class for conversion.  Properties and methods can
