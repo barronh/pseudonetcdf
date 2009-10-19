@@ -259,7 +259,7 @@ class MetaNetCDF(PseudoNetCDFFile):
             if k in f.variables.keys():
                 v=f.variables[k]
                 if k=='TFLAG':
-                    v=PseudoNetCDFVariable(self,'TFLAG','i',v.dimensions,values=array(v)[:,[0],:].repeat(self.dimensions['VAR'],1))
+                    v=PseudoNetCDFVariable(self,'TFLAG','i',v.dimensions,values=v[:][:,[0],:].repeat(self.dimensions['VAR'],1))
                     v.long_name='TFLAG'.ljust(16)
                     v.var_desc='TFLAG'.ljust(16)
                     v.units='DATE-TIME'
