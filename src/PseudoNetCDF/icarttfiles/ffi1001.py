@@ -127,7 +127,7 @@ class ffi1001(PseudoNetCDFFile):
         self.createDimension('POINTS', ndatalines)
         for var, scale, miss, unit, dat, llod_flag, llod_val, ulod_flag, ulod_val in zip(variables, scales, missing, units, data, llod_flags, llod_values, ulod_flags, ulod_values):
             vals = MaskedArray(dat, mask = dat == miss, fill_value = miss)
-            tmpvar = self.variables[var] = PseudoNetCDFVariable(self, var, 'f', ('POINTS',), values = vals)
+            tmpvar = self.variables[var] = PseudoNetCDFVariable(self, var, 'd', ('POINTS',), values = vals)
             tmpvar.units = unit
 
             tmpvar.missing_value = miss
