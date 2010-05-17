@@ -13,7 +13,8 @@ __all__ = ['sci_var',
            'pncdump',
            'cmaqfiles',
            'racmfiles',
-           'icarttfiles']
+           'icarttfiles',
+           'toms']
 import sci_var
 from sci_var import *
 __all__ += sci_var.__all__
