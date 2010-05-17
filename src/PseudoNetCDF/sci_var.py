@@ -286,8 +286,8 @@ class Pseudo2NetCDF:
     can be overwritten so that class properties and methods are not written
     to a netCDF file
     """
-    ignore_global_re=re.compile('^_\w*__\w*')
-    ignore_variable_re=re.compile('^_\w*__\w*')
+    ignore_global_re=re.compile('^_\w*(__\w*)?')
+    ignore_variable_re=re.compile('^_\w*(__\w*)?')
     ignore_global_properties=['variables','dimensions']
     ignore_variable_properties=['typecode','dimensions']
     unlimited_dimensions = []
@@ -327,7 +327,11 @@ class Pseudo2NetCDF:
                 try:
                     setattr(nvar,a,value)
                 except:
-                    warn("Could not add %s to variable" % k)
+                    if 'long_name' in pvar.__dict__.keys():
+                        warn("Could not add %s=%s to variable %s" % (a,str(value),str(pvar.long_name)))
+                    else:
+                        warn("Could not add %s=%s to variable" % (a,str(value)))
+                        
     
     def addVariable(self,pfile,nfile,k):
         pvar=pfile.variables[k]
