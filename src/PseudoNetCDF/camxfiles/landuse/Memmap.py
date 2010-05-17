@@ -64,7 +64,7 @@ class landuse(PseudoNetCDFFile):
         {'LANDUSE': 11, 'ROW': 65, 'COL': 83, 'VAR': 2}
     """
     
-    def __init__(self,rf,rows=None,cols=None):
+    def __init__(self,rf,rows,cols):
         self.rffile=OpenRecordFile(rf)
         
         self.dimensions=dict(ROW=rows,COL=cols,LANDUSE=11)
