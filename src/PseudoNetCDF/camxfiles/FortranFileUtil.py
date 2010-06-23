@@ -133,19 +133,20 @@ class RecordFile(object):
         self._newrecord(0)
 
 
+    def seek(self, offset):
+        if offset < self.length:
+            posnow = self.infile.tell()
+            relmov = offset - posnow
+            self.infile.seek(relmov,1)
+        else:
+            raise ValueError, "File length = %i; record start requested %f" % (self.length,offset)
+            
     def _newrecord(self, offset):
         """Move to a new record starting at the given offset
         """
-        if offset < self.length:
-            (d,m) = divmod(offset,sys.maxint)
-            self.infile.seek(0,0)
-            for i in range(int(d)):
-                self.infile.seek(sys.maxint,1)
-            self.infile.seek(m,1)
-            self.record_start = offset
-            self.record_size = self.unpack("i")[0]
-        else:
-            raise ValueError, "File length = %i; record start requested %f" % (self.length,offset)
+        self.seek(offset)
+        self.record_start = offset
+        self.record_size = self.unpack("i")[0]
             
 
     def unpack(self, fmt):

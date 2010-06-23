@@ -56,9 +56,9 @@ class ipr(PseudoNetCDFFile):
         ['TFLAG', 'SPAD_O3', 'DATE_O3', 'TIME_O3', 'SPC_O3', 
          'PAGRID_O3', 'NEST_O3', 'I_O3', 'J_O3', 'K_O3', 
          'INIT_O3', 'CHEM_O3', 'EMIS_O3', 'PTEMIS_O3', 
-         'PIG_O3', 'A_W_O3', 'A_E_O3', 'A_S_O3', 'A_N_O3', 
-         'A_B_O3', 'A_T_O3', 'DIL_O3', 'D_W_O3', 'D_E_O3', 
-         'D_S_O3', 'D_N_O3', 'D_B_O3', 'D_T_O3', 'DDEP_O3', 
+         'PIG_O3', 'WADV_O3', 'EADV_O3', 'SADV_O3', 'NADV_O3', 
+         'BADV_O3', 'TADV_O3', 'DIL_O3', 'WDIF_O3', 'EDIF_O3', 
+         'SDIF_O3', 'NDIF_O3', 'BDIF_O3', 'TDIF_O3', 'DDEP_O3', 
          'WDEP_O3', 'INORGACHEM_O3', 'ORGACHEM_O3', 'AQACHEM_O3', 
          'FCONC_O3', 'UCNV_O3', 'AVOL_O3', 'EPAD_O3']
         >>> v = iprfile.variables['CHEM_O3']
@@ -77,21 +77,22 @@ class ipr(PseudoNetCDFFile):
         {'TSTEP': 25, 'LAY': 28, 'ROW': 65, 'COL': 83}
     """
     
-    __ipr_record_type={
+    __ipr_record_type ={
         24: dtype(
               dict(
-                 names=['SPAD', 'DATE', 'TIME', 'SPC', 'PAGRID', 'NEST', 'I', 'J', 'K', 'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG', 'A_W', 'A_E', 'A_S', 'A_N', 'A_B', 'A_T', 'DIL', 'D_W', 'D_E', 'D_S', 'D_N', 'D_B', 'D_T', 'DDEP', 'WDEP', 'AERCHEM', 'FCONC', 'UCNV', 'AVOL', 'EPAD'], 
+                 names=['SPAD', 'DATE', 'TIME', 'SPC', 'PAGRID', 'NEST', 'I', 'J', 'K', 'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG', 'WADV', 'EADV', 'SADV', 'NADV', 'BADV', 'TADV', 'DIL', 'WDIF', 'EDIF', 'SDIF', 'NDIF', 'BDIF', 'TDIF', 'DDEP', 'WDEP', 'AERCHEM', 'FCONC', 'UCNV', 'AVOL', 'EPAD'], 
                  formats=['>i', '>i', '>f', '>S10', '>i', '>i', '>i', '>i', '>i', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>i']
                 )
               ), 
         26: dtype(
               dict(
-                 names=['SPAD', 'DATE', 'TIME', 'SPC', 'PAGRID', 'NEST', 'I', 'J',  'K', 'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG', 'A_W', 'A_E', 'A_S', 'A_N', 'A_B', 'A_T', 'DIL', 'D_W', 'D_E', 'D_S', 'D_N', 'D_B', 'D_T', 'DDEP', 'WDEP', 'INORGACHEM', 'ORGACHEM', 'AQACHEM', 'FCONC', 'UCNV', 'AVOL', 'EPAD'], 
+                 names=['SPAD', 'DATE', 'TIME', 'SPC', 'PAGRID', 'NEST', 'I', 'J',  'K', 'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG', 'WADV', 'EADV', 'SADV', 'NADV', 'BADV', 'TADV', 'DIL', 'WDIF', 'EDIF', 'SDIF', 'NDIF', 'BDIF', 'TDIF', 'DDEP', 'WDEP', 'INORGACHEM', 'ORGACHEM', 'AQACHEM', 'FCONC', 'UCNV', 'AVOL', 'EPAD'], 
                  formats=['>i', '>i', '>f', '>S10', '>i', '>i', '>i', '>i', '>i', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>i']
                 )
               )
          }
-    def __init__(self,rf,proc_dict=None,units='umol/hr'):
+
+    def __init__(self,rf,proc_dict=None,units='umol/m**3', oldnames = False):
         """
         Initialization included reading the header and learning
         about the format.
@@ -116,7 +117,6 @@ class ipr(PseudoNetCDFFile):
         self.createDimension('DATE-TIME',2)
         self.createDimension('VAR',self.NSPCS*self.NPROCESS)
         varkeys=["_".join([j[1],j[0]]) for j in [i for i in cartesian([i.strip() for i in self.spcnames['SPECIES'].tolist()],self.proc_dict.keys())]]+['TFLAG']
-        self.__invariables=[]
         self.variables=PseudoNetCDFVariables(self.__variables,varkeys)
         
 
@@ -126,13 +126,9 @@ class ipr(PseudoNetCDFFile):
             date=self.variables['DATE_%s'  % self.spcnames[0][1].strip()]
             self.variables['TFLAG']=PseudoNetCDFVariable(self,'proc_spc','i',('TSTEP','VAR','DATE-TIME'),values=ConvertCAMxTime(date[:,0,0,0],time[:,0,0,0],self.dimensions['VAR']))
             return self.variables['TFLAG']
-        for k in self.__invariables:
-            try:
-                del self.variables[k]
-            except:
-                pass
-                
-        self.__invariables=[]
+        
+        self.variables.clear()
+
         for k in self.proc_dict:
             proc=proc_spc[:len(k)]
             spc=proc_spc[len(k)+1:]
@@ -140,26 +136,27 @@ class ipr(PseudoNetCDFFile):
                 spcprocs=self.__readalltime(spc)
                 for p,plong in self.proc_dict.iteritems():
                     var_name=p+'_'+spc
-                    tmpv=PseudoNetCDFVariable(self,var_name,'f',('TSTEP','LAY','ROW','COL'),values=spcprocs[p])
-                    self.__invariables.append(var_name)
-                    tmpv.units='umol/hr'
-                    tmpv.var_desc=(var_name).ljust(16)
-                    tmpv.long_name=(var_name).ljust(16)
-                    self.variables[var_name]=tmpv
-                    tmpv=None
+                    self.variables[var_name] = PseudoNetCDFVariable(self,var_name,'f',('TSTEP','LAY','ROW','COL'),
+                                              values=spcprocs[p],
+                                              units=self.units,
+                                              var_desc=(var_name).ljust(16),
+                                              long_name=(var_name).ljust(16))
                 del spcprocs
                 return self.variables[proc_spc]
         raise KeyError, "Bad!"
 
     def __readonetime(self,ntime,spc):
-        self.__rffile.seek(self.__start(ntime,spc),0)
+        newpos = self.__start(ntime,spc)
+        oldpos = self.__rffile.tell()
+        relmove = newpos - oldpos
+        self.__rffile.seek(relmove, 1)
         return fromfile(self.__rffile,dtype=self.__ipr_record_type,count=self.__block3d).reshape(self.NROWS,self.NCOLS,self.NLAYS).swapaxes(0,2).swapaxes(1,2)
     
     def __readalltime(self,spc):
-        out=[]
+        out=zeros((self.NSTEPS, self.NLAYS, self.NROWS, self.NCOLS), dtype = self.__ipr_record_type)
         for it in range(self.NSTEPS):
-            out.append(self.__readonetime(it,spc))
-        return array(out,dtype=self.__ipr_record_type)
+            out[it] = self.__readonetime(it,spc)
+        return out
 
     def __start(self,ntime,spc):
         nspec=self.spcnames['SPECIES'].tolist().index(spc.ljust(10))
@@ -205,19 +202,19 @@ class ipr(PseudoNetCDFFile):
                 'EMIS': 'Area emissions',
                 'PTEMIS': 'Point source emissions', 
                 'PIG': 'Plume-in-Grid change', 
-                'A_W': 'West boundary advection', 
-                'A_E': 'East boundary advection', 
-                'A_S': 'South boundary advection', 
-                'A_N': 'North boundary advection', 
-                'A_B': 'Bottom boundary advection', 
-                'A_T': 'Top boundary advection', 
+                'WADV': 'West boundary advection', 
+                'EADV': 'East boundary advection', 
+                'SADV': 'South boundary advection', 
+                'NADV': 'North boundary advection', 
+                'BADV': 'Bottom boundary advection', 
+                'TADV': 'Top boundary advection', 
                 'DIL': 'Dilution in the vertical', 
-                'D_W': 'West boundary diffusion', 
-                'D_E': 'East boundary diffusion', 
-                'D_S': 'South boundary diffusion', 
-                'D_N': 'North boundary diffusion', 
-                'D_B': 'Bottom boundary diffusion', 
-                'D_T': 'Top boundary diffusion', 
+                'WDIF': 'West boundary diffusion', 
+                'EDIF': 'East boundary diffusion', 
+                'SDIF': 'South boundary diffusion', 
+                'NDIF': 'North boundary diffusion', 
+                'BDIF': 'Bottom boundary diffusion', 
+                'TDIF': 'Top boundary diffusion', 
                 'DDEP': 'Dry deposition', 
                 'WDEP': 'Wet deposition', 
                 'FCONC': 'Final concentration', 

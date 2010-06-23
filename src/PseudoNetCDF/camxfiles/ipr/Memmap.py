@@ -52,9 +52,9 @@ class ipr(PseudoNetCDFFile):
         ['TFLAG', 'SPAD_O3', 'DATE_O3', 'TIME_O3', 'SPC_O3', 
          'PAGRID_O3', 'NEST_O3', 'I_O3', 'J_O3', 'K_O3', 
          'INIT_O3', 'CHEM_O3', 'EMIS_O3', 'PTEMIS_O3', 
-         'PIG_O3', 'A_W_O3', 'A_E_O3', 'A_S_O3', 'A_N_O3', 
-         'A_B_O3', 'A_T_O3', 'DIL_O3', 'D_W_O3', 'D_E_O3', 
-         'D_S_O3', 'D_N_O3', 'D_B_O3', 'D_T_O3', 'DDEP_O3', 
+         'PIG_O3', 'WADV_O3', 'EADV_O3', 'SADV_O3', 'NADV_O3', 
+         'BADV_O3', 'TADV_O3', 'DIL_O3', 'WDIF_O3', 'EDIF_O3', 
+         'SDIF_O3', 'NDIF_O3', 'BDIF_O3', 'TDIF_O3', 'DDEP_O3', 
          'WDEP_O3', 'INORGACHEM_O3', 'ORGACHEM_O3', 'AQACHEM_O3', 
          'FCONC_O3', 'UCNV_O3', 'AVOL_O3', 'EPAD_O3']
         >>> v = iprfile.variables['CHEM_O3']
@@ -95,9 +95,9 @@ class ipr(PseudoNetCDFFile):
             24: dtype(
                         dict(
                             names=['SPAD', 'DATE', 'TIME', 'SPC', 'PAGRID', 'NEST', 'I', 'J', 'K', 
-                                    'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG', 'A_W', 'A_E', 'A_S', 
-                                    'A_N', 'A_B', 'A_T', 'DIL', 'D_W', 'D_E', 'D_S', 'D_N', 
-                                    'D_B', 'D_T', 'DDEP', 'WDEP', 'AERCHEM', 'FCONC', 'UCNV', 'AVOL', 
+                                    'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG', 'WADV', 'EADV', 'SADV', 
+                                    'NADV', 'BADV', 'TADV', 'DIL', 'WDIF', 'EDIF', 'SDIF', 'NDIF', 
+                                    'BDIF', 'TDIF', 'DDEP', 'WDEP', 'AERCHEM', 'FCONC', 'UCNV', 'AVOL', 
                                     'EPAD'], 
                             formats=['>i', '>i', '>f', '>S10', '>i', '>i', '>i', '>i', '>i', 
                                     '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f',
@@ -106,9 +106,9 @@ class ipr(PseudoNetCDFFile):
             26: dtype(
                         dict(
                             names=['SPAD', 'DATE', 'TIME', 'SPC', 'PAGRID', 'NEST', 'I', 'J', 'K', 
-                                    'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG', 'A_W', 'A_E', 'A_S', 
-                                    'A_N', 'A_B', 'A_T', 'DIL', 'D_W', 'D_E', 'D_S', 'D_N', 
-                                    'D_B', 'D_T', 'DDEP', 'WDEP', 'INORGACHEM', 'ORGACHEM', 'AQACHEM', 'FCONC', 'UCNV', 'AVOL', 
+                                    'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG', 'WADV', 'EADV', 'SADV', 
+                                    'NADV', 'BADV', 'TADV', 'DIL', 'WDIF', 'EDIF', 'SDIF', 'NDIF', 
+                                    'BDIF', 'TDIF', 'DDEP', 'WDEP', 'INORGACHEM', 'ORGACHEM', 'AQACHEM', 'FCONC', 'UCNV', 'AVOL', 
                                     'EPAD'], 
                             formats=['>i', '>i', '>f', '>S10', '>i', '>i', '>i', '>i', '>i', 
                                     '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f',
@@ -117,9 +117,9 @@ class ipr(PseudoNetCDFFile):
                                 }[len(self.prcnames)]
 
         prcs=['SPAD', 'DATE', 'TIME', 'PAGRID', 'NEST', 'I', 'J', 'K', 
-                'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG', 'A_W', 'A_E', 'A_S', 
-                'A_N', 'A_B', 'A_T', 'DIL', 'D_W', 'D_E', 'D_S', 'D_N', 
-                'D_B', 'D_T', 'DDEP', 'WDEP']+{24: ['AERCHEM'], 26: ['INORGACHEM', 'ORGACHEM', 'AQACHEM']}[len(self.prcnames)]+['FCONC', 'UCNV', 'AVOL', 
+                'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG', 'WADV', 'EADV', 'SADV', 
+                'NADV', 'BADV', 'TADV', 'DIL', 'WDIF', 'EDIF', 'SDIF', 'NDIF', 
+                'BDIF', 'TDIF', 'DDEP', 'WDEP']+{24: ['AERCHEM'], 26: ['INORGACHEM', 'ORGACHEM', 'AQACHEM']}[len(self.prcnames)]+['FCONC', 'UCNV', 'AVOL', 
                 'EPAD']
         varkeys=['_'.join(i) for i in cartesian(prcs,self.spcnames)]
         self.createDimension('VAR',len(varkeys))
@@ -138,7 +138,7 @@ class ipr(PseudoNetCDFFile):
             pass
 
     def __decorator(self,name,pncfv):
-        decor=lambda k: dict(units='umol/hr', var_desc=k.ljust(16), long_name=k.ljust(16))
+        decor=lambda k: dict(units='umol/m**3', var_desc=k.ljust(16), long_name=k.ljust(16))
         for k,v in decor(name).iteritems():
             setattr(pncfv,k,v)        
         return pncfv

@@ -264,10 +264,11 @@ class MetaNetCDF(PseudoNetCDFFile):
                     v.var_desc='TFLAG'.ljust(16)
                     v.units='DATE-TIME'
                     
-                if v.shape[1]==1 and k=='LAY' and k in self.dimensions.keys():
-                    dims=list(v.dimensions)
-                    dims[1]='SURFLAY'
-                    v.dimensions=tuple(dims)
+                if k=='LAY' and k in self.dimensions.keys() and len(k.shape) > 1:
+                    if v.shape[1]==1:
+                        dims=list(v.dimensions)
+                        dims[1]='SURFLAY'
+                        v.dimensions=tuple(dims)
                 return v
     
     def __variables(self,k):
