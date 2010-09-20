@@ -28,12 +28,11 @@ from math import ceil
 import os,sys
 
 #Site-Packages
-from numpy import zeros,array,where,memmap,newaxis,dtype
+from numpy import zeros,array,where,memmap,newaxis,dtype, fromfile
 from PseudoNetCDF.netcdf import NetCDFFile as ncf
 
 #This Package modules
 from PseudoNetCDF.camxfiles.util import sliceit
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile,read_into,Int2Asc,Asc2Int
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
 
 
@@ -73,18 +72,18 @@ class irr(PseudoNetCDFFile):
     
     id_fmt="ifiiiii"
     data_fmt="f"
-    def __init__(self,rf,units='umol/hr',conva=None):
+    def __init__(self,rf,units='umol/hr',conva=None, nvarcache = None):
         """
         Initialization included reading the header and learning
         about the format.
         
         see __readheader and __gettimestep() for more info
         """
-        self.rffile=OpenRecordFile(rf)
-        self.rffile.infile.seek(0,2)
-        if self.rffile.infile.tell()<2147483648L:
+        rffile = self._rffile = file(rf)
+        rffile.seek(0,2)
+        if rffile.tell()<2147483648L:
             warn("For greater speed on files <2GB use ipr_memmap")
-        self.rffile.infile.seek(0,0)
+        rffile.seek(0,0)
         self.__readheader()
         self.__gettimestep()
         self.units=units
@@ -93,13 +92,17 @@ class irr(PseudoNetCDFFile):
         self.__conv=conva
         if self.units!='umol/hr' and self.__conv==None:
             raise ValueError, "When units are provided, a conversion array dim(t,z,x,y) must also be provided"
-        varkeys=['IRR_%d' % i for i in range(1,self.nrxns+1)]
+        varkeys=['IRR_%d' % i for i in range(1,self.NRXNS+1)]
 
         domain=self.padomains[0]
-        self.dimensions=dict(TSTEP=self.time_step_count,COL=domain['iend']-domain['istart']+1,ROW=domain['jend']-domain['jstart']+1,LAY=domain['tlay']-domain['blay']+1)
+        self.dimensions=dict(TSTEP=int(self.NSTEPS),
+                             COL=int(domain['iend']-domain['istart']+1),
+                             ROW=int(domain['jend']-domain['jstart']+1),
+                             LAY=int(domain['tlay']-domain['blay']+1))
         self.createDimension('DATE-TIME', 2)
-        self.createDimension('VAR', self.NRXNS)
+        self.createDimension('VAR', int(self.NRXNS))
         self.variables=PseudoNetCDFVariables(self.__var_get,varkeys)
+        self._nvarcache = nvarcache or int(ceil(self.NRXNS / 4.))
         tflag = self.createVariable('TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
         tflag.units = '<YYYYJJJ, HHMMSS>'
         tflag.var_desc = tflag.long_name = 'TFLAG'.ljust(16)
@@ -107,7 +110,7 @@ class irr(PseudoNetCDFFile):
 
     def __var_get(self,key):
         rxni = int(key.split('_')[1])
-        self.loadVars(rxni, 30)
+        self.loadVars(rxni, self._nvarcache)
         return self.variables[key]
 
     def __readheader(self):
@@ -116,40 +119,37 @@ class irr(PseudoNetCDFFile):
         it initializes each header field (see CAMx Users Manual for a list)
         as properties of the ipr class
         """
-        self.runmessage=self.rffile.read("80s")
-        self.start_date,self.start_time,self.end_date,self.end_time=self.rffile.read("ifif")
-        self.SDATE=self.start_date
-        self.STIME=self.start_time
+        rffile = self._rffile
+        self.runmessage=fromfile(rffile, dtype = dtype([('SPAD', '>i'), ('NOTE', 'S80'), ('EPAD', '>i')]), count = 1)[0]['NOTE']
+        self.SDATE, self.STIME, self.EDATE, self.ETIME = fromfile(rffile, dtype = dtype([('SPAD', '>i'), ('SDATE', '>i'), ('STIME', '>f'), ('EDATE', '>i'), ('ETIME', '>f'), ('EPAD', '>i')]), count = 1)[0].tolist()[1:-1]
         
         self.grids=[]
-        for grid in range(self.rffile.read("i")[-1]):
+        for grid in range(fromfile(rffile, dtype = dtype([('SPAD', '>i'), ('NGRIDS', '>i'), ('EPAD', '>i')]), count = 1)[0]['NGRIDS']):
             self.grids.append(
                             dict(
                                 zip(
                                     ['orgx','orgy','ncol','nrow','xsize','ysize','iutm'], 
-                                    self.rffile.read("iiiiiii")
+                                    fromfile(rffile, dtype = dtype([('SPAD', '>i'), ('orgx', '>f'), ('orgy', '>f'), ('ncol', '>i'), ('nrow', '>i'), ('xsize', '>f'), ('ysize', '>f'), ('iutm', '>i'), ('EPAD', '>i')]), count = 1)[0].tolist()[1:-1]
                                     )
                                 )
                             )
         
         self.padomains=[]
-        for padomain in range(self.rffile.read("i")[-1]):
+        for padomain in range(fromfile(rffile, dtype = dtype([('SPAD', '>i'), ('NPADOMAINS', '>i'), ('EPAD', '>i')]), count = 1)[0]['NPADOMAINS']):
             self.padomains.append(
                                 dict(
                                     zip(
                                         ['grid','istart','iend','jstart','jend','blay','tlay'],
-                                        self.rffile.read("iiiiiii")
+                                        fromfile(rffile, dtype = dtype([('SPAD', '>i'), ('grid', '>i'), ('istart', '>i'), ('iend', '>i'), ('jstart', '>i'), ('jend', '>i'), ('blay', '>i'), ('tlay', '>i'), ('EPAD', '>i')]), count = 1)[0].tolist()[1:-1]
                                         )
                                     )
                                 )
-        self.NRXNS = self.nrxns=self.rffile.read('i')[-1]
+        self.NRXNS = fromfile(rffile, dtype = dtype([('SPAD', '>i'), ('NRXNS', '>i'), ('EPAD', '>i')]), count = 1)[0]['NRXNS']
         
-        self.data_start_byte=self.rffile.record_start
-        self.record_fmt=self.id_fmt + str(self.nrxns) + self.data_fmt
-        self.record_dtype = dtype(dict(names = 'SPAD DATE TIME PAGRID NEST I J K'.split() + ['IRR_%d' % rxn for rxn in range(1, self.NRXNS + 1)] + ['EPAD'],
-                                  formats = ['i'] + list(self.id_fmt) + self.NRXNS * [self.data_fmt] + ['i']))
-        self.record_size=self.rffile.record_size
-        self.padded_size=self.record_size+8
+        self._data_start_byte=rffile.tell()
+        
+        self._record_dtype = dtype([('SPAD', '>i'), ('DATE', '>i'), ('TIME', '>f'), ('PAGRID', '>i'), ('NEST', '>i'), ('I', '>i'), ('J', '>i'), ('K', '>i'), ('IRRS', '>f', self.NRXNS), ('EPAD', '>i')])
+        self._padded_size=self._record_dtype.itemsize
         
     def __gettimestep(self):
         """
@@ -158,22 +158,18 @@ class irr(PseudoNetCDFFile):
         and second date/time and initializes variables indicating the
         timestep length and the anticipated number.
         """
-        self.activedomain=self.padomains[0]
-        self.rffile._newrecord(
-                        self.data_start_byte+(
+        self._activedomain=self.padomains[0]
+        self._rffile.seek(
+                        self._data_start_byte+(
                                     self.__jrecords(0,self.padomains[0]['jend'])*
-                                    self.padded_size
-                                    )
+                                    self._padded_size
+                                    ), 0
                         )
-        date,time=self.rffile.read("if")
+        date,time= fromfile(self._rffile, dtype = self._record_dtype, count = 1)[0].tolist()[1:3]
         tstart = datetime.strptime('%05dT%04d' % (self.SDATE, self.STIME), '%y%jT%H%M')
         tone = datetime.strptime('%05dT%04d' % (date, time), '%y%jT%H%M')
         tstep = tone - tstart
         self.time_step = self.TSTEP = int((datetime.strptime('0000', '%H%M') + tstep).strftime('%H%M'))
-        self.EDATE = self.end_date
-        self.SDATE = self.start_date
-        self.STIME = self.start_time
-        self.ETIME = self.end_time
         tend = datetime.strptime('%05dT%04d' % (self.EDATE, self.ETIME), '%y%jT%H%M')
         tdiff = tend - tstart
         multiple = (tdiff.days * 24 * 3600. + tdiff.seconds) / (tstep.days * 24 * 3600. + tstep.seconds)
@@ -185,7 +181,7 @@ class irr(PseudoNetCDFFile):
         routine returns the number of records to increment from the
         data start byte to find the pagrid
         """
-        ntime=self.__timerecords(pagrid,(self.end_date,int(self.end_time+self.time_step)))
+        ntime=self.__timerecords(pagrid,(self.EDATE,int(self.ETIME+self.TSTEP)))
         return ntime
         
     def __timerecords(self,pagrid,(d,t)):
@@ -202,8 +198,8 @@ class irr(PseudoNetCDFFile):
         routine returns the number of records to increment from the
         data start byte to find the first icell
         """
-        ni=i-self.activedomain['istart']
-        nk=self.__krecords(pagrid,self.activedomain['tlay']+1)
+        ni=i-self._activedomain['istart']
+        nk=self.__krecords(pagrid,self._activedomain['tlay']+1)
         return ni*nk
         
     def __jrecords(self,pagrid,j):
@@ -211,8 +207,8 @@ class irr(PseudoNetCDFFile):
         routine returns the number of records to increment from the
         data start byte to find the first jcell
         """
-        nj=j-self.activedomain['jstart']
-        ni=self.__irecords(pagrid,self.activedomain['iend']+1)
+        nj=j-self._activedomain['jstart']
+        ni=self.__irecords(pagrid,self._activedomain['iend']+1)
         return nj*ni
         
     def __krecords(self,pagrid,k):
@@ -220,7 +216,7 @@ class irr(PseudoNetCDFFile):
         routine returns the number of records to increment from the
         data start byte to find the first kcell
         """
-        return k-self.activedomain['blay']
+        return k-self._activedomain['blay']
 
     def __recordposition(self,pagrid,date,time,i,j,k):
         """ 
@@ -242,64 +238,20 @@ class irr(PseudoNetCDFFile):
         records+=self.__jrecords(pagrid,j)
         records+=self.__irecords(pagrid,i)
         records+=self.__krecords(pagrid,k)
-        return records*self.padded_size+self.data_start_byte
+        return records*self._padded_size+self._data_start_byte
         
-    def seek(self,pagrid=1,date=None,time=None,i=1,j=1,k=1):
+    def _seek(self,pagrid=1,date=None,time=None,i=1,j=1,k=1):
         """
         Move file cursor to beginning of specified record
         see __recordposition for a definition of variables
         """
         if date==None:
-            date=self.start_date
+            date=self.SDATE
         if time==None:
-            time=self.start_time+self.TSTEP
-        self.activedomain=self.padomains[pagrid]
-        self.rffile._newrecord(self.__recordposition(pagrid,date,time,i,j,k))
-    
-    def read(self):
-        """
-        provide direct access to the underlying RecordFile read
-        method
-        """
-        return self.rffile.read(self.record_fmt)
-    
-    def read_into(self,dest):
-        """
-        put values from rffile read into dest
-        dest - numpy or numeric array
-        """
-        return read_into(self.rffile,dest,self.id_fmt,self.data_fmt)
-    
-    def seekandreadinto(self,dest,pagrid=1,date=None,time=None,i=1,j=1,k=1):
-        """
-        see seek and read_into
-        """
-        self.seek(pagrid,date,time,i,j,k)
-        return self.read_into(dest)
-    
-    def seekandread(self,pagrid=1,date=None,time=None,i=1,j=1,k=1):
-        """
-        see seek and read
-        """
-        self.seek(pagrid,date,time,i,j,k)
-        return self.read()
-
-    def iteritems(self,pagrid=0):
-        for pagrid,d,t,i,j,k in self.iterkeys(pagrid):
-            return pagrid,d,t,i,j,k,self.seekandread(pagrid,d,t,i,j,k)
- 
-    def itervalues(self,pagrid=0):
-        for pagrid,d,t,i,j,k in self.iterkeys(pagrid):
-            return self.seekandread(pagrid,d,t,i,j,k)
-    
-    def iterkeys(self,pagrid=0):
-        domain=self.padomains[pagrid]
-        for d,t in self.timerange():
-            for i in range(domain['istart'],domain['iend']):
-                for j in range(domain['jstart'],domain['jend']):
-                    for k in range(domain['kstart'],domain['kend']):
-                        yield pagrid,d,t,i,j,k
-                         
+            time=self.STIME+self.TSTEP
+        self._activedomain=self.padomains[pagrid]
+        self._rffile.seek(self.__recordposition(pagrid,date,time,i,j,k))
+        
     def loadVars(self,start, n, pagrid=0):
         domain=self.padomains[pagrid]
         istart=domain['istart']
@@ -309,26 +261,30 @@ class irr(PseudoNetCDFFile):
         kstart=domain['blay']
         kend=domain['tlay']
         variables = self.variables
-        temp = zeros((self.nrxns,), 'f')
+        temp = zeros((self.NRXNS,), 'f')
         shape = (self.NSTEPS,) + eval('(LAY, ROW, COL)', None, self.dimensions)
         variables.clear()
         end = min(start + n, self.NRXNS + 1)
+        start = end - n
         for rxn in range(start, end):
             key = 'IRR_%d' % rxn
             variables[key] = PseudoNetCDFVariable(self, key, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'), values = zeros(shape, 'f'), units = 'ppm/hr', var_desk = key.ljust(16), long_name = key.ljust(16))
 
-        self.seek(pagrid = 0, i = istart, j = jstart, k = kstart)
+        self._seek(pagrid = 0, i = istart, j = jstart, k = kstart)
         for ti, (d,t) in enumerate(self.timerange()):
             for ji, j in enumerate(range(jstart, jend+1)):
                 for ii, i in enumerate(range(istart, iend+1)):
                     for ki, k in enumerate(range(kstart, kend+1)):
-                        date, time, pad, nest, id, jd, kd = self.read_into(temp)
-                        assert(id == i)
-                        assert(jd == j)
-                        assert(kd == k)
-                        assert(date == d)
-                        assert(time == t)
-                        self.rffile.infile.seek(8, 1)
+                        record = fromfile(self._rffile, dtype = self._record_dtype, count = 1)
+                        temp[:] = record['IRRS']
+                        date = record['DATE']
+                        time = record['TIME']
+                        id = record['I']
+                        jd = record['J']
+                        kd = record['K']
+                        
+                        assert(id == i and jd == j and kd == k and date == d and time == t)
+
                         for rxn in range(start, end):
                             variables['IRR_%d' % rxn][ti, ki, ji, ii] = temp[rxn-1]
             
