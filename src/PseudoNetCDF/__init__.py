@@ -13,6 +13,7 @@ __all__ = ['sci_var',
            'pncdump',
            'cmaqfiles',
            'racmfiles',
+           'geoschemfiles',
            'icarttfiles',
            'toms']
 import sci_var
