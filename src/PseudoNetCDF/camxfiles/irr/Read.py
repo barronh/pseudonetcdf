@@ -29,7 +29,6 @@ import os,sys
 
 #Site-Packages
 from numpy import zeros,array,where,memmap,newaxis,dtype, fromfile
-from PseudoNetCDF.netcdf import NetCDFFile as ncf
 
 #This Package modules
 from PseudoNetCDF.camxfiles.util import sliceit

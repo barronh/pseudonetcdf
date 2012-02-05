@@ -71,7 +71,7 @@ class jtable(PseudoNetCDFFile):
         
 
 if __name__ == '__main__':
-    j = jtable(path = '/Users/barronh/Development/CMAQ/v4.7/data/jproc/Darwin9_i386/JTABLE_2001203')
+    j = jtable(path = '/Volumes/LaCie/JTABLE_1985172')
     v = j.variables['HCHO_M_SAPRC99']
     np.set_printoptions(precision = 5)
     print v[:2,:2,:2]

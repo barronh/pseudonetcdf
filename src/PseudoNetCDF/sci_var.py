@@ -25,7 +25,6 @@ from numpy import array, zeros, ndarray, isscalar
 from numpy.ma import MaskedArray
 from collections import defaultdict
 from warnings import warn
-from netcdf import NetCDFFile
     
 from numpy import arange
 from tempfile import NamedTemporaryFile as tnf
@@ -292,7 +291,7 @@ class Pseudo2NetCDF:
     ignore_variable_properties=['typecode','dimensions']
     unlimited_dimensions = []
     create_variable_kwds = {}
-    def convert(self,pfile,npath=None):
+    def convert(self,pfile,npath=None, inmode = 'r', outmode = 'w'):
         pfile = get_ncf_object(pfile, 'r')
         nfile = get_ncf_object(npath, 'w')
         self.addDimensions(pfile,nfile)
