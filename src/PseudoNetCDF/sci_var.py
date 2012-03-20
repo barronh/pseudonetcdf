@@ -125,7 +125,7 @@ class PseudoNetCDFVariable(ndarray):
             
             result=zeros(shape,typecode)
 
-        result=result[:].view(subtype)
+        result=result[...].view(subtype)
         
         if hasattr(result, '__dict__'):
             result.__dict__['typecode'] = lambda: typecode
