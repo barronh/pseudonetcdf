@@ -100,7 +100,7 @@ class osat(PseudoNetCDFFile):
         var_indices=self.__indices(var_id_names)
         cnt=False
         if len(var_id_names)>1:
-            outvals=zeros((self.dimensions['TSTEP'],self.dimensions['LAY'],self.dimensions['ROW'],self.dimensions['COL']),dtype='>f')
+            outvals=zeros(map(len, (self.dimensions['TSTEP'],self.dimensions['LAY'],self.dimensions['ROW'],self.dimensions['COL'])),dtype='>f')
             for k in var_id_names:
                 outvals[...]+=self.__child.variables[k]
         else:

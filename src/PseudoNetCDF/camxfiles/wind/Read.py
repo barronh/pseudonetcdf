@@ -94,7 +94,10 @@ class wind(PseudoNetCDFFile):
         else:
             if cols*rows!=self.cell_count:
                 raise ValueError, "The product of cols (%d) and rows (%d) must equal cells (%d)" %  (cols,rows,self.cell_count)
-        self.dimensions={'TSTEP': self.time_step_count, 'COL': cols, 'ROW': rows, 'LAY': self.nlayers}
+        self.createDimension('TSTEP', self.time_step_count)
+        self.createDimension('COL', cols)
+        self.createDimension('ROW', rows)
+        self.createDimension('LAY', self.nlayers}
 
         self.variables=PseudoNetCDFVariables(self.__var_get,['U','V'])
 
@@ -276,8 +279,8 @@ class wind(PseudoNetCDFFile):
                 self.time_step_count ,
                 2 ,
                 len(xrange(*krange.indices(self.nlayers+1))),
-                self.dimensions['ROW'],
-                self.dimensions['COL'],
+                len(self.dimensions['ROW']),
+                len(self.dimensions['COL']),
             ),'f')
         for i,(d,t) in enumerate(self.timerange()):
             for uv in range(1,3):

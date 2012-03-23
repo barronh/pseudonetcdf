@@ -97,7 +97,12 @@ class one3d(PseudoNetCDFFile):
         self.__tflag=array([dates[new_hour],times[new_hour]],dtype='>f').swapaxes(0,1)
         time_steps=self.__records/lays
 
-        self.dimensions={'VAR': 1, 'TSTEP': time_steps,'COL': cols,'ROW': rows,'LAY': lays,'DATE-TIME':2}
+        self.createDimension('VAR', 1)
+        self.createDimension('TSTEP', time_steps)
+        self.createDimension('COL', cols)
+        self.createDimension('ROW', rows)
+        self.createDimension('LAY', lays)
+        self.createDimension('DATE-TIME', 2)
         
         self.FTYPE=1
         self.NVARS=1
@@ -117,10 +122,10 @@ class one3d(PseudoNetCDFFile):
         return pncfv
         
     def __variables(self,k):
-        tsteps=self.dimensions['TSTEP']
-        lays=self.dimensions['LAY']
-        rows=self.dimensions['ROW']
-        cols=self.dimensions['COL']
+        tsteps=len(self.dimensions['TSTEP'])
+        lays=len(self.dimensions['LAY'])
+        rows=len(self.dimensions['ROW'])
+        cols=len(self.dimensions['COL'])
         return self.__decorator(k,PseudoNetCDFVariable(self,k,'f',('TSTEP','LAY','ROW','COL'),values=self.__memmap.reshape(self.__records,self.__record_items)[:,3:-1].reshape(tsteps,lays,rows,cols)))
 
 class TestMemmap(unittest.TestCase):

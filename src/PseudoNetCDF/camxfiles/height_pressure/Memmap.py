@@ -67,7 +67,6 @@ class height_pressure(PseudoNetCDFFile):
     data_fmt='f'
     def __init__(self,rf,rows=None,cols=None):
         self.__memmap=memmap(rf,'>f','r',offset=0)
-        self.dimensions={}
         rowsXcols=self.__memmap[0].view('i')/4-2
         record_length=rowsXcols+4
         records=self.__memmap.size/record_length
@@ -99,7 +98,7 @@ class height_pressure(PseudoNetCDFFile):
 
         self.NROWS=rows
         self.NCOLS=cols
-        self.NLAYS=self.dimensions['LAY']
+        self.NLAYS=len(self.dimensions['LAY'])
         self.NVARS=2
         self.NTHIK=1
 
@@ -108,10 +107,10 @@ class height_pressure(PseudoNetCDFFile):
         self.variables=PseudoNetCDFVariables(self.__var_get,['HGHT','PRES','TFLAG'])
     
     def __var_get(self,key):
-        lays=self.dimensions['LAY']
-        times=self.dimensions['TSTEP']
-        rows=self.dimensions['ROW']
-        cols=self.dimensions['COL']
+        lays=len(self.dimensions['LAY'])
+        times=len(self.dimensions['TSTEP'])
+        rows=len(self.dimensions['ROW'])
+        cols=len(self.dimensions['COL'])
         hght=1
         pres=2
         time=3
@@ -133,7 +132,7 @@ class height_pressure(PseudoNetCDFFile):
         v.units='hPA'
         v.long_name='PRES'.ljust(16)
         v.var_desc='Pressure at center'
-        self.variables['TFLAG']=ConvertCAMxTime(self.__memmap[out_idx==4][slice(None,None,self.dimensions['LAY']*2)].view('>i'),self.__memmap[out_idx==3][slice(None,None,self.dimensions['LAY']*2)],self.dimensions['VAR'])
+        self.variables['TFLAG']=ConvertCAMxTime(self.__memmap[out_idx==4][slice(None,None,len(self.dimensions['LAY'])*2)].view('>i'),self.__memmap[out_idx==3][slice(None,None,len(self.dimensions['LAY'])*2)],len(self.dimensions['VAR']))
         
         return self.variables[key]
 

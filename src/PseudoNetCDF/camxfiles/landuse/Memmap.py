@@ -67,12 +67,16 @@ class landuse(PseudoNetCDFFile):
     def __init__(self,rf,rows,cols):
         self.rffile=OpenRecordFile(rf)
         
-        self.dimensions=dict(ROW=rows,COL=cols,LANDUSE=11)
-        self.variables={}
+        self.createDimension('ROW', rows)
+        self.createDimension('COL', cols)
+        self.createDimension('LANDUSE', 11)
         self.__addvars()
         
     def __addvars(self):
-        fland=PseudoNetCDFVariable(self,'FLAND','f',('LANDUSE','ROW','COL'),values=memmap(self.rffile.infile.name,'>f','r',0,(self.dimensions['ROW']*self.dimensions['COL']*self.dimensions['LANDUSE'],)).reshape((self.dimensions['LANDUSE'],self.dimensions['ROW'],self.dimensions['COL'])))
+        nrows = len(self.dimensions['ROW'])
+        ncols = len(self.dimensions['COL'])
+        nland = len(self.dimensions['LANDUSE'])
+        fland=PseudoNetCDFVariable(self,'FLAND','f',('LANDUSE','ROW','COL'),values=memmap(self.rffile.infile.name,'>f','r',0,(nrows*ncols*nland,)).reshape((nland,nrows,ncols)))
         fland.units='none'
         fland.long_name='FLAND'.ljust(16)
         fland.var_desc=fland.long_name
@@ -82,7 +86,7 @@ class landuse(PseudoNetCDFFile):
         rflen=self.rffile.infile.tell()
         topo_start=fland.size*4+8
         if not rflen==topo_start:
-            self.variables['TOPO']=PseudoNetCDFVariable(self,'TOPO','f',('ROW','COL'),values=memmap(self.rffile.infile.name,'>f','r',topo_start,(self.dimensions['ROW']*self.dimensions['COL'],)).reshape((self.dimensions['ROW'],self.dimensions['COL'])))
+            self.variables['TOPO']=PseudoNetCDFVariable(self,'TOPO','f',('ROW','COL'),values=memmap(self.rffile.infile.name,'>f','r',topo_start,(nrows*ncols,)).reshape((nrows,ncols)))
             topo=self.variables['TOPO']
             topo.units='none'
             topo.long_name='TOPO'.ljust(16)

@@ -46,7 +46,7 @@ def mrgidx(ipr_paths, irr_paths, idx):
     outf.createDimension("SPECIES", len(spcs))
     outf.createDimension("RXN", len(rr_keys))
     outf.createDimension("TSTEP", pr_tmp[:,0,0,0].shape[0])
-    outf.createDimension("TSTEP_STAG", outf.dimensions["TSTEP"]+1)
+    outf.createDimension("TSTEP_STAG", len(outf.dimensions["TSTEP"])+1)
     outf.createDimension("ROW", 1)
     outf.createDimension("LAY", 1)
     outf.createDimension("COL", 1)

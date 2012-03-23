@@ -31,6 +31,7 @@ from numpy import zeros,array,where,memmap,newaxis,dtype,fromfile,dtype
 #This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timediff,timeadd,timerange
 from PseudoNetCDF.camxfiles.util import cartesian
+from PseudoNetCDF.camxfiles.units import get_uamiv_units
 from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile,read_into,Int2Asc,Asc2Int
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
@@ -102,13 +103,12 @@ class ipr(PseudoNetCDFFile):
             self.proc_dict=proc_dict
         else:
             self.proc_dict=None
-        self.__rffile=file(rf)
+        self.__rffile=file(rf, 'rb')
         self.__rffile.seek(0,2)
         if self.__rffile.tell()<2147483648L:
             warn("For greater speed on files <2GB use ipr_memmap")
         self.__rffile.seek(0,0)
         self.units=units
-        self.dimensions={}
         self.__readheader()
         self.__setDomain__()
         self.__gettimestep()
@@ -123,7 +123,7 @@ class ipr(PseudoNetCDFFile):
         if proc_spc=='TFLAG':
             time=self.variables['TIME_%s'  % self.spcnames[0][1].strip()]
             date=self.variables['DATE_%s'  % self.spcnames[0][1].strip()]
-            self.variables['TFLAG']=PseudoNetCDFVariable(self,'proc_spc','i',('TSTEP','VAR','DATE-TIME'),values=ConvertCAMxTime(date[:,0,0,0],time[:,0,0,0],self.dimensions['VAR']))
+            self.variables['TFLAG']=PseudoNetCDFVariable(self,'proc_spc','i',('TSTEP','VAR','DATE-TIME'),values=ConvertCAMxTime(date[:,0,0,0],time[:,0,0,0],len(self.dimensions['VAR'])))
             return self.variables['TFLAG']
         
         self.variables.clear()
@@ -135,9 +135,16 @@ class ipr(PseudoNetCDFFile):
                 spcprocs=self.__readalltime(spc)
                 for p,plong in self.proc_dict.iteritems():
                     var_name=p+'_'+spc
+                    # IPR units are consistent with 'IPR'
+                    if p == 'UCNV':
+                        units = 'm**3/mol'
+                    elif p == 'AVOL':
+                        units = 'm**3'
+                    else:
+                        units = get_uamiv_units('IPR', spc)
                     self.variables[var_name] = PseudoNetCDFVariable(self,var_name,'f',('TSTEP','LAY','ROW','COL'),
                                               values=spcprocs[p],
-                                              units=self.units,
+                                              units=units,
                                               var_desc=(var_name).ljust(16),
                                               long_name=(var_name).ljust(16))
                 del spcprocs
@@ -192,6 +199,7 @@ class ipr(PseudoNetCDFFile):
         self.__activedomain=self.__padomains[0]
         self.prcnames=[]
         self.NPROCESS=fromfile(self.__rffile,dtype=dtype(dict(names=['SPAD','NPRCS','EPAD'],formats=['>i','>i','>i'])),count=1)['NPRCS']
+        
         self.__ipr_record_type=self.__ipr_record_type[self.NPROCESS[0]]
         
         if self.proc_dict is None:
@@ -243,9 +251,9 @@ class ipr(PseudoNetCDFFile):
         self.createDimension('COL',self.__activedomain['iend']-self.__activedomain['istart']+1)
         self.createDimension('ROW',self.__activedomain['jend']-self.__activedomain['jstart']+1)
         self.createDimension('LAY',self.__activedomain['tlay']-self.__activedomain['blay']+1)
-        self.NCOLS=self.dimensions['COL']
-        self.NROWS=self.dimensions['ROW']
-        self.NLAYS=self.dimensions['LAY']
+        self.NCOLS=len(self.dimensions['COL'])
+        self.NROWS=len(self.dimensions['ROW'])
+        self.NLAYS=len(self.dimensions['LAY'])
         self.__block3d=self.NLAYS*self.NROWS*self.NCOLS
         self.__block4d=self.__block3d*self.NSPCS
         
@@ -257,7 +265,7 @@ class ipr(PseudoNetCDFFile):
         timestep length and the anticipated number.
         """
         self.__rffile.seek(self.__data_start_byte,0)
-        temp=fromfile(self.__rffile,dtype=self.__ipr_record_type,count=self.dimensions['LAY']*self.dimensions['ROW']*self.dimensions['COL']+1)
+        temp=fromfile(self.__rffile,dtype=self.__ipr_record_type,count=len(self.dimensions['LAY'])*len(self.dimensions['ROW'])*len(self.dimensions['COL'])+1)
         self.TSTEP=timediff((self.SDATE,self.STIME),(temp[-1]['DATE']+2000000,temp[-1]['TIME']))
         self.NSTEPS=int(timediff((self.SDATE,self.STIME),(self.EDATE,self.ETIME))/self.TSTEP)
 

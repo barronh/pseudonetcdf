@@ -94,7 +94,10 @@ class height_pressure(PseudoNetCDFFile):
             if cols*rows!=self.cell_count:
                 raise ValueError, "The product of cols (%d) and rows (%d) must equal cells (%d)" %  (cols,rows,self.cell_count)
 
-        self.dimensions={'TSTEP': self.time_step_count, 'ROW': rows,'COL': cols, 'LAY': self.nlayers}
+        self.createDimension('TSTEP', self.time_step_count)
+        self.createDimension('ROW', rows)
+        self.createDimension('COL', cols)
+        self.createDimension('LAY', self.nlayers)
         self.variables=PseudoNetCDFVariables(self.__var_get,['HGHT','PRES'])
 
     def __var_get(self,key):
@@ -237,7 +240,7 @@ class height_pressure(PseudoNetCDFFile):
     __iter__=iterkeys
     
     def getArray(self,hp):
-        a=zeros((self.time_step_count,self.dimensions['LAY'],self.dimensions['ROW'],self.dimensions['COL']),'f')
+        a=zeros((self.time_step_count,len(self.dimensions['LAY']),len(self.dimensions['ROW']),len(self.dimensions['COL'])),'f')
             
         for ti,(d,t) in enumerate(self.timerange()):
             for ki,k in enumerate(xrange(1,self.nlayers+1)):

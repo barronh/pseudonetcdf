@@ -32,6 +32,17 @@ from types import MethodType
 from units import convert
 import operator,re,tempfile,warnings,sys,unittest
 
+class PseudoNetCDFDimension(object):
+    """
+    Dimension object responds like that of netcdf4-python
+    """
+    def __init__(self, group, name, size):
+        self._len = int(size)
+    def isunlimitied(self):
+        return False
+    def __len__(self):
+        return self._len
+        
 def PseudoNetCDFVariableConvertUnit(var,outunit):
     """
     Convert the unit of var and update the 
@@ -40,7 +51,7 @@ def PseudoNetCDFVariableConvertUnit(var,outunit):
     do = PseudoNetCDFFile()
     shape=var.shape
     for i,d in enumerate(var.dimensions):
-        do.dimensions[d]=shape[i]
+        do.createDimension(d, shape[i])
     outvar=PseudoNetCDFVariable(do,var.long_name.strip(),var.typecode(),var.dimensions,values=convert(var,var.units,outunit))
     for k,v in var.__dict__.iteritems():
         setattr(outvar,k,v)
@@ -49,29 +60,50 @@ def PseudoNetCDFVariableConvertUnit(var,outunit):
     
 class PseudoNetCDFFile(object):
     """
-    PseudoNetCDFFile provides an interface and standard set of 
+    PseudoNetCDFFile provides an interface and standard set of
     methods that a file should present to act like a netCDF file
     using the Scientific.IO.NetCDF.NetCDFFile interface.
     """
-    def __init__(self):
-        self.variables={}
-        self.dimensions={}
+    def __new__(cls, *args, **kwds):
+        new = object.__new__(cls, *args, **kwds)
+        new.variables={}
+        new.dimensions={}
+        new._ncattrs = ()
+        return new
     
+    def __init__(self, *args, **properties):
+        for k, v in properties.iteritems():
+            setattr(self, k, v)
+
+    def __setattr__(self, k, v):
+        if not (k[:1] == '_' or k in ('dimensions', 'variables', 'groups')):
+            self._ncattrs += (k,)
+        object.__setattr__(self, k, v)
     def createDimension(self,name,length):
-        try:
-            length = len(length)
-        except:
-            pass
-        self.dimensions[name]=length
-    
-    def createVariable(self,name,type,dimensions,keep=True):
-        var=PseudoNetCDFVariable(self,name,type,dimensions)
-        if keep:
-            self.variables[name]=var
+        """
+        name - string name for dimension
+        length - maximum length of dimension
+        """
+        self.dimensions[name]=PseudoNetCDFDimension(self, name, length)
+
+    def createVariable(self, name, type, dimensions, **properties):
+        """
+        name - string
+        type - numpy dtype code (e.g., 'f', 'i', 'd')
+        dimensions - tuple of dimension keys that can be
+                     found in objects' dimensions dictionary
+        """
+        var = self.variables[name] = PseudoNetCDFVariable(self,name,type,dimensions, **properties)
         return var
 
     def close(self):
+        """
+        Does nothing.  Implemented for continuity with Scientific.IO.NetCDF
+        """
         pass
+
+    def ncattrs(self):
+        return self._ncattrs
 
     sync=close
     flush=close
@@ -93,40 +125,44 @@ class PseudoNetCDFVariable(ndarray):
     but unlike that type, provides a contructor for variables that could be used
     without adding it to the parent file
     """
+    def __setattr__(self, k, v):
+        if not hasattr(self, k) and k[:1] != '_':
+            self._ncattrs += (k,)
+        ndarray.__setattr__(self, k, v)
+    def ncattrs(self):
+        return self._ncattrs
     def __new__(subtype,parent,name,typecode,dimensions,**kwds):
         """
         Creates a variable using the dimensions as defined in
         the parent object
-        
+
         parent: an object with a dimensions variable
         name: name for variable
         typecode: numpy style typecode
         dimensions: a typle of dimension names to be used from
                     parrent
         kwds: Dictionary of keywords to be added as properties
-              to the variable.  **The keyword 'values' is a special 
-              case that will be used as the starting values of 
+              to the variable.  **The keyword 'values' is a special
+              case that will be used as the starting values of
               the array
-              
+
         """
         if 'values' in kwds.keys():
             result=kwds.pop('values')
-            if isinstance(result, MaskedArray):
-                subtype = PseudoNetCDFMaskedVariable
         else:
             shape=[]
             for d in dimensions:
                 dim = parent.dimensions[d]
-    
+
                 # Adding support for netCDF3 dimension objects
                 if not isinstance(dim, int):
                     dim = len(dim)
                 shape.append(dim)
-            
+
             result=zeros(shape,typecode)
 
         result=result[...].view(subtype)
-        
+
         if hasattr(result, '__dict__'):
             result.__dict__['typecode'] = lambda: typecode
             result.__dict__['dimensions'] = tuple(dimensions)
@@ -135,10 +171,7 @@ class PseudoNetCDFVariable(ndarray):
                 'typecode': lambda: typecode,
                 'dimensions': tuple(dimensions)
             }
-        if isinstance(result, PseudoNetCDFMaskedVariable):
-            if not (kwds.has_key('missing_value') or kwds.has_key('_FillValue')):
-                kwds['missing_value'] = result.fill_value
-                
+        object.__setattr__(result, '_ncattrs', ())
         for k,v in kwds.iteritems():
             setattr(result,k,v)
         return result
@@ -148,7 +181,7 @@ class PseudoNetCDFVariable(ndarray):
         Return scalar value
         """
         return self.item()
-  
+
     def assignValue(self,value):
         """
         assign value to scalar variable
@@ -376,10 +409,10 @@ class PseudoNetCDFTest(unittest.TestCase):
         tncf.createDimension('ROW',5)
         tncf.createDimension('COL',6)
 
-        self.assert_(tncf.dimensions['TIME']==24)
-        self.assert_(tncf.dimensions['LAY']==4)
-        self.assert_(tncf.dimensions['ROW']==5)
-        self.assert_(tncf.dimensions['COL']==6)
+        self.assert_(len(tncf.dimensions['TIME'])==24)
+        self.assert_(len(tncf.dimensions['LAY'])==4)
+        self.assert_(len(tncf.dimensions['ROW'])==5)
+        self.assert_(len(tncf.dimensions['COL'])==6)
         
         tncf.fish=2
         setattr(tncf,'FROG-DOG','HAPPY')
@@ -403,7 +436,7 @@ class PseudoNetCDFTest(unittest.TestCase):
         
         n=Pseudo2NetCDF().convert(tncf)
         self.assertEqual(n.variables.keys(),['O3'])
-        self.assertEqual(n.dimensions,{'TIME': 24, 'LAY': 4, 'ROW': 5, 'COL': 6})
+        self.assertEqual(dict([(k, len(v)) for k, v in n.dimensions.iteritems()]),{'TIME': 24, 'LAY': 4, 'ROW': 5, 'COL': 6})
         self.assert_((n.variables['O3'][:]==tncf.variables['O3'][:]).all())
         self.assert_(n.variables['O3'].units=='ppbv')
         self.assertEqual(n.fish,2)

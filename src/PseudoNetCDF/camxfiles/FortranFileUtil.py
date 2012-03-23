@@ -113,7 +113,7 @@ class RecordFile(object):
         ***Assumes single 4 byte integer pad on either end
         """
         if type(infile)==str or type(infile)==unicode:
-            self.infile = open(infile,'rb')
+            self.infile = file(infile,'rb')
         elif type(infile)==file:
             self.infile = infile
         else:

@@ -97,7 +97,10 @@ class one3d(PseudoNetCDFFile):
             if cols*rows!=self.cell_count:
                 raise ValueError, "The product of cols (%d) and rows (%d) must equal cells (%d)" %  (cols,rows,self.cell_count)
 
-        self.dimensions={'TSTEP': self.time_step_count,'COL': cols,'ROW': rows,'LAY': self.nlayers}
+        self.createDimension('TSTEP', self.time_step_count)
+        self.createDimension('COL', cols)
+        self.createDimension('ROW', rows)
+        self.createDimension('LAY', self.nlayers)
 
         self.variables=PseudoNetCDFVariables(self.__var_get,[self.var_name])
 
@@ -239,7 +242,7 @@ class one3d(PseudoNetCDFFile):
     __iter__=iterkeys
 
     def getArray(self):
-        a=zeros((self.time_step_count,self.nlayers,self.dimensions['ROW'],self.dimensions['COL']),'f')
+        a=zeros((self.time_step_count,self.nlayers,len(self.dimensions['ROW']),len(self.dimensions['COL'])),'f')
         for ti,(d,t) in enumerate(self.timerange()):
             for ki,k in enumerate(range(1,self.nlayers+1)):
                 self.seekandreadinto(a[ti,ki,...,...],d,t,k)

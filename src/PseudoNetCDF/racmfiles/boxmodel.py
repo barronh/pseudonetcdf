@@ -51,10 +51,10 @@ def box_model_mrg(conc_path, irr_path, start_datetime):
     sorted_spcs = [k for k in conc.variables.keys() if k not in ('TFLAG', 'TIME')]
     sorted_spcs.sort()
 
-    nsteps = retval.createDimension('TSTEP', irr.dimensions['TSTEP']-1)
+    nsteps = retval.createDimension('TSTEP', len(irr.dimensions['TSTEP'])-1)
     nrxns = retval.createDimension('REACTIONS', len(sorted_rxns))
-    nrxns = retval.dimensions['REACTIONS']
-    nsteps = retval.dimensions['TSTEP']
+    nrxns = len(retval.dimensions['REACTIONS'])
+    nsteps = len(retval.dimensions['TSTEP'])
     retval.createDimension('SPECIES', len(sorted_spcs))
     retval.createDimension('PROCESS', 3)
     irr_vals = retval.createVariable('IRR','f',('TSTEP','REACTIONS'))

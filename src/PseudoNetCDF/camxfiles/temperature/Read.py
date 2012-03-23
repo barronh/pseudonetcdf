@@ -91,7 +91,11 @@ class temperature(PseudoNetCDFFile):
             if cols*rows!=self.cell_count:
                 raise ValueError, "The product of cols (%d) and rows (%d) must equal cells (%d)" %  (cols,rows,self.cell_count)
 
-        self.dimensions=dict(TSTEP=self.time_step_count,COL=cols,ROW=rows,LAY=self.nlayers,SURF=1)
+        self.createDimension('TSTEP', self.time_step_count)
+        self.createDimension('COL', cols)
+        self.createDimension('ROW', rows)
+        self.createDimension('LAY', self.nlayers)
+        self.createDimension('SURF', 1)
         self.variables=PseudoNetCDFVariables(self.__var_get,['AIRTEMP','SURFTEMP'])
 
     def __var_get(self,key):
@@ -136,10 +140,10 @@ class temperature(PseudoNetCDFFile):
     
     def __variables(self,k):
         if k=='SURFTEMP':
-            out=zeros((self.dimensions['TSTEP'],1,self.dimensions['ROW'],self.dimensions['COL']),'f')
+            out=zeros((len(self.dimensions['TSTEP']),1,len(self.dimensions['ROW']),len(self.dimensions['COL'])),'f')
             vars=self.__surfmaps()
         elif k=='AIRTEMP':
-            out=zeros((self.dimensions['TSTEP'],self.dimensions['LAY'],self.dimensions['ROW'],self.dimensions['COL']),'f')
+            out=zeros((len(self.dimensions['TSTEP']),len(self.dimensions['LAY']),len(self.dimensions['ROW']),len(self.dimensions['COL'])),'f')
             vars=self.__airmaps()
         for i,(d,t) in enumerate(self.timerange()):
             out[i,...]=vars.next()
@@ -157,7 +161,7 @@ class temperature(PseudoNetCDFFile):
         
     def __surfmaps(self):
         for pos in self.__surfpos():
-            yield memmap(self.rffile.infile.name,'>f','r',pos,(self.area_count,)).reshape(self.dimensions['ROW'],self.dimensions['COL'])
+            yield memmap(self.rffile.infile.name,'>f','r',pos,(self.area_count,)).reshape(len(self.dimensions['ROW']),len(self.dimensions['COL']))
             
     def __airpos(self):
         pos=self.area_padded_size+self.data_start_byte
@@ -171,7 +175,7 @@ class temperature(PseudoNetCDFFile):
     
     def __airmaps(self):
         for pos in self.__airpos():
-            yield memmap(self.rffile.infile.name,'>f','r',pos,((self.cell_count+4)*self.nlayers,)).reshape(self.nlayers,self.cell_count+4)[:,3:-1].reshape(self.dimensions['LAY'],self.dimensions['ROW'],self.dimensions['COL'])
+            yield memmap(self.rffile.infile.name,'>f','r',pos,((self.cell_count+4)*self.nlayers,)).reshape(self.nlayers,self.cell_count+4)[:,3:-1].reshape(len(self.dimensions['LAY']),len(self.dimensions['ROW']),len(self.dimensions['COL']))
 
     def timerange(self):
         return timerange((self.start_date,self.start_time),timeadd((self.end_date,self.end_time),(0,self.time_step),(2400,24)[int(self.time_step % 2)]),self.time_step,(2400,24)[int(self.time_step % 2)])

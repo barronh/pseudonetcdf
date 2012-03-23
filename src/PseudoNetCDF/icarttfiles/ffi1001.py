@@ -146,7 +146,7 @@ class ffi1001(PseudoNetCDFFile):
         self.date_objs = self.SDATE + vectorize(lambda s: timedelta(seconds = int(s), microseconds = (s - int(s)) * 1.E6 ))(self.variables[self.TFLAG]).view(type = ndarray)
         self.createDimension('YYYYMMDDTHHMMSS.microS', 22)
         var = self.createVariable('TFLAG', 'c', ('POINTS', 'YYYYMMDDTHHMMSS.microS'))
-        var[:] = array(['%(Y)04d%(m)02d%(d)02dT%(H)02d%(M)02d%(S)02d.%(f)06d' % dict(Y = d.year, m = d.month, d = d.day, H = d.hour, M = d.minute, S = d.second, f = d.microsecond) for d in self.date_objs], dtype = '|S22').view('|S1').reshape(self.date_objs.shape[0], self.dimensions['YYYYMMDDTHHMMSS.microS'])
+        var[:] = array(['%(Y)04d%(m)02d%(d)02dT%(H)02d%(M)02d%(S)02d.%(f)06d' % dict(Y = d.year, m = d.month, d = d.day, H = d.hour, M = d.minute, S = d.second, f = d.microsecond) for d in self.date_objs], dtype = '|S22').view('|S1').reshape(self.date_objs.shape[0], len(self.dimensions['YYYYMMDDTHHMMSS.microS']))
         var.units = 'YYYYMMDDTHHMMSS.microS'
         var.fill_value = ''
         var.scale = 1.

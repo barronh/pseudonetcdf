@@ -23,7 +23,7 @@ class wind_center_time_cell(PseudoNetCDFFile):
     """
     def __init__(self,rffile,rows,cols,outunit='m/s',endhour=True,forcestaggered=False):
         self.__windfile=reg_wind(rffile,rows,cols)
-        self.dimensions={}
+        
         self.createDimension('TSTEP',self.__windfile.dimensions['TSTEP']-1)
         self.createDimension('LAY',self.__windfile.dimensions['LAY'])
         self.createDimension('ROW',self.__windfile.dimensions['ROW'])

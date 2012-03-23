@@ -16,6 +16,7 @@ import Read
 import Write
 import Transforms
 
+# _camx_units is based on file name and an aerosol flag (True = aerosol)
 if __name__ == '__main__':
     from PseudoNetCDF.camxfiles.uamiv.Memmap import uamiv
     from PseudoNetCDF.pncdump import pncdump_parser, \

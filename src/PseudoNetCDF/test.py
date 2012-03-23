@@ -32,5 +32,5 @@ def test():
 	TextTestRunner(verbosity=2).run(test_suite)
 
 if __name__=='__main__':
-	run()
+	test()
 

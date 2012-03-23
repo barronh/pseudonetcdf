@@ -72,8 +72,10 @@ class cloud_rain(PseudoNetCDFFile):
         flen=f.tell()
         offset=struct.unpack('>i',file(rf,'r').read(4))[0]+8
         self.__memmap=memmap(rf,'>f','r',offset=offset)
-        self.dimensions={}
-        ncols,nrows,nlays=self.dimensions['COL'],self.dimensions['ROW'],self.dimensions['LAY']=struct.unpack({35:'>i15ciiii',40:'>i20ciiii'}[offset],file(rf,'r').read(offset))[-4:-1]
+        ncols,nrows,nlays=struct.unpack({35:'>i15ciiii',40:'>i20ciiii'}[offset],file(rf,'r').read(offset))[-4:-1]
+        self.createDimension('COL', ncols)
+        self.createDimension('ROW', nrows)
+        self.createDimension('LAY', nlays)
         self.STIME,self.SDATE=struct.unpack({35:'>i15ciiiiifi',40:'>i20ciiiiifi'}[offset],file(rf,'r').read(offset+12))[-2:]
         if self.SDATE<10000:
             self.SDATE+=2000000

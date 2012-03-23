@@ -31,6 +31,7 @@ from numpy import zeros,array,where,memmap,newaxis,dtype,fromfile
 #This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timediff,timeadd,timerange
 from PseudoNetCDF.camxfiles.util import sliceit
+from PseudoNetCDF.camxfiles.units import get_uamiv_units
 from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile,read_into,Int2Asc,Asc2Int
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoIOAPIVariable, PseudoNetCDFVariables
 
@@ -94,17 +95,23 @@ class uamiv(PseudoNetCDFFile):
         self.padded_time_hdr_size=struct.calcsize(self.time_hdr_fmt+"ii")
         self.__readheader()
         self.__gettimestep()
-        self.dimensions={'LAY': self.nlayers,'COL': self.nx,'ROW': self.ny,'TSTEP': self.time_step_count, 'DATE-TIME': 2 }
+        self.dimensions={}
+        self.createDimension('LAY', self.nlayers)
+        self.createDimension('COL', self.nx)
+        self.createDimension('ROW', self.ny)
+        self.createDimension('TSTEP', self.time_step_count)
+        self.createDimension('DATE-TIME', 2)
             
         self.variables=PseudoNetCDFVariables(self.__var_get,map(str.strip,self.spcnames))
 
     def __var_get(self,key):
+        units = get_uamiv_units(self.name, key)
         if self.name=='EMISSIONS ':
             constr=lambda spc: self.getArray(nspec=self.variables.keys().index(spc)).squeeze()[:,newaxis,:,:]
-            decor=lambda spc: dict(units='umol/hr', var_desc=spc, long_name=spc.ljust(16))
+            decor=lambda spc: dict(units=units, var_desc=spc, long_name=spc.ljust(16))
         else:
-            constr=lambda spc: self.getArray(nspec=self.variables.keys().index(spc)).squeeze().reshape((self.dimensions['TSTEP'],self.dimensions['LAY'],self.dimensions['ROW'],self.dimensions['COL']))
-            decor=lambda spc: dict(units='ppm', var_desc=spc.ljust(16), long_name=spc.ljust(16))
+            constr=lambda spc: self.getArray(nspec=self.variables.keys().index(spc)).squeeze().reshape(map(len, (self.dimensions['TSTEP'],self.dimensions['LAY'],self.dimensions['ROW'],self.dimensions['COL'])))
+            decor=lambda spc: dict(units=units, var_desc=spc.ljust(16), long_name=spc.ljust(16))
 
         values=constr(key)
         var=self.createVariable(key,'f',('TSTEP','LAY','ROW','COL'))
@@ -141,10 +148,8 @@ class uamiv(PseudoNetCDFFile):
             #Special case of gridded emissions
             #Seems to be same as avrg
             self.nlayers=1
-            self.unit='moles/hr'
         else:
             self.nlayers=self.nz
-            self.unit='ppm'
         self.ione,ione,nx,ny=self.rffile.read(self.cell_hdr_fmt)
         if not (self.nx,self.ny)==(nx,ny):
             raise ValueError, "nx, ny defined first as %i, %i and then as %i, %i" % (self.nx,self.ny,nx,ny)
@@ -154,9 +159,12 @@ class uamiv(PseudoNetCDFFile):
             self.spcnames.append(Int2Asc(species_temp[i:i+10]))
         
         self.data_start_byte=self.rffile.record_start
-        self.start_date,self.start_time,end_date,end_time=self.rffile.read(self.time_hdr_fmt)
-        self.time_step=timediff((self.start_date,self.start_time),(end_date,end_time))
-        self.time_step_count=timediff((self.start_date,self.start_time),(self.end_date,self.end_time),(2400,24)[int(self.time_step % 2)])/self.time_step    
+        start_date,start_time,end_date,end_time=self.rffile.read(self.time_hdr_fmt)
+        self.time_step=timediff((start_date,start_time),(end_date,end_time))
+        self.time_step_count=int(timediff((self.start_date,self.start_time),(self.end_date,self.end_time),(2400,24)[int(self.time_step % 2)])//self.time_step)
+        if self.name == 'AIRQUALITY':
+            self.time_step_count = 1
+            self.start_date = self.end_date
         self.record_size=self.rffile.record_size
         self.padded_size=self.record_size+8
         self.cell_count=(self.record_size-struct.calcsize("i10i"))/struct.calcsize(self.data_fmt)
@@ -401,7 +409,10 @@ class uamiv_new(PseudoNetCDFFile):
         self.__file.seek(start,0)
     
     def __readonespc(self,spc):
+        self.__file.seek(0,2)
+        print self.__file.tell()
         self.__seektospc(spc)
+        print self.__file.tell()
         vals=zeros((self.NSTEPS,self.__time_spc_slice),'>f')
         for hri in range(self.NSTEPS):
             vals[hri,:]=fromfile(self.__file,'>f',self.__time_spc_slice)

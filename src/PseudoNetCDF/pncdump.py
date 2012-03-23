@@ -191,7 +191,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                             sys.stdout.close()
                             exit()
                 else:
-                    dimensions = [f.dimensions[d] for d in var.dimensions]
+                    dimensions = [len(f.dimensions[d]) for d in var.dimensions]
                     if len(dimensions) > 1:
                         first_dim = reduce(operator.mul,dimensions[:-1])
                         second_dim = dimensions[-1]

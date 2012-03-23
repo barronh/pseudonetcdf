@@ -71,7 +71,7 @@ class irr(PseudoNetCDFFile):
     
     id_fmt="ifiiiii"
     data_fmt="f"
-    def __init__(self,rf,units='umol/hr',conva=None, nvarcache = None):
+    def __init__(self,rf,units='ppm/hr',conva=None, nvarcache = None):
         """
         Initialization included reading the header and learning
         about the format.
@@ -87,17 +87,17 @@ class irr(PseudoNetCDFFile):
         self.__gettimestep()
         self.units=units
         #__conv is a conversion array that comes from ipr
-        #if units is not umol/hr, conv must be provided
+        #if units is not ppm/hr, conv must be provided
         self.__conv=conva
-        if self.units!='umol/hr' and self.__conv==None:
+        if self.units!='ppm/hr' and self.__conv==None:
             raise ValueError, "When units are provided, a conversion array dim(t,z,x,y) must also be provided"
         varkeys=['IRR_%d' % i for i in range(1,self.NRXNS+1)]
 
         domain=self.padomains[0]
-        self.dimensions=dict(TSTEP=int(self.NSTEPS),
-                             COL=int(domain['iend']-domain['istart']+1),
-                             ROW=int(domain['jend']-domain['jstart']+1),
-                             LAY=int(domain['tlay']-domain['blay']+1))
+        self.createDimension('TSTEP', int(self.NSTEPS))
+        self.createDimension('COL', int(domain['iend']-domain['istart']+1))
+        self.createDimension('ROW', int(domain['jend']-domain['jstart']+1))
+        self.createDimension('LAY', int(domain['tlay']-domain['blay']+1))
         self.createDimension('DATE-TIME', 2)
         self.createDimension('VAR', int(self.NRXNS))
         self.variables=PseudoNetCDFVariables(self.__var_get,varkeys)
@@ -261,7 +261,7 @@ class irr(PseudoNetCDFFile):
         kend=domain['tlay']
         variables = self.variables
         temp = zeros((self.NRXNS,), 'f')
-        shape = (self.NSTEPS,) + eval('(LAY, ROW, COL)', None, self.dimensions)
+        shape = (self.NSTEPS,) + eval('map(len, (LAY, ROW, COL))', None, self.dimensions)
         variables.clear()
         end = min(start + n, self.NRXNS + 1)
         start = end - n

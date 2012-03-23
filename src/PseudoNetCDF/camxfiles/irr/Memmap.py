@@ -87,9 +87,13 @@ class irr(PseudoNetCDFFile):
         varkeys=[i for i in self.irr_record_type.names[8:-1]]+['TFLAG']
 
         domain=self.padomains[0]
-        self.dimensions=dict(TSTEP=self.time_step_count,COL=domain['iend']-domain['istart']+1,ROW=domain['jend']-domain['jstart']+1,LAY=domain['tlay']-domain['blay']+1,VAR=len(varkeys)-1)
+        self.createDimension('TSTEP', self.time_step_count)
+        self.createDimension('COL', domain['iend']-domain['istart']+1)
+        self.createDimension('ROW', domain['jend']-domain['jstart']+1)
+        self.createDimension('LAY', domain['tlay']-domain['blay']+1)
+        self.createDimension('VAR',  len(varkeys)-1)
         self.variables=PseudoNetCDFVariables(self.__variables,varkeys)
-        self.__memmaps=memmap(self.__rffile.infile.name,self.irr_record_type,'r',self.data_start_byte).reshape(self.dimensions['TSTEP'],self.dimensions['ROW'],self.dimensions['COL'],self.dimensions['LAY']).swapaxes(1,2).swapaxes(1,3)
+        self.__memmaps=memmap(self.__rffile.infile.name,self.irr_record_type,'r',self.data_start_byte).reshape(len(self.dimensions['TSTEP']),len(self.dimensions['ROW']),len(self.dimensions['COL']),len(self.dimensions['LAY'])).swapaxes(1,2).swapaxes(1,3)
 
     def __del__(self):
         try:
@@ -107,7 +111,7 @@ class irr(PseudoNetCDFFile):
         
     def __variables(self,rxn):
         if rxn=='TFLAG':
-            return ConvertCAMxTime(self.__memmaps[:,0,0,0]['DATE'],self.__memmaps[:,0,0,0]['TIME'],self.dimensions['VAR'])
+            return ConvertCAMxTime(self.__memmaps[:,0,0,0]['DATE'],self.__memmaps[:,0,0,0]['TIME'],len(self.dimensions['VAR']))
         return self.__decorator(rxn,PseudoNetCDFVariable(self,rxn,'f',('TSTEP','LAY','ROW','COL'),values=self.__memmaps[:,:,:,:][rxn]))
 
     def __readheader(self):

@@ -99,8 +99,6 @@ class point_source(PseudoNetCDFFile):
         self.__readheader()
         self.__gettimestep()
         self.__gettimeprops()
-        self.dimensions={}
-        self.variables={}
         self.createDimension('TSTEP',self.time_step_count)
         self.createDimension('STK',self.nstk)
         varkeys=('XSTK','YSTK','HSTK','DSTK','TSTK','VSTK','KCELL','FLOW','PLMHT')+tuple([i.strip() for i in self.spcnames])

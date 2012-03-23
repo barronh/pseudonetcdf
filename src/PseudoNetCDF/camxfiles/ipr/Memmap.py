@@ -28,6 +28,7 @@ from numpy import zeros,array,where,memmap,newaxis,dtype,nan
 #This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timediff,timeadd,timerange
 from PseudoNetCDF.camxfiles.util import cartesian
+from PseudoNetCDF.camxfiles.units import get_uamiv_units
 from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile,Int2Asc
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
@@ -85,9 +86,8 @@ class ipr(PseudoNetCDFFile):
         see __readheader and __gettimestep() for more info
         """
         self.__rffile=OpenRecordFile(rf)
-        self.dimensions={}
         self.__readheader()
-        self.createDimension('TSTEP',24)
+        self.createDimension('TSTEP',len([i_ for i_ in self.timerange()]))
         self.createDimension('COL',self.activedomain['iend']-self.activedomain['istart']+1)
         self.createDimension('ROW',self.activedomain['jend']-self.activedomain['jstart']+1)
         self.createDimension('LAY',self.activedomain['tlay']-self.activedomain['blay']+1)
@@ -127,7 +127,7 @@ class ipr(PseudoNetCDFFile):
         varkeys+=['SPAD','DATE','TIME','PAGRID','NEST','I','J','K','TFLAG']
         constr=lambda k: self.__variables(k)
         
-        self.__memmaps=memmap(self.__rffile.infile.name,self.__ipr_record_type,'r',self.data_start_byte).reshape(len([i for i in self.timerange()]),len(self.spcnames),self.dimensions['ROW'],self.dimensions['COL'],self.dimensions['LAY']).swapaxes(4,3).swapaxes(2,3)
+        self.__memmaps=memmap(self.__rffile.infile.name,self.__ipr_record_type,'r',self.data_start_byte).reshape(len([i for i in self.timerange()]),len(self.spcnames),len(self.dimensions['ROW']),len(self.dimensions['COL']),len(self.dimensions['LAY'])).swapaxes(4,3).swapaxes(2,3)
         self.variables=PseudoNetCDFVariables(self.__variables,varkeys)
 
     def __del__(self):
@@ -138,7 +138,16 @@ class ipr(PseudoNetCDFFile):
             pass
 
     def __decorator(self,name,pncfv):
-        decor=lambda k: dict(units='umol/m**3', var_desc=k.ljust(16), long_name=k.ljust(16))
+        spc = name.split('_')[-1]
+        prc = name.split('_')[0]
+        # IPR units are consistent with 'IPR'
+        if prc == 'UCNV':
+            units = 'm**3/mol'
+        elif prc == 'AVOL':
+            units = 'm**3'
+        else:
+            units = get_uamiv_units('IPR', spc)
+        decor=lambda k: dict(units=units, var_desc=k.ljust(16), long_name=k.ljust(16))
         for k,v in decor(name).iteritems():
             setattr(pncfv,k,v)        
         return pncfv
@@ -149,7 +158,7 @@ class ipr(PseudoNetCDFFile):
             proc_spc=proc_spc+'_'+self.spcnames[0]
             return PseudoNetCDFVariable(self,proc_spc,'f',('TSTEP','LAY','ROW','COL'),values=self.__memmaps[:,0,:,:,:][proc])
         if proc_spc=='TFLAG':
-            return ConvertCAMxTime(self.variables['DATE'][:,0,0,0],self.variables['TIME'][:,0,0,0],self.dimensions['VAR'])
+            return ConvertCAMxTime(self.variables['DATE'][:,0,0,0],self.variables['TIME'][:,0,0,0],len(self.dimensions['VAR']))
         for k in self.__ipr_record_type.names:
             proc=proc_spc[:len(k)]
             spc=proc_spc[len(k)+1:]

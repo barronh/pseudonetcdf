@@ -93,7 +93,6 @@ class point_source(PseudoNetCDFFile):
         self.__rffile=rf
         
         
-        self.dimensions={}
         self.variables={}
         self.__memmap=memmap(self.__rffile,'>f','r')
         self.__globalheader()
@@ -131,8 +130,8 @@ class point_source(PseudoNetCDFFile):
         self.__nstk_hdr=self.__memmap[offset:offset+self.__nstk_hdr_fmt.itemsize/4].view(self.__nstk_hdr_fmt)
         offset+=self.__nstk_hdr.nbytes/4+1
 
-        self.dimensions['NSTK']=nstk=self.__nstk_hdr['nstk']
-        
+        nstk=self.__nstk_hdr['nstk']
+        self.createDimension('NSTK', nstk)
 
         self.__nstk_hdr['nstk']
         self.__stk_props=self.__memmap[offset:offset+self.__stk_prop_fmt.itemsize/4*nstk].reshape(nstk,self.__stk_prop_fmt.itemsize/4).view(self.__stk_prop_fmt)
@@ -153,7 +152,7 @@ class point_source(PseudoNetCDFFile):
     def __time_stks(self):
         i=offset=0
         nspcs=len(self.__spc_names)
-        nstks=self.dimensions['NSTK']
+        nstks=len(self.dimensions['NSTK'])
         date_block_size=6
         stk_block_size=4
         stk_props_size=2+nstks*5
@@ -192,8 +191,8 @@ class point_source(PseudoNetCDFFile):
         
         self.createDimension('VAR',len(self.__spc_names)+3)
         
-        self.variables['TFLAG']=ConvertCAMxTime(bdates,btimes,self.dimensions['VAR'])
-        self.variables['ETFLAG']=ConvertCAMxTime(edates,etimes,self.dimensions['VAR'])
+        self.variables['TFLAG']=ConvertCAMxTime(bdates,btimes,len(self.dimensions['VAR']))
+        self.variables['ETFLAG']=ConvertCAMxTime(edates,etimes,len(self.dimensions['VAR']))
         v=self.variables['NSTKS']=PseudoNetCDFVariable(self,'NSTKS','i',('TSTEP',),values=array(nstk_hdr))
         v.units='#'.ljust(16)
         v.long_name='NSTKS'.ljust(16)

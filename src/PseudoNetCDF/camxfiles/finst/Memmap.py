@@ -84,16 +84,16 @@ class finst(PseudoNetCDFFile):
         self.__rffile=rf
 
         # Establish dimensions
-        self.dimensions={'DATE-TIME': 2 }
+        self.createDimension('DATE-TIME', 2)
 
         self.__readheader(mode)
         
         # Add IOAPI metavariables
-        nlays=self.NLAYS=self.dimensions['LAY']
-        nrows=self.NROWS=self.dimensions['ROW']
-        ncols=self.NCOLS=self.dimensions['COL']
-        nvars=self.NVARS=self.dimensions['VAR']
-        nsteps=self.NSTEPS=self.dimensions['TSTEP']
+        nlays=self.NLAYS=len(self.dimensions['LAY'])
+        nrows=self.NROWS=len(self.dimensions['ROW'])
+        ncols=self.NCOLS=len(self.dimensions['COL'])
+        nvars=self.NVARS=len(self.dimensions['VAR'])
+        nsteps=self.NSTEPS=len(self.dimensions['TSTEP'])
         setattr(self,'VAR-LIST',"".join([i.ljust(16) for i in self.__var_names__] + ['TFLAG'.ljust(16)]))
         self.GDTYP=2
 
@@ -173,10 +173,10 @@ class finst(PseudoNetCDFFile):
         
     def __variables(self,k):
         dimensions=('TSTEP','LAY','ROW','COL')
-        ntimes=self.dimensions['TSTEP']
-        nx=self.dimensions['COL']
-        ny=self.dimensions['ROW']
-        nz=self.dimensions['LAY']
+        ntimes=len(self.dimensions['TSTEP'])
+        nx=len(self.dimensions['COL'])
+        ny=len(self.dimensions['ROW'])
+        nz=len(self.dimensions['LAY'])
         
         outvals=self.__memmap__[self.CURRENT_GRID][k]['DATA'][:,:,:,:]
 

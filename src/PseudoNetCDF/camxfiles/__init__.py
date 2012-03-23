@@ -28,7 +28,8 @@ __all__=['Memmaps',
     'vertical_diffusivity',
     'wind',
     'FortranFileUtil',
-    'util']
+    'util',
+    'timetuple']
 
 import Memmaps
 import Readers
@@ -46,3 +47,4 @@ import vertical_diffusivity
 import wind
 import FortranFileUtil
 import util
+import timetuple

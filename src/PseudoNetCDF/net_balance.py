@@ -27,8 +27,6 @@ class sum_reader(pncf):
     if type(sumfile)==str:
       self.sumfile=file(sumfile,'r')
     
-    self.variables={}
-    self.dimensions={}
     time,var_names,values=self.parse()
     
     self.createDimension('TSTEP',len(time))
@@ -85,8 +83,6 @@ class ctb_reader(pncf):
     lines=file.readlines()
     parameters,daily,peak=self.parse(lines)
 
-    self.variables={}
-    self.dimensions={}
 
     self.createDimension('PARAMETERS',len(parameters))
     self.createDimension('PEAK_DAILY',2)
@@ -111,9 +107,6 @@ class ctb_reader(pncf):
 
 class net_reader(pncf):
     def __init__(self,file):
-        self.dimensions={}
-        self.variables={}
-
         self.spc=[]
         self.nrxns=[]
         self.time=[]
@@ -154,9 +147,6 @@ class mrgaloft(pncf):
     ipr_re   = re.compile('"\w+\s*"\s*('+sci_not+'\s+)+', re.IGNORECASE)
     split_on_blanks_re = re.compile('[ ]+')
     def __init__(self,mrgfile):
-        self.variables={}
-        self.dimensions={}
-    
         if isinstance(mrgfile,str):
             mrgfile=open(mrgfile,'rb')
         elif isinstance(mrgfile,file):

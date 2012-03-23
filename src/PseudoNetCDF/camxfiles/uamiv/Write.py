@@ -55,9 +55,9 @@ def write_emissions_ncf(infile,outfile):
 
     hdrlines.append(reduce(concat,[Asc2Int(s) for s in [infile.name, infile.note]])+[infile.ione, len(infile.variables.keys()),infile.start_date,infile.start_time,infile.end_date,infile.end_time])
 
-    hdrlines.append([infile.rdum, infile.rdum, infile.iutm, infile.xorg, infile.yorg, infile.delx, infile.dely, infile.dimensions['COL'], infile.dimensions['ROW'], infile.dimensions['LAY'], infile.idum, infile.idum, infile.rdum, infile.rdum, infile.rdum])
+    hdrlines.append([infile.rdum, infile.rdum, infile.iutm, infile.xorg, infile.yorg, infile.delx, infile.dely, len(infile.dimensions['COL']), len(infile.dimensions['ROW']), len(infile.dimensions['LAY']), infile.idum, infile.idum, infile.rdum, infile.rdum, infile.rdum])
     
-    hdrlines.append([infile.ione,infile.ione,infile.dimensions['COL'],infile.dimensions['ROW']])
+    hdrlines.append([infile.ione,infile.ione,len(infile.dimensions['COL']),len(infile.dimensions['ROW'])])
     hdrlines.append(reduce(concat,[Asc2Int(s.ljust(10)) for s in infile.variables.keys()]))
 
     for d,h in zip(hdrlines,hdr_fmts):
@@ -67,7 +67,7 @@ def write_emissions_ncf(infile,outfile):
         ed,et=timeadd((d,t),(0,infile.time_step))
         outfile.write(writeline((d,t,ed,et),'ifif'))
         for spc in infile.variables.keys():
-            for k in range(infile.dimensions['LAY']):
+            for k in range(len(infile.dimensions['LAY'])):
                 outfile.write(writeline([infile.ione]+Asc2Int(spc.ljust(10))+infile.variables[spc][ti,:,:,k].transpose().ravel().tolist(),'11i'+infile.cell_count*'f'))
 
 def write_emissions(start_date,start_time,time_step,hdr,vals):

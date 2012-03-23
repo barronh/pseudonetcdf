@@ -86,7 +86,7 @@ class wind(PseudoNetCDFFile):
             total_size+=record*2*lays+self.__time_hdr_fmts_size+8
             times+=1
         times-=1
-        self.dimensions={}
+        
         self.variables={}
         del rf
         self.createDimension('TSTEP',times)
@@ -96,10 +96,10 @@ class wind(PseudoNetCDFFile):
         self.createDimension('COL',cols)
         self.createDimension('VAR',2)
         
-        self.NVARS=self.dimensions['VAR']
-        self.NLAYS=self.dimensions['LAY']
-        self.NROWS=self.dimensions['ROW']
-        self.NCOLS=self.dimensions['COL']
+        self.NVARS=len(self.dimensions['VAR'])
+        self.NLAYS=len(self.dimensions['LAY'])
+        self.NROWS=len(self.dimensions['ROW'])
+        self.NCOLS=len(self.dimensions['COL'])
         self.FTYPE=1
         
         self.__memmap=memmap(rffile,'>f','r',offset=0)
@@ -122,10 +122,10 @@ class wind(PseudoNetCDFFile):
         return pncfv
         
     def __add_variables(self):
-        tsteps=self.dimensions['TSTEP']
-        lays=self.dimensions['LAY']
-        rows=self.dimensions['ROW']
-        cols=self.dimensions['COL']
+        tsteps=len(self.dimensions['TSTEP'])
+        lays=len(self.dimensions['LAY'])
+        rows=len(self.dimensions['ROW'])
+        cols=len(self.dimensions['COL'])
         offset=len(self.__time_hdr_fmts)+2
         block=(rows*cols+2)*2*lays
         out_idx=zeros(self.__memmap.shape,'b')

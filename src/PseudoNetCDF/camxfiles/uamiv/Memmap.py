@@ -29,13 +29,13 @@ from PseudoNetCDF.camxfiles.timetuple import timediff,timeadd
 from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoIOAPIVariable, PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
+from PseudoNetCDF.camxfiles.units import get_uamiv_units
 
 #for use in identifying uncaught nan
 listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
-
 class uamiv(PseudoNetCDFFile):
     """
     uamiv provides a PseudoNetCDF interface for CAMx
@@ -83,17 +83,17 @@ class uamiv(PseudoNetCDFFile):
         """
         self.__rffile=rf
         self.__mode=mode
-        # Establish dimensions
-        self.dimensions={'DATE-TIME': 2 }
+        
+        self.createDimension('DATE-TIME', 2)
 
         self.__readheader()
         
         # Add IOAPI metavariables
-        nlays=self.NLAYS=self.dimensions['LAY']
-        nrows=self.NROWS=self.dimensions['ROW']
-        ncols=self.NCOLS=self.dimensions['COL']
-        nvars=self.NVARS=self.dimensions['VAR']
-        nsteps=self.NSTEPS=self.dimensions['TSTEP']
+        nlays=self.NLAYS=len(self.dimensions['LAY'])
+        nrows=self.NROWS=len(self.dimensions['ROW'])
+        ncols=self.NCOLS=len(self.dimensions['COL'])
+        nvars=self.NVARS=len(self.dimensions['VAR'])
+        nsteps=self.NSTEPS=len(self.dimensions['TSTEP'])
         setattr(self,'VAR-LIST',"".join([i.ljust(16) for i in self.__var_names__]+['TFLAG'.ljust(16)]))
         self.GDTYP=2
         self.NAME="".join(self.__emiss_hdr['name'][0,:,0])
@@ -174,7 +174,8 @@ class uamiv(PseudoNetCDFFile):
         spc_index=self.__var_names__.index(k)
         dimensions=('TSTEP','LAY','ROW','COL')
         outvals=self.__memmap__[k]['DATA']
-        units = {'EMISSIONS ':'umol/hr'}.get(self.NAME,'ppm')
+        units = get_uamiv_units(self.NAME, k)
+        
         return PseudoIOAPIVariable(self,k,'f',dimensions,values=outvals, units = units)
 
     def sync(self):

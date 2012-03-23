@@ -78,13 +78,15 @@ class time_avg_new_unit(PseudoNetCDFFile):
     __reader__=None
     def __init__(self,rffile,rows,cols,outunit={},endhour=True):
         self.__file=self.__reader__(rffile,rows,cols)
-        self.dimensions={}
-        self.createDimension('TSTEP',self.__file.dimensions['TSTEP']-1)
-        self.createDimension('LAY',self.__file.dimensions['LAY'])
-        self.createDimension('ROW',self.__file.dimensions['ROW'])
-        self.createDimension('COL',self.__file.dimensions['COL'])
-        self.createDimension('VAR',self.__file.dimensions['VAR'])
-        self.createDimension('DATE-TIME',self.__file.dimensions.get('DATE-TIME',2))
+        self.createDimension('TSTEP',len(self.__file.dimensions['TSTEP']-1))
+        self.createDimension('LAY',len(self.__file.dimensions['LAY']))
+        self.createDimension('ROW',len(self.__file.dimensions['ROW']))
+        self.createDimension('COL',len(self.__file.dimensions['COL']))
+        self.createDimension('VAR',len(self.__file.dimensions['VAR']))
+        if self.__file.dimensions.has('DATE-TIME'):
+            self.createDimension('DATE-TIME',len(self.__file.dimensions['DATE-TIME']))
+        else:
+            self.createDimension('DATE-TIME',2)
         self.__outunit=outunit
         self.variables=PseudoNetCDFVariables(self.__variables,self.__file.variables.keys())
         self.__timeslice={True:slice(1,None),False:slice(None,-1)}[endhour]
@@ -132,7 +134,7 @@ class window(PseudoNetCDFFile):
         self.dimensions=self.__file.dimensions.copy()
         any_non_time_key=[k for k in self.__file.variables.keys() if 'TFLAG' not in k][0]
         self.dimensions['TSTEP'],self.dimensions['LAY'],self.dimensions['ROW'],self.dimensions['COL'] \
-                            = self.__file.variables[any_non_time_key][self.__idx].shape
+                            = map(lambda x: PseudoNetCDFDimension(None, None, x), self.__file.variables[any_non_time_key][self.__idx].shape)
         self.variables=PseudoNetCDFVariables(self.__variables,self.__file.variables.keys())
         
     def __variables(self,k):
@@ -178,7 +180,7 @@ class newresolution(PseudoNetCDFFile):
         v=self.__file.variables[any_non_time_key]
         v=self.__method(v)
         self.dimensions['TSTEP'],self.dimensions['LAY'],self.dimensions['ROW'],self.dimensions['COL'] \
-                            =  v.shape
+                            =  map(lambda x: PseudoNetCDFDimension(None, None, x), v.shape)
         self.variables=PseudoNetCDFVariables(self.__variables,self.__file.variables.keys())
  
     def __method(self,a):
@@ -227,21 +229,20 @@ class MetaNetCDF(PseudoNetCDFFile):
 
     def __init__(self,files):
         self.__files=files
-        self.dimensions={}
         keys=[]
         for f in self.__files:
             for k,d in f.dimensions.iteritems():
-                if d==1 and k=='LAY':
+                if len(d)==1 and k=='LAY':
                     k='SURFLAY'
                 if k not in self.dimensions.keys():
-                    self.createDimension(k,d)
+                    self.createDimension(k,len(d))
             keys.extend(f.variables.keys())
             for k in f.__dict__.keys():
                 if k not in self.__dict__.keys():
                     setattr(self,k,getattr(f,k))
         keys=list(set(keys))
         self.variables=PseudoNetCDFVariables(self.__variables,keys)
-        self.dimensions['VAR']=len(keys)-1
+        self.createDimension('VAR', len(keys)-1)
     
     def __getattribute__(self,k):
         try:
@@ -259,7 +260,7 @@ class MetaNetCDF(PseudoNetCDFFile):
             if k in f.variables.keys():
                 v=f.variables[k]
                 if k=='TFLAG':
-                    v=PseudoNetCDFVariable(self,'TFLAG','i',v.dimensions,values=v[:][:,[0],:].repeat(self.dimensions['VAR'],1))
+                    v=PseudoNetCDFVariable(self,'TFLAG','i',v.dimensions,values=v[:][:,[0],:].repeat(len(self.dimensions['VAR']),1))
                     v.long_name='TFLAG'.ljust(16)
                     v.var_desc='TFLAG'.ljust(16)
                     v.units='DATE-TIME'

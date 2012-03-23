@@ -73,7 +73,7 @@ class temperature(PseudoNetCDFFile):
     data_fmt='f'
     def __init__(self,rf,rows=None,cols=None):
         self.__memmap=memmap(rf,'>f','r',offset=0)
-        self.dimensions={}
+        
         rowsXcols=self.__memmap[0].view('i')/4-2
         record_length=rowsXcols+4
         records=self.__memmap.size/record_length
@@ -104,18 +104,18 @@ class temperature(PseudoNetCDFFile):
         self.createDimension('DATE-TIME',2)
         self.createDimension('VAR',2)
         
-        self.NVARS=self.dimensions['VAR']
-        self.NLAYS=self.dimensions['LAY']
-        self.NROWS=self.dimensions['ROW']
-        self.NCOLS=self.dimensions['COL']
+        self.NVARS=len(self.dimensions['VAR'])
+        self.NLAYS=len(self.dimensions['LAY'])
+        self.NROWS=len(self.dimensions['ROW'])
+        self.NCOLS=len(self.dimensions['COL'])
         self.FTYPE=1
         
         self.variables=PseudoNetCDFVariables(self.__var_get,['AIRTEMP','SURFTEMP','TFLAG'])
     def __var_get(self,key):
-        lays=self.dimensions['LAY']
-        times=self.dimensions['TSTEP']
-        rows=self.dimensions['ROW']
-        cols=self.dimensions['COL']
+        lays=len(self.dimensions['LAY'])
+        times=len(self.dimensions['TSTEP'])
+        rows=len(self.dimensions['ROW'])
+        cols=len(self.dimensions['COL'])
         surf=1
         air=2
         time=3

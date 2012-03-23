@@ -11,112 +11,7 @@ from numpy import fromfile, memmap, dtype, arange, zeros
 
 # PseudoNetCDF is my own home grown
 # https://dawes.sph.unc.edu/trac/PseudoNetCDF
-try:
-    from PseudoNetCDF import PseudoNetCDFVariable, PseudoNetCDFFile
-except:
-    print """
-    bpch has been configured to run as a standalone module, but
-    it is a small part of a larger, easy to install package
-    called PseudoNetCDF.  You can obtain PseudoNetCDF at
-    https://dawes.sph.unc.edu/trac/PseudoNetCDF
-    """
-    # If user does not have PseudoNetCDF, redefine necessary components
-    class PseudoNetCDFFile(object):
-        """
-        PseudoNetCDFFile provides an interface and standard set of 
-        methods that a file should present to act like a netCDF file
-        using the Scientific.IO.NetCDF.NetCDFFile interface.
-        """
-        
-        def createDimension(self,name,length):
-            """
-            name - string name for dimension
-            length - maximum length of dimension
-            """
-            self.dimensions[name]=length
-        
-        def createVariable(self, name, type, dimensions):
-            """
-            name - string 
-            type - numpy dtype code (e.g., 'f', 'i', 'd')
-            dimensions - tuple of dimension keys that can be 
-                         found in objects' dimensions dictionary
-            """
-            var = self.variables[name] = PseudoNetCDFVariable(self,name,type,dimensions)
-            return var
-    
-        def close(self):
-            """
-            Does nothing.  Implemented for continuity with Scientific.IO.NetCDF
-            """
-            pass
-    
-        sync=close
-        flush=close
-
-    from numpy import ndarray
-    class PseudoNetCDFVariable(ndarray):
-        """
-        PseudoNetCDFVariable presents the Scientific.IO.NetCDF.NetCDFVariable interface,
-        but unlike that type, provides a contructor for variables that could be used
-        without adding it to the parent file
-        """
-        def __new__(subtype,parent,name,typecode,dimensions,**kwds):
-            """
-            Creates a variable using the dimensions as defined in
-            the parent object
-            
-            parent: an object with a dimensions variable
-            name: name for variable
-            typecode: numpy style typecode
-            dimensions: a typle of dimension names to be used from
-                        parrent
-            kwds: Dictionary of keywords to be added as properties
-                  to the variable.  **The keyword 'values' is a special 
-                  case that will be used as the starting values of 
-                  the array
-                  
-            """
-            if 'values' in kwds.keys():
-                result=kwds.pop('values')
-            else:
-                shape=[]
-                for d in dimensions:
-                    dim = parent.dimensions[d]
-        
-                    # Adding support for netCDF3 dimension objects
-                    if not isinstance(dim, int):
-                        dim = len(dim)
-                    shape.append(dim)
-                
-                result=zeros(shape,typecode)
-    
-            result=result[:].view(subtype)
-            
-            if hasattr(result, '__dict__'):
-                result.__dict__['typecode'] = lambda: typecode
-                result.__dict__['dimensions'] = tuple(dimensions)
-            else:
-                result.__dict__={
-                    'typecode': lambda: typecode,
-                    'dimensions': tuple(dimensions)
-                }
-                    
-            for k,v in kwds.iteritems():
-                setattr(result,k,v)
-            return result
-    
-        def getValue(self):
-            """
-            Return scalar value
-            """
-            return self.item()
-      
-        def assignValue(self,value):
-            """
-            assign value to scalar variable
-            """
-            self.itemset(value)
+from PseudoNetCDF import PseudoNetCDFVariable, PseudoNetCDFFile
 
 
 # These variables define the binary format of the header blocks
@@ -264,7 +159,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
         
     def __missing__(self, key):
         if key == 'LAT':
-            j = arange(self._parent.dimensions['J'] + 1)
+            j = arange(len(self._parent.dimensions['J']) + 1)
             data = j * self._parent.modelres[1] - 90
             if self._parent.halfpolar == 1:
                 data[1:] -= 1
@@ -273,7 +168,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             dtype = 'i'
             units = 'degrees north'
         elif key == 'LON':
-            i = arange(self._parent.dimensions['I'] + 1)
+            i = arange(len(self._parent.dimensions['I']) + 1)
             xres = self._parent.modelres[0]
             data = i * xres - (180 + xres / 2.) * self._parent.center180
             dims = ('I',)
@@ -453,7 +348,7 @@ class bpch(PseudoNetCDFFile):
         
         # Create variables and dimensions
         self.variables = _tracer_lookup(parent = self, datamap = datamap, tracerinfo = tracer_data, diaginfo = diag_data, keys = keys)
-        self.dimensions['T'] = self.variables['tau0'].shape[0]
+        self.createDimension('T', self.variables['tau0'].shape[0])
         self.groups = dict([(k, _diag_group(self, k, v)) for k, v in self._groups.iteritems()])
 
 
