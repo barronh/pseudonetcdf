@@ -97,7 +97,7 @@ class wind(PseudoNetCDFFile):
         self.createDimension('TSTEP', self.time_step_count)
         self.createDimension('COL', cols)
         self.createDimension('ROW', rows)
-        self.createDimension('LAY', self.nlayers}
+        self.createDimension('LAY', self.nlayers)
 
         self.variables=PseudoNetCDFVariables(self.__var_get,['U','V'])
 
