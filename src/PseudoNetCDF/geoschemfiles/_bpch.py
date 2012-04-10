@@ -7,7 +7,7 @@ from collections import defaultdict
 from warnings import warn
 
 # numpy is a very common installed library
-from numpy import fromfile, memmap, dtype, arange, zeros
+from numpy import fromfile, memmap, dtype, arange, zeros, diff
 
 # PseudoNetCDF is my own home grown
 # https://dawes.sph.unc.edu/trac/PseudoNetCDF
@@ -129,7 +129,7 @@ class _diag_group(PseudoNetCDFFile):
             except (KeyError, ValueError):
                 return parent.variables[key]
         self._parent = parent
-        self.variables = defaultpseudonetcdfvariable(list(groupvariables) + ['tau0', 'tau1', 'LAT', 'LON'], getvar)
+        self.variables = defaultpseudonetcdfvariable(list(groupvariables) + ['tau0', 'tau1', 'LAT', 'LON', 'LAT_BNDS', 'LON_BNDS'], getvar)
     
     def __getattr__(self, key):
         try:
@@ -155,10 +155,10 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
         self._diag_data = diaginfo
         self._memmap = datamap
         self._parent = parent
-        self._keys = keys + ['tau0', 'tau1', 'LAT', 'LON']
+        self._keys = keys + ['tau0', 'tau1', 'LAT', 'LON', 'LAT_BNDS', 'LON_BNDS']
         
     def __missing__(self, key):
-        if key == 'LAT':
+        if key in ('LAT', 'LAT_BNDS'):
             j = arange(len(self._parent.dimensions['J']) + 1)
             data = j * self._parent.modelres[1] - 90
             if self._parent.halfpolar == 1:
@@ -166,26 +166,43 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                 data[-1] -= 1
             dims = ('J',)
             dtype = 'i'
-            units = 'degrees north'
-        elif key == 'LON':
+            kwds = dict(units = 'degrees north')
+            if key == 'LAT':
+                data = data[:-1] + diff(data) / 2.
+                kwds['bounds'] = 'LAT_BNDS'
+            else:
+                dims += ('nv',)
+                data = data.repeat(2,0)[1:-1].reshape(-1, 2)
+        elif key in ('LON', 'LON_BNDS'):
             i = arange(len(self._parent.dimensions['I']) + 1)
             xres = self._parent.modelres[0]
             data = i * xres - (180 + xres / 2.) * self._parent.center180
             dims = ('I',)
             dtype = 'i'
-            units = 'degrees east'
+            kwds = dict(units = 'degrees east')
+            if key == 'LON':
+                data = data[:-1] + diff(data) / 2.
+                kwds['bounds'] = 'LON_BNDS'
+            else:
+                dims += ('nv',)
+                data = data.repeat(2,0)[1:-1].reshape(-1, 2)
+        elif key == 'crs':
+          dims = (,)
+          kwds = dict(grid_mapping_name = "latitude_longitude",
+                      semi_major_axis = 6375000.0,
+                      inverse_flattening = 0)
         elif key == 'tau0':
             tmp_key = self._keys[0]
             data = self._memmap[tmp_key]['header']['f10']
             dims = ('T',)
             dtype = 'i'
-            units = 'hours since 0 GMT 1/1/1985'
+            kwds = dict(units = 'hours since 0 GMT 1/1/1985')
         elif key == 'tau1':
             tmp_key = self._keys[0]
             data = self._memmap[tmp_key]['header']['f11']
             dims = ('T',)
             dtype = 'i'
-            units = 'hours since 0 GMT 1/1/1985'
+            kwds = dict(units = 'hours since 0 GMT 1/1/1985')
         else:
             dims = ('T', 'K', 'J', 'I')
             dtype = 'f'
@@ -200,6 +217,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             units = self._tracer_data[ord]['UNIT']
             if carbon != 1 and 'C' not in units:
                 warn("Scaling %s by carbon, but unit does not indicate carbon" % key)
+            kwds = dict(scale = scale, carbon = carbon, units = units, base_units = base_units)
             tmp_data = self._memmap[key]['data']
             assert((tmp_data['f0'] == tmp_data['f2']).all())
             data = tmp_data['f1'] * scale * carbon
@@ -213,7 +231,9 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                 ei += si
                 tmp_data[:, sl:el, sj:ej, si:ei] = data[:]
                 data = tmp_data
-        return PseudoNetCDFVariable(self._parent, key, dtype, dims, units = units, long_name = key, var_desc = key, values = data)
+        out = PseudoNetCDFVariable(self._parent, key, dtype, dims, long_name = key, var_desc = key, values = data, **kwds)
+        
+        return out
             
     def __del__(self):
         del self._memmap
@@ -280,7 +300,10 @@ class bpch(PseudoNetCDFFile):
         self.toptitle = header[4]
         self.modelname, self.modelres, self.halfpolar, self.center180 = header[7:11]
         dummy, dummy, dummy, self.start_tau0, self.start_tau1, dummy, dim, dummy, dummy = header[13:-1]
-        self.dimensions = dict(zip('I J K'.split(), dim))
+        self.createDimension('I', dim[0])
+        self.createDimension('J', dim[1])
+        self.createDimension('K', dim[2])
+        self.createDimension('nv', 2)
         
         tracerinfo = tracerinfo or os.path.join(os.path.dirname(bpch_path), 'tracerinfo.dat')
         if os.path.exists(tracerinfo):
