@@ -1,4 +1,4 @@
-from ..sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
+from ..sci_var import PseudoNetCDFFile, PseudoNetCDFMaskedVariable as PseudoNetCDFVariable
 from numpy import fromstring, vectorize, ndarray, array
 from numpy.ma import MaskedArray
 from datetime import datetime, timedelta

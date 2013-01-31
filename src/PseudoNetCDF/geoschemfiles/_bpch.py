@@ -7,7 +7,7 @@ from collections import defaultdict
 from warnings import warn
 
 # numpy is a very common installed library
-from numpy import fromfile, memmap, dtype, arange, zeros, diff
+from numpy import fromfile, memmap, dtype, arange, zeros, ceil, diff, concatenate, append, pi, sin
 
 # PseudoNetCDF is my own home grown
 # https://dawes.sph.unc.edu/trac/PseudoNetCDF
@@ -77,7 +77,7 @@ class defaultdictfromthesekeys(defaultdict):
     
     def __delitem__(self, key):
         self._keys.discard(key)
-        return defaultdict.__del__(self, key)
+        return defaultdict.__delitem__(self, key)
     
     def pop(self, key):
         val = defaultdict.pop(self, key)
@@ -94,7 +94,7 @@ class defaultdictfromthesekeys(defaultdict):
         if key in self._keys:
             return self.default_factory(key)
         else:
-            raise KeyError("%s not found in %s" % (key, ))
+            raise KeyError("%s not found" % (key, ))
 
     for k in '__setitem__ __delitem__ pop __iter__ iterkeys itervalues iteritems keys'.split():
         exec('%s.__doc__ = defaultdict.%s.__doc__' % (k, k))
@@ -129,14 +129,14 @@ class _diag_group(PseudoNetCDFFile):
             except (KeyError, ValueError):
                 return parent.variables[key]
         self._parent = parent
-        self.variables = defaultpseudonetcdfvariable(list(groupvariables) + ['tau0', 'tau1', 'LAT', 'LON', 'LAT_BNDS', 'LON_BNDS'], getvar)
+        self.variables = defaultpseudonetcdfvariable(list(groupvariables) + ['time', 'lev', 'tau0', 'tau1', 'crs', 'AREA', 'lat', 'lon', 'lat_bnds', 'lon_bnds'], getvar)
     
     def __getattr__(self, key):
         try:
             return object.__getattr__(self, key)
         except AttributeError:
             return getattr(self._parent, key)
-            
+    
 # This class is designed to operate like a dictionary, but
 # dynamically create variables to return to the user
 class _tracer_lookup(defaultpseudonetcdfvariable):
@@ -155,96 +155,134 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
         self._diag_data = diaginfo
         self._memmap = datamap
         self._parent = parent
-        self._keys = keys + ['tau0', 'tau1', 'LAT', 'LON', 'LAT_BNDS', 'LON_BNDS']
+        self._special_keys = ['time', 'lev', 'tau0', 'tau1', 'crs', 'lat', 'lon', 'lat_bnds', 'lon_bnds']
+        self._keys = keys + self._special_keys
+        self._example_key = keys[0]
         
     def __missing__(self, key):
-        if key in ('LAT', 'LAT_BNDS'):
-            j = arange(len(self._parent.dimensions['J']) + 1)
-            data = j * self._parent.modelres[1] - 90
+        if key in ('lat', 'lat_bnds'):
+            yres = self._parent.modelres[1]
             if self._parent.halfpolar == 1:
-                data[1:] -= 1
-                data[-1] -= 1
-            dims = ('J',)
+                data = concatenate([[-90.], arange(-90. + yres / 2., 90., yres), [90.]])
+            else:
+                data = arange(-90, 90 + yres, yres)
+            
+            dims = ('lat',)
             dtype = 'i'
-            kwds = dict(units = 'degrees north')
-            if key == 'LAT':
+            kwds = dict(units = 'degrees north', long_name = key, var_desc = key)
+            if key == 'lat':
                 data = data[:-1] + diff(data) / 2.
-                kwds['bounds'] = 'LAT_BNDS'
+                kwds['bounds'] = 'lat_bnds'
             else:
                 dims += ('nv',)
                 data = data.repeat(2,0)[1:-1].reshape(-1, 2)
-        elif key in ('LON', 'LON_BNDS'):
-            i = arange(len(self._parent.dimensions['I']) + 1)
+            example = self[self._example_key]
+            sj = getattr(example, 'STARTJ', 0)
+            data = data[sj:sj + example.shape[2]]
+            kwds = dict(standard_name = "latitude", long_name = "latitude", units = "degrees_north", axis = "Y", bounds = "lat_bnds")
+        elif key in ('lon', 'lon_bnds'):
             xres = self._parent.modelres[0]
-            data = i * xres - (180 + xres / 2.) * self._parent.center180
-            dims = ('I',)
+            i = arange(0, 360 + xres, xres)
+            data = i - (180 + xres / 2. * self._parent.center180)
+            dims = ('lon',)
             dtype = 'i'
-            kwds = dict(units = 'degrees east')
-            if key == 'LON':
+            kwds = dict(units = 'degrees east', long_name = key, var_desc = key)
+            if key == 'lon':
                 data = data[:-1] + diff(data) / 2.
-                kwds['bounds'] = 'LON_BNDS'
+                kwds['bounds'] = 'lon_bnds'
             else:
                 dims += ('nv',)
                 data = data.repeat(2,0)[1:-1].reshape(-1, 2)
+            example = self[self._example_key]
+            si = getattr(example, 'STARTI', 0)
+            data = data[si:si + example.shape[3]]
+            kwds = dict(standard_name = "longitude", long_name = "longitude", units = "degrees_east", axis = "X", bounds = "lon_bnds")
+        elif key == 'AREA':
+           lon = self['lon']
+           xres = self._parent.modelres[0]
+           nlon = 360. / xres
+           latb = self['lat_bnds']
+           Re = self['crs'].semi_major_axis
+           latb = append(latb[:, 0], latb[-1, 1])
+           latr = pi / 180. * latb
+           data = 2. * pi * Re * Re / (nlon) * ( sin( latr[1:] ) - sin( latr[:-1] ) )
+           data = data[:, None].repeat(lon.size, 1)
+           kwds = dict(units = 'm**2')
+           dtype = 'i'
+           dims = ('J', 'I')
         elif key == 'crs':
-          dims = (,)
+          dims = ()
           kwds = dict(grid_mapping_name = "latitude_longitude",
                       semi_major_axis = 6375000.0,
                       inverse_flattening = 0)
+          dtype = 'i'
+          data = zeros(1, dtype = dtype)
+        elif key == 'time':
+            tmp_key = self._keys[0]
+            data = self._memmap[tmp_key]['header']['f10'] + .5
+            dims = ('time',)
+            dtype = 'i'
+            kwds = dict(units = 'hours since 0 GMT 1/1/1985', standard_name = key, long_name = key, var_desc = key)
+        elif key == 'lev':
+            tmp_key = self._keys[0]
+            data = arange(self._parent.dimensions['lev'], dtype = 'i')
+            dims = ('lev',)
+            dtype = 'i'
+            kwds = dict(units = 'model layer', standard_name = key, long_name = key, var_desc = key)
         elif key == 'tau0':
             tmp_key = self._keys[0]
             data = self._memmap[tmp_key]['header']['f10']
-            dims = ('T',)
+            dims = ('time',)
             dtype = 'i'
-            kwds = dict(units = 'hours since 0 GMT 1/1/1985')
+            kwds = dict(units = 'hours since 0 GMT 1/1/1985', standard_name = key, long_name = key, var_desc = key)
         elif key == 'tau1':
             tmp_key = self._keys[0]
             data = self._memmap[tmp_key]['header']['f11']
-            dims = ('T',)
+            dims = ('time',)
             dtype = 'i'
-            kwds = dict(units = 'hours since 0 GMT 1/1/1985')
+            kwds = dict(units = 'hours since 0 GMT 1/1/1985', standard_name = key, long_name = key, var_desc = key)
         else:
-            dims = ('T', 'K', 'J', 'I')
             dtype = 'f'
             header = self._memmap[key]['header'][0]
             sl, sj, si = header['f14'][::-1] - 1
-            group = header['f1']
+            group = header['f7'].strip()
             offset = self._diag_data[group]['offset']
             ord = header['f8'] + offset
             base_units = header['f9']
             scale = self._tracer_data[ord]['SCALE']
             carbon = self._tracer_data[ord]['C']
             units = self._tracer_data[ord]['UNIT']
-            if carbon != 1 and 'C' not in units:
-                warn("Scaling %s by carbon, but unit does not indicate carbon" % key)
-            kwds = dict(scale = scale, carbon = carbon, units = units, base_units = base_units)
+            kwds = dict(scale = scale, carbon = carbon, units = units, base_units = base_units, standard_name = key, long_name = key, var_desc = key, coordinates = "time lev lat lon")
             tmp_data = self._memmap[key]['data']
+            dims = ('time', 'lev', 'lat', 'lon')
+            if 'srf_lev' in self._parent.dimensions:
+                if tmp_data.dtype['f1'].shape[0] == self._parent.dimensions['srf_lev']:
+                    dims = ('time', 'srf_lev', 'lat', 'lon')
+                
             assert((tmp_data['f0'] == tmp_data['f2']).all())
-            data = tmp_data['f1'] * scale * carbon
+            data = tmp_data['f1'] * scale
             if any([sl != 0, sj != 0, si != 0]):
                 warn("%s is a subset variable" % key)
-                nl, nj, ni = header['f14'][::-1]
-                tmp_data = zeros((data.shape[0], nl, nj, ni), dtype = data.dtype)
-                el, ej, ei = data.shape[1:]
-                el += sl
-                ej += sj
-                ei += si
-                tmp_data[:, sl:el, sj:ej, si:ei] = data[:]
-                data = tmp_data
-        out = PseudoNetCDFVariable(self._parent, key, dtype, dims, long_name = key, var_desc = key, values = data, **kwds)
-        
-        return out
+                nl, nj, ni = header['f13'][::-1]
+                #import pdb; pdb.set_trace()
+                #tmp_data = zeros((data.shape[0], self._parent.dimensions['lev'], self._parent.dimensions['lat'], self._parent.dimensions['lon']), dtype = data.dtype)
+                #el, ej, ei = data.shape[1:]
+                #el += sl
+                #ej += sj
+                #ei += si
+                #tmp_data[:, sl:el, sj:ej, si:ei] = data[:]
+                #data = tmp_data
+                kwds['STARTI'] = si 
+                kwds['STARTJ'] = sj
+                kwds['STARTK'] = sl
+        return PseudoNetCDFVariable(self._parent, key, dtype, dims, values = data, **kwds)
             
-    def __del__(self):
-        del self._memmap
-
-
 class bpch(PseudoNetCDFFile):
     """
     NetCDF-like class to interface with GEOS-Chem binary punch files
     
     f = bpch(path_to_binary_file)
-    dim = f.dimensions[dkey] # e.g., dkey = 'I'
+    dim = f.dimensions[dkey] # e.g., dkey = 'lon'
     
     # There are two ways to get variables.  Directly from
     # the file using the long name
@@ -261,7 +299,8 @@ class bpch(PseudoNetCDFFile):
     print var.shape
     
     """
-    def __init__(self, bpch_path, tracerinfo = None, diaginfo = None, mode = 'r'):
+
+    def __init__(self, bpch_path, tracerinfo = None, diaginfo = None, mode = 'r', timeslice = slice(None)):
         """
         bpch_path: path to binary punch file
         tracerinfo: path to ascii file with tracer definitions
@@ -280,7 +319,13 @@ class bpch(PseudoNetCDFFile):
          |      |      | changes are not saved to disk.  The file on disk is         |
          |      |      | read-only.                                                  |
          |      +------+-------------------------------------------------------------+        
+         timeslice: If the file is larger than 2GB, timeslice provides a way to subset results.
+                    The subset requested depends on the data type of timeslice:
+                        - int: return the a part of the file if it was broken into 2GB chunks (0..N-1)
+                        - slice: return the times that correspond to that slice (i.e., range(ntimes)[timeslice])
+                        - list/tuple/set: return specified times where each time is in the set (0..N-1)
         """
+        self._ncattrs = () 
         # Read binary data for general header and first datablock header
         header_block = fromfile(bpch_path, dtype = 'bool', count = _first_header_size)
         
@@ -300,30 +345,27 @@ class bpch(PseudoNetCDFFile):
         self.toptitle = header[4]
         self.modelname, self.modelres, self.halfpolar, self.center180 = header[7:11]
         dummy, dummy, dummy, self.start_tau0, self.start_tau1, dummy, dim, dummy, dummy = header[13:-1]
-        self.createDimension('I', dim[0])
-        self.createDimension('J', dim[1])
-        self.createDimension('K', dim[2])
+        self.dimensions = dict(zip('lon lat lev'.split(), dim))
         self.createDimension('nv', 2)
-        
         tracerinfo = tracerinfo or os.path.join(os.path.dirname(bpch_path), 'tracerinfo.dat')
         if os.path.exists(tracerinfo):
+            if os.path.isdir(tracerinfo): tracerinfo = os.path.join(tracerinfo, 'tracerinfo.dat')
             tracer_data = dict([(int(l[52:61].strip()), dict(NAME = l[:8].strip(), FULLNAME = l[9:39].strip(), MOLWT = float(l[39:49]), C = int(l[49:52]), TRACER = int(l[52:61]), SCALE = float(l[61:71]), UNIT = l[72:].strip())) for l in file(tracerinfo).readlines() if l[0] not in ('#', ' ')])
             tracer_names = dict([(k, v['NAME']) for k, v in tracer_data.iteritems()])
-            add_unit = False
         else:
             warn('Reading file without tracerinfo.dat means that names and scaling are unknown')
             tracer_data = defaultdict(lambda: dict(SCALE = 1., C = 1.))
             tracer_names = defaultdictfromkey(lambda key: key)
-            add_unit = True
         
         diaginfo = diaginfo or os.path.join(os.path.dirname(bpch_path), 'diaginfo.dat')
         if os.path.exists(diaginfo):
+            if os.path.isdir(diaginfo): diaginfo = os.path.join(diaginfo, 'diaginfo.dat')
             diag_data = dict([(l[9:49].strip(), dict(offset = int(l[:8]), desc = l[50:].strip())) for l in file(diaginfo).read().strip().split('\n') if l[0] != '#'])
         else:
             warn('Reading file without diaginfo.dat loses descriptive information')
             diag_data = defaultdictfromkey(lambda key: dict(offset = 0, desc = key))
             
-        if len(tracer_names) == 0 and not add_unit:
+        if len(tracer_names) == 0 and not isinstance(tracer_names, defaultdictfromkey):
             raise IOError("Error parsing %s for Tracer data")
         file_size = os.stat(bpch_path).st_size
         offset = _general_header_type.itemsize
@@ -336,21 +378,30 @@ class bpch(PseudoNetCDFFile):
             header = memmap(bpch_path, offset = offset, shape = (1,), dtype = _datablock_header_type, mode = mode)[0]
             
             group = header[7].strip()
-            goffset = diag_data[group]['offset']
             tracer_number = header[8]
             unit = header[9].strip()
-            if add_unit:
-                tracer_data[tracer_number]['UNIT'] = unit
-            
-            try:
-                tracername = tracer_names[tracer_number + goffset]
-            except:
-                # There are some cases like with the adjoint where the tracer does not have
-                # a tracerinfo.dat line.  In this case, the name matches the tracer with that
-                # number (no offset).  The scaling, however, is not intended to be used.
-                # The unit for adjoint, for instance, is unitless.
-                tracername = tracer_names[tracer_number]
-                tracer_data[tracer_number] = dict(SCALE = 1., C = tracer_data[tracer_number + goffset]['C'], UNIT = unit)
+            if not isinstance(diag_data, defaultdictfromkey):
+                goffset = diag_data.get(group, {}).get('offset', 0)
+                try:
+                    tracername = tracer_names[tracer_number + goffset]
+                except:
+                    # There are some cases like with the adjoint where the tracer does not have
+                    # a tracerinfo.dat line.  In this case, the name matches the tracer with that
+                    # number (no offset).  The scaling, however, is not intended to be used.
+                    # The unit for adjoint, for instance, is unitless.
+                    if tracer_number not in tracer_names:
+                        tracername = str(tracer_number)
+                        tracer_data[tracer_number + goffset] = dict(SCALE = 1., C = 0, UNIT = unit)
+                    else:
+                        tracername = tracer_names[tracer_number]
+                        tracer_data[tracer_number + goffset] = dict(SCALE = 1., C = tracer_data[tracer_number]['C'], UNIT = unit)
+
+            else:
+                warn('%s is not in diaginfo.dat; names and scaling cannot be resolved' % group)
+                goffset = 0
+                tracername = tracer_number
+                diag_data[group] = dict(offset = 0, desc = group)
+                tracer_data[tracer_number + goffset] = dict(SCALE = 1., C = 1., UNIT = unit)
 
             self._groups[group].add(tracername)
             if first_header is None:
@@ -366,18 +417,73 @@ class bpch(PseudoNetCDFFile):
             offset += _datablock_header_type.itemsize + header[-2]
 
         time_type = dtype([(k, dtype([('header', _datablock_header_type), ('data', d)])) for k, d in zip(keys, data_types)])
-        # load all data blocks
-        datamap = memmap(bpch_path, dtype = time_type, offset = _general_header_type.itemsize, mode = mode)
+        field_shapes = set([v[0].fields['data'][0].fields['f1'][0].shape for k, v in time_type.fields.iteritems()])
+        field_levs = set([s_[0] for s_ in field_shapes])
+        field_rows = set([s_[1] for s_ in field_shapes])
+        field_cols = set([s_[2] for s_ in field_shapes])
+        if len(field_levs) == 1:
+            pass
+        elif len(field_levs) == 2:
+            self.dimensions['lev'] = max(field_levs)
+            self.dimensions['srf_lev'] = min(field_levs)
+        else:
+            raise ValueError('Unclear how to handle more than 2 distinct layer sets')
+
+        assert((float(os.path.getsize(bpch_path)) - _general_header_type.itemsize) % time_type.itemsize == 0.)
+        # load all data blocks  
+        try:
+            datamap = memmap(bpch_path, dtype = time_type, offset = _general_header_type.itemsize, mode = mode)
+        except OverflowError:
+            hdrsize = _general_header_type.itemsize
+            items = (2*1024**3-hdrsize) // time_type.itemsize
+            if timeslice != slice(None):
+                filesize = os.stat(bpch_path).st_size
+                datasize = (filesize - hdrsize)
+                all_times = range(datasize / time_type.itemsize)
+                if isinstance(timeslice, int):
+                    timeslice = slice(items * timeslice, items * (timeslice + 1))
+                if isinstance(timeslice, (list, tuple, set)):
+                    times = timeslice
+                else:
+                    times = all_times[timeslice]
+
+                outpath = bpch_path + '.tmp.part'
+                mint = times[0]
+                maxt = times[-1]
+                nt = maxt - mint + 1
+                
+                if nt > items:
+                    warn('Requested %d items; only returning %d items due to 2GB limitation' % (nt, items))
+                    times = times[:items]
+
+                outfile = file(outpath, 'w')
+                infile = file(bpch_path, 'r')
+                hdr = infile.read(hdrsize)
+                outfile.write(hdr)
+                for t in all_times:
+                    if t in times:
+                        outfile.write(infile.read(time_type.itemsize))
+                    else:
+                        infile.seek(time_type.itemsize, 1)
+                outfile.close()
+                #print mint, maxt, nt, nt * time_type.itemsize
+                #cmd = 'dd if=%s ibs=%d skip=1 obs=%d | dd of=%s bs=%d skip=%d count=%d' % (bpch_path, hdrsize, time_type.itemsize, outpath, time_type.itemsize, mint, nt)
+                #print cmd
+                #os.system(cmd)
+                datamap = memmap(outpath, dtype = time_type, mode = mode, offset = hdrsize)
+            else:
+                datamap = memmap(bpch_path, dtype = time_type, shape = (items,), offset = _general_header_type.itemsize, mode = mode)
+                warn('Returning only the first 2GB of data')
+
         
         # Create variables and dimensions
         self.variables = _tracer_lookup(parent = self, datamap = datamap, tracerinfo = tracer_data, diaginfo = diag_data, keys = keys)
-        self.createDimension('T', self.variables['tau0'].shape[0])
+        del datamap
+        self.createDimension('time', self.variables['tau0'].shape[0])
         self.groups = dict([(k, _diag_group(self, k, v)) for k, v in self._groups.iteritems()])
+        self.Conventions = "CF-1.6"
 
 
-    def __del__(self):
-        del self.variables
-      
     def __repr__(self):
         return PseudoNetCDFFile.__repr__(self) + str(self.variables)
 
@@ -393,14 +499,16 @@ if __name__ == '__main__':
             print path_to_test_file
             f = bpch(path_to_test_file)
         except:
-            path_to_test_file = raw_input('Enter path to a valid GEOS-Chem file')
+            path_to_test_file = raw_input('Enter path to a valid GEOS-Chem file:\n')
     
     group_key = f.groups.keys()[0]
     g = f.groups[group_key]
-    i = 0; var_key = 'LAT'
-    while var_key in 'LAT LON tau0 tau1'.split():
+    i = 0; var_key = 'lat'
+    while var_key in 'lat lon tau0 tau1'.split():
         var_key = g.variables.keys()[i]
         i += 1
+    if 'Ox' in g.variables.keys():
+        var_key = 'Ox'
     var = g.variables[var_key]
     
     # Example: variable metadata print
@@ -427,8 +535,8 @@ if __name__ == '__main__':
                     urcrnrlon=180 - f.modelres[1] * f.center180 / 2.,\
                     resolution='c')
     
-        lat = f.variables['LAT']
-        lon = f.variables['LON']
+        lat = f.variables['lat']
+        lon = f.variables['lon']
         x, y = meshgrid(*m(lon, lat))
         
         fig = figure(figsize = (9,4))
@@ -451,3 +559,4 @@ if __name__ == '__main__':
         print("Examine test figure %s" % fig_path)
     except Exception, e:
         print("Unable to produce test figure (maybe you don't have matplotlib or basemap); " + str(e))
+

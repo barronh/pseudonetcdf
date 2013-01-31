@@ -13,7 +13,7 @@ are attached and the arrays implement the Scientific.IO.NetCDF.NetCDFVariable
 interfaces.
 """
 
-__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFVariableConvertUnit', 'PseudoNetCDFFileMemmap', 'PseudoNetCDFVariable', 'PseudoIOAPIVariable', 'PseudoNetCDFVariables', 'Pseudo2NetCDF']
+__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFVariableConvertUnit', 'PseudoNetCDFFileMemmap', 'PseudoNetCDFVariable', 'PseudoNetCDFMaskedVariable', 'PseudoIOAPIVariable', 'PseudoNetCDFVariables', 'Pseudo2NetCDF']
 
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
@@ -22,7 +22,7 @@ ChangedBy  = "$LastChangedBy$"
 __version__ = RevisionNum
 
 from numpy import array, zeros, ndarray, isscalar
-from numpy.ma import MaskedArray
+from numpy.ma import MaskedArray, zeros as mazeros
 from collections import defaultdict
 from warnings import warn
     
@@ -171,11 +171,22 @@ class PseudoNetCDFVariable(ndarray):
                 'typecode': lambda: typecode,
                 'dimensions': tuple(dimensions)
             }
-        object.__setattr__(result, '_ncattrs', ())
+
+#        object.__setattr__(result, '_ncattrs', ())
+
         for k,v in kwds.iteritems():
             setattr(result,k,v)
         return result
 
+    def __array_finalize__(self, obj):
+        assert(hasattr(self, '_ncattrs') == False)
+        self._ncattrs = ()
+        if obj is None: return
+        if hasattr(obj, '_ncattrs'):
+            for k in obj._ncattrs:
+                setattr(self, k, getattr(obj, k))
+        
+    
     def getValue(self):
         """
         Return scalar value
@@ -188,8 +199,64 @@ class PseudoNetCDFVariable(ndarray):
         """
         self.itemset(value)
 
-class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, MaskedArray):
-    pass
+class PseudoNetCDFMaskedVariable(MaskedArray, PseudoNetCDFVariable):
+    def __new__(subtype,parent,name,typecode,dimensions,**kwds):
+        """
+        Creates a variable using the dimensions as defined in
+        the parent object
+
+        parent: an object with a dimensions variable
+        name: name for variable
+        typecode: numpy style typecode
+        dimensions: a typle of dimension names to be used from
+                    parrent
+        kwds: Dictionary of keywords to be added as properties
+              to the variable.  **The keyword 'values' is a special
+              case that will be used as the starting values of
+              the array
+
+        """
+        if 'values' in kwds.keys():
+            result=kwds.pop('values')
+        else:
+            shape=[]
+            for d in dimensions:
+                dim = parent.dimensions[d]
+
+                # Adding support for netCDF3 dimension objects
+                if not isinstance(dim, int):
+                    dim = len(dim)
+                shape.append(dim)
+
+            result=mazeros(shape,typecode)
+
+        result=result[...].view(subtype)
+
+        if hasattr(result, '__dict__'):
+            result.__dict__['typecode'] = lambda: typecode
+            result.__dict__['dimensions'] = tuple(dimensions)
+        else:
+            result.__dict__={
+                'typecode': lambda: typecode,
+                'dimensions': tuple(dimensions)
+            }
+
+#        object.__setattr__(result, '_ncattrs', ())
+
+        for k,v in kwds.iteritems():
+            setattr(result,k,v)
+        return result
+
+    def __array_finalize__(self, obj):
+        MaskedArray.__array_finalize__(self, obj)
+        assert(hasattr(self, '_ncattrs') == False)
+        self._ncattrs = ()
+        if obj is None: return
+        if hasattr(obj, '_ncattrs'):
+            for k in obj._ncattrs:
+                setattr(self, k, getattr(obj, k))
+        
+
     
 def PseudoIOAPIVariable(parent,name,typecode,dimensions,**kwds):
     """
@@ -270,20 +337,20 @@ class PseudoNetCDFVariables(defaultdict):
         for k in self.keys():
             yield k
 
-def get_ncf_object(path_or_object, mode):
+def get_ncf_object(path_or_object, mode, format = 'NETCDF4'):
     from os.path import exists, isfile
     from netcdf import NetCDFFile
     read_only = ('r', 'r+', 'rs', 'rs+', 'r+s')
     if isinstance(path_or_object, str):
         if exists(path_or_object):
             if isfile(path_or_object):
-                ncf_object = NetCDFFile(path_or_object, mode)
+                ncf_object = NetCDFFile(path_or_object, mode, format = format)
             elif isdir(path_or_object):
                 raise ValueError, "Got directory at %s; not sure what to do" % path_or_object
             else:
                 raise ValueError, "Expected file or directory at %s" % path_or_object
         elif mode not in read_only:
-            ncf_object = NetCDFFile(path_or_object, mode)
+            ncf_object = NetCDFFile(path_or_object, mode, format = format)
         else:
             raise IOError, "Cannot open missing file for reading"
     elif isinstance(path_or_object, NetCDFFile) or isinstance(path_or_object, PseudoNetCDFFile):
@@ -324,9 +391,9 @@ class Pseudo2NetCDF:
     ignore_variable_properties=['typecode','dimensions']
     unlimited_dimensions = []
     create_variable_kwds = {}
-    def convert(self,pfile,npath=None, inmode = 'r', outmode = 'w'):
-        pfile = get_ncf_object(pfile, 'r')
-        nfile = get_ncf_object(npath, 'w')
+    def convert(self,pfile,npath=None, inmode = 'r', outmode = 'w', format = 'NETCDF4'):
+        pfile = get_ncf_object(pfile, inmode)
+        nfile = get_ncf_object(npath, outmode, format = format)
         self.addDimensions(pfile,nfile)
         self.addGlobalProperties(pfile,nfile)
         self.addVariables(pfile,nfile)

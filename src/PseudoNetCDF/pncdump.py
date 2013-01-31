@@ -25,7 +25,7 @@ Example implementation usage:
 """
 
 __all__=['pncdump','dump_from_cmd_line', 'pncdump_parser']
-from numpy import float32, float64, int32, int64, uint32, uint64, ndenumerate, savetxt
+from numpy import float32, float64, int16, int32, int64, uint32, uint64, ndenumerate, savetxt
 from warnings import warn
 from optparse import OptionParser
 
@@ -112,7 +112,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
     
     # Global and variable properties must be an instance 
     # of one of the following
-    property_types = (str, int, float)
+    property_types = (str, int, int16, int32, int64, float, float32, float64)
     
     # First line of CDL
     sys.stdout.write("netcdf %s {\n" % (name,))
@@ -122,7 +122,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
     ###########################
     sys.stdout.write("dimensions:\n")
     for dim_name, dim in f.dimensions.iteritems():
-        sys.stdout.write(1*indent+("%s = %s ;\n" % (dim_name,dim)))
+        sys.stdout.write(1*indent+("%s = %s ;\n" % (dim_name,len(dim))))
     
     ###################################
     # CDL Section 2: variables metadata
@@ -179,7 +179,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                     for i, val in ndenumerate(var):
                         fmt = 2*indent+formats[var.dtype.name]
                         array_str = fmt % val
-                        if i == (var.size-1):
+                        if i == tuple(map(lambda x_: x_ - 1, var.shape)):
                             array_str += ";"
                         else:
                             array_str += ","
@@ -212,7 +212,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                             sys.stdout.write(textwrap.fill(array_str, line_length, initial_indent = '  ', subsequent_indent = '    '))
                             sys.stdout.write('\n')
                         except IOError:
-                            exit()
+                            raise
                                             
                     
         except KeyboardInterrupt:

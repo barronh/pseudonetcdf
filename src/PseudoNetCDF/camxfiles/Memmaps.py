@@ -27,6 +27,7 @@ __all__ = ['cloud_rain',
 from cloud_rain.Memmap import cloud_rain
 from height_pressure.Memmap import height_pressure
 from humidity.Memmap import humidity
+from finst.Memmap import finst
 from ipr.Memmap import ipr
 from irr.Memmap import irr
 from landuse.Memmap import landuse
