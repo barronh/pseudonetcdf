@@ -82,15 +82,15 @@ class cloud_rain(PseudoNetCDFFile):
         if (ncols!=cols and cols!=None) or (rows!=rows and rows!=None):
             warn('Files says cols=%d, rows=%d, and lays=%d; you said cols=%d and rows=%d' % (ncols,nrows,nlays,cols,rows))
             
-        self.dimensions['DATE-TIME']=2
+        self.createDimension('DATE-TIME', 2)
         self.VERSION,varkeys={35:('<4.3',['CLOUD','PRECIP','COD','TFLAG']),40:('4.3',['CLOUD','RAIN','SNOW','GRAUPEL','COD','TFLAG'])}[offset]
-        self.dimensions['TSTEP']=int((flen-offset)/((len(varkeys)-1)*nlays*(nrows*ncols+2)*4+16))
-        self.dimensions['VAR']=len(varkeys)-1
+        self.createDimension('TSTEP', int((flen-offset)/((len(varkeys)-1)*nlays*(nrows*ncols+2)*4+16)))
+        self.createDimension('VAR', len(varkeys)-1)
         
-        self.NVARS=self.dimensions['VAR']
-        self.NLAYS=self.dimensions['LAY']
-        self.NROWS=self.dimensions['ROW']
-        self.NCOLS=self.dimensions['COL']
+        self.NVARS=len(self.dimensions['VAR'])
+        self.NLAYS=len(self.dimensions['LAY'])
+        self.NROWS=len(self.dimensions['ROW'])
+        self.NCOLS=len(self.dimensions['COL'])
         self.FTYPE=1
         
         self.variables=PseudoNetCDFVariables(self.__var_get,varkeys)
@@ -98,10 +98,10 @@ class cloud_rain(PseudoNetCDFFile):
         self.SDATE,self.STIME=self.variables['TFLAG'][0,0,:]
 
     def __set_var(self,key,vals_idx):
-        times=self.dimensions['TSTEP']
-        lays=self.dimensions['LAY']
-        rows=self.dimensions['ROW']
-        cols=self.dimensions['COL']
+        times=len(self.dimensions['TSTEP'])
+        lays=len(self.dimensions['LAY'])
+        rows=len(self.dimensions['ROW'])
+        cols=len(self.dimensions['COL'])
         v=PseudoNetCDFVariable(self,key,'f',('TSTEP','LAY','ROW','COL'),values=self.__memmap[vals_idx].reshape(times,lays,rows,cols))
         v.units={'COD':'None'}.get(key,'g/m**3')
         v.long_name=key
@@ -109,10 +109,10 @@ class cloud_rain(PseudoNetCDFFile):
         self.variables[key]=v
         
     def __var_get(self,key):
-        times=self.dimensions['TSTEP']
-        rows=self.dimensions['ROW']
-        cols=self.dimensions['COL']
-        lays=self.dimensions['LAY']
+        times=len(self.dimensions['TSTEP'])
+        rows=len(self.dimensions['ROW'])
+        cols=len(self.dimensions['COL'])
+        lays=len(self.dimensions['LAY'])
         vars=len(self.variables.keys())-1
         hour=1
         date=2
@@ -126,7 +126,7 @@ class cloud_rain(PseudoNetCDFFile):
         out_idx.reshape(times,lays*vars*(rows*cols+2)+4)[:,1]=hour
         out_idx.reshape(times,lays*vars*(rows*cols+2)+4)[:,2]=date
         
-        self.variables['TFLAG']=ConvertCAMxTime(self.__memmap[out_idx==date].view('>i'),self.__memmap[out_idx==hour],self.dimensions['VAR'])
+        self.variables['TFLAG']=ConvertCAMxTime(self.__memmap[out_idx==date].view('>i'),self.__memmap[out_idx==hour],len(self.dimensions['VAR']))
         
         val_shape=out_idx.reshape(times,lays*vars*(rows*cols+2)+4)[:,4:].reshape(times,lays,vars,rows*cols+2)[:,:,:,1:-1].reshape(times,lays,vars,rows,cols)
         if self.VERSION=='<4.3':
