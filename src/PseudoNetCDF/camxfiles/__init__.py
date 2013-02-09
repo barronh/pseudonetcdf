@@ -21,6 +21,7 @@ __all__=['Memmaps',
     'ipr',
     'irr',
     'landuse',
+    'lateral_boundary',
     'one3d',
     'point_source',
     'temperature',
@@ -48,3 +49,4 @@ import wind
 import FortranFileUtil
 import util
 import timetuple
+import lateral_boundary
