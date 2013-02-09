@@ -31,6 +31,7 @@ from finst.Memmap import finst
 from ipr.Memmap import ipr
 from irr.Memmap import irr
 from landuse.Memmap import landuse
+from lateral_boundary.Memmap import lateral_boundary
 from one3d.Memmap import one3d
 from point_source.Memmap import point_source
 from temperature.Memmap import temperature
