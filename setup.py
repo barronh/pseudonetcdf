@@ -80,5 +80,5 @@ setup(name = 'PseudoNetCDF',
       package_dir = {'': 'src'},
       package_data = {'PseudoNetCDF': data},
       requires = netcdfpkg + ['numpy (>=1.2)', 'yaml'],
-      url = 'https://dawes.sph.unc.edu/trac/PseudoNetCDF'
+      url = 'https://code.google.com/p/pseudonetcdf'
       )
