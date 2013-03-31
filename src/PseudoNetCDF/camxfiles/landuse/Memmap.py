@@ -70,15 +70,15 @@ class landuse(PseudoNetCDFFile):
         self.rffile.infile.seek(0, 2)
         self.__rf = rf
         rflen = self.rffile.infile.tell()
-        self.rffile.infile.seek(0, 0)
+        self.rffile._newrecord(0)
         
         self.createDimension('ROW', rows)
         self.createDimension('COL', cols)
-        first_line =  self.rffile.read('cccccccc')
-        if first_line ==  'LUCAT11':
+        first_line, =  self.rffile.read('8s')
+        if first_line ==  'LUCAT11 ':
             self.createDimension('LANDUSE', 11)
             self.__newstyle =  True
-        elif first_line ==  'LUCAT26':
+        elif first_line ==  'LUCAT26 ':
             self.createDimension('LANDUSE', 26)
             self.__newstyle =  True
         else:
@@ -110,8 +110,8 @@ class landuse(PseudoNetCDFFile):
         fland_dtype = self.__fland_dtype
         other_dtype = self.__other_dtype
         nfland = fland_dtype.itemsize
-        nfland1opt = nfland + self.__other_dtype.itemsize
-        nfland2opt = nfland + self.__other_dtype.itemsize * 2
+        nfland1opt = nfland + other_dtype.itemsize
+        nfland2opt = nfland + other_dtype.itemsize * 2
         if rflen == nfland:
             file_dtype = dtype(dict(names = ['FLAND'], formats = [fland_dtype]))
         elif rflen == nfland1opt:
@@ -119,13 +119,13 @@ class landuse(PseudoNetCDFFile):
         elif rflen == nfland2opt:
             file_dtype = dtype(dict(names = ['FLAND', 'LAI', 'TOPO'], formats = [fland_dtype, other_dtype, other_dtype]))
         else:
-            raise IOError('File size is expected to be %d, %d, or %d; was %d' % (nfland, nfland1opt, nfland2opt))
+            raise IOError('File size is expected to be %d or %d; was %d' % (nfland, nfland1opt, nfland2opt))
         
         data = memmap(self.__rf, mode = self.__mode, dtype = file_dtype, offset = 0)
         if not self.__newstyle:
             varkeys = ['FLAND', 'TOPO']
         else:
-            varkeys = [data[k]['KEY'] for k in file_dtype.names]
+            varkeys = [data[k]['KEY'][0].strip() for k in file_dtype.names]
         
         for varkey, dkey in zip(varkeys, file_dtype.names):
             var = self.createVariable(varkey, 'f', {'FLAND': ('LANDUSE', 'ROW', 'COL')}.get(dkey, ('ROW', 'COL')))
