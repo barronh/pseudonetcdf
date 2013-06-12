@@ -22,7 +22,8 @@ __all__ = ['cloud_rain',
     'temperature',
     'uamiv',
     'vertical_diffusivity',
-    'wind']
+    'wind',
+    'lateral_boundary']
     
 from cloud_rain.Memmap import cloud_rain
 from height_pressure.Memmap import height_pressure
