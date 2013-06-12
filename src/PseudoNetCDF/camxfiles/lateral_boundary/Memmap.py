@@ -65,8 +65,8 @@ class lateral_boundary(PseudoNetCDFFile):
     """
     
 
-    __emiss_hdr_fmt=dtype(dict(names=['SPAD','name','note','ione','nspec','ibdate','btime','iedate','etime','EPAD'],formats=['>i','(10,4)>S1','(60,4)>S1','>i','>i','>i','>f','>i','>f','>i']))
-    __grid_hdr_fmt=dtype(dict(names=['SPAD','rdum1','rdum2','iutm','xorg','yorg','delx','dely','nx','ny','nz','idum1','idum2','rdum3','rdum4','rdum5','EPAD'],formats=['>i','>f','>f','>i','>f','>f','>f','>f','>i','>i','>i','>i','>i','>f','>f','>f','>i']))
+    __emiss_hdr_fmt=dtype(dict(names=['SPAD','name','note','itzon','nspec','ibdate','btime','iedate','etime','EPAD'],formats=['>i','(10,4)>S1','(60,4)>S1','>i','>i','>i','>f','>i','>f','>i']))
+    __grid_hdr_fmt=dtype(dict(names=['SPAD','plon','plat','iutm','xorg','yorg','delx','dely','nx','ny','nz','iproj','istag','tlat1','tlat2','rdum5','EPAD'],formats=['>i','>f','>f','>i','>f','>f','>f','>f','>i','>i','>i','>i','>i','>f','>f','>f','>i']))
     __cell_hdr_fmt=dtype(dict(names=['SPAD','ione1','ione2','nx','ny','EPAD'],formats=['>i','>i','>i','>i','>i','>i']))
     __time_hdr_fmt=dtype(dict(names=['SPAD','ibdate','btime','iedate','etime','EPAD'],formats=['>i','>i','>f','>i','>f','>i']))
     __spc_fmt=dtype("(10,4)>S1")
@@ -124,6 +124,24 @@ class lateral_boundary(PseudoNetCDFFile):
         self.YORIG=self.__grid_hdr['yorg'][0]
         self.XCELL=self.__grid_hdr['delx'][0]
         self.YCELL=self.__grid_hdr['dely'][0]
+        # Map CAMx projection constants to IOAPI
+        GDTYPE = self.GDTYP={0: 1, 1: 5, 2: 2, 3: 6}[self.__grid_hdr['iproj'][0]]
+        self.XCENT = self.__grid_hdr['plon'][0]
+        self.YCENT = self.__grid_hdr['plat'][0]
+        if GDTYPE in (1, 2):
+            self.P_ALP = self.__grid_hdr['tlat1'][0]
+            self.P_BET = self.__grid_hdr['tlat2'][0]
+            self.P_GAM = self.__grid_hdr['plon'][0]
+        elif GDTYPE == 5:
+            self.P_ALP = self.__grid_hdr['iutm'][0]
+            self.P_BET = 0.
+            self.P_GAM = 0.
+        elif GDTYPE == 6:
+            self.P_ALP = {90: 1, -90: -1}[self.__grid_hdr['plat'][0]]
+            self.P_BET = self.__grid_hdr['tlat1'][0]
+            self.P_GAM = self.__grid_hdr['plon'][0]
+        else:
+            raise ValueError('Unknown projection')            
 
         nx=self.__grid_hdr['nx'][0]
         ny=self.__grid_hdr['ny'][0]
