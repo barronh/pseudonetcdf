@@ -41,7 +41,7 @@ array_nan=checkarray[0]
 class cloud_rain(PseudoNetCDFFile):
     """
     cloud_rain provides a PseudoNetCDF interface for CAMx
-    wind files.  Where possible, the inteface follows
+    cloud_rain files.  Where possible, the inteface follows
     IOAPI conventions (see www.baronams.com).
     
     ex:
