@@ -179,12 +179,12 @@ class PseudoNetCDFVariable(ndarray):
         return result
 
     def __array_finalize__(self, obj):
-        assert(hasattr(self, '_ncattrs') == False)
-        self._ncattrs = ()
-        if obj is None: return
-        if hasattr(obj, '_ncattrs'):
-            for k in obj._ncattrs:
-                setattr(self, k, getattr(obj, k))
+        if not hasattr(self, '_ncattrs'):
+            self._ncattrs = ()
+            if obj is None: return
+            if hasattr(obj, '_ncattrs'):
+                for k in obj._ncattrs:
+                    setattr(self, k, getattr(obj, k))
         
     
     def getValue(self):
@@ -249,12 +249,12 @@ class PseudoNetCDFMaskedVariable(MaskedArray, PseudoNetCDFVariable):
 
     def __array_finalize__(self, obj):
         MaskedArray.__array_finalize__(self, obj)
-        assert(hasattr(self, '_ncattrs') == False)
-        self._ncattrs = ()
-        if obj is None: return
-        if hasattr(obj, '_ncattrs'):
-            for k in obj._ncattrs:
-                setattr(self, k, getattr(obj, k))
+        if not hasattr(self, '_ncattrs'):
+            self._ncattrs = ()
+            if obj is None: return
+            if hasattr(obj, '_ncattrs'):
+                for k in obj._ncattrs:
+                    setattr(self, k, getattr(obj, k))
         
 
     
