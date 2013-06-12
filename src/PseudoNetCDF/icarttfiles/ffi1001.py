@@ -129,7 +129,7 @@ class ffi1001(PseudoNetCDFFile):
             vals = MaskedArray(dat, mask = dat == miss, fill_value = miss)
             tmpvar = self.variables[var] = PseudoNetCDFVariable(self, var, 'd', ('POINTS',), values = vals)
             tmpvar.units = unit
-
+            tmpvar.name = var
             tmpvar.missing_value = miss
             tmpvar.fill_value = miss
             tmpvar.scale = scale
