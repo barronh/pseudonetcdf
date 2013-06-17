@@ -37,6 +37,16 @@ checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
 
+def _isMine(path):
+    testf = OpenRecordFile(path)
+    if testf.record_size == 80:
+        testf.next()
+        if testf.record_size == 16:
+            testf.next()
+            if testf.record_size == 28:
+                return True
+    return False
+
 class irr(PseudoNetCDFFile):
     """
     irr provides a PseudoNetCDF interface for CAMx
@@ -67,6 +77,9 @@ class irr(PseudoNetCDFFile):
     
     id_fmt="if5i"
     data_fmt="f"
+    @classmethod
+    def isMine(self, path):
+        return _isMine(path)
     def __init__(self,rf,multi=False):
         """
         Initialization included reading the header and learning
@@ -113,7 +126,7 @@ class irr(PseudoNetCDFFile):
         if rxn=='TFLAG':
             return ConvertCAMxTime(self.__memmaps[:,0,0,0]['DATE'],self.__memmaps[:,0,0,0]['TIME'],len(self.dimensions['VAR']))
         return self.__decorator(rxn,PseudoNetCDFVariable(self,rxn,'f',('TSTEP','LAY','ROW','COL'),values=self.__memmaps[:,:,:,:][rxn]))
-
+        
     def __readheader(self):
         """
         __readheader reads the header section of the ipr file
@@ -121,6 +134,7 @@ class irr(PseudoNetCDFFile):
         as properties of the ipr class
         """
         self.runmessage=self.__rffile.read("80s")
+        assert(self.record_size == 80)
         self.start_date,self.start_time,self.end_date,self.end_time=self.__rffile.read("ifif")
         self.time_step=100.
         self.time_step_count=len([i for i in self.timerange()])
