@@ -130,10 +130,17 @@ class PseudoNetCDFVariable(ndarray):
     without adding it to the parent file
     """
     def __setattr__(self, k, v):
+        """
+        Set attributes (aka properties) and identify user-defined attributes.
+        """
         if not hasattr(self, k) and k[:1] != '_':
             self._ncattrs += (k,)
         ndarray.__setattr__(self, k, v)
     def ncattrs(self):
+        """
+        Returns a tuple of attributes that have been user defined
+        """
+        
         return self._ncattrs
     def __new__(subtype,parent,name,typecode,dimensions,**kwds):
         """
@@ -171,7 +178,7 @@ class PseudoNetCDFVariable(ndarray):
             result.__dict__['typecode'] = lambda: typecode
             result.__dict__['dimensions'] = tuple(dimensions)
         else:
-            result.__dict__={
+            result.__dict__ = {
                 'typecode': lambda: typecode,
                 'dimensions': tuple(dimensions)
             }
@@ -189,6 +196,10 @@ class PseudoNetCDFVariable(ndarray):
             if hasattr(obj, '_ncattrs'):
                 for k in obj._ncattrs:
                     setattr(self, k, getattr(obj, k))
+        if not hasattr(self, 'dimensions'):
+            if hasattr(obj, 'dimensions'):
+                setattr(self, 'dimensions', obj.dimensions)
+                self._ncattrs = self._ncattrs[:-1]
         
     
     def getValue(self):
@@ -379,6 +390,151 @@ def get_dimension_length(pfile, key):
         return dim
     else:
         return len(d)
+
+def slice_dim(f, slicedef, fuzzydim = True):
+    """
+    variables have dimensions (e.g., time, layer, lat, lon), which can be subset using 
+        slice_dim(f, 'dim,start,stop,stride')
+        
+    e.g., slice_dim(f, 'layer,0,47,5') would sample every fifth layer starting at 0
+    """
+
+    slicedef = slicedef.split(',')
+    slicedef = [slicedef[0]] + map(eval, slicedef[1:])
+    if len(slicedef) == 2:
+        slicedef.append(slicedef[-1] + 1)
+    slicedef = (slicedef + [None,])[:4]
+    dimkey, dmin, dmax, dstride = slicedef    
+    unlimited = f.dimensions[dimkey].isunlimited()
+    if fuzzydim:
+        partial_check = [key for key in f.dimensions if dimkey == key[:len(dimkey)] and key[len(dimkey):].isdigit()]
+        for dimk in partial_check:
+            f = slice_dim(f, '%s,%s,%s,%s' % (dimk, dmin, dmax, dstride))
+        
+    for varkey in f.variables.keys():
+        var = f.variables[varkey]
+        if dimkey not in var.dimensions:
+            continue
+        else:
+            thisdimkey = dimkey
+        axis = list(var.dimensions).index(dimkey)
+        vout = var[:].swapaxes(0, axis)[dmin:dmax:dstride].swapaxes(0, axis)
+        
+        newlen = vout.shape[axis]
+        newdim = f.createDimension(dimkey, newlen)
+        newdim.setunlimited(unlimited)
+        f.variables[varkey] = vout
+    return f
+    
+def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latitude longitude ROW COL LAY TFLAG ETFLAG'.split()):
+    """
+    variable dimensions can be reduced using
+    
+    reduce_dim(file 'dim,function,weight')
+    
+    e.g., reduce_dim(layer,mean,weight).
+    
+    Weighting is not fully functional.
+    """
+    import numpy as np
+    commacount = reducedef.count(',')
+    if commacount == 3:
+        dimkey, func, numweightkey, denweightkey = reducedef.split(',')
+        numweight = f.variables[numweightkey]
+        denweight = f.variables[denweightkey]
+    elif commacount == 2:
+        dimkey, func, numweightkey = reducedef.split(',')
+        numweight = f.variables[numweightkey]
+        denweightkey = None
+    elif commacount == 1:
+        dimkey, func = reducedef.split(',')
+        numweightkey = None
+        denweightkey = None
+    if fuzzydim:
+        partial_check = [key for key in f.dimensions if dimkey == key[:len(dimkey)] and key[len(dimkey):].isdigit()]
+        for dimk in partial_check:
+            if commacount == 1:
+                f = reduce_dim(f, '%s,%s' % (dimk, func),)
+            elif commacount == 2:
+                f = reduce_dim(f, '%s,%s,%s' % (dimk, func, numweightkey),)
+            elif commacount == 3:
+                f = reduce_dim(f, '%s,%s,%s,%s' % (dimk, func, numweightkey, denweightkey),)
+    
+    unlimited = f.dimensions[dimkey].isunlimited()
+    f.createDimension(dimkey, 1)
+    if unlimited:
+        f.dimensions[dimkey].setunlimited(True)
+
+    for varkey in f.variables.keys():
+        var = f.variables[varkey]
+        if dimkey not in var.dimensions:
+            continue
+        
+        axis = list(var.dimensions).index(dimkey)
+        
+        if not varkey in metakeys:
+            if numweightkey is None:
+                vout = getattr(np, func)(var, axis = axis)[(slice(None),) * axis + (None,)]
+            elif denweightkey is None:
+                vout = getattr(np, func)(var * np.array(numweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]),)], axis = axis)[(slice(None),) * axis + (None,)]
+                vout.units = vout.units.strip() + ' * ' + numweight.units.strip()
+                if hasattr(vout, 'base_units'):
+                    vout.base_units = vout.base_units.strip() + ' * ' + numweight.base_units.strip()
+            else:
+                vout = getattr(np, func)(var * np.array(numweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]),)], axis = axis)[(slice(None),) * axis + (None,)] / getattr(np, func)(np.array(denweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]),)], axis = axis)[(slice(None),) * axis + (None,)]
+        else:
+            if '_bnds' not in varkey:
+                vout = getattr(np, func)(var, axis = axis)[(slice(None),) * axis + (None,)]
+            else:
+                vout = getattr(np, func)(var, axis = axis)[(slice(None),) * axis + (None,)]
+                vout[0] = var[:].min(), var[:].max()
+        f.variables[varkey] = vout
+    return f
+
+def getvarpnc(f, varkeys, coordkeys = 'time layer level latitude longitude ROW COL LAY TFLAG ETFLAG'.split()):
+    if varkeys is None:
+        varkeys = list(set(f.variables.keys()).difference(coordkeys))
+    else:
+        newvarkeys = list(set(varkeys).intersection(f.variables.keys()))
+        newvarkeys.sort()
+        oldvarkeys = list(varkeys)
+        oldvarkeys.sort()
+        if newvarkeys != oldvarkeys:
+            warn('Skipping %s' % ', '.join(set(oldvarkeys).difference(newvarkeys)))
+        varkeys = newvarkeys
+
+    outf = PseudoNetCDFFile()
+    outf.createDimension('nv', 2)
+    for propkey in f.ncattrs():
+        setattr(outf, propkey, getattr(f, propkey))
+    thiscoordkeys = [k for k in coordkeys]
+    for varkey in varkeys:
+        try:
+            var = eval(varkey, None, f.variables)
+        except:
+            var = f.variables[varkey]
+        for dimk, dimv in zip(var.dimensions, var.shape):
+            if dimk not in outf.dimensions:
+                newdimv = outf.createDimension(dimk, dimv)
+                if f.dimensions[dimk].isunlimited():
+                    newdimv.setunlimited(True)
+                coordkeys.append(dimk)
+        for coordk in coordkeys:
+            if coordk in f.dimensions and coordk not in outf.dimensions:
+                newdimv = outf.createDimension(coordk, len(f.dimensions[coordk]))
+                if f.dimensions[coordk].isunlimited():
+                    newdimv.setunlimited(True)
+    
+        propd = dict([(k, getattr(var, k)) for k in var.ncattrs()])
+        outf.createVariable(varkey, var.dtype.char, var.dimensions, values = var[:], **propd)
+    for coordkey in coordkeys:
+        if coordkey in f.variables.keys():
+            coordvar = f.variables[coordkey]
+            propd = dict([(k, getattr(coordvar, k)) for k in coordvar.ncattrs()])
+            outf.createVariable(coordkey, coordvar.dtype.char, coordvar.dimensions, values = coordvar[:], **propd)
+    return outf
+
+
 
 class Pseudo2NetCDF:
     """
