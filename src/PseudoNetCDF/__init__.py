@@ -15,7 +15,7 @@ __all__ = ['sci_var',
            'racmfiles',
            'geoschemfiles',
            'icarttfiles',
-           'toms']
+           'toms', 'getfile']
 import sci_var
 from sci_var import *
 __all__ += sci_var.__all__
@@ -28,3 +28,4 @@ import cmaqfiles
 import racmfiles
 import icarttfiles
 import test
+from register import getfile
