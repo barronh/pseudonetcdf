@@ -220,29 +220,33 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
             exit()
     sys.stdout.write("}\n")
 
-def dump_from_cmd_line(file_path, options, reader = None):
-    """
-    dump_from_cmd_line provides basic error checking, but requires
-    a reader function to initialize the PseudoNetCDFFile
-    
-    parser  - OptParse parser object with basic implementation 
-              taken from pncdump_parser
-    options - OptParse options object implementing, at minimum
-              the pncdump_parser values
-    args    - OptParse args list implementing, at minimum
-              the pncdump_parser expected values
-    reader  - Any PseudoNetCDFFile initializer that takes only
-              args[0] as an argument and returns a PseudoNetCDFFile
-    """
-    pncdump(reader(file_path), name = options.name, header = options.header, variables = options.variables, line_length = options.line_length, full_indices = options.full_indices, float_precision = options.float_precision, double_precision = options.double_precision)
-
 if __name__ == '__main__':
-    from PseudoNetCDF.pncdump import pncdump_parser, \
-                                    dump_from_cmd_line
-    parser = pncdump_parser()
-    parser.add_argument("cols", int)
-    parser.add_argument("rows", int)
-    from PseudoNetCDF.camxfiles.vertical_diffusivity.Memmap import vertical_diffusivity
-    (file_path, options, extra_args_dict) = parser.parse_args()
+    from optparse import OptionParser
+    from camxfiles.Memmaps import uamiv
+    from icarttfiles.ffi1001 import ffi1001
+    try:
+        from bpch import bpch
+    except:
+        pass
 
-    dump_from_cmd_line(file_path, options, lambda path: vertical_diffusivity(path, **extra_args_dict))
+    parser = OptionParser()
+    parser.set_usage("""Usage: python -m %prog [-f uamiv|bpch|ffi1001] ifile [ofile]
+
+    ifile - path to a file formatted as type -f
+    
+    -f --format - format of the file either uamiv (CAMx), bpch (GEOS-Chem) or ffi1001 (optionally has comma delimited arguments for opening the format)
+    """)
+
+    parser.add_option("-f", "--format", dest = "format", default = 'uamiv', help = "File format")
+    (options, args) = parser.parse_args()
+    
+    if len(args) == 0 or len(args) > 1:
+        parser.print_help()
+        exit()
+    
+    ifile = args[0]
+    
+    format_options = options.format.split(',')
+    file_format = format_options.pop(0)
+    f = eval(file_format)(ifile, *format_options)
+    pncdump(f)
