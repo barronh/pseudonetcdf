@@ -38,10 +38,13 @@ class PseudoNetCDFDimension(object):
     """
     def __init__(self, group, name, size):
         self._len = int(size)
-    def isunlimitied(self):
-        return False
+        self._unlimited = False
+    def isunlimited(self):
+        return self._unlimited
     def __len__(self):
         return self._len
+    def setunlimited(self, unlimited):
+        self._unlimited = unlimited
         
 def PseudoNetCDFVariableConvertUnit(var,outunit):
     """
@@ -84,7 +87,8 @@ class PseudoNetCDFFile(object):
         name - string name for dimension
         length - maximum length of dimension
         """
-        self.dimensions[name]=PseudoNetCDFDimension(self, name, length)
+        dim = self.dimensions[name]=PseudoNetCDFDimension(self, name, length)
+        return dim
 
     def createVariable(self, name, type, dimensions, **properties):
         """
@@ -402,7 +406,7 @@ class Pseudo2NetCDF:
         
     def addDimensions(self,pfile,nfile):
         for d,v in pfile.dimensions.iteritems():
-            if d in self.unlimited_dimensions:
+            if d in self.unlimited_dimensions or v.isunlimited():
                 v = None
             elif not isinstance(v, (int, long)) and v is not None:
                 v = len(v)

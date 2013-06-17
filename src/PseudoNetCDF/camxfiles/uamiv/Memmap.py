@@ -200,7 +200,8 @@ class uamiv(PseudoNetCDFFile):
         self.createDimension('LAY',nz)
         self.createDimension('COL',nx)
         self.createDimension('ROW',ny)
-        self.createDimension('TSTEP',ntimes)
+        tstep = self.createDimension('TSTEP',ntimes)
+        tstep.setunlimited(True)
         self.createDimension('VAR',nspec)
         
         self.__memmap__=memmap(self.__rffile,mode=self.__mode,dtype=data_block_fmt,offset=offset)
