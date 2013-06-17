@@ -22,7 +22,7 @@ import unittest
 import struct
 
 #Site-Packages
-from numpy import zeros,array,where,memmap,newaxis,dtype,nan
+from numpy import zeros,array,where,memmap,newaxis,dtype,nan,linspace
 
 #This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timediff,timeadd
@@ -98,20 +98,13 @@ class uamiv(PseudoNetCDFFile):
         self.GDTYP=2
         self.NAME="".join(self.__emiss_hdr['name'][0,:,0])
         self.ITZON=self.__emiss_hdr['itzone'][0]
-        self.IOAPI_VERSION = "$Id: @(#) ioapi library version 3.0 $                                           " ;
-        self.EXEC_ID = "????????????????                                                                " ;
         self.FTYPE = 1 ;
-        self.CDATE = 2010053 ;
-        self.CTIME = 154023 ;
-        self.WDATE = 2010053 ;
-        self.WTIME = 154023 ;
         self.VGTYP = 2 ;
         self.VGTOP = 10000. ;
-        self.VGLVLS = 1., 0.995, 0.99, 0.98, 0.96, 0.94, 0.91, 0.86, 0.8, 0.74, 0.65, 0.55, 0.4, 0.2, 0. ;
+        self.VGLVLS = linspace(0, 1, self.NLAYS + 1)[::-1] ;
         self.GDNAM = "CAMx            " ;
         self.UPNAM = "CAMx            " ;
         self.FILEDESC = "CAMx            ";
-        self.HISTORY = "                ";
         # Create variables
         self.variables=PseudoNetCDFVariables(self.__variables,self.__var_names__+['TFLAG','ETFLAG'])
         tflag = ConvertCAMxTime(self.__memmap__['DATE']['BDATE'], self.__memmap__['DATE']['BTIME'], self.NVARS)
@@ -130,6 +123,24 @@ class uamiv(PseudoNetCDFFile):
         f.close()
         return flen
 
+    @classmethod
+    def isMine(self, path):
+        offset=0
+        emiss_hdr = memmap(path,  mode = 'r', dtype = self.__emiss_hdr_fmt, shape = 1, offset = offset)
+        
+        if not emiss_hdr['SPAD'] == emiss_hdr['EPAD'] and emiss_hdr['SPAD'] == emiss_hdr.dtype.itemsize - 8:
+            return False
+        offset += emiss_hdr.dtype.itemsize * emiss_hdr.size
+
+        grid_hdr = memmap(path, mode = 'r', dtype = self.__grid_hdr_fmt, shape=1, offset=offset)
+        if not grid_hdr['SPAD'] == grid_hdr['EPAD'] and grid_hdr['SPAD'] == grid_hdr.dtype.itemsize - 8:
+            return False
+        offset += grid_hdr.dtype.itemsize * grid_hdr.size
+        cell_hdr = memmap(path, mode = 'r', dtype = self.__cell_hdr_fmt, shape=1,offset=offset)
+        if not cell_hdr['SPAD'] == cell_hdr['EPAD'] and cell_hdr['SPAD'] == cell_hdr.dtype.itemsize - 8:
+            return False
+        return True
+        
     def __readheader(self):
         offset=0
         self.__emiss_hdr=memmap(self.__rffile,mode=self.__mode,dtype=self.__emiss_hdr_fmt,shape=1,offset=offset)
