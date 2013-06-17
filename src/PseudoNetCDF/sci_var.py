@@ -491,7 +491,7 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
         f.variables[varkey] = vout
     return f
 
-def getvarpnc(f, varkeys, coordkeys = 'time layer level latitude longitude ROW COL LAY TFLAG ETFLAG'.split()):
+def getvarpnc(f, varkeys, coordkeys = []):
     if varkeys is None:
         varkeys = list(set(f.variables.keys()).difference(coordkeys))
     else:

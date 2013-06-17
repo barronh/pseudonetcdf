@@ -14,7 +14,7 @@ if __name__ == '__main__':
     from sci_var import reduce_dim, slice_dim, getvarpnc
 
     parser = OptionParser()
-    parser.set_usage("""Usage: python -m %prog [-f uamiv|bpch|ffi1001] ifile [ofile]
+    parser.set_usage("""Usage: python -m %prog [-f uamiv|bpch|ffi1001|...] ifile [ofile]
 
     ifile - path to a file formatted as type -f
     ofile - path to the desired output
