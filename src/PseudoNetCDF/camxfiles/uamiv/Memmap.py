@@ -114,8 +114,10 @@ class uamiv(PseudoNetCDFFile):
         self.HISTORY = "                ";
         # Create variables
         self.variables=PseudoNetCDFVariables(self.__variables,self.__var_names__+['TFLAG','ETFLAG'])
-        self.variables['TFLAG']=ConvertCAMxTime(self.__memmap__['DATE']['BDATE'],self.__memmap__['DATE']['BTIME'],self.NVARS)
-        self.variables['ETFLAG']=ConvertCAMxTime(self.__memmap__['DATE']['EDATE'],self.__memmap__['DATE']['ETIME'],self.NVARS)
+        tflag = ConvertCAMxTime(self.__memmap__['DATE']['BDATE'], self.__memmap__['DATE']['BTIME'], self.NVARS)
+        etflag = ConvertCAMxTime(self.__memmap__['DATE']['EDATE'], self.__memmap__['DATE']['ETIME'],self.NVARS)
+        tflagv = self.createVariable('TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'), values = tflag, units = 'DATE-TIME', long_name = 'TFLAG'.ljust(16), var_desc = 'TFLAG'.ljust(80))
+        etflagv = self.createVariable('ETFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'), values = etflag, units = 'DATE-TIME', long_name = 'ETFLAG'.ljust(16), var_desc = 'Ending TFLAG'.ljust(80))
         
         self.SDATE,self.STIME=self.variables['TFLAG'][0,0,:]
         self.TSTEP =  self.variables['ETFLAG'][0,0,1] - self.variables['TFLAG'][0,0,1]
