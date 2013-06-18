@@ -30,7 +30,7 @@ from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoIOAPIVariable, PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 from PseudoNetCDF.camxfiles.units import get_uamiv_units
-
+from PseudoNetCDF.ioapifiles import add_cf_from_ioapi
 #for use in identifying uncaught nan
 listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
@@ -74,7 +74,7 @@ class uamiv(PseudoNetCDFFile):
     __ione=1
     __idum=0
     __rdum=0.
-    def __init__(self,rf,mode='r'):
+    def __init__(self,rf,mode='r', P_ALP = None, P_BET = None, P_GAM = None, XCENT = None, YCENT = None):
         """
         Initialization included reading the header and learning
         about the format.
@@ -114,6 +114,21 @@ class uamiv(PseudoNetCDFFile):
         
         self.SDATE,self.STIME=self.variables['TFLAG'][0,0,:]
         self.TSTEP =  self.variables['ETFLAG'][0,0,1] - self.variables['TFLAG'][0,0,1]
+        if not P_ALP is None:
+            self.P_ALP = P_ALP
+        if not P_BET is None:
+            self.P_BET = P_BET
+        if not P_GAM is None:
+            self.P_GAM = P_GAM
+        if not XCENT is None:
+            self.XCENT = XCENT
+        if not YCENT is None:
+            self.YCENT = YCENT
+        try:
+            add_cf_from_ioapi(self)
+        except:
+            pass
+        
 
         
     def __checkfilelen(self):
@@ -153,24 +168,31 @@ class uamiv(PseudoNetCDFFile):
         self.YORIG=self.__grid_hdr['yorg'][0]
         self.XCELL=self.__grid_hdr['delx'][0]
         self.YCELL=self.__grid_hdr['dely'][0]
-        # Map CAMx projection constants to IOAPI
-        GDTYPE = self.GDTYP={0: 1, 1: 5, 2: 2, 3: 6}[self.__grid_hdr['iproj'][0]]
-        self.XCENT = self.__grid_hdr['plon'][0]
-        self.YCENT = self.__grid_hdr['plat'][0]
-        if GDTYPE in (1, 2):
-            self.P_ALP = self.__grid_hdr['tlat1'][0]
-            self.P_BET = self.__grid_hdr['tlat2'][0]
-            self.P_GAM = self.__grid_hdr['plon'][0]
-        elif GDTYPE == 5:
-            self.P_ALP = self.__grid_hdr['iutm'][0]
-            self.P_BET = 0.
-            self.P_GAM = 0.
-        elif GDTYPE == 6:
-            self.P_ALP = {90: 1, -90: -1}[self.__grid_hdr['plat'][0]]
-            self.P_BET = self.__grid_hdr['tlat1'][0]
-            self.P_GAM = self.__grid_hdr['plon'][0]
-        else:
-            raise ValueError('Unknown projection')            
+        plon = self.__grid_hdr['plon'][0]
+        plat = self.__grid_hdr['plat'][0]
+        tlat1 = self.__grid_hdr['tlat1'][0]
+        tlat2 = self.__grid_hdr['tlat2'][0]
+        iutm = self.__grid_hdr['iutm'][0]
+        cproj = self.__grid_hdr['iproj'][0]
+        if not all(map(lambda x: x == 0, [plon, plat, tlat1, tlat2, iutm, cproj])):
+            # Map CAMx projection constants to IOAPI
+            GDTYPE = self.GDTYP={0: 1, 1: 5, 2: 2, 3: 6}[cproj]
+            self.XCENT = plon
+            self.YCENT = plat
+            if GDTYPE in (1, 2):
+                self.P_ALP = tlat1
+                self.P_BET = tlat2
+                self.P_GAM = plon
+            elif GDTYPE == 5:
+                self.P_ALP = iutm
+                self.P_BET = 0.
+                self.P_GAM = 0.
+            elif GDTYPE == 6:
+                self.P_ALP = {90: 1, -90: -1}[plat]
+                self.P_BET = tlat1
+                self.P_GAM = plon
+            else:
+                raise ValueError('Unknown projection')            
         
         
         nx=self.__grid_hdr['nx'][0]
