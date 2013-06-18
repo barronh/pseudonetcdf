@@ -339,7 +339,7 @@ class PseudoNetCDFVariables(defaultdict):
         self.__keys.append(k)
 
     def keys(self):
-        return self.__keys
+        return tuple(set(dict.keys(self) + self.__keys))
     
     def has_key(self,k):
         return k in self.keys()
@@ -603,10 +603,10 @@ class Pseudo2NetCDF:
 
         if isscalar(nvar):
             nvar.assignValue(pvar)
-        elif isinstance(pvar[:], MaskedArray):
-            nvar[:] = pvar[:].filled()
+        elif isinstance(pvar[...], MaskedArray):
+            nvar[:] = pvar[...].filled()
         else:
-            nvar[:] = pvar[:]
+            nvar[:] = pvar[...]
             
         self.addVariableProperties(pvar,nvar)
         nfile.sync()
