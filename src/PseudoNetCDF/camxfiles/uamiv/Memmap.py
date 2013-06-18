@@ -30,7 +30,7 @@ from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoIOAPIVariable, PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 from PseudoNetCDF.camxfiles.units import get_uamiv_units
-from PseudoNetCDF.ioapifiles import add_cf_from_ioapi
+from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
 #for use in identifying uncaught nan
 listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
