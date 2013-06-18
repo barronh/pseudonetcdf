@@ -384,7 +384,7 @@ def get_dimension_length(pfile, key):
         for k in pfile.variables.keys():
             v = pfile.variables[k]
             if key in v.dimensions:
-                return v[:].shape[list(v.dimensions).index(key)]
+                return v[...].shape[list(v.dimensions).index(key)]
         return 0
     elif isinstance(dim, int):
         return dim
@@ -418,7 +418,7 @@ def slice_dim(f, slicedef, fuzzydim = True):
         else:
             thisdimkey = dimkey
         axis = list(var.dimensions).index(dimkey)
-        vout = var[:].swapaxes(0, axis)[dmin:dmax:dstride].swapaxes(0, axis)
+        vout = var[...].swapaxes(0, axis)[dmin:dmax:dstride].swapaxes(0, axis)
         
         newlen = vout.shape[axis]
         newdim = f.createDimension(dimkey, newlen)
@@ -487,7 +487,7 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
                 vout = getattr(np, func)(var, axis = axis)[(slice(None),) * axis + (None,)]
             else:
                 vout = getattr(np, func)(var, axis = axis)[(slice(None),) * axis + (None,)]
-                vout[0] = var[:].min(), var[:].max()
+                vout[0] = var[...].min(), var[...].max()
         f.variables[varkey] = vout
     return f
 
@@ -526,12 +526,12 @@ def getvarpnc(f, varkeys, coordkeys = []):
                     newdimv.setunlimited(True)
     
         propd = dict([(k, getattr(var, k)) for k in var.ncattrs()])
-        outf.createVariable(varkey, var.dtype.char, var.dimensions, values = var[:], **propd)
+        outf.createVariable(varkey, var.dtype.char, var.dimensions, values = var[...], **propd)
     for coordkey in coordkeys:
         if coordkey in f.variables.keys():
             coordvar = f.variables[coordkey]
             propd = dict([(k, getattr(coordvar, k)) for k in coordvar.ncattrs()])
-            outf.createVariable(coordkey, coordvar.dtype.char, coordvar.dimensions, values = coordvar[:], **propd)
+            outf.createVariable(coordkey, coordvar.dtype.char, coordvar.dimensions, values = coordvar[...], **propd)
     return outf
 
 
@@ -597,7 +597,7 @@ class Pseudo2NetCDF:
         try:
             typecode = pvar.typecode()
         except:
-            typecode = pvar[:].dtype.char
+            typecode = pvar[...].dtype.char
             
         nvar=nfile.createVariable(k,typecode,pvar.dimensions, **self.create_variable_kwds)
 
@@ -664,7 +664,7 @@ class PseudoNetCDFTest(unittest.TestCase):
         n=Pseudo2NetCDF().convert(tncf)
         self.assertEqual(n.variables.keys(),['O3'])
         self.assertEqual(dict([(k, len(v)) for k, v in n.dimensions.iteritems()]),{'TIME': 24, 'LAY': 4, 'ROW': 5, 'COL': 6})
-        self.assert_((n.variables['O3'][:]==tncf.variables['O3'][:]).all())
+        self.assert_((n.variables['O3'][...]==tncf.variables['O3'][...]).all())
         self.assert_(n.variables['O3'].units=='ppbv')
         self.assertEqual(n.fish,2)
         self.assertEqual(getattr(n,'FROG-DOG'),'HAPPY')
