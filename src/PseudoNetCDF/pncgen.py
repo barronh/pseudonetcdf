@@ -19,10 +19,10 @@ if __name__ == '__main__':
     ifile - path to a file formatted as type -f
     ofile - path to the desired output
     
-    -f --format - format of the file either uamiv (CAMx), bpch (GEOS-Chem) or ffi1001 (optionally has comma delimited arguments for opening the format)
     """)
 
     parser.add_option("-f", "--format", dest = "format", default = 'uamiv', help = "File format")
+    
     parser.add_option("-v", "--variables", dest = "variables", default = None,
                         help = "Variable names or regular expressions (using match) separated by ','. If a group(s) has been specified, only variables in that (those) group(s) will be selected.")
 
@@ -46,7 +46,8 @@ if __name__ == '__main__':
     
     format_options = options.format.split(',')
     file_format = format_options.pop(0)
-    f = eval(file_format)(ifile, *format_options)
+    format_options = eval('dict(' + ', '.join(format_options) + ')')
+    f = eval(file_format)(ifile, **format_options)
     
     if options.variables is not None:
         f = getvarpnc(f, options.variables.split(','))
