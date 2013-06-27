@@ -1,9 +1,10 @@
 from ..sci_var import PseudoNetCDFFile, PseudoNetCDFMaskedVariable as PseudoNetCDFVariable
-from numpy import fromstring, vectorize, ndarray, array
+from numpy import fromstring, vectorize, ndarray, array, genfromtxt
 from numpy.ma import MaskedArray
 from datetime import datetime, timedelta
 import re
 import yaml
+from StringIO import StringIO
 from warnings import warn
 
 def get_lodval(v):
@@ -26,10 +27,16 @@ class ffi1001(PseudoNetCDFFile):
         missing = []
         units = []
         l = f.readline()
-        if l.split()[-1] != '1001':
-            raise TypeError, "File is the wrong format.  Expected 1001; got %s" % (l.split()[-1],)
+        if ',' in l:
+            delim = ','
+        else:
+            delim = None
+        split = lambda s: map(str.strip, s.split(delim))
+
+        if split(l)[-1] != '1001':
+            raise TypeError, "File is the wrong format.  Expected 1001; got %s" % (split(l)[-1],)
         
-        n, self.fmt = l.split()
+        n, self.fmt = split(l)
         n_user_comments = 0
         n_special_comments = 0
         self.n_header_lines = int(n)
@@ -50,11 +57,11 @@ class ffi1001(PseudoNetCDFFile):
                 elif li == UNIT_LINE:
                     units.append(l.replace('\n', '').replace('\r', '').strip())
                 elif li == SCALE_LINE:
-                    scales = [eval(i) for i in l.split()]
+                    scales = [eval(i) for i in split(l)]
                     if set([float(s) for s in scales]) != set([1.]):
                         raise ValueError, "Unsupported: scaling is unsupported.  data is scaled by %s" % (str(scales),)
                 elif li == MISSING_LINE:
-                    missing = [eval(i) for i in l.split()]
+                    missing = [eval(i) for i in split(l)]
                 elif li > MISSING_LINE and li <= LAST_VAR_DESC_LINE:
                     nameunit = l.replace('\n','').split(',')
                     name = nameunit[0].strip()
@@ -83,8 +90,8 @@ class ffi1001(PseudoNetCDFFile):
                 elif li == self.n_header_lines:
                     variables = l.replace(',','').split()
                     self.TFLAG = variables[0]
-        except:
-            raise SyntaxError, "Error parsing icartt file %s" % path
+        except Exception, e:
+            raise SyntaxError, "Error parsing icartt file %s: %s" % (path, repr(e))
 
         missing = missing[:1]+missing
         scales = [1.]+scales
@@ -121,7 +128,7 @@ class ffi1001(PseudoNetCDFFile):
         while datalines[-1] in ('', ' ', '\r'):
             ndatalines -=1
             datalines.pop(-1)
-        data = fromstring(data,dtype ='d', sep = ' ')
+        data = genfromtxt(StringIO('\n'.join(datalines)), delimiter = delim, dtype = 'd')
         data = data.reshape(ndatalines,len(variables))
         data = data.swapaxes(0,1)
         self.createDimension('POINTS', ndatalines)
