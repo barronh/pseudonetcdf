@@ -47,8 +47,7 @@ class ipr(PseudoNetCDFFile):
     
     ex:
         >>> ipr_path = 'camx_ipr.bin'
-        >>> rows,cols = 65,83
-        >>> iprfile = ipr(ipr_path,rows,cols)
+        >>> iprfile = ipr(ipr_path)
         >>> iprfile.variables.keys()
         ['TFLAG', 'SPAD_O3', 'DATE_O3', 'TIME_O3', 'SPC_O3', 
          'PAGRID_O3', 'NEST_O3', 'I_O3', 'J_O3', 'K_O3', 

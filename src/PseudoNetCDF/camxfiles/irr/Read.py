@@ -49,8 +49,7 @@ class irr(PseudoNetCDFFile):
     
     ex:
         >>> irr_path = 'camx_irr.bin'
-        >>> rows,cols = 65,83
-        >>> irrfile = irr(irr_path,rows,cols)
+        >>> irrfile = irr(irr_path)
         >>> irrfile.variables.keys()
         ['TFLAG', 'RXN_01', 'RXN_02', 'RXN_03', ...]
         >>> v = irrfile.variables['RXN_01']
