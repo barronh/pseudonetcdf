@@ -1,5 +1,9 @@
 import numpy as np
-from mpl_toolkits.basemap import pyproj
+try:
+    from mpl_toolkits.basemap import pyproj
+    _withlatlon = True
+except:
+    _withlatlon = False
 
 def add_time_variable(ifileo):
     if 'time' not in ifileo.variables.keys():
@@ -59,7 +63,7 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         y = np.arange(0, ifileo.NROWS * ifileo.YCELL, ifileo.YCELL) + ifileo.YORIG + ifileo.YCELL / 2.
         lcc_x, lcc_y = np.meshgrid(x, y)
 
-    lcc = pyproj.Proj('+proj=lcc +lon_0=%s +lat_1=%s +lat_2=%s +a=%s +lat_0=%s' % (lccdef.longitude_of_central_meridian, lccdef.standard_parallel[0], lccdef.standard_parallel[1], lccdef.earth_radius, lccdef.latitude_of_projection_origin,)  )
+    if withlatlon: lcc = pyproj.Proj('+proj=lcc +lon_0=%s +lat_1=%s +lat_2=%s +a=%s +lat_0=%s' % (lccdef.longitude_of_central_meridian, lccdef.standard_parallel[0], lccdef.standard_parallel[1], lccdef.earth_radius, lccdef.latitude_of_projection_origin,)  )
 
 
     lon, lat = lcc(lcc_x, lcc_y, inverse = True)
@@ -86,13 +90,13 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         var.long_name = "synthesized coordinate from YORIG YCELL global attributes" ;
 
 
-    if 'latitude' not in ifileo.variables.keys():
+    if withlatlon and 'latitude' not in ifileo.variables.keys():
         var = ifileo.createVariable('latitude', lat.dtype.char, latlon_dim)
         var[:] = lat
         var.units = 'degrees_north'
         var.standard_name = 'latitude'
 
-    if 'longitude' not in ifileo.variables.keys():
+    if withlatlon and 'longitude' not in ifileo.variables.keys():
         var = ifileo.createVariable('longitude', lon.dtype.char, latlon_dim)
         var[:] = lon
         var.units = 'degrees_east'
@@ -120,7 +124,8 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         except:
             pass
         olddims = list(var.dimensions)
-        dims = map(lambda x: {'ROW': 'latitude', 'COL': 'longitude', 'TSTEP': 'time', 'LAY': 'level'}.get(x, x), olddims)
+        if withlatlon:
+            dims = map(lambda x: {'ROW': 'latitude', 'COL': 'longitude', 'TSTEP': 'time', 'LAY': 'level'}.get(x, x), olddims)
         dims = [d for d in dims if d != 'time']
         if olddims != dims:
             if ('PERIM' in dims or 
