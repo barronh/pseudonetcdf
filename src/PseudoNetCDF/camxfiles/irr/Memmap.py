@@ -133,8 +133,8 @@ class irr(PseudoNetCDFFile):
         it initializes each header field (see CAMx Users Manual for a list)
         as properties of the ipr class
         """
+        assert(self.__rffile.record_size == 80)
         self.runmessage=self.__rffile.read("80s")
-        assert(self.record_size == 80)
         self.start_date,self.start_time,self.end_date,self.end_time=self.__rffile.read("ifif")
         self.time_step=100.
         self.time_step_count=len([i for i in self.timerange()])

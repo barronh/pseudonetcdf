@@ -260,7 +260,7 @@ class irr(PseudoNetCDFFile):
         kend=domain['tlay']
         variables = self.variables
         temp = zeros((self.NRXNS,), 'f')
-        shape = (self.NSTEPS,) + eval('map(len, (LAY, ROW, COL))', None, self.dimensions)
+        shape = (self.NSTEPS,) + tuple(eval('map(len, (LAY, ROW, COL))', None, self.dimensions))
         variables.clear()
         end = min(start + n, self.NRXNS + 1)
         start = end - n
