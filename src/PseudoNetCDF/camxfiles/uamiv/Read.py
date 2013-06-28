@@ -106,11 +106,12 @@ class uamiv(PseudoNetCDFFile):
 
     def __var_get(self,key):
         units = get_uamiv_units(self.name, key)
+        spcnames = map(str.strip, self.spcnames)
         if self.name=='EMISSIONS ':
-            constr=lambda spc: self.getArray(nspec=self.variables.keys().index(spc)).squeeze()[:,newaxis,:,:]
+            constr=lambda spc: self.getArray(nspec=spcnames.index(spc)).squeeze()[:,newaxis,:,:]
             decor=lambda spc: dict(units=units, var_desc=spc, long_name=spc.ljust(16))
         else:
-            constr=lambda spc: self.getArray(nspec=self.variables.keys().index(spc)).squeeze().reshape(map(len, (self.dimensions['TSTEP'],self.dimensions['LAY'],self.dimensions['ROW'],self.dimensions['COL'])))
+            constr=lambda spc: self.getArray(nspec=spcnames.index(spc)).squeeze().reshape(map(len, (self.dimensions['TSTEP'],self.dimensions['LAY'],self.dimensions['ROW'],self.dimensions['COL'])))
             decor=lambda spc: dict(units=units, var_desc=spc.ljust(16), long_name=spc.ljust(16))
 
         values=constr(key)
