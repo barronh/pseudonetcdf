@@ -86,6 +86,8 @@ class point_source(PseudoNetCDFFile):
     id_fmt="i"+spc_fmt
     id_size=struct.calcsize(id_fmt)
     data_fmt="f"
+    stkprops=['XSTK','YSTK','HSTK','DSTK','TSTK','VSTK']
+    stktimeprops=['KCELL','FLOW','PLMHT']
 
     def __init__(self,rf):
         """
@@ -101,7 +103,7 @@ class point_source(PseudoNetCDFFile):
         self.__gettimeprops()
         self.createDimension('TSTEP',self.time_step_count)
         self.createDimension('STK',self.nstk)
-        varkeys=('XSTK','YSTK','HSTK','DSTK','TSTK','VSTK','KCELL','FLOW','PLMHT')+tuple([i.strip() for i in self.spcnames])
+        varkeys=['XSTK','YSTK','HSTK','DSTK','TSTK','VSTK','KCELL','FLOW','PLMHT']+[i.strip() for i in self.spcnames]
         self.variables=PseudoNetCDFVariables(self.__var_get,varkeys)
         
     def __var_get(self,key):
@@ -109,19 +111,20 @@ class point_source(PseudoNetCDFFile):
         decor=lambda *args,**kwds: {'notread': 1}
 
         values=constr(key)
-        var=self.createVariable(key,'f',('TSTEP','STK'))
+        if key in self.stkprops:
+            var=self.createVariable(key,'f',('STK',))
+        else:
+            var=self.createVariable(key,'f',('TSTEP','STK'))
         var[:] = values
         for k,v in decor(key).iteritems():
             setattr(var,k,v)
         return var
 
     def __variables(self,k):
-        stkprops=['XSTK','YSTK','HSTK','DSTK','TSTK','VSTK']
-        stktimeprops=['KCELL','FLOW','PLMHT']
-        if k in stkprops:
-            return array(self.stk_props)[:,stkprops.index(k)]
-        elif k in stktimeprops:
-            return array(self.stk_time_props)[:,:,2:][:,:,stktimeprops.index(k)]
+        if k in self.stkprops:
+            return array(self.stk_props)[:,self.stkprops.index(k)]
+        elif k in self.stktimeprops:
+            return array(self.stk_time_props)[:,:,2:][:,:,self.stktimeprops.index(k)]
         else:
             return self.getArray()[:,self.spcnames.index(k.ljust(10)),:]
             
@@ -179,6 +182,7 @@ class point_source(PseudoNetCDFFile):
         self.start_date,self.start_time,end_date,end_time=self.rffile.read(self.time_hdr_fmt)
         
         self.time_step=timediff((self.start_date,self.start_time),(end_date,end_time))
+        self.end_time += self.time_step
         self.time_step_count=int(timediff((self.start_date,self.start_time),(self.end_date,self.end_time),(2400,24)[int(self.time_step % 2)])/self.time_step)
         
         self.stk_time_prop_fmt=""+("iiiff"*self.nstk)

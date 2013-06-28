@@ -96,7 +96,7 @@ class point_source(PseudoNetCDFFile):
         self.variables={}
         self.__memmap=memmap(self.__rffile,'>f','r')
         self.__globalheader()
-        varkeys=('ETFLAG','TFLAG','XSTK','YSTK','HSTK','DSTK','TSTK','VSTK','KCELL','FLOW','PLMHT','NSTKS')+tuple([i.strip() for i in self.__spc_names])
+        varkeys=['ETFLAG','TFLAG','XSTK','YSTK','HSTK','DSTK','TSTK','VSTK','KCELL','FLOW','PLMHT','NSTKS']+[i.strip() for i in self.__spc_names]
         self.variables=PseudoNetCDFVariables(self.__variables,varkeys)
         self.__time_stks()
         self.createDimension('STK',self.__nstk_hdr['nstk'])
@@ -202,7 +202,7 @@ class point_source(PseudoNetCDFFile):
         if k in ['TFLAG','ETFLAG','NSTKS']:
             return self.variables[k]
         elif k in ['XSTK','YSTK','HSTK','DSTK','TSTK','VSTK']:
-            v=PseudoNetCDFVariable(self,k,'f',('NSTK',),values=self.__stk_props[k])
+            v=PseudoNetCDFVariable(self,k,'f',('NSTK',),values=self.__stk_props[k].ravel())
             v.units={'XSTK':'m','YSTK':'m','HSTK':'m','DSTK':'m','TSTK':'K','VSTK':'m/h'}[k]
             v.long_name=k.ljust(16)
             v.var_desc=k.ljust(16)
