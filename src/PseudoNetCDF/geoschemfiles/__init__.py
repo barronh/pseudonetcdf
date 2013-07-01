@@ -1,3 +1,6 @@
 __all__ = ['bpch']
 
-from _bpch import bpch
+try:
+    from bpch import bpch
+except:
+    from _bpch import bpch
