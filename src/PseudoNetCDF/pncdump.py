@@ -222,7 +222,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
 
 if __name__ == '__main__':
     from optparse import OptionParser
-    from camxfiles.Memmaps import uamiv
+    from camxfiles.Memmaps import *
     from icarttfiles.ffi1001 import ffi1001
     from geoschemfiles import bpch
     from sci_var import reduce_dim, slice_dim, getvarpnc
