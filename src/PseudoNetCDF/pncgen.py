@@ -11,6 +11,10 @@ if __name__ == '__main__':
     from camxfiles.Memmaps import *
     from icarttfiles.ffi1001 import ffi1001
     from geoschemfiles import bpch
+    try:
+        from netCDF4 import Dataset as netcdf
+    except:
+        pass
     from sci_var import reduce_dim, slice_dim, getvarpnc
 
     parser = OptionParser()
@@ -19,6 +23,7 @@ if __name__ == '__main__':
     ifile - path to a file formatted as type -f
     ofile - path to the desired output
     
+    -f --format - format of the file either uamiv (CAMx), bpch (GEOS-Chem) or ffi1001 (optionally has comma delimited arguments for opening the format)
     """)
 
     parser.add_option("-f", "--format", dest = "format", default = 'uamiv', help = "File format")

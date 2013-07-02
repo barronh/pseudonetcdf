@@ -225,6 +225,10 @@ if __name__ == '__main__':
     from camxfiles.Memmaps import *
     from icarttfiles.ffi1001 import ffi1001
     from geoschemfiles import bpch
+    try:
+        from netCDF4 import Dataset as netcdf
+    except:
+        pass
     from sci_var import reduce_dim, slice_dim, getvarpnc
 
     parser = OptionParser()
@@ -237,6 +241,7 @@ if __name__ == '__main__':
     """)
 
     parser.add_option("-f", "--format", dest = "format", default = 'uamiv', help = "File format")
+    
     parser.add_option("-v", "--variables", dest = "variables", default = None,
                         help = "Variable names or regular expressions (using match) separated by ','. If a group(s) has been specified, only variables in that (those) group(s) will be selected.")
 
@@ -260,7 +265,8 @@ if __name__ == '__main__':
     
     format_options = options.format.split(',')
     file_format = format_options.pop(0)
-    f = eval(file_format)(ifile, *format_options)
+    format_options = eval('dict(' + ', '.join(format_options) + ')')
+    f = eval(file_format)(ifile, **format_options)
     
     if options.variables is not None:
         f = getvarpnc(f, options.variables.split(','))
