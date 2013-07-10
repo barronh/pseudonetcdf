@@ -10,7 +10,7 @@ if __name__ == '__main__':
     from optparse import OptionParser
     from camxfiles.Memmaps import *
     from icarttfiles.ffi1001 import ffi1001
-    from geoschemfiles import bpch
+    from geoschemfiles import *
     try:
         from netCDF4 import Dataset as netcdf
     except:
