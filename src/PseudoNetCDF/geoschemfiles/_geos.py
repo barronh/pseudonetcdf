@@ -319,7 +319,7 @@ class geos(PseudoNetCDFFile):
                        ncol = 144
                    elif name[3:5] == '45':
                        longitude_bounds = np.arange(-182.5, 180, 5).repeat(2, 0)[1:-1].reshape(-1, 2)
-                       latitude_bounds = np.append(np.append(-90, np.arange(-88, 90, 2)), 90).repeat(2, 0)[1:-1].reshape(-1, 2)
+                       latitude_bounds = np.append(np.append(-90, np.arange(-88, 90, 4)), 90).repeat(2, 0)[1:-1].reshape(-1, 2)
                        nrow = 46
                        ncol = 72
                    else:
