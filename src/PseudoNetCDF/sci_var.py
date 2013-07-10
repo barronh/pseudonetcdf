@@ -21,7 +21,7 @@ RevisionNum= "$LastChangedRevision$"
 ChangedBy  = "$LastChangedBy$"
 __version__ = RevisionNum
 
-from numpy import array, zeros, ndarray, isscalar
+from numpy import array, zeros, ndarray, isscalar, abs
 from numpy.ma import MaskedArray, zeros as mazeros
 from collections import defaultdict
 from warnings import warn
@@ -391,6 +391,41 @@ def get_dimension_length(pfile, key):
     else:
         return len(d)
 
+def extract(f, lonlat):
+    longitude = f.variables['longitude']
+    latitude = f.variables['latitude']
+    latidxs = []
+    lonidxs = []
+    for ll in lonlat:
+        lon, lat = map(float, ll.split(','))
+        lonidx = abs(lon - longitude).argmin()
+        latidx = abs(lat - latitude).argmin()
+        latidxs.append(latidx)
+        lonidxs.append(lonidx)
+    latidxs = array(latidxs)
+    lonidxs = array(lonidxs)
+    outf = f
+    for k, v in outf.variables.iteritems():
+        try:
+            coords = v.coordinates.split()
+        except:
+            coords = v.dimensions
+        dims = v.dimensions
+        cd = zip(coords, dims)
+        f.createDimension('points', len(latidxs))
+        if 'longitude' in coords or 'latitude' in coords:
+            try:
+                del outf.variables[k]
+            except:
+                pass
+            newdims = tuple([d for d in dims if d not in ('longitude', 'latitude')] + ['points'])
+            newslice = tuple([{'latitude': latidxs, 'longitude': lonidxs}.get(d, slice(None)) for d in dims]) 
+            
+            nv = outf.createVariable(k, v.dtype.char, newdims, values = v[newslice])
+            for ak in v.ncattrs():
+                setattr(nv, ak, getattr(v, ak))
+    return f
+    
 def slice_dim(f, slicedef, fuzzydim = True):
     """
     variables have dimensions (e.g., time, layer, lat, lon), which can be subset using 
