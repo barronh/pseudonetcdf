@@ -55,18 +55,24 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         lcc_x = x = np.concatenate([bx, ex, tx, wx])
         lcc_y = y = np.concatenate([by, ey, ty, wy])
         latlon_dim = ('PERIM',)
+        latlone_dim = ('PERIM_STAG',)
     else:
         xdim = 'COL'
         ydim = 'ROW'
         latlon_dim = (ydim, xdim)
+        latlone_dim = (ydim + '_STAG', xdim + '_STAG')
+        xe = np.arange(0, (ifileo.NCOLS + 1) * ifileo.XCELL, ifileo.XCELL) + ifileo.XORIG
+        ye = np.arange(0, (ifileo.NROWS + 1) * ifileo.YCELL, ifileo.YCELL) + ifileo.YORIG + ifileo.YCELL
+        lcc_xe, lcc_ye = np.meshgrid(xe, ye)
         x = np.arange(0, ifileo.NCOLS * ifileo.XCELL, ifileo.XCELL) + ifileo.XORIG + ifileo.XCELL / 2.
         y = np.arange(0, ifileo.NROWS * ifileo.YCELL, ifileo.YCELL) + ifileo.YORIG + ifileo.YCELL / 2.
         lcc_x, lcc_y = np.meshgrid(x, y)
 
-    if withlatlon: lcc = pyproj.Proj('+proj=lcc +lon_0=%s +lat_1=%s +lat_2=%s +a=%s +lat_0=%s' % (lccdef.longitude_of_central_meridian, lccdef.standard_parallel[0], lccdef.standard_parallel[1], lccdef.earth_radius, lccdef.latitude_of_projection_origin,)  )
+    if _withlatlon: lcc = pyproj.Proj('+proj=lcc +lon_0=%s +lat_1=%s +lat_2=%s +a=%s +lat_0=%s' % (lccdef.longitude_of_central_meridian, lccdef.standard_parallel[0], lccdef.standard_parallel[1], lccdef.earth_radius, lccdef.latitude_of_projection_origin,)  )
 
 
     lon, lat = lcc(lcc_x, lcc_y, inverse = True)
+    lone, late = lcc(lcc_xe, lcc_ye, inverse = True)
         
     if 'x' not in ifileo.variables.keys():
         """
@@ -90,17 +96,34 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         var.long_name = "synthesized coordinate from YORIG YCELL global attributes" ;
 
 
-    if withlatlon and 'latitude' not in ifileo.variables.keys():
+    if _withlatlon and 'latitude' not in ifileo.variables.keys():
         var = ifileo.createVariable('latitude', lat.dtype.char, latlon_dim)
         var[:] = lat
         var.units = 'degrees_north'
         var.standard_name = 'latitude'
 
-    if withlatlon and 'longitude' not in ifileo.variables.keys():
+    if _withlatlon and 'longitude' not in ifileo.variables.keys():
         var = ifileo.createVariable('longitude', lon.dtype.char, latlon_dim)
         var[:] = lon
         var.units = 'degrees_east'
         var.standard_name = 'longitude';
+
+    if _withlatlon and latlone_dim[0] not in ifileo.dimensions.keys():
+        ifileo.createDimension(latlone_dim[0], len(ifileo.dimensions[latlon_dim[0]]) + 1)
+    if _withlatlon and latlone_dim[1] not in ifileo.dimensions.keys():
+        ifileo.createDimension(latlone_dim[1], len(ifileo.dimensions[latlon_dim[1]]) + 1)
+
+    if _withlatlon and 'latitude_bounds' not in ifileo.variables.keys():
+        var = ifileo.createVariable('latitude_bounds', lat.dtype.char, latlone_dim)
+        var[:] = late
+        var.units = 'degrees_north'
+        var.standard_name = 'latitude_bounds'
+
+    if _withlatlon and 'longitude_bounds' not in ifileo.variables.keys():
+        var = ifileo.createVariable('longitude_bounds', lon.dtype.char, latlone_dim)
+        var[:] = lone
+        var.units = 'degrees_east'
+        var.standard_name = 'longitude_bounds';
 
     if 'layer' not in ifileo.variables.keys():
         var = ifileo.createVariable('layer', lon.dtype.char, ('LAY',))
@@ -124,7 +147,7 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         except:
             pass
         olddims = list(var.dimensions)
-        if withlatlon:
+        if _withlatlon:
             dims = map(lambda x: {'ROW': 'latitude', 'COL': 'longitude', 'TSTEP': 'time', 'LAY': 'level'}.get(x, x), olddims)
         dims = [d for d in dims if d != 'time']
         if olddims != dims:
