@@ -352,7 +352,7 @@ class PseudoNetCDFVariables(defaultdict):
         for k in self.keys():
             yield k
 
-def get_ncf_object(path_or_object, mode, format = 'NETCDF4'):
+def get_ncf_object(path_or_object, mode, format = 'NETCDF4_CLASSIC'):
     from os.path import exists, isfile
     from netcdf import NetCDFFile
     read_only = ('r', 'r+', 'rs', 'rs+', 'r+s')
