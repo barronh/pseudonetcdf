@@ -274,7 +274,7 @@ if __name__ == '__main__':
     if options.variables is not None:
         f = getvarpnc(f, options.variables.split(','))
     elif len(options.slice + options.reduce) > 0:
-        f = getvarpnc(f)
+        f = getvarpnc(f, None)
     for opts in options.slice:
         f = slice_dim(f, opts)
     for opts in options.reduce:
