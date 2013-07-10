@@ -20,6 +20,7 @@ __version__ = RevisionNum
 #Distribution packages
 import unittest
 import struct
+from warnings import warn
 
 #Site-Packages
 from numpy import zeros,array,where,memmap,newaxis,dtype,nan,linspace
@@ -126,7 +127,8 @@ class uamiv(PseudoNetCDFFile):
             self.YCENT = YCENT
         try:
             add_cf_from_ioapi(self)
-        except:
+        except Exception, e:
+            warn(repr(e))
             pass
         
 
