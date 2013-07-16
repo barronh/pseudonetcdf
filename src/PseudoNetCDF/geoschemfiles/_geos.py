@@ -334,14 +334,14 @@ class geos(PseudoNetCDFFile):
             assert(ipad == epad)
         datatype = [datatypes[0], ('data', np.dtype(datatypes[1:]), 4)]
         data = np.memmap(path, dtype = np.dtype(datatype))
-        self.createDimension('time', 4)
+        d = self.createDimension('time', 4)
+        d.setunlimited(True)
         self.createDimension('latitude', nrow)
         self.createDimension('longitude', ncol)
         self.createDimension('layer', nlay)
         self.createDimension('layer_stag', nlay_stag)
         self.createDimension('nv', 2)
         self.title = data['name']['f1'][0].strip()
-        lastkey = names[-1]
         def getem(key):
             thisblock = data[0]['data'][key]
             thisdata = thisblock['f6']
