@@ -349,35 +349,35 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
         self._example_key = keys[0]
         
     def __missing__(self, key):
-        if key in ('lat', 'lat_bnds'):
+        if key in ('latitude', 'latitude_bounds'):
             yres = self._parent.modelres[1]
             if self._parent.halfpolar == 1:
                 data = concatenate([[-90.], arange(-90. + yres / 2., 90., yres), [90.]])
             else:
                 data = arange(-90, 90 + yres, yres)
             
-            dims = ('lat',)
+            dims = ('latitude',)
             dtype = 'f'
             kwds = dict(standard_name = "latitude", long_name = "latitude", units = "degrees_north", base_units = "degrees_north", axis = "Y")
-            if key == 'lat':
+            if key == 'latitude':
                 data = data[:-1] + diff(data) / 2.
-                kwds['bounds'] = 'lat_bnds'
+                kwds['bounds'] = 'latitude_bounds'
             else:
                 dims += ('nv',)
                 data = data.repeat(2,0)[1:-1].reshape(-1, 2)
             example = self[self._example_key]
             sj = getattr(example, 'STARTJ', 0)
             data = data[sj:sj + example.shape[2]]
-        elif key in ('lon', 'lon_bnds'):
+        elif key in ('longitude', 'longitude_bounds'):
             xres = self._parent.modelres[0]
             i = arange(0, 360 + xres, xres)
             data = i - (180 + xres / 2. * self._parent.center180)
-            dims = ('lon',)
+            dims = ('longitude',)
             dtype = 'f'
             kwds = dict(standard_name = "longitude", long_name = "longitude", units = "degrees_east", base_units = "degrees_east", axis = "X")
-            if key == 'lon':
+            if key == 'longitude':
                 data = data[:-1] + diff(data) / 2.
-                kwds['bounds'] = 'lon_bnds'
+                kwds['bounds'] = 'longitude_bounds'
             else:
                 dims += ('nv',)
                 data = data.repeat(2,0)[1:-1].reshape(-1, 2)
@@ -385,10 +385,10 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             si = getattr(example, 'STARTI', 0)
             data = data[si:si + example.shape[3]]
         elif key == 'AREA':
-           lon = self['lon']
+           lon = self['longitude']
            xres = self._parent.modelres[0]
            nlon = 360. / xres
-           latb = self['lat_bnds']
+           latb = self['latitude_bounds']
            Re = self['crs'].semi_major_axis
            latb = append(latb[:, 0], latb[-1, 1])
            latr = pi / 180. * latb
@@ -396,7 +396,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
            data = data[:, None].repeat(lon.size, 1)
            kwds = dict(units = 'm**2', base_units = 'm**2', grid_mapping = "crs")
            dtype = 'i'
-           dims = ('lat', 'lon')
+           dims = ('latitude', 'longitude')
         elif key == 'VOL':
            try:
                bxhght = self['BXHGHT-$_BXHEIGHT']
@@ -406,9 +406,9 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
            data = area[None,None] * bxhght
            kwds = dict(units = 'm**3', base_units = 'm**3', grid_mapping = "crs")
            dtype = 'i'
-           dims = ('time', 'layer', 'lat', 'lon')
+           dims = ('time', 'layer', 'latitude', 'longitude')
            if len(['layer' in dk_ for dk_ in self._parent.dimensions]) > 1:
-               dims = ('time', 'layer%d' % data.shape[1], 'lat', 'lon')
+               dims = ('time', 'layer%d' % data.shape[1], 'latitude', 'longitude')
         elif key == 'crs':
           dims = ()
           kwds = dict(grid_mapping_name = "latitude_longitude",
@@ -474,9 +474,9 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             carbon = self._tracer_data[ord]['C']
             units = self._tracer_data[ord]['UNIT']
             tmp_data = self._memmap[key]['data']
-            dims = ('time', 'layer', 'lat', 'lon')
+            dims = ('time', 'layer', 'latitude', 'longitude')
             if len(['layer' in dk_ for dk_ in self._parent.dimensions]) > 1:
-                dims = ('time', 'layer%d' % tmp_data.dtype['f1'].shape[0], 'lat', 'lon')
+                dims = ('time', 'layer%d' % tmp_data.dtype['f1'].shape[0], 'latitude', 'longitude')
             kwds = dict(scale = scale, carbon = carbon, units = units, base_units = base_units, standard_name = key, long_name = key, var_desc = key, coordinates = ' '.join(dims), grid_mapping = "crs")
                 
             assert((tmp_data['f0'] == tmp_data['f2']).all())
@@ -489,7 +489,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             if any([sl != 0, sj != 0, si != 0]):
                 nl, nj, ni = header['f13'][::-1]
                 #import pdb; pdb.set_trace()
-                #tmp_data = zeros((data.shape[0], self._parent.dimensions['layer'], self._parent.dimensions['lat'], self._parent.dimensions['lon']), dtype = data.dtype)
+                #tmp_data = zeros((data.shape[0], self._parent.dimensions['layer'], self._parent.dimensions['latitude'], self._parent.dimensions['longitude']), dtype = data.dtype)
                 #el, ej, ei = data.shape[1:]
                 #el += sl
                 #ej += sj
@@ -501,7 +501,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                 kwds['STARTK'] = sl
         return PseudoNetCDFVariable(self._parent, key, dtype, dims, values = data, **kwds)
 
-coordkeys = 'time lat lon layer lat_bnds lon_bnds crs'.split()            
+coordkeys = 'time latitude longitude layer latitude_bounds longitude_bounds crs'.split()            
 metakeys = ['VOL', 'AREA', 'tau0', 'tau1', 'time_bnds'] + coordkeys
 
 
@@ -510,7 +510,7 @@ class bpch(PseudoNetCDFFile):
     NetCDF-like class to interface with GEOS-Chem binary punch files
     
     f = bpch(path_to_binary_file)
-    dim = f.dimensions[dkey] # e.g., dkey = 'lon'
+    dim = f.dimensions[dkey] # e.g., dkey = 'longitude'
     
     # There are two ways to get variables.  Directly from
     # the file using the long name
@@ -576,7 +576,7 @@ class bpch(PseudoNetCDFFile):
         self.toptitle = header[4]
         self.modelname, self.modelres, self.halfpolar, self.center180 = header[7:11]
         dummy, dummy, dummy, self.start_tau0, self.start_tau1, dummy, dim, dummy, dummy = header[13:-1]
-        for dk, dv in zip('lon lat layer'.split(), dim):
+        for dk, dv in zip('longitude latitude layer'.split(), dim):
             self.createDimension(dk, dv)
         self.createDimension('nv', 2)
         tracerinfo = tracerinfo or os.path.join(os.path.dirname(bpch_path), 'tracerinfo.dat')
@@ -640,9 +640,19 @@ class bpch(PseudoNetCDFFile):
                 tracer_data[tracer_number + goffset] = dict(SCALE = 1., C = 1., UNIT = unit)
 
             self._groups[group].add(tracername)
+            offset += _datablock_header_type.itemsize + header[-2]
+
             if first_header is None:
                 first_header = header
-            elif (header[7], header[8]) == (first_header[7], first_header[8]):
+            elif (header[7], header[8]) == (first_header[7], first_header[8]) or offset == file_size:
+                if offset == file_size:
+                    dim = header[13][::-1]
+                    start = header[14][::-1]
+                    data_type = dtype('>i4, %s>f4, >i4' % str(tuple(dim[:])))
+                    assert(data_type.itemsize == header[-2])
+                    data_types.append(data_type)
+                    keys.append('%s_%s' % (group, tracername))
+
                 # Repeating tracer indicates end of timestep
                 time_type = dtype([(k, dtype([('header', _datablock_header_type), ('data', d)])) for k, d in zip(keys, data_types)])
                 field_shapes = set([v[0].fields['data'][0].fields['f1'][0].shape for k, v in time_type.fields.iteritems()])
@@ -662,7 +672,6 @@ class bpch(PseudoNetCDFFile):
             assert(data_type.itemsize == header[-2])
             data_types.append(data_type)
             keys.append('%s_%s' % (group, tracername))
-            offset += _datablock_header_type.itemsize + header[-2]
 
         # load all data blocks  
         try:
@@ -728,8 +737,8 @@ def tileplot(f, toplot, vmin = None, vmax = None, xmin = None, xmax = None, ymin
     from pylab import figure, colorbar, axis
     from matplotlib.colors import Normalize, LogNorm
     has_map = False
-    lat = np.append(f.variables['lat_bnds'][0, 0], f.variables['lat_bnds'][:, 1])
-    lon = np.append(f.variables['lon_bnds'][0, 0], f.variables['lon_bnds'][:, 1])
+    lat = np.append(f.variables['latitude_bounds'][0, 0], f.variables['latitude_bounds'][:, 1])
+    lon = np.append(f.variables['longitude_bounds'][0, 0], f.variables['longitude_bounds'][:, 1])
     parallels = arange(lat.min(),lat.max() + 15,15)
     meridians = arange(lon.min(), lon.max() + 30,30)
     fig = figure(figsize = (9,4))
@@ -1063,8 +1072,6 @@ def pncdump(f, outpath, format):
             outv[:] = vv[:,:outv.shape[1]]
         for pk in vv.ncattrs():
             setattr(outv, pk, getattr(vv, pk))
-    outf.variables['latitude'] = outf.variables['lat']
-    outf.variables['longitude'] = outf.variables['lon']
     
     outf.close()
 
