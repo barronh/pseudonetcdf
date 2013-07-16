@@ -30,7 +30,9 @@ from numpy import arange
 from tempfile import NamedTemporaryFile as tnf
 from types import MethodType
 from units import convert
-import operator,re,tempfile,warnings,sys,unittest
+import re
+import unittest
+from os.path import isdir
 
 class PseudoNetCDFDimension(object):
     """
@@ -389,19 +391,20 @@ def get_dimension_length(pfile, key):
     elif isinstance(dim, int):
         return dim
     else:
-        return len(d)
+        return len(dim)
 
 def extract(f, lonlat):
     longitude = f.variables['longitude']
     latitude = f.variables['latitude']
     latidxs = []
     lonidxs = []
-    for ll in lonlat:
-        lon, lat = map(float, ll.split(','))
-        lonidx = abs(lon - longitude).argmin()
-        latidx = abs(lat - latitude).argmin()
-        latidxs.append(latidx)
-        lonidxs.append(lonidx)
+    for lls in lonlat:
+        for ll in lls.split('/'):
+            lon, lat = map(float, ll.split(','))
+            lonidx = abs(lon - longitude).argmin()
+            latidx = abs(lat - latitude).argmin()
+            latidxs.append(latidx)
+            lonidxs.append(lonidx)
     latidxs = array(latidxs)
     lonidxs = array(lonidxs)
     outf = f
@@ -411,7 +414,6 @@ def extract(f, lonlat):
         except:
             coords = v.dimensions
         dims = v.dimensions
-        cd = zip(coords, dims)
         f.createDimension('points', len(latidxs))
         if 'longitude' in coords or 'latitude' in coords:
             try:
@@ -450,8 +452,6 @@ def slice_dim(f, slicedef, fuzzydim = True):
         var = f.variables[varkey]
         if dimkey not in var.dimensions:
             continue
-        else:
-            thisdimkey = dimkey
         axis = list(var.dimensions).index(dimkey)
         vout = var[...].swapaxes(0, axis)[dmin:dmax:dstride].swapaxes(0, axis)
         
@@ -509,21 +509,23 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
         
         if not varkey in metakeys:
             if numweightkey is None:
-                vout = getattr(np, func)(var, axis = axis)[(slice(None),) * axis + (None,)]
+                vout = getattr(np, func)(var[(slice(None),) * (axis + 1) + (None,)], axis = axis)
             elif denweightkey is None:
-                vout = getattr(np, func)(var * np.array(numweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]),)], axis = axis)[(slice(None),) * axis + (None,)]
+                wvar = var * np.array(numweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]),)]
+                vout = getattr(np, func)(wvar[(slice(None),) * (axis + 1) + (None,)], axis = axis)
                 vout.units = vout.units.strip() + ' * ' + numweight.units.strip()
                 if hasattr(vout, 'base_units'):
                     vout.base_units = vout.base_units.strip() + ' * ' + numweight.base_units.strip()
             else:
-                vout = getattr(np, func)(var * np.array(numweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]),)], axis = axis)[(slice(None),) * axis + (None,)] / getattr(np, func)(np.array(denweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]),)], axis = axis)[(slice(None),) * axis + (None,)]
+                nwvar = var * np.array(numweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]),)]
+                vout = getattr(np, func)(nwvar[(slice(None),) * (axis + 1) + (None,)], axis = axis) / getattr(np, func)(np.array(denweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]), None)], axis = axis)
         else:
             if '_bnds' not in varkey:
-                vout = getattr(np, func)(var, axis = axis)[(slice(None),) * axis + (None,)]
+                vout = getattr(np, func)(var[(slice(None),) * (axis + 1) + (None,)], axis = axis)
             else:
-                vout = getattr(np, func)(var, axis = axis)[(slice(None),) * axis + (None,)]
+                vout = getattr(np, func)(var[(slice(None),) * (axis + 1) + (None,)], axis = axis)
                 vout[0] = var[...].min(), var[...].max()
-        f.variables[varkey] = vout
+        f.variables[varkey] = PseudoNetCDFVariable(f, varkey, var.dtype.char, var.dimensions, values = vout)
     return f
 
 def getvarpnc(f, varkeys, coordkeys = []):
@@ -542,7 +544,6 @@ def getvarpnc(f, varkeys, coordkeys = []):
     outf.createDimension('nv', 2)
     for propkey in f.ncattrs():
         setattr(outf, propkey, getattr(f, propkey))
-    thiscoordkeys = [k for k in coordkeys]
     for varkey in varkeys:
         try:
             var = eval(varkey, None, f.variables)
@@ -657,7 +658,6 @@ class Pseudo2NetCDF:
         nfile.sync()
 
 class PseudoNetCDFTest(unittest.TestCase):
-    from numpy import arange
     def setUp(self):
         self.tncf=PseudoNetCDFFile()
         
