@@ -198,11 +198,14 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         shape = [first_dim, second_dim]
                     else:
                         shape = [1]+dimensions
-                    
-                    var2d = var[:].reshape(shape)
+                    var2d = var[...].reshape(shape)
                     fmt = ', '.join(shape[-1] * [formats[var.dtype.name]])
                     for rowi, row in enumerate(var2d):
-                        array_str = fmt % tuple(row)
+                        try:
+                            row = tuple(row)
+                        except:
+                            pass
+                        array_str = fmt % row
                         if rowi == (shape[0]-1):
                             array_str += ';'
                         else:
@@ -211,8 +214,9 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         try:
                             sys.stdout.write(textwrap.fill(array_str, line_length, initial_indent = '  ', subsequent_indent = '    '))
                             sys.stdout.write('\n')
-                        except IOError:
-                            raise
+                        except IOError, e:
+                            warn(repr(e) + "; Typically from CTRL+C or exiting less")
+                            exit()
                                             
                     
         except KeyboardInterrupt:
