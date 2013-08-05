@@ -9,6 +9,7 @@ def pncgen(f,outpath, inmode = 'r', outmode = 'w', format = 'NETCDF4_CLASSIC'):
 if __name__ == '__main__':
     from optparse import OptionParser
     from camxfiles.Memmaps import *
+    from camxfiles.Readers import irr as irr_read, ipr as ipr_read
     from icarttfiles.ffi1001 import ffi1001
     from geoschemfiles import *
     try:
@@ -39,6 +40,8 @@ if __name__ == '__main__':
     
     parser.add_option("-r", "--reduce", dest = "reduce", type = "string", action = "append", default = [], help = "bpch variable dimensions can be reduced using dim,function,weight syntax (e.g., --reduce=layer,mean,weight). Weighting is not fully functional.")
 
+    parser.add_option("", "--mode", dest = "mode", type = "string", default = 'r', help = "File mode for writing (w, a or r+.")
+
 
     (options, args) = parser.parse_args()
     
@@ -68,4 +71,4 @@ if __name__ == '__main__':
     if len(options.extract) > 0:
         extract(f, options.extract)
 
-    pncgen(f, ofile)
+    pncgen(f, ofile, outmode = options.mode)
