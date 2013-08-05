@@ -395,7 +395,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
            data = 2. * pi * Re * Re / (nlon) * ( sin( latr[1:] ) - sin( latr[:-1] ) )
            data = data[:, None].repeat(lon.size, 1)
            kwds = dict(units = 'm**2', base_units = 'm**2', grid_mapping = "crs")
-           dtype = 'i'
+           dtype = 'f'
            dims = ('latitude', 'longitude')
         elif key == 'VOL':
            try:
@@ -405,7 +405,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                raise KeyError('Volume is only available if BXHGHT-$_BXHEIGHT was output')
            data = area[None,None] * bxhght
            kwds = dict(units = 'm**3', base_units = 'm**3', grid_mapping = "crs")
-           dtype = 'i'
+           dtype = 'f'
            dims = ('time', 'layer', 'latitude', 'longitude')
            if len(['layer' in dk_ for dk_ in self._parent.dimensions]) > 1:
                dims = ('time', 'layer%d' % data.shape[1], 'latitude', 'longitude')
@@ -664,7 +664,10 @@ class bpch(PseudoNetCDFFile):
                 for fl in field_levs:
                     self.createDimension('layer%d' % fl, fl)
 
-                assert((float(os.path.getsize(bpch_path)) - _general_header_type.itemsize) % time_type.itemsize == 0.)
+                itemcount = ((float(os.path.getsize(bpch_path)) - _general_header_type.itemsize) / time_type.itemsize)
+                if (itemcount % 1) != 0:
+                    warn("Cannot read whole file; assuming partial time block is at the end; skipping partial time record")
+                    itemcount = np.floor(itemcount)
                 break
             dim = header[13][::-1]
             start = header[14][::-1]
@@ -675,7 +678,9 @@ class bpch(PseudoNetCDFFile):
 
         # load all data blocks  
         try:
-            datamap = memmap(bpch_path, dtype = time_type, offset = _general_header_type.itemsize, mode = mode)
+            datamap = memmap(bpch_path, dtype = time_type, offset = _general_header_type.itemsize, mode = mode, shape = (itemcount,))
+            if not timeslice is None:
+                datamap = datamap[timeslice]
         except OverflowError:
             hdrsize = _general_header_type.itemsize
             items = (2*1024**3-hdrsize) // time_type.itemsize
@@ -717,8 +722,11 @@ class bpch(PseudoNetCDFFile):
             else:
                 datamap = memmap(bpch_path, dtype = time_type, shape = (items,), offset = _general_header_type.itemsize, mode = mode)
                 warn('Returning only the first 2GB of data')
-
-        
+        for k in datamap.dtype.names:
+          gn = datamap[k]['header']['f7']
+          tid = datamap[k]['header']['f8']
+          assert((tid[0] == tid).all())
+          assert((gn[0] == gn).all())
         # Create variables and dimensions
         self.vertgrid = vertgrid
         self.variables = _tracer_lookup(parent = self, datamap = datamap, tracerinfo = tracer_data, diaginfo = diag_data, keys = keys, noscale = self._noscale)
