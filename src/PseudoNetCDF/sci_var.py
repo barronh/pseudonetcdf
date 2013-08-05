@@ -628,7 +628,7 @@ class Pseudo2NetCDF:
                         warn("Could not add %s=%s to variable" % (a,str(value)))
                         
     
-    def addVariable(self,pfile,nfile,k):
+    def addVariable(self,pfile,nfile,k, data = True):
         pvar=pfile.variables[k]
         try:
             typecode = pvar.typecode()
@@ -636,15 +636,9 @@ class Pseudo2NetCDF:
             typecode = pvar[...].dtype.char
             
         nvar=nfile.createVariable(k,typecode,pvar.dimensions, **self.create_variable_kwds)
-
-        if isscalar(nvar):
-            nvar.assignValue(pvar)
-        elif isinstance(pvar[...], MaskedArray):
-            nvar[:] = pvar[...].filled()
-        else:
-            nvar[:] = pvar[...]
-            
         self.addVariableProperties(pvar,nvar)
+        if data:
+            self.addVariableData(pfile, nfile, k)
         nfile.sync()
         try:
             nfile.flush()
@@ -652,9 +646,24 @@ class Pseudo2NetCDF:
             pass
         del pvar,nvar
 
+    def addVariableData(self, pfile, nfile, k)
+        nvar = nfile.variables[k]
+        pvar = pfile.variables[k]
+        
+        if isscalar(nvar):
+            nvar.assignValue(pvar)
+        elif isinstance(pvar[...], MaskedArray):
+            nvar[:] = pvar[...].filled()
+        else:
+            nvar[:] = pvar[...]
+        
+
     def addVariables(self,pfile,nfile):
         for k in pfile.variables.keys():
-            self.addVariable(pfile,nfile,k)
+            self.addVariable(pfile,nfile,k, data = False)
+        nfile.sync()
+        for k in pfile.variables.keys():
+            self.addVariableData(pfile,nfile,k)
         nfile.sync()
 
 class PseudoNetCDFTest(unittest.TestCase):
