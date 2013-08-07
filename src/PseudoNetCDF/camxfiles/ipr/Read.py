@@ -112,7 +112,8 @@ class ipr(PseudoNetCDFFile):
         self.__readheader()
         self.__setDomain__()
         self.__gettimestep()
-        self.createDimension('TSTEP',self.NSTEPS)
+        tdim = self.createDimension('TSTEP',self.NSTEPS)
+        tdim.setunlimited(True)
         self.createDimension('DATE-TIME',2)
         self.createDimension('VAR',self.NSPCS*self.NPROCESS)
         varkeys=["_".join([j[1],j[0]]) for j in [i for i in cartesian([i.strip() for i in self.spcnames['SPECIES'].tolist()],self.proc_dict.keys())]]+['TFLAG']
