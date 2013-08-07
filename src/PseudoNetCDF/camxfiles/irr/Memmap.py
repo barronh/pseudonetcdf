@@ -105,6 +105,7 @@ class irr(PseudoNetCDFFile):
         self.createDimension('ROW', domain['jend']-domain['jstart']+1)
         self.createDimension('LAY', domain['tlay']-domain['blay']+1)
         self.createDimension('VAR',  len(varkeys)-1)
+        self.createDimension('DATE-TIME', 2)
         self.variables=PseudoNetCDFVariables(self.__variables,varkeys)
         self.__memmaps=memmap(self.__rffile.infile.name,self.irr_record_type,'r',self.data_start_byte).reshape(len(self.dimensions['TSTEP']),len(self.dimensions['ROW']),len(self.dimensions['COL']),len(self.dimensions['LAY'])).swapaxes(1,2).swapaxes(1,3)
 
