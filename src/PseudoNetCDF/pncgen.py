@@ -40,7 +40,7 @@ if __name__ == '__main__':
     
     parser.add_option("-r", "--reduce", dest = "reduce", type = "string", action = "append", default = [], help = "bpch variable dimensions can be reduced using dim,function,weight syntax (e.g., --reduce=layer,mean,weight). Weighting is not fully functional.")
 
-    parser.add_option("", "--mode", dest = "mode", type = "string", default = 'r', help = "File mode for writing (w, a or r+.")
+    parser.add_option("", "--mode", dest = "mode", type = "string", default = 'w', help = "File mode for writing (w, a or r+ or with unbuffered writes ws, as, or r+s).")
 
 
     (options, args) = parser.parse_args()
