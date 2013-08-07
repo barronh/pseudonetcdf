@@ -90,10 +90,11 @@ class irr(PseudoNetCDFFile):
         self.__conv=conva
         if self.units!='ppm/hr' and self.__conv==None:
             raise ValueError, "When units are provided, a conversion array dim(t,z,x,y) must also be provided"
-        varkeys=['IRR_%d' % i for i in range(1,self.NRXNS+1)]
+        varkeys=['RXN_%02d' % i for i in range(1,self.NRXNS+1)]
 
         domain=self.padomains[0]
-        self.createDimension('TSTEP', int(self.NSTEPS))
+        tdim = self.createDimension('TSTEP', int(self.NSTEPS))
+        tdim.setunlimited(True)
         self.createDimension('COL', int(domain['iend']-domain['istart']+1))
         self.createDimension('ROW', int(domain['jend']-domain['jstart']+1))
         self.createDimension('LAY', int(domain['tlay']-domain['blay']+1))
@@ -109,6 +110,10 @@ class irr(PseudoNetCDFFile):
     def __var_get(self,key):
         rxni = int(key.split('_')[1])
         self.loadVars(rxni, self._nvarcache)
+        tflag = self.createVariable('TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
+        tflag.units = '<YYYYJJJ, HHMMSS>'
+        tflag.var_desc = tflag.long_name = 'TFLAG'.ljust(16)
+        tflag[:] = array(self.timerange(), dtype = 'i').reshape(self.NSTEPS, 1, 2)
         return self.variables[key]
 
     def __readheader(self):
@@ -259,32 +264,34 @@ class irr(PseudoNetCDFFile):
         kstart=domain['blay']
         kend=domain['tlay']
         variables = self.variables
-        temp = zeros((self.NRXNS,), 'f')
+        nk = kend + 1 - kstart
+        nj = jend + 1 - jstart
+        ni = iend + 1 - istart
+        nrec = nk * ni * nj
+        temp = zeros((nrec, self.NRXNS), 'f')
         shape = (self.NSTEPS,) + tuple(eval('map(len, (LAY, ROW, COL))', None, self.dimensions))
         variables.clear()
         end = min(start + n, self.NRXNS + 1)
-        start = end - n
+        start = max(1, end - n)
         for rxn in range(start, end):
-            key = 'IRR_%d' % rxn
+            key = 'RXN_%02d' % rxn
             variables[key] = PseudoNetCDFVariable(self, key, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'), values = zeros(shape, 'f'), units = 'ppm/hr', var_desk = key.ljust(16), long_name = key.ljust(16))
 
         self._seek(pagrid = 0, i = istart, j = jstart, k = kstart)
         for ti, (d,t) in enumerate(self.timerange()):
-            for ji, j in enumerate(range(jstart, jend+1)):
-                for ii, i in enumerate(range(istart, iend+1)):
-                    for ki, k in enumerate(range(kstart, kend+1)):
-                        record = fromfile(self._rffile, dtype = self._record_dtype, count = 1)
-                        temp[:] = record['IRRS']
-                        date = record['DATE']
-                        time = record['TIME']
-                        id = record['I']
-                        jd = record['J']
-                        kd = record['K']
-                        
-                        assert(id == i and jd == j and kd == k and date == d and time == t)
-
-                        for rxn in range(start, end):
-                            variables['IRR_%d' % rxn][ti, ki, ji, ii] = temp[rxn-1]
+            record = fromfile(self._rffile, dtype = self._record_dtype, count = nrec)
+            temp[:] = record['IRRS']
+            date = record['DATE']
+            time = record['TIME']
+            id = record['I']
+            jd = record['J']
+            kd = record['K']
+            assert((id == arange(istart, iend + 1)[None, :, None].repeat(nk, 2).repeat(nj, 0).ravel()).all())
+            assert((kd == arange(kstart, kend + 1)[None, None, :].repeat(ni, 1).repeat(nj, 0).ravel()).all())
+            assert(((jd == arange(jstart, jend + 1).repeat(ni * nk, 0))).all())
+            assert((date == d).all() and (time == t).all())
+            for rxn in range(start, end):
+                variables['RXN_%02d' % rxn][ti, :, :, :] = temp[:, rxn-1].reshape(nj, ni, nk).swapaxes(1,2).swapaxes(0, 1)
             
     def timerange(self):
         tstart = datetime.strptime('%05dT%04d' % (self.SDATE, self.STIME), '%y%jT%H%M')
