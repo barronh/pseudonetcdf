@@ -33,6 +33,7 @@ from units import convert
 import re
 import unittest
 from os.path import isdir
+import sys
 
 class PseudoNetCDFDimension(object):
     """
@@ -587,11 +588,17 @@ class Pseudo2NetCDF:
     ignore_variable_properties=['typecode','dimensions']
     unlimited_dimensions = []
     create_variable_kwds = {}
+    def __init__(self, datafirst = False, verbose = True):
+        self.datafirst = datafirst
+        self.verbose = verbose
     def convert(self,pfile,npath=None, inmode = 'r', outmode = 'w', format = 'NETCDF4'):
         pfile = get_ncf_object(pfile, inmode)
         nfile = get_ncf_object(npath, outmode, format = format)
+        if self.verbose: print >> sys.stdout, "Adding dimensions"
         self.addDimensions(pfile,nfile)
+        if self.verbose: print >> sys.stdout, "Adding globals"
         self.addGlobalProperties(pfile,nfile)
+        if self.verbose: print >> sys.stdout, "Adding variables"
         self.addVariables(pfile,nfile)
         nfile.sync()
         return nfile
@@ -646,7 +653,7 @@ class Pseudo2NetCDF:
             pass
         del pvar,nvar
 
-    def addVariableData(self, pfile, nfile, k)
+    def addVariableData(self, pfile, nfile, k):
         nvar = nfile.variables[k]
         pvar = pfile.variables[k]
         
@@ -660,11 +667,14 @@ class Pseudo2NetCDF:
 
     def addVariables(self,pfile,nfile):
         for k in pfile.variables.keys():
-            self.addVariable(pfile,nfile,k, data = False)
+            if self.verbose: print >> sys.stdout, "Defining", k
+            self.addVariable(pfile,nfile,k, data = self.datafirst)
         nfile.sync()
-        for k in pfile.variables.keys():
-            self.addVariableData(pfile,nfile,k)
-        nfile.sync()
+        if not self.datafirst:
+            for k in pfile.variables.keys():
+                if self.verbose: print >> sys.stdout, "Populating", k
+                self.addVariableData(pfile,nfile,k)
+            nfile.sync()
 
 class PseudoNetCDFTest(unittest.TestCase):
     def setUp(self):
