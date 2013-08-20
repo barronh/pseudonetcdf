@@ -28,7 +28,7 @@ from math import ceil
 import os,sys
 
 #Site-Packages
-from numpy import zeros,array,where,memmap,newaxis,dtype, fromfile
+from numpy import zeros,array,where,memmap,newaxis,dtype, fromfile, arange
 
 #This Package modules
 from PseudoNetCDF.camxfiles.util import sliceit
