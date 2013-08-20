@@ -22,7 +22,7 @@ def add_time_variable(ifileo):
             tmpseconds = 3600 * int(htmp) + 60 * int(mtmp) + int(stmp)
     
         time_unit = "seconds since %s 00:00:00 UTC" % (sdate.strftime('%Y-%m-%d'),)
-        time = np.arange(0, len(ifileo.dimensions['TSTEP'])) * tmpseconds
+        time = np.arange(0, len(ifileo.dimensions['TSTEP']), dtype = 'i') * tmpseconds
         var = ifileo.createVariable('time', time.dtype.char, ('TSTEP',))
         var[:] = time
         var.units = time_unit
@@ -101,12 +101,14 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         var[:] = lat
         var.units = 'degrees_north'
         var.standard_name = 'latitude'
+        var.bounds = 'latitude_bounds'
 
     if _withlatlon and 'longitude' not in ifileo.variables.keys():
         var = ifileo.createVariable('longitude', lon.dtype.char, latlon_dim)
         var[:] = lon
         var.units = 'degrees_east'
         var.standard_name = 'longitude';
+        var.bounds = 'longitude_bounds'
 
     if _withlatlon and latlone_dim[0] not in ifileo.dimensions.keys():
         ifileo.createDimension(latlone_dim[0], len(ifileo.dimensions[latlon_dim[0]]) + 1)
