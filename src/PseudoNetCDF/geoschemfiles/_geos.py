@@ -276,16 +276,19 @@ class geos(PseudoNetCDFFile):
             dtype = '>S8' if ipad == 8 else '>f'
             if dtype == '>f':
                elem = ipad / 4
+               assert((ipad % 4) == 0)
             else:
                elem = 1
             if first:
                 pass
-            elif elem == (nrow * ncol + 2):
-               shape = (nrow, ncol)
-            elif elem == (nrow * ncol * nlay + 2):
-               shape = (nlay, nrow, ncol)
-            elif elem == (nrow * ncol * nlay_stag + 2):
-               shape = (nlay_stag, nrow, ncol)
+            else:
+                if elem == (nrow * ncol + 2):
+                   shape = (nrow, ncol)
+                elif elem == (nrow * ncol * nlay + 2):
+                   shape = (nlay, nrow, ncol)
+                elif elem == (nrow * ncol * nlay_stag + 2):
+                   shape = (nlay_stag, nrow, ncol)
+                
             if dtype == '>S8':
                 data = fromfile(infile, dtype = dtype, count = elem)
             else:
@@ -332,9 +335,13 @@ class geos(PseudoNetCDFFile):
                names.append(name)
             lasttype = dtype
             assert(ipad == epad)
-        datatype = [datatypes[0], ('data', np.dtype(datatypes[1:]), 4)]
+        if 'a3' in path:
+            nsteps = 8
+        elif 'a6' in path or 'i6' in path:
+            nsteps = 4
+        datatype = [datatypes[0], ('data', np.dtype(datatypes[1:]), nsteps)]
         data = np.memmap(path, dtype = np.dtype(datatype))
-        d = self.createDimension('time', 4)
+        d = self.createDimension('time', nsteps)
         d.setunlimited(True)
         self.createDimension('latitude', nrow)
         self.createDimension('longitude', ncol)
@@ -346,11 +353,13 @@ class geos(PseudoNetCDFFile):
             thisblock = data[0]['data'][key]
             thisdata = thisblock['f6']
             assert((thisblock['f3'] == thisblock['f7']).all())
-            if thisdata.shape[1] == nlay:
+            if len(thisdata.shape) == 3:
+                dims = ('time', 'latitude', 'longitude')
+            elif thisdata.shape[1] == nlay:
                 dims = ('time', 'layer', 'latitude', 'longitude')
             else:
                 dims = ('time', 'layer_stag', 'latitude', 'longitude')
-            return PseudoNetCDFVariable(self, key, '>f', dims, values = thisdata, units = '', long_name = key.ljust(16))
+            return PseudoNetCDFVariable(self, key, 'f', dims, values = thisdata, units = '', long_name = key.ljust(16))
         self.variables = PseudoNetCDFVariables(keys = names[1:], func = getem)
         dates = data[0]['data'][names[1]]['f4']
         times = data[0]['data'][names[1]]['f5']
