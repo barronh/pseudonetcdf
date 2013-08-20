@@ -21,7 +21,7 @@ Example implementation:
         dump_from_cmd_line(file_path, options, lambda path: vertical_diffusivity(path, **extra_args_dict))
 
 Example implementation usage:
-    python -m PseudoNetCDF.pncdump camx_kv.20000825.hgbpa_04km.TCEQuh1_eta.v43.tke 65 83
+    python -m PseudoNetCDF.pncdump -f vertical_diffusivity,rows=65,cols=83 camx_kv.20000825.hgbpa_04km.TCEQuh1_eta.v43.tke camx_kv.20000825.hgbpa_04km.TCEQuh1_eta.v43.tke.nc
 """
 
 __all__=['pncdump','dump_from_cmd_line', 'pncdump_parser']
@@ -237,15 +237,14 @@ if __name__ == '__main__':
     from sci_var import reduce_dim, slice_dim, getvarpnc, extract
 
     parser = OptionParser()
-    parser.set_usage("""Usage: python -m %prog [-f uamiv|bpch|ffi1001|...] ifile [ofile]
+    parser.set_usage("""Usage: python -m %prog [-f netcdf|uamiv|bpch|ffi1001|...] ifile
 
     ifile - path to a file formatted as type -f
-    ofile - path to the desired output
     
-    -f --format - format of the file either uamiv (CAMx), bpch (GEOS-Chem) or ffi1001 (optionally has comma delimited arguments for opening the format)
+    -f --format - format of the file either uamiv (CAMx), bpch (GEOS-Chem), ffi1001 (ICARTT), or other supported file (optionally has comma delimited arguments for opening the format)
     """)
 
-    parser.add_option("-f", "--format", dest = "format", default = 'uamiv', help = "File format")
+    parser.add_option("-f", "--format", dest = "format", default = 'netcdf', help = "File format")
     
     parser.add_option("-v", "--variables", dest = "variables", default = None,
                         help = "Variable names or regular expressions (using match) separated by ','. If a group(s) has been specified, only variables in that (those) group(s) will be selected.")
@@ -266,10 +265,6 @@ if __name__ == '__main__':
         exit()
     
     ifile = args[0]
-    if len(args) == 1:
-        ofile = ifile + '.nc'
-    else:
-        ofile = args[1]
     
     format_options = options.format.split(',')
     file_format = format_options.pop(0)
