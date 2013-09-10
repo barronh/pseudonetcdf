@@ -436,7 +436,7 @@ def slice_dim(f, slicedef, fuzzydim = True):
         
     e.g., slice_dim(f, 'layer,0,47,5') would sample every fifth layer starting at 0
     """
-
+    historydef = "slice_dim(f, %s, fuzzydim = %s); " % (slicedef, fuzzydim)
     slicedef = slicedef.split(',')
     slicedef = [slicedef[0]] + map(eval, slicedef[1:])
     if len(slicedef) == 2:
@@ -460,9 +460,13 @@ def slice_dim(f, slicedef, fuzzydim = True):
         newdim = f.createDimension(dimkey, newlen)
         newdim.setunlimited(unlimited)
         f.variables[varkey] = vout
+    history = getattr(f, 'history', '')
+    history += historydef
+    setattr(f, 'history', history)
+
     return f
     
-def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latitude longitude ROW COL LAY TFLAG ETFLAG'.split()):
+def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latitude longitude time_bounds latitude_bounds longitude_bounds ROW COL LAY TFLAG ETFLAG'.split()):
     """
     variable dimensions can be reduced using
     
@@ -472,6 +476,8 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
     
     Weighting is not fully functional.
     """
+    metakeys = [k for k in metakeys if k in f.variables.keys()]
+    historydef = "reduce_dim(f, %s, fuzzydim = %s, metakeys = %s); " % (reducedef, fuzzydim, metakeys)
     import numpy as np
     commacount = reducedef.count(',')
     if commacount == 3:
@@ -521,15 +527,20 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
                 nwvar = var * np.array(numweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]),)]
                 vout = getattr(np, func)(nwvar[(slice(None),) * (axis + 1) + (None,)], axis = axis) / getattr(np, func)(np.array(denweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]), None)], axis = axis)
         else:
-            if '_bnds' not in varkey:
+            if '_bounds' not in varkey and '_bnds' not in varkey:
                 vout = getattr(np, func)(var[(slice(None),) * (axis + 1) + (None,)], axis = axis)
             else:
                 vout = getattr(np, func)(var[(slice(None),) * (axis + 1) + (None,)], axis = axis)
                 vout[0] = var[...].min(), var[...].max()
         f.variables[varkey] = PseudoNetCDFVariable(f, varkey, var.dtype.char, var.dimensions, values = vout)
+
+    history = getattr(f, 'history', '')
+    history += historydef
+    setattr(f, 'history', history)
     return f
 
 def getvarpnc(f, varkeys, coordkeys = []):
+    coordkeys = set(coordkeys)
     if varkeys is None:
         varkeys = list(set(f.variables.keys()).difference(coordkeys))
     else:
@@ -555,7 +566,13 @@ def getvarpnc(f, varkeys, coordkeys = []):
                 newdimv = outf.createDimension(dimk, dimv)
                 if f.dimensions[dimk].isunlimited():
                     newdimv.setunlimited(True)
-                coordkeys.append(dimk)
+                coordkeys.add(dimk)
+                try:
+                    tempv = f.variables[dimk]
+                    if hasattr(tempv, 'bounds'):
+                        coordkeys.add(tempv.bounds.strip())
+                except (KeyError, AttributeError), e:
+                    pass
         for coordk in coordkeys:
             if coordk in f.dimensions and coordk not in outf.dimensions:
                 newdimv = outf.createDimension(coordk, len(f.dimensions[coordk]))
