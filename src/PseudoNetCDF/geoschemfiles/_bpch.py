@@ -417,7 +417,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                       inverse_flattening = 0)
           dtype = 'i'
           data = zeros(1, dtype = dtype)
-        elif key in ('time', 'time_bnds'):
+        elif key in ('time', 'time_bounds'):
             tmp_key = self._example_key
             data = np.array([self['tau0'], self['tau1']]).T
             dims = ('time', 'nv')
@@ -427,6 +427,8 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             
             dtype = 'i'
             kwds = dict(units = 'hours since 1985-01-01 00:00:00 UTC', base_units = 'hours since 1985-01-01 00:00:00 UTC', standard_name = key, long_name = key, var_desc = key)
+            if key == 'time':
+                kwds['bounds'] = 'time_bounds'
         elif key[:5] == 'layer':
             if self._parent.vertgrid in ('GEOS-5-REDUCED', 'MERRA-REDUCED'):
                 if key[5:] in ('48', '_edges'):
@@ -503,7 +505,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
         return PseudoNetCDFVariable(self._parent, key, dtype, dims, values = data, **kwds)
 
 coordkeys = 'time latitude longitude layer latitude_bounds longitude_bounds crs'.split()            
-metakeys = ['VOL', 'AREA', 'tau0', 'tau1', 'time_bnds'] + coordkeys
+metakeys = ['VOL', 'AREA', 'tau0', 'tau1', 'time_bounds'] + coordkeys
 
 
 class bpch(PseudoNetCDFFile):
@@ -1014,7 +1016,7 @@ def reduce_dim(f, reducedef, fuzzydim = True):
             else:
                 vout = getattr(np, func)(var * np.array(numweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]),)], axis = axis)[(slice(None),) * axis + (None,)] / getattr(np, func)(np.array(denweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]),)], axis = axis)[(slice(None),) * axis + (None,)]
         else:
-            if '_bnds' not in varkey:
+            if '_bounds' not in varkey:
                 vout = getattr(np, func)(var, axis = axis)[(slice(None),) * axis + (None,)]
             else:
                 vout = getattr(np, func)(var, axis = axis)[(slice(None),) * axis + (None,)]
