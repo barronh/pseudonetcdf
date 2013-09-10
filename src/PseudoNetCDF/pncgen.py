@@ -7,6 +7,7 @@ def pncgen(f,outpath, inmode = 'r', outmode = 'w', format = 'NETCDF4_CLASSIC'):
     return p2n.convert(f, outpath, inmode = inmode, outmode = outmode, format = format)
     
 if __name__ == '__main__':
+    import sys
     from optparse import OptionParser
     from camxfiles.Memmaps import *
     from camxfiles.Readers import irr as irr_read, ipr as ipr_read
@@ -61,7 +62,8 @@ if __name__ == '__main__':
     file_format = format_options.pop(0)
     format_options = eval('dict(' + ', '.join(format_options) + ')')
     f = eval(file_format)(ifile, **format_options)
-    
+    history = getattr(f, 'history', '')
+    history += ' '.join(sys.argv) + ';'
     if options.variables is not None:
         f = getvarpnc(f, options.variables.split(','))
     elif len(options.slice + options.reduce) > 0:
@@ -72,5 +74,6 @@ if __name__ == '__main__':
         f = reduce_dim(f, opts)
     if len(options.extract) > 0:
         extract(f, options.extract)
-
+    setattr(f, 'history', history)
+    
     pncgen(f, ofile, outmode = options.mode, format = options.outformat)
