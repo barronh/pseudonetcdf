@@ -33,7 +33,7 @@ def add_time_variable(ifileo, key):
             time = time.repeat(2, 0)[1:-1].reshape(-1, 2)
             dims = ('TSTEP','nv')
             if 'nv' not in ifileo.dimensions.keys():
-                ifile.createDimension('nv', 2)
+                ifileo.createDimension('nv', 2)
         else:
             raise KeyError('time variables are time and time_bounds, got %s' % key)
         var = ifileo.createVariable(key, time.dtype.char, dims)
