@@ -21,6 +21,7 @@ RevisionNum= "$LastChangedRevision$"
 ChangedBy  = "$LastChangedBy$"
 __version__ = RevisionNum
 
+import numpy as np
 from numpy import array, zeros, ndarray, isscalar, abs
 from numpy.ma import MaskedArray, zeros as mazeros
 from collections import defaultdict
@@ -429,6 +430,13 @@ def extract(f, lonlat):
                 setattr(nv, ak, getattr(v, ak))
     return f
     
+def mask_vals(f, maskdef, metakeys = 'time layer level latitude longitude time_bounds latitude_bounds longitude_bounds ROW COL LAY TFLAG ETFLAG'.split()):
+    for varkey, var in f.variables.iteritems():
+        if varkey not in metakeys:
+            vout = eval('np.ma.masked_%s(var[:], %s)' % tuple(maskdef.split(',')))
+            f.variables[varkey] = PseudoNetCDFMaskedVariable(f, varkey, var.dtype.char, var.dimensions, values = vout, **dict([(pk, getattr(var, pk)) for pk in var.ncattrs()]))
+    return f
+    
 def slice_dim(f, slicedef, fuzzydim = True):
     """
     variables have dimensions (e.g., time, layer, lat, lon), which can be subset using 
@@ -516,23 +524,23 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
         
         if not varkey in metakeys:
             if numweightkey is None:
-                vout = getattr(np, func)(var[(slice(None),) * (axis + 1) + (None,)], axis = axis)
+                vout = getattr(var[(slice(None),) * (axis + 1) + (None,)], func)(axis = axis)
             elif denweightkey is None:
                 wvar = var * np.array(numweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]),)]
-                vout = getattr(np, func)(wvar[(slice(None),) * (axis + 1) + (None,)], axis = axis)
+                vout = getattr(wvar[(slice(None),) * (axis + 1) + (None,)], func)(axis = axis)
                 vout.units = vout.units.strip() + ' * ' + numweight.units.strip()
                 if hasattr(vout, 'base_units'):
                     vout.base_units = vout.base_units.strip() + ' * ' + numweight.base_units.strip()
             else:
                 nwvar = var * np.array(numweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]),)]
-                vout = getattr(np, func)(nwvar[(slice(None),) * (axis + 1) + (None,)], axis = axis) / getattr(np, func)(np.array(denweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]), None)], axis = axis)
+                vout = getattr(nwvar[(slice(None),) * (axis + 1) + (None,)], func)(axis = axis) / getattr(np.array(denweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]), None)], func)(axis = axis)
         else:
             if '_bounds' not in varkey and '_bnds' not in varkey:
-                vout = getattr(np, func)(var[(slice(None),) * (axis + 1) + (None,)], axis = axis)
+                vout = getattr(var[(slice(None),) * (axis + 1) + (None,)], func)(axis = axis)
             else:
-                vout = getattr(np, func)(var[(slice(None),) * (axis + 1) + (None,)], axis = axis)
+                vout = getattr(var[(slice(None),) * (axis + 1) + (None,)], func)(axis = axis)
                 vout[0] = var[...].min(), var[...].max()
-        f.variables[varkey] = PseudoNetCDFVariable(f, varkey, var.dtype.char, var.dimensions, values = vout)
+        f.variables[varkey] = PseudoNetCDFMaskedVariable(f, varkey, var.dtype.char, var.dimensions, values = vout)
 
     history = getattr(f, 'history', '')
     history += historydef

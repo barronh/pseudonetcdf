@@ -234,7 +234,7 @@ if __name__ == '__main__':
         from netCDF4 import Dataset as netcdf
     except:
         pass
-    from sci_var import reduce_dim, slice_dim, getvarpnc, extract
+    from sci_var import reduce_dim, slice_dim, getvarpnc, extract, mask_vals
 
     parser = OptionParser()
     parser.set_usage("""Usage: python -m %prog [-f netcdf|uamiv|bpch|ffi1001|...] ifile
@@ -254,6 +254,8 @@ if __name__ == '__main__':
 
     parser.add_option("-e", "--extract", dest = "extract", action = "append", default = [],
                         help = "lon/lat coordinates to extract")
+    parser.add_option("-m", "--mask", dest = "masks", action = "append", default = [],
+                        help = "Masks to apply (e.g., greater,0 or less,0 or values,0)")
     
     parser.add_option("-r", "--reduce", dest = "reduce", type = "string", action = "append", default = [], help = "bpch variable dimensions can be reduced using dim,function,weight syntax (e.g., --reduce=layer,mean,weight). Weighting is not fully functional.")
 
@@ -275,6 +277,8 @@ if __name__ == '__main__':
         f = getvarpnc(f, options.variables.split(','))
     elif len(options.slice + options.reduce) > 0:
         f = getvarpnc(f, None)
+    for opts in options.masks:
+        f = mask_vals(f, opts)
     for opts in options.slice:
         f = slice_dim(f, opts)
     for opts in options.reduce:
