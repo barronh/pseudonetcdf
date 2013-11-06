@@ -26,6 +26,7 @@ from warnings import warn
 from numpy import zeros,array,where,memmap,newaxis,dtype,nan
 
 #This Package modules
+from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
 from PseudoNetCDF.camxfiles.timetuple import timediff,timeadd,timerange
 from PseudoNetCDF.camxfiles.util import cartesian
 from PseudoNetCDF.camxfiles.units import get_uamiv_units
@@ -77,12 +78,14 @@ class ipr(PseudoNetCDFFile):
     dt_fmt="if"
     data_fmt="f"
                                     
-    def __init__(self,rf,multi=False):
+    def __init__(self,rf,multi=False, **props):
         """
         Initialization included reading the header and learning
         about the format.
         
         see __readheader and __gettimestep() for more info
+
+        Keywords (i.e., props) for projection: P_ALP, P_BET, P_GAM, XCENT, YCENT, XORIG, YORIG, XCELL, YCELL
         """
         self.__rffile=OpenRecordFile(rf)
         self.__readheader()
@@ -128,6 +131,9 @@ class ipr(PseudoNetCDFFile):
         
         self.__memmaps=memmap(self.__rffile.infile.name,self.__ipr_record_type,'r',self.data_start_byte).reshape(len([i for i in self.timerange()]),len(self.spcnames),len(self.dimensions['ROW']),len(self.dimensions['COL']),len(self.dimensions['LAY'])).swapaxes(4,3).swapaxes(2,3)
         self.variables=PseudoNetCDFVariables(self.__variables,varkeys)
+        for k, v in props.iteritems():
+            setattr(self, k, v)
+        add_cf_from_ioapi(self)
 
     def __del__(self):
         try:

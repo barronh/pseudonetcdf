@@ -29,6 +29,7 @@ import os,sys
 from numpy import zeros,array,where,memmap,newaxis,dtype,fromfile,dtype
 
 #This Package modules
+from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
 from PseudoNetCDF.camxfiles.timetuple import timediff,timeadd,timerange
 from PseudoNetCDF.camxfiles.util import cartesian
 from PseudoNetCDF.camxfiles.units import get_uamiv_units
@@ -92,12 +93,14 @@ class ipr(PseudoNetCDFFile):
               )
          }
 
-    def __init__(self,rf,proc_dict=None,units='umol/m**3', oldnames = False):
+    def __init__(self,rf,proc_dict=None,units='umol/m**3', oldnames = False, **props):
         """
         Initialization included reading the header and learning
         about the format.
         
         see __readheader and __gettimestep() for more info
+        
+        Keywords (i.e., props) for projection: P_ALP, P_BET, P_GAM, XCENT, YCENT, XORIG, YORIG, XCELL, YCELL
         """
         if proc_dict!=None:
             self.proc_dict=proc_dict
@@ -118,6 +121,9 @@ class ipr(PseudoNetCDFFile):
         self.createDimension('VAR',self.NSPCS*self.NPROCESS)
         varkeys=["_".join([j[1],j[0]]) for j in [i for i in cartesian([i.strip() for i in self.spcnames['SPECIES'].tolist()],self.proc_dict.keys())]]+['TFLAG']
         self.variables=PseudoNetCDFVariables(self.__variables,varkeys)
+        for k, v in props.iteritems():
+            setattr(self, k, v)
+        add_cf_from_ioapi(self)
         
 
     def __variables(self,proc_spc):
