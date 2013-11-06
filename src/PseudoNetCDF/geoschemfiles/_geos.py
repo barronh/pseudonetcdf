@@ -263,9 +263,9 @@ g5_eta_z = np.array([[  1.00000000e+00,  -6.00000000e-03],
        [  5.00000000e-06,   7.81460000e+01],
        [  0.00000000e+00,   8.05810000e+01]])
 class geos(PseudoNetCDFFile):
-    def __init__(self, path):
+    def __init__(self, path, mode = 'r'):
         infile = file(path, 'r')
-
+        infile.seek(0,0)
         fsize = os.path.getsize(path)
         lasttype = ''
         datatypes = [('name', '>i4, >S8, >i4')]
@@ -340,7 +340,7 @@ class geos(PseudoNetCDFFile):
         elif 'a6' in path or 'i6' in path:
             nsteps = 4
         datatype = [datatypes[0], ('data', np.dtype(datatypes[1:]), nsteps)]
-        data = np.memmap(path, dtype = np.dtype(datatype))
+        data = np.memmap(path, dtype = np.dtype(datatype), mode = mode)
         d = self.createDimension('time', nsteps)
         d.setunlimited(True)
         self.createDimension('latitude', nrow)
