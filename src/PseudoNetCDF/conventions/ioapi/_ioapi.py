@@ -18,7 +18,7 @@ def add_time_variable(ifileo, key):
         if ifileo.TSTEP == 0:
             tmpseconds = 0;
         else:
-            tmp = ('%06s' % ifileo.TSTEP)
+            tmp = ('%06d' % ifileo.TSTEP)
             htmp = tmp[:2]
             mtmp = tmp[2:4]
             stmp = tmp[4:]
