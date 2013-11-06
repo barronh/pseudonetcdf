@@ -425,7 +425,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                 data = data.mean(1)
                 dims = ('time',)
             
-            dtype = 'i'
+            dtype = 'd'
             kwds = dict(units = 'hours since 1985-01-01 00:00:00 UTC', base_units = 'hours since 1985-01-01 00:00:00 UTC', standard_name = key, long_name = key, var_desc = key)
             if key == 'time':
                 kwds['bounds'] = 'time_bounds'
@@ -457,13 +457,13 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             tmp_key = self._example_key
             data = self._memmap[tmp_key]['header']['f10']
             dims = ('time',)
-            dtype = 'i'
+            dtype = 'd'
             kwds = dict(units = 'hours since 1985-01-01 00:00:00 UTC', base_units = 'hours since 1985-01-01 00:00:00 UTC', standard_name = key, long_name = key, var_desc = key)
         elif key == 'tau1':
             tmp_key = self._example_key
             data = self._memmap[tmp_key]['header']['f11']
             dims = ('time',)
-            dtype = 'i'
+            dtype = 'd'
             kwds = dict(units = 'hours since 1985-01-01 00:00:00 UTC', base_units = 'hours since 1985-01-01 00:00:00 UTC', standard_name = key, long_name = key, var_desc = key)
         else:
             dtype = 'f'
