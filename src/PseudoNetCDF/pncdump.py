@@ -3,86 +3,20 @@ __doc__ = r"""
 :mod:`dumper` -- PseudoNetCDF dump module
 ============================================
 
-.. module:: dumper
+.. module:: pncdump
    :platform: Unix, Windows
    :synopsis: Provides ncdump like functionaility for PseudoNetCDF
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 
-Example implementation:
-    if __name__ == '__main__':
-        from PseudoNetCDF.pncdump import pncdump_parser, \
-                                        dump_from_cmd_line
-        parser = pncdump_parser()
-        parser.add_argument("cols", int)
-        parser.add_argument("rows", int)
-        from PseudoNetCDF.camxfiles.vertical_diffusivity.Memmap import vertical_diffusivity
-        (file_path, options, extra_args_dict) = parser.parse_args()
-    
-        dump_from_cmd_line(file_path, options, lambda path: vertical_diffusivity(path, **extra_args_dict))
-
-Example implementation usage:
-    python -m PseudoNetCDF.pncdump -f vertical_diffusivity,rows=65,cols=83 camx_kv.20000825.hgbpa_04km.TCEQuh1_eta.v43.tke camx_kv.20000825.hgbpa_04km.TCEQuh1_eta.v43.tke.nc
 """
 
-__all__=['pncdump','dump_from_cmd_line', 'pncdump_parser']
-from numpy import float32, float64, int16, int32, int64, uint32, uint64, ndenumerate, savetxt
+__all__=['pncdump',]
+from numpy import float32, float64, int16, int32, int64, ndenumerate
 from warnings import warn
-from optparse import OptionParser
 
 import textwrap
 import sys
-import os
 import operator
-
-class pncdump_parser(OptionParser):
-    def __init__(self, *args, **kwds):
-        OptionParser.__init__(self, *args, **kwds)
-        self.set_conflict_handler("resolve")
-        self.set_usage("Usage: pncdump [-h] [-v var1[,...]] [-f c|f]] [-l len] [-n name] [--help] file_path")
-        self.add_option("-h", "--header", dest="header",action = "store_true", default=False)
-        self.add_option("-v", "--variables", dest="variables",default="", metavar = "var[,...]")
-        self.add_option("-n", "--name", dest="name",default=None, metavar = "filename")
-        self.add_option("-l", "--length", dest="line_length",default=80, metavar = "len")
-        self.add_option("-f", "--full", dest="full_indices",default=None, metavar = "[C|F]")
-        self.add_option("-p", "--precision", dest="precision",default=None, metavar = "fdig,pdig")
-        self.__extra_arguments = []
-        
-    def check_values(self, options, args):
-        args_total = 1+len(self.__extra_arguments)
-        if len(args) != args_total:
-            self.error(msg="Requires file path pluss any arguments necessary initialize the file: %d" % (args_total,))
-        else:
-            if os.path.exists(args[0]):
-                file_path = args[0]
-            else:
-                self.error(msg="The file_path argument must be a real file")
-
-        extra_args = dict([(name,type_func(args[i+1])) for i,(name,type_func) in enumerate(self.__extra_arguments)])
-            
-    
-        if options.variables is not None:
-            options.variables = options.variables.split()
-        
-        if options.name is None:
-            options.name = os.path.basename(args[0])
-            
-        options.line_length = int(options.line_length)
-        
-        if options.full_indices is not None:
-            options.full_indices = (options.full_indices+'c')[0].lower()
-        
-        if options.precision is None:
-            options.float_precision = 8
-            options.double_precision = 16
-        else:
-            options.float_precision, options.double_precision = [int(v) for v in options.precision.split(',')]
-        
-        return file_path, options, extra_args
-    
-    def add_argument(self, name, type_func):
-        self.__extra_arguments.append((name, type_func))
-        self.set_usage(self.usage+ " " + name)
-        
 
 def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 80, full_indices = None, float_precision = 8, double_precision = 16):
     """
@@ -96,6 +30,8 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                 (equivalent to ncdump -h)
     variables - iterable of variable names for subsetting
                 data display (equivalent to ncddump -v var[,...]
+
+    pncdump(vertical_diffusivity('camx_kv.20000825.hgbpa_04km.TCEQuh1_eta.v43.tke',rows=65,cols=83))
     """
     formats = dict(float64 = "%%.%de" % (double_precision,), \
                    float32 = "%%.%de" % (float_precision,), \
@@ -225,65 +161,6 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
     sys.stdout.write("}\n")
 
 if __name__ == '__main__':
-    from optparse import OptionParser
-    from camxfiles.Memmaps import *
-    from camxfiles.Readers import irr as irr_read, ipr as ipr_read
-    from icarttfiles.ffi1001 import ffi1001
-    from geoschemfiles import *
-    try:
-        from netCDF4 import Dataset as netcdf
-    except:
-        pass
-    from sci_var import reduce_dim, slice_dim, getvarpnc, extract, mask_vals
-
-    parser = OptionParser()
-    parser.set_usage("""Usage: python -m %prog [-f netcdf|uamiv|bpch|ffi1001|...] ifile
-
-    ifile - path to a file formatted as type -f
-    
-    -f --format - format of the file either uamiv (CAMx), bpch (GEOS-Chem), ffi1001 (ICARTT), or other supported file (optionally has comma delimited arguments for opening the format)
-    """)
-
-    parser.add_option("-f", "--format", dest = "format", default = 'netcdf', help = "File format")
-    
-    parser.add_option("-v", "--variables", dest = "variables", default = None,
-                        help = "Variable names or regular expressions (using match) separated by ','. If a group(s) has been specified, only variables in that (those) group(s) will be selected.")
-
-    parser.add_option("-s", "--slice", dest = "slice", type = "string", action = "append", default = [],
-                        help = "bpch variables have dimensions (time, layer, lat, lon), which can be subset using dim,start,stop,stride (e.g., --slice=layer,0,47,5 would sample every fifth layer starting at 0)")
-
-    parser.add_option("-e", "--extract", dest = "extract", action = "append", default = [],
-                        help = "lon/lat coordinates to extract")
-    parser.add_option("-m", "--mask", dest = "masks", action = "append", default = [],
-                        help = "Masks to apply (e.g., greater,0 or less,0 or values,0)")
-    
-    parser.add_option("-r", "--reduce", dest = "reduce", type = "string", action = "append", default = [], help = "bpch variable dimensions can be reduced using dim,function,weight syntax (e.g., --reduce=layer,mean,weight). Weighting is not fully functional.")
-
-
-    (options, args) = parser.parse_args()
-    
-    if len(args) == 0 or len(args) > 2:
-        parser.print_help()
-        exit()
-    
-    ifile = args[0]
-    
-    format_options = options.format.split(',')
-    file_format = format_options.pop(0)
-    format_options = eval('dict(' + ', '.join(format_options) + ')')
-    f = eval(file_format)(ifile, **format_options)
-    
-    if options.variables is not None:
-        f = getvarpnc(f, options.variables.split(','))
-    elif len(options.slice + options.reduce) > 0:
-        f = getvarpnc(f, None)
-    for opts in options.masks:
-        f = mask_vals(f, opts)
-    for opts in options.slice:
-        f = slice_dim(f, opts)
-    for opts in options.reduce:
-        f = reduce_dim(f, opts)
-    if len(options.extract) > 0:
-        extract(f, options.extract)
-
-    pncdump(f)
+    from pncparse import pncparser
+    ifile, ofile, options = pncparser()
+    pncdump(ifile, header = options.header, full_indices = options.full_indices, line_length = options.line_length, float_precision = options.float_precision, name = options.cdlname)
