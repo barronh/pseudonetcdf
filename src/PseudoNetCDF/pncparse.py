@@ -46,6 +46,8 @@ def pncparser():
 
     parser.add_option("-l", "--length", dest="line_length", type = "int", default=80, metavar = "LEN", help = "CDL line length (pncdump only)")
 
+    parser.add_option("-v", "--verbose", dest="verbose", action = "store_true", default=False, help = "Provides verbosity with pncgen")
+
     parser.add_option("", "--float-precision", dest="float_precision", type="int", default=8, metavar = "FDIG", help = "single precision digitis (default 8; pncdump only)")
 
     parser.add_option("", "--double-precision", dest="double_precision", type="int", default=16, metavar = "PDIG", help = "pdig double precision digits (default 16; pncdump only)")
