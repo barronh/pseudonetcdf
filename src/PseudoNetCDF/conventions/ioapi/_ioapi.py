@@ -71,8 +71,10 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         wy = _y[:-1]
         lcc_x = x = np.concatenate([bx, ex, tx, wx])
         lcc_y = y = np.concatenate([by, ey, ty, wy])
+        lcc_xe = np.array([x - ifileo.XCELL / 2., x + ifileo.XCELL / 2.]).T
+        lcc_ye = np.array([y - ifileo.YCELL / 2., y + ifileo.YCELL / 2.]).T
         latlon_dim = ('PERIM',)
-        latlone_dim = ('PERIM_STAG',)
+        latlone_dim = ('PERIM', 'nv')
     else:
         xdim = 'COL'
         ydim = 'ROW'
