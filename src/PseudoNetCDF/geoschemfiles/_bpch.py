@@ -7,6 +7,7 @@ import re
 # part of the default Python distribution
 from collections import defaultdict
 from warnings import warn
+from StringIO import StringIO
 
 # numpy is a very common installed library
 import numpy as np
@@ -315,14 +316,21 @@ class _diag_group(PseudoNetCDFFile):
             except (KeyError, ValueError):
                 return parent.variables[key]
         self._parent = parent
-        self.variables = defaultpseudonetcdfvariable(list(groupvariables) + metakeys, getvar)
+        if 'BXHGHT-$_BXHEIGHT' not in groupvariables:
+            mymetakeys = [k for k in metakeys if k != 'VOL']
+        else:
+            mymetakeys = metakeys
+        self.variables = defaultpseudonetcdfvariable(list(groupvariables) + mymetakeys, getvar)
         
     
     def __getattr__(self, key):
         try:
             return object.__getattr__(self, key)
-        except AttributeError:
-            return getattr(self._parent, key)
+        except AttributeError, e:
+            if key != 'groups':
+                return getattr(self._parent, key)
+            else:
+                raise e
     
 # This class is designed to operate like a dictionary, but
 # dynamically create variables to return to the user
@@ -474,13 +482,14 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             ord = header['f8'] + offset
             base_units = header['f9']
             scale = self._tracer_data[ord]['SCALE']
+            molwt = self._tracer_data[ord]['MOLWT']
             carbon = self._tracer_data[ord]['C']
             units = self._tracer_data[ord]['UNIT']
             tmp_data = self._memmap[key]['data']
             dims = ('time', 'layer', 'latitude', 'longitude')
             if len(['layer' in dk_ for dk_ in self._parent.dimensions]) > 1:
                 dims = ('time', 'layer%d' % tmp_data.dtype['f1'].shape[0], 'latitude', 'longitude')
-            kwds = dict(scale = scale, carbon = carbon, units = units, base_units = base_units, standard_name = key, long_name = key, var_desc = key, coordinates = ' '.join(dims), grid_mapping = "crs")
+            kwds = dict(scale = scale, kgpermole = molwt, carbon = carbon, units = units, base_units = base_units, standard_name = key, long_name = key, var_desc = key, coordinates = ' '.join(dims), grid_mapping = "crs")
                 
             assert((tmp_data['f0'] == tmp_data['f2']).all())
             if self._noscale:
@@ -583,11 +592,15 @@ class bpch(PseudoNetCDFFile):
             self.createDimension(dk, dv)
         self.createDimension('nv', 2)
         tracerinfo = tracerinfo or os.path.join(os.path.dirname(bpch_path), 'tracerinfo.dat')
-        if not os.path.exists(tracerinfo) and tracerinfo != ' ':
-            tracerinfo = 'tracerinfo.dat'
-        if os.path.exists(tracerinfo):
-            if os.path.isdir(tracerinfo): tracerinfo = os.path.join(tracerinfo, 'tracerinfo.dat')
-            tracer_data = dict([(int(l[52:61].strip()), dict(NAME = l[:8].strip(), FULLNAME = l[9:39].strip(), MOLWT = float(l[39:49]), C = int(l[49:52]), TRACER = int(l[52:61]), SCALE = float(l[61:71]), UNIT = l[72:].strip())) for l in file(tracerinfo).readlines() if l[0] not in ('#', ' ')])
+        if isinstance(tracerinfo, (str, unicode)):
+            if not os.path.exists(tracerinfo) and tracerinfo != ' ':
+                tracerinfo = 'tracerinfo.dat'
+            if os.path.exists(tracerinfo):
+                if os.path.isdir(tracerinfo): tracerinfo = os.path.join(tracerinfo, 'tracerinfo.dat')
+        
+            tracerinfo = file(tracerinfo)
+        if isinstance(tracerinfo, (file, StringIO)):
+            tracer_data = dict([(int(l[52:61].strip()), dict(NAME = l[:8].strip(), FULLNAME = l[9:39].strip(), MOLWT = float(l[39:49]), C = int(l[49:52]), TRACER = int(l[52:61]), SCALE = float(l[61:71]), UNIT = l[72:].strip())) for l in tracerinfo.readlines() if l[0] not in ('#', ' ')])
             tracer_names = dict([(k, v['NAME']) for k, v in tracer_data.iteritems()])
         else:
             warn('Reading file without tracerinfo.dat means that names and scaling are unknown')
@@ -595,17 +608,21 @@ class bpch(PseudoNetCDFFile):
             tracer_names = defaultdictfromkey(lambda key: key)
         
         diaginfo = diaginfo or os.path.join(os.path.dirname(bpch_path), 'diaginfo.dat')
-        if not os.path.exists(diaginfo):
-            diaginfo = 'diaginfo.dat'
-        if os.path.exists(diaginfo):
-            if os.path.isdir(diaginfo): diaginfo = os.path.join(diaginfo, 'diaginfo.dat')
-            diag_data = dict([(l[9:49].strip(), dict(offset = int(l[:8]), desc = l[50:].strip())) for l in file(diaginfo).read().strip().split('\n') if l[0] != '#'])
+        if isinstance(diaginfo, (str, unicode)):
+            if not os.path.exists(diaginfo):
+                diaginfo = 'diaginfo.dat'
+            if os.path.exists(diaginfo):
+                if os.path.isdir(diaginfo): diaginfo = os.path.join(diaginfo, 'diaginfo.dat')
+            diaginfo = file(diaginfo)
+
+        if isinstance(diaginfo, (file, StringIO)):
+            diag_data = dict([(l[9:49].strip(), dict(offset = int(l[:8]), desc = l[50:].strip())) for l in diaginfo.read().strip().split('\n') if l[0] != '#'])
         else:
             warn('Reading file without diaginfo.dat loses descriptive information')
             diag_data = defaultdictfromkey(lambda key: dict(offset = 0, desc = key))
             
         if len(tracer_names) == 0 and not isinstance(tracer_names, defaultdictfromkey):
-            raise IOError("Error parsing %s for Tracer data")
+            raise IOError("Error parsing %s for Tracer data" % tracerinfo)
         file_size = os.stat(bpch_path).st_size
         offset = _general_header_type.itemsize
         data_types = []
