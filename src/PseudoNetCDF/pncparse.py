@@ -24,7 +24,7 @@ def pncparser():
 
     parser.add_option("-H", "--header", dest="header", action = "store_true", default=False)
 
-    parser.add_option("-v", "--variables", dest = "variables", default = None,
+    parser.add_option("", "--variables", dest = "variables", default = None,
                         help = "Variable names or regular expressions (using match) separated by ','. If a group(s) has been specified, only variables in that (those) group(s) will be selected.")
 
     parser.add_option("", "--from-convention", dest = "fromconv", type = "string", default = None, help = "From convention currently only support ioapi")
