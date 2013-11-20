@@ -568,7 +568,6 @@ def getvarpnc(f, varkeys, coordkeys = []):
         varkeys = newvarkeys
 
     outf = PseudoNetCDFFile()
-    outf.createDimension('nv', 2)
     for propkey in f.ncattrs():
         setattr(outf, propkey, getattr(f, propkey))
     for varkey in varkeys:
@@ -601,6 +600,10 @@ def getvarpnc(f, varkeys, coordkeys = []):
             coordvar = f.variables[coordkey]
             propd = dict([(k, getattr(coordvar, k)) for k in coordvar.ncattrs()])
             outf.createVariable(coordkey, coordvar.dtype.char, coordvar.dimensions, values = coordvar[...], **propd)
+            for dk in coordvar.dimensions:
+                if dk not in outf.dimensions:
+                    dv = outf.createDimension(dk, len(f.dimensions[dk]))
+                    dv.setunlimited(f.dimensions[dk].isunlimited())
     return outf
 
 
