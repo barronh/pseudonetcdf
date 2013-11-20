@@ -396,6 +396,11 @@ def get_dimension_length(pfile, key):
         return len(dim)
 
 def extract(f, lonlat):
+    outf = f
+    if hasattr(outf, 'groups'):
+        for grpk, grpv in outf.groups.items():
+            outf.groups[grpk] = extract(grpv, lonlat)
+    
     longitude = f.variables['longitude']
     latitude = f.variables['latitude']
     latidxs = []
@@ -409,7 +414,6 @@ def extract(f, lonlat):
             lonidxs.append(lonidx)
     latidxs = array(latidxs)
     lonidxs = array(lonidxs)
-    outf = f
     for k, v in outf.variables.iteritems():
         try:
             coords = v.coordinates.split()
@@ -428,6 +432,9 @@ def extract(f, lonlat):
             nv = outf.createVariable(k, v.dtype.char, newdims, values = v[newslice])
             for ak in v.ncattrs():
                 setattr(nv, ak, getattr(v, ak))
+            for di, dk in enumerate(newdims):
+                if dk not in outf.dimensions:
+                    outf.createDimension(dk, nv.shape[di])
     return f
     
 def mask_vals(f, maskdef, metakeys = 'time layer level latitude longitude time_bounds latitude_bounds longitude_bounds ROW COL LAY TFLAG ETFLAG'.split()):
