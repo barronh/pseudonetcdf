@@ -60,7 +60,8 @@ def PseudoNetCDFVariableConvertUnit(var,outunit):
     for i,d in enumerate(var.dimensions):
         do.createDimension(d, shape[i])
     outvar=PseudoNetCDFVariable(do,var.long_name.strip(),var.typecode(),var.dimensions,values=convert(var,var.units,outunit))
-    for k,v in var.__dict__.iteritems():
+    for k in var.ncattrs():
+        v = getattr(var, k)
         setattr(outvar,k,v)
     outvar.units=outunit
     return outvar
@@ -649,7 +650,7 @@ class Pseudo2NetCDF:
         nfile.sync()
     
     def addGlobalProperties(self,pfile,nfile):
-        for k in [k for k in pfile.__dict__.keys() if k not in self.ignore_global_properties and self.ignore_global_re.match(k)==None]:
+        for k in [k for k in pfile.ncattrs() if k not in self.ignore_global_properties and self.ignore_global_re.match(k)==None]:
             value=getattr(pfile,k)
             if not isinstance(value, MethodType):
                 try:
@@ -658,13 +659,13 @@ class Pseudo2NetCDF:
                     warn("Could not add %s to file" % k)
 
     def addVariableProperties(self,pvar,nvar):
-        for a in [k for k in pvar.__dict__.keys() if k not in self.ignore_variable_properties and self.ignore_variable_re.match(k)==None]:
+        for a in [k for k in pvar.ncattrs() if k not in self.ignore_variable_properties and self.ignore_variable_re.match(k)==None]:
             value=getattr(pvar,a)
             if not isinstance(value, MethodType):
                 try:
                     setattr(nvar,a,value)
                 except:
-                    if 'long_name' in pvar.__dict__.keys():
+                    if 'long_name' in pvar.ncattrs():
                         warn("Could not add %s=%s to variable %s" % (a,str(value),str(pvar.long_name)))
                     else:
                         warn("Could not add %s=%s to variable" % (a,str(value)))
