@@ -74,7 +74,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
         sys.stdout.write(1*indent+("%s %s%s;\n" % (var_type, var_name,str(var.dimensions).replace('\'','').replace(',)',')'))))
         for prop_name, prop in var.__dict__.iteritems():
             if isinstance(prop,property_types):
-                sys.stdout.write(2*indent+("%s:%s = \"%s\" ;\n" % (var_name,prop_name,prop)))
+                sys.stdout.write(2*indent+("%s:%s = %s ;\n" % (var_name,prop_name,repr(prop).replace("'", '"'))))
     
     ################################
     # CDL Section 3: global metadata
