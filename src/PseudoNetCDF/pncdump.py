@@ -45,11 +45,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
     # initialize indentation as 8 characters
     # based on ncdump
     indent = 8*" "
-    
-    # Global and variable properties must be an instance 
-    # of one of the following
-    property_types = (str, int, int16, int32, int64, float, float32, float64)
-    
+        
     # First line of CDL
     sys.stdout.write("netcdf %s {\n" % (name,))
     
@@ -72,17 +68,17 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         bool='bool', \
                         string8='char')[var.dtype.name]
         sys.stdout.write(1*indent+("%s %s%s;\n" % (var_type, var_name,str(var.dimensions).replace('\'','').replace(',)',')'))))
-        for prop_name, prop in var.__dict__.iteritems():
-            if isinstance(prop,property_types):
-                sys.stdout.write(2*indent+("%s:%s = %s ;\n" % (var_name,prop_name,repr(prop).replace("'", '"'))))
+        for prop_name in var.ncattrs():
+            prop = getattr(var, prop_name)
+            sys.stdout.write(2*indent+("%s:%s = %s ;\n" % (var_name,prop_name,repr(prop).replace("'", '"'))))
     
     ################################
     # CDL Section 3: global metadata
     ################################
     sys.stdout.write("\n\n// global properties:\n")
-    for prop_name, prop in f.__dict__.iteritems():
-        if isinstance(prop,property_types):
-            sys.stdout.write(2*indent+(":%s = %s ;\n" % (prop_name, repr(prop).replace("'",'"'))))
+    for prop_name in f.ncattrs():
+        prop = getattr(f, prop_name)
+        sys.stdout.write(2*indent+(":%s = %s ;\n" % (prop_name, repr(prop).replace("'",'"'))))
 
     if not header:
         # Error trapping prevents the user from getting an error
