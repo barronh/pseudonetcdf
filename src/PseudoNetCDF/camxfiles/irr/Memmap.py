@@ -21,7 +21,7 @@ __version__ = RevisionNum
 import unittest
 import struct
 from warnings import warn
-
+from collections import defaultdict
 #Site-Packages
 from numpy import zeros,array,where,memmap,newaxis,dtype,nan
 
@@ -89,25 +89,44 @@ class irr(PseudoNetCDFFile):
         """
         self.__rffile=OpenRecordFile(rf)
         self.__readheader()
-        self.irr_record_type=dtype(
-                        dict(names=(['SPAD','DATE', 'TIME', 'PAGRID', 'NEST', 'I', 'J', 'K']+
-                                    [ 'RXN_%02d' % i for i in range(1,self.nrxns+1)]+
-                                    ['EPAD']),
-                                formats=(['>i', '>i', '>f', '>i', '>i', '>i', '>i', '>i']+ 
-                                        [ '>f' for i in range(1,self.nrxns+1)]+
-                                        ['>i'])))
+        irr_record_type=dtype(
+                    dict(names=(['SPAD','DATE', 'TIME', 'PAGRID', 'NEST', 'I', 'J', 'K']+
+                                [ 'RXN_%02d' % i for i in range(1,self.nrxns+1)]+
+                                ['EPAD']),
+                         formats=(['>i', '>i', '>f', '>i', '>i', '>i', '>i', '>i']+ 
+                                 [ '>f' for i in range(1,self.nrxns+1)]+
+                                 ['>i'])))
     
-        varkeys=[i for i in self.irr_record_type.names[8:-1]]+['TFLAG']
-
-        domain=self.padomains[0]
+        varkeys=[i for i in irr_record_type.names[8:-1]]+['TFLAG']
+        self.groups = defaultdict(PseudoNetCDFFile)
+        padatatype = []
+        pavarkeys = []
         self.createDimension('TSTEP', self.time_step_count)
-        self.createDimension('COL', domain['iend']-domain['istart']+1)
-        self.createDimension('ROW', domain['jend']-domain['jstart']+1)
-        self.createDimension('LAY', domain['tlay']-domain['blay']+1)
         self.createDimension('VAR',  len(varkeys)-1)
         self.createDimension('DATE-TIME', 2)
-        self.variables=PseudoNetCDFVariables(self.__variables,varkeys)
-        self.__memmaps=memmap(self.__rffile.infile.name,self.irr_record_type,'r',self.data_start_byte).reshape(len(self.dimensions['TSTEP']),len(self.dimensions['ROW']),len(self.dimensions['COL']),len(self.dimensions['LAY'])).swapaxes(1,2).swapaxes(1,3)
+        for di, domain in enumerate(self._padomains):
+            dk ='PA%02d' % (di + 1)
+            prefix = dk + '_'
+            pavarkeys.extend([prefix + k for k in varkeys])
+            grp = self.groups[dk]
+            grp.createDimension('TSTEP', self.time_step_count)
+            grp.createDimension('VAR',  len(varkeys)-1)
+            grp.createDimension('DATE-TIME', 2)
+            grp.createDimension('COL', domain['iend']-domain['istart']+1)
+            grp.createDimension('ROW', domain['jend']-domain['jstart']+1)
+            grp.createDimension('LAY', domain['tlay']-domain['blay']+1)
+            padatatype.append((dk, irr_record_type, (len(grp.dimensions['ROW']), len(grp.dimensions['COL']), len(grp.dimensions['LAY']))))
+            if len(self._padomains) == 1:
+                self.createDimension('COL', domain['iend']-domain['istart']+1)
+                self.createDimension('ROW', domain['jend']-domain['jstart']+1)
+                self.createDimension('LAY', domain['tlay']-domain['blay']+1)
+            exec("""def varget(k):
+                return self._irr__variables('%s', k)""" % dk, dict(self = self), locals())
+            if len(self._padomains) == 1:
+                self.variables = PseudoNetCDFVariables(varget,varkeys)
+            else:
+                grp.variables = PseudoNetCDFVariables(varget,varkeys)
+        self.__memmaps = memmap(self.__rffile.infile.name, dtype(padatatype), 'r', self.data_start_byte)
 
     def __del__(self):
         try:
@@ -123,10 +142,10 @@ class irr(PseudoNetCDFFile):
             setattr(pncfv,k,v)        
         return pncfv
         
-    def __variables(self,rxn):
+    def __variables(self,pk, rxn):
         if rxn=='TFLAG':
-            return ConvertCAMxTime(self.__memmaps[:,0,0,0]['DATE'],self.__memmaps[:,0,0,0]['TIME'],len(self.dimensions['VAR']))
-        return self.__decorator(rxn,PseudoNetCDFVariable(self,rxn,'f',('TSTEP','LAY','ROW','COL'),values=self.__memmaps[:,:,:,:][rxn]))
+            return ConvertCAMxTime(self.__memmaps[pk][:, 0,0,0]['DATE'],self.__memmaps[pk][:,0,0,0]['TIME'],len(self.groups[pk].dimensions['VAR']))
+        return self.__decorator(rxn,PseudoNetCDFVariable(self,rxn,'f',('TSTEP','LAY','ROW','COL'),values=self.__memmaps[pk][rxn].swapaxes(1, 3).swapaxes(2, 3)))
         
     def __readheader(self):
         """
@@ -139,9 +158,9 @@ class irr(PseudoNetCDFFile):
         self.start_date,self.start_time,self.end_date,self.end_time=self.__rffile.read("ifif")
         self.time_step=100.
         self.time_step_count=len([i for i in self.timerange()])
-        self.grids=[]
+        self._grids=[]
         for grid in range(self.__rffile.read("i")[-1]):
-            self.grids.append(
+            self._grids.append(
                             dict(
                                 zip(
                                     ['orgx','orgy','ncol','nrow','xsize','ysize','iutm'], 
@@ -150,9 +169,9 @@ class irr(PseudoNetCDFFile):
                                 )
                             )
         
-        self.padomains=[]
+        self._padomains=[]
         for padomain in range(self.__rffile.read("i")[-1]):
-            self.padomains.append(
+            self._padomains.append(
                                 dict(
                                     zip(
                                         ['grid','istart','iend','jstart','jend','blay','tlay'],
@@ -166,7 +185,7 @@ class irr(PseudoNetCDFFile):
         self.record_fmt=self.id_fmt + str(self.nrxns) + self.data_fmt
         self.record_size=self.__rffile.record_size
         self.padded_size=self.record_size+8
-        domain=self.padomains[0]
+        domain=self._padomains[0]
         self.records_per_time=(domain['iend']-domain['istart']+1)*(domain['jend']-domain['jstart']+1)*(domain['tlay']-domain['blay']+1)
         self.time_data_block=self.padded_size*self.records_per_time
         self.time_step=100.
