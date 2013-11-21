@@ -773,6 +773,10 @@ class bpch(PseudoNetCDFFile):
         tdim = self.createDimension('time', self.variables['tau0'].shape[0])
         tdim.setunlimited(True)
         self.groups = dict([(k, _diag_group(self, k, v)) for k, v in self._groups.iteritems()])
+        for grp in self.groups.values():
+            for dk, d in self.dimensions.iteritems():
+                dmn = grp.createDimension(dk, len(d))
+                dmn.setunlimited(d.isunlimited())
         self.Conventions = "CF-1.6"
 
 
