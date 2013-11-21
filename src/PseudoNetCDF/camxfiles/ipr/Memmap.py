@@ -133,7 +133,10 @@ class ipr(PseudoNetCDFFile):
         self.variables=PseudoNetCDFVariables(self.__variables,varkeys)
         for k, v in props.iteritems():
             setattr(self, k, v)
-        add_cf_from_ioapi(self)
+        try:
+            add_cf_from_ioapi(self)
+        except:
+            pass
 
     def __del__(self):
         try:
