@@ -87,6 +87,10 @@ class PseudoNetCDFFile(object):
         if not (k[:1] == '_' or k in ('dimensions', 'variables', 'groups')):
             self._ncattrs += (k,)
         object.__setattr__(self, k, v)
+    def __delattr__(self, k):
+        if k in self._ncattrs:
+            self._ncattrs = tuple([k_ for k_ in self._ncattrs if k_ != k])
+        object.__delattr__(self, k)
     def createDimension(self,name,length):
         """
         name - string name for dimension
@@ -141,6 +145,10 @@ class PseudoNetCDFVariable(ndarray):
         if not hasattr(self, k) and k[:1] != '_':
             self._ncattrs += (k,)
         ndarray.__setattr__(self, k, v)
+    def __delattr__(self, k):
+        if k in self._ncattrs:
+            self._ncattrs = tuple([k_ for k_ in self._ncattrs if k_ != k])
+        object.__delattr__(self, k)
     def ncattrs(self):
         """
         Returns a tuple of attributes that have been user defined
