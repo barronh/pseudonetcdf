@@ -36,6 +36,7 @@ import unittest
 from os.path import isdir
 import sys
 
+from _getreader import registerreader
 class PseudoNetCDFDimension(object):
     """
     Dimension object responds like that of netcdf4-python
@@ -66,12 +67,28 @@ def PseudoNetCDFVariableConvertUnit(var,outunit):
     outvar.units=outunit
     return outvar
     
+class classreg(type):
+    def __init__(cls, name, bases, clsdict):
+        if len(cls.mro()) > 2:
+            if name != 'PseudoNetCDFFileMemmap':
+                registerreader(name, cls)
+        super(classreg, cls).__init__(name, bases, clsdict)
+
 class PseudoNetCDFFile(object):
     """
     PseudoNetCDFFile provides an interface and standard set of
     methods that a file should present to act like a netCDF file
     using the Scientific.IO.NetCDF.NetCDFFile interface.
     """
+    __metaclass__ = classreg
+    @classmethod
+    def isMine(cls, *args, **kwds):
+        try:
+            cls(*args, **kwds)
+            return True
+        except:
+            return False
+            
     def __new__(cls, *args, **kwds):
         new = object.__new__(cls, *args, **kwds)
         new.variables={}
@@ -106,7 +123,10 @@ class PseudoNetCDFFile(object):
         dimensions - tuple of dimension keys that can be
                      found in objects' dimensions dictionary
         """
-        var = self.variables[name] = PseudoNetCDFVariable(self,name,type,dimensions, **properties)
+        if isinstance(properties.get('values', 1), np.ma.MaskedArray) or 'fill_value' in properties:
+            var = self.variables[name] = PseudoNetCDFMaskedVariable(self,name,type,dimensions, **properties)
+        else:
+            var = self.variables[name] = PseudoNetCDFVariable(self,name,type,dimensions, **properties)
         return var
 
     def close(self):
@@ -417,8 +437,18 @@ def extract(f, lonlat):
     for lls in lonlat:
         for ll in lls.split('/'):
             lon, lat = map(float, ll.split(','))
-            lonidx = abs(lon - longitude).argmin()
-            latidx = abs(lat - latitude).argmin()
+            londist = lon - longitude
+            latdist = lat - latitude
+            totaldist = (latdist[:, None]**2 + londist[None, :]**2)**.5
+            latidxa, lonidxa = np.where(totaldist.min() == totaldist)
+            if len(latidxa) > 1:
+                warn("Selecting first of equidistant points")
+                
+            latidx = latidxa[0]
+            lonidx = lonidxa[0]
+            #lonidx = abs(londist).argmin()
+            #latidx = abs(latdist).argmin()
+            #import pdb; pdb.set_trace()
             latidxs.append(latidx)
             lonidxs.append(lonidx)
     latidxs = array(latidxs)
@@ -435,7 +465,16 @@ def extract(f, lonlat):
                 del outf.variables[k]
             except:
                 pass
-            newdims = tuple([d for d in dims if d not in ('longitude', 'latitude')] + ['points'])
+            newdims = []
+            for d in dims:
+                if d not in ('longitude', 'latitude'):
+                    newdims.append(d)
+                else:
+                    if 'points' not in newdims:
+                        newdims.append('points')
+                        
+            
+            newdims = tuple(newdims)
             newslice = tuple([{'latitude': latidxs, 'longitude': lonidxs}.get(d, slice(None)) for d in dims]) 
             
             nv = outf.createVariable(k, v.dtype.char, newdims, values = v[newslice])
@@ -630,6 +669,7 @@ class Pseudo2NetCDF:
     ignore_variable_re=re.compile('^_\w*(__\w*)?')
     ignore_global_properties=['variables','dimensions']
     ignore_variable_properties=['typecode','dimensions']
+    special_properties = ['_fillvalue', '_FillValue']
     unlimited_dimensions = []
     create_variable_kwds = {}
     def __init__(self, datafirst = False, verbose = True):
@@ -667,7 +707,7 @@ class Pseudo2NetCDF:
                     warn("Could not add %s to file" % k)
 
     def addVariableProperties(self,pvar,nvar):
-        for a in [k for k in pvar.ncattrs() if k not in self.ignore_variable_properties and self.ignore_variable_re.match(k)==None]:
+        for a in [k for k in pvar.ncattrs() if (k not in self.ignore_variable_properties and self.ignore_variable_re.match(k)==None) or k in self.special_properties]:
             value=getattr(pvar,a)
             if not isinstance(value, MethodType):
                 try:
@@ -685,8 +725,11 @@ class Pseudo2NetCDF:
             typecode = pvar.typecode()
         except:
             typecode = pvar[...].dtype.char
-            
-        nvar=nfile.createVariable(k,typecode,pvar.dimensions, **self.create_variable_kwds)
+        
+        create_variable_kwds = self.create_variable_kwds.copy()
+        if hasattr(pvar, 'fill_value'):
+            create_variable_kwds['fill_value'] = pvar.fill_value
+        nvar=nfile.createVariable(k,typecode,pvar.dimensions, **create_variable_kwds)
         self.addVariableProperties(pvar,nvar)
         if data:
             self.addVariableData(pfile, nfile, k)
