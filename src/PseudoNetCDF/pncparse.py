@@ -2,6 +2,7 @@ import sys
 from optparse import OptionParser
 from camxfiles.Memmaps import *
 from camxfiles.Readers import irr as irr_read, ipr as ipr_read
+from _getreader import anyfile
 from icarttfiles.ffi1001 import ffi1001
 from geoschemfiles import *
 from conventions.ioapi import add_cf_from_ioapi
