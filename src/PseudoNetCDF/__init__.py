@@ -20,12 +20,13 @@ import sci_var
 from sci_var import *
 __all__ += sci_var.__all__
 
-import MetaNetCDF
-import ArrayTransforms
-import units
 import camxfiles
 import cmaqfiles
 import racmfiles
+import geoschemfiles
+import MetaNetCDF
+import ArrayTransforms
+import units
 import icarttfiles
 import test
-from register import getfile
+from _getreader import anyfile
