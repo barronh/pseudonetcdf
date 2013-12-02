@@ -79,6 +79,7 @@ setup(name = 'PseudoNetCDF',
       packages = packages,
       package_dir = {'': 'src'},
       package_data = {'PseudoNetCDF': data},
+      scripts = ['scripts/pncdump', 'scripts/pncgen'],
       requires = netcdfpkg + ['numpy (>=1.2)', 'yaml'],
       url = 'https://code.google.com/p/pseudonetcdf'
       )
