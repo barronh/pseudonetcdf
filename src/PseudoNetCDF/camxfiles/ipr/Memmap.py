@@ -77,7 +77,7 @@ class ipr(PseudoNetCDFFile):
     id_fmt="if10s5i"
     dt_fmt="if"
     data_fmt="f"
-                                    
+    
     def __init__(self,rf,multi=False, **props):
         """
         Initialization included reading the header and learning
@@ -89,10 +89,6 @@ class ipr(PseudoNetCDFFile):
         """
         self.__rffile=OpenRecordFile(rf)
         self.__readheader()
-        self.createDimension('TSTEP',len([i_ for i_ in self.timerange()]))
-        self.createDimension('COL',self.activedomain['iend']-self.activedomain['istart']+1)
-        self.createDimension('ROW',self.activedomain['jend']-self.activedomain['jstart']+1)
-        self.createDimension('LAY',self.activedomain['tlay']-self.activedomain['blay']+1)
         self.__ipr_record_type={
             24: dtype(
                         dict(
@@ -124,13 +120,39 @@ class ipr(PseudoNetCDFFile):
                 'BDIF', 'TDIF', 'DDEP', 'WDEP']+{24: ['AERCHEM'], 26: ['INORGACHEM', 'ORGACHEM', 'AQACHEM']}[len(self.prcnames)]+['FCONC', 'UCNV', 'AVOL', 
                 'EPAD']
         varkeys=['_'.join(i) for i in cartesian(prcs,self.spcnames)]
-        self.createDimension('VAR',len(varkeys))
-        self.createDimension('DATE-TIME',2)
         varkeys+=['SPAD','DATE','TIME','PAGRID','NEST','I','J','K','TFLAG']
-        constr=lambda k: self.__variables(k)
+        self.groups = {}
+        NSTEPS = len([i_ for i_ in self.timerange()])
+        NVARS = len(varkeys)
+        self.createDimension('VAR', NVARS)
+        self.createDimension('DATE-TIME', 2)
+        self.createDimension('TSTEP', NSTEPS)
+        padatatype = []
+        pavarkeys = []
+        for di, domain in enumerate(self.padomains):
+            dk = 'PA%02d' % di
+            prefix = dk + '_'
+            grp = self.groups[dk] = PseudoNetCDFFile()
+            pavarkeys.extend([prefix + k for k in varkeys])
+            grp.createDimension('VAR', NVARS)
+            grp.createDimension('DATE-TIME', 2)
+            grp.createDimension('TSTEP', NSTEPS)
+            grp.createDimension('COL', domain['iend'] - domain['istart'] + 1)
+            grp.createDimension('ROW', domain['jend'] - domain['jstart'] + 1)
+            grp.createDimension('LAY', domain['tlay'] - domain['blay'] + 1)
+            padatatype.append((dk, self.__ipr_record_type, (len(grp.dimensions['ROW']), len(grp.dimensions['COL']), len(grp.dimensions['LAY']))))
+            if len(self.padomains) == 1:
+                self.createDimension('COL', domain['iend']-domain['istart']+1)
+                self.createDimension('ROW', domain['jend']-domain['jstart']+1)
+                self.createDimension('LAY', domain['tlay']-domain['blay']+1)
+            exec("""def varget(k):
+                return self._ipr__variables('%s', k)""" % dk, dict(self = self), locals())
+            if len(self.padomains) == 1:
+                self.variables = PseudoNetCDFVariables(varget,varkeys)
+            else:
+                grp.variables = PseudoNetCDFVariables(varget,varkeys)
         
-        self.__memmaps=memmap(self.__rffile.infile.name,self.__ipr_record_type,'r',self.data_start_byte).reshape(len([i for i in self.timerange()]),len(self.spcnames),len(self.dimensions['ROW']),len(self.dimensions['COL']),len(self.dimensions['LAY'])).swapaxes(4,3).swapaxes(2,3)
-        self.variables=PseudoNetCDFVariables(self.__variables,varkeys)
+        self.__memmaps=memmap(self.__rffile.infile.name,dtype(padatatype),'r',self.data_start_byte).reshape(NSTEPS, len(self.spcnames))
         for k, v in props.iteritems():
             setattr(self, k, v)
         try:
@@ -160,19 +182,22 @@ class ipr(PseudoNetCDFFile):
             setattr(pncfv,k,v)        
         return pncfv
         
-    def __variables(self,proc_spc):
+    def __variables(self,pk, proc_spc):
         if proc_spc in self.__ipr_record_type.names:
             proc=proc_spc
             proc_spc=proc_spc+'_'+self.spcnames[0]
-            return PseudoNetCDFVariable(self,proc_spc,'f',('TSTEP','LAY','ROW','COL'),values=self.__memmaps[:,0,:,:,:][proc])
+            return PseudoNetCDFVariable(self,proc_spc,'f',('TSTEP','LAY','ROW','COL'),values=self.__memmaps[pk][:,0,:,:,:][proc].swapaxes(1, 3).swapaxes(2, 3))
         if proc_spc=='TFLAG':
-            return ConvertCAMxTime(self.variables['DATE'][:,0,0,0],self.variables['TIME'][:,0,0,0],len(self.dimensions['VAR']))
+            thisdate = self.__memmaps[pk][:,0,:,:,:]['DATE'].swapaxes(1, 3).swapaxes(2, 3)
+            thistime = self.__memmaps[pk][:,0,:,:,:]['TIME'].swapaxes(1, 3).swapaxes(2, 3)
+            return ConvertCAMxTime(thisdate, thistime, len(self.groups[pk].dimensions['VAR']))
         for k in self.__ipr_record_type.names:
             proc=proc_spc[:len(k)]
             spc=proc_spc[len(k)+1:]
             if proc==k and spc in self.spcnames:
                 spc=self.spcnames.index(spc)
-                return self.__decorator(proc_spc,PseudoNetCDFVariable(self,proc_spc,'f',('TSTEP','LAY','ROW','COL'),values=self.__memmaps[:,spc,:,:,:][proc]))
+                dvals = self.__memmaps[pk][:,spc][proc].swapaxes(1, 3).swapaxes(2, 3)
+                return self.__decorator(proc_spc,PseudoNetCDFVariable(self,proc_spc,'f',('TSTEP','LAY','ROW','COL'),values=dvals))
         raise KeyError, "Bad!"
                 
                 
