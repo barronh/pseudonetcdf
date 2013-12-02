@@ -33,6 +33,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
 
     pncdump(vertical_diffusivity('camx_kv.20000825.hgbpa_04km.TCEQuh1_eta.v43.tke',rows=65,cols=83))
     """
+    file_type = str(type(f)).split("'")[1]
     formats = dict(float64 = "%%.%de" % (double_precision,), \
                    float32 = "%%.%de" % (float_precision,), \
                    int32 = "%i", \
@@ -51,7 +52,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
         startindent = 4*""
         
     # First line of CDL
-    if not isgroup: sys.stdout.write("netcdf %s {\n" % (name,))
+    if not isgroup: sys.stdout.write("%s %s {\n" % (file_type, name,))
     
     ###########################
     # CDL Section 1: dimensions
@@ -165,7 +166,10 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
             exit()
     sys.stdout.write("}\n")
 
-if __name__ == '__main__':
+def main():
     from pncparse import pncparser
     ifile, ofile, options = pncparser()
     pncdump(ifile, header = options.header, full_indices = options.full_indices, line_length = options.line_length, float_precision = options.float_precision, name = options.cdlname)
+
+if __name__ == '__main__':
+    main()
