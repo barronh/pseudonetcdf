@@ -7,7 +7,10 @@ def pncgen(ifile,outpath, inmode = 'r', outmode = 'w', format = 'NETCDF4_CLASSIC
     p2n.verbose = verbose
     return p2n.convert(ifile, outpath, inmode = inmode, outmode = outmode, format = format)
     
-if __name__ == '__main__':
+def main():
     from pncparse import pncparser
     ifile, ofile, options = pncparser()
     pncgen(ifile, ofile, outmode = options.mode, format = options.outformat, verbose = options.verbose)
+
+if __name__ == '__main__':
+    main()
