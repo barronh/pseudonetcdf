@@ -5,6 +5,7 @@ from camxfiles.Readers import irr as irr_read, ipr as ipr_read
 from _getreader import anyfile
 from icarttfiles.ffi1001 import ffi1001
 from geoschemfiles import *
+from noaafiles import *
 from conventions.ioapi import add_cf_from_ioapi
 try:
     from netCDF4 import Dataset as netcdf
