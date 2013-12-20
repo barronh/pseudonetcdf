@@ -20,10 +20,11 @@ class profile(PseudoNetCDFFile):
         profile_spcs = np.char.strip(data[keys[0]]['name'])
         data_type = data[keys[0]].dtype
         data_shape =  data[keys[0]].shape
+        self.createDimension('sigma', nsigmas + 1)
         self.createDimension('sigma-mid', nsigmas)
         self.createDimension('senw', 4)
         self.createVariable('sigma', 'f', ('sigma',), values = np.array(sigmas), units = 'sigma')
-        self.createVariable('sigma-mid', 'f', ('sigma-mid',), values = np.array(sigmas).repeat(2, 0).reshape(-1, 2).mean(1), units = 'sigma')
+        self.createVariable('sigma-mid', 'f', ('sigma-mid',), values = np.array(sigmas).repeat(2, 0)[1:-1].reshape(-1, 2).mean(1), units = 'sigma')
         ks = keys[1:]
         for k in ks:
             try:
