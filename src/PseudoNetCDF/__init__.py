@@ -24,6 +24,7 @@ import camxfiles
 import cmaqfiles
 import racmfiles
 import geoschemfiles
+import noaafiles
 import MetaNetCDF
 import ArrayTransforms
 import units
