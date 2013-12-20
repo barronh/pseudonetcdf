@@ -262,6 +262,66 @@ g5_eta_z = np.array([[  1.00000000e+00,  -6.00000000e-03],
        [  1.00000000e-05,   7.63570000e+01],
        [  5.00000000e-06,   7.81460000e+01],
        [  0.00000000e+00,   8.05810000e+01]])
+
+_geos_units = dict(ALBEDO = 'unitless',
+CLDTOT = 'unitless',
+EFLUX = 'W/m2',
+EVAP = 'unitless',
+FRLAKE = 'unitless',
+FRLAND = 'unitless',
+FRLANDIC = 'unitless',
+FROCEAN = 'unitless',
+GRN = 'unitless',
+GWETROOT = 'unitless',
+GWETTOP = 'unitless',
+HFLUX = 'W/m2',
+LAI = 'm2/m2',
+LWGNET = 'W/m2',
+LWTUP = 'W/m2',
+PARDF = 'W/m2',
+PARDR = 'W/m2',
+PBLH = 'm',
+PRECANV = 'kg/m2/s',
+PRECCON = 'kg/m2/s',
+PRECTOT = 'kg/m2/s',
+PRECSNO = 'kg/m2/s',
+QV2M = 'kg/kg',
+SNOMAS = 'm',
+SNODP = 'm',
+SWGNET = 'W/m2',
+T2M = 'K',
+TROPP = 'hPa',
+TSKIN = 'K',
+U10M = 'm/s',
+USTAR = 'm/s',
+V10M = 'm/s',
+Z0M = 'm',
+DQRCON = 'kg/m2/s',
+DQRLSC = 'kg/m2/s',
+DTRAIN = 'kg/m2/s',
+QL = 'unitless',
+QI = 'unitless',
+OPTDEPTH = 'unitless',
+TAUCLI = 'unitless',
+TAUCLW = 'unitless',
+CLOUD = 'unitless',
+PV = 'K*m2/kg/s',
+OMEGA = 'Pa/s',
+QV = 'kg/kg',
+RH = 'unitless',
+T = 'K',
+U = 'm/s',
+V = 'm/s',
+DQIDTMST = 'kg/kg/s',
+DQLDTMST = 'kg/kg/s',
+DQVDTMST = 'kg/kg/s',
+MOISTQ = 'kg/kg/s',
+CMFMC = 'kg/m2/s', 	 	 	 	 
+LWI = 'm/s',
+PS = 'hPa',
+SLP = 'hPa',
+TO3 = 'DU',
+TTO3 = 'DU')
 class geos(PseudoNetCDFFile):
     def __init__(self, path, mode = 'r'):
         infile = file(path, 'r')
@@ -317,12 +377,12 @@ class geos(PseudoNetCDFFile):
 
                    if name[3:5] == '22':
                        longitude_bounds = np.arange(-181.25, 180, 2.5).repeat(2, 0)[1:-1].reshape(-1, 2)
-                       latitude_bounds = np.append(np.append(-90, np.arange(-89, 90, 2)), 90).repeat(2, 0)[1:-1].reshape(-1, 2)
+                       latitude_bounds = np.append(np.append(-90., np.arange(-89., 90., 2.)), 90.).repeat(2, 0)[1:-1].reshape(-1, 2)
                        nrow = 91
                        ncol = 144
                    elif name[3:5] == '45':
                        longitude_bounds = np.arange(-182.5, 180, 5).repeat(2, 0)[1:-1].reshape(-1, 2)
-                       latitude_bounds = np.append(np.append(-90, np.arange(-88, 90, 4)), 90).repeat(2, 0)[1:-1].reshape(-1, 2)
+                       latitude_bounds = np.append(np.append(-90., np.arange(-88., 90., 4.)), 90.).repeat(2, 0)[1:-1].reshape(-1, 2)
                        nrow = 46
                        ncol = 72
                    else:
@@ -359,7 +419,8 @@ class geos(PseudoNetCDFFile):
                 dims = ('time', 'layer', 'latitude', 'longitude')
             else:
                 dims = ('time', 'layer_stag', 'latitude', 'longitude')
-            return PseudoNetCDFVariable(self, key, 'f', dims, values = thisdata, units = '', long_name = key.ljust(16))
+            unit = _geos_units.get(key, '')    
+            return PseudoNetCDFVariable(self, key, 'f', dims, values = thisdata, units = unit, long_name = key.ljust(16))
         self.variables = PseudoNetCDFVariables(keys = names[1:], func = getem)
         dates = data[0]['data'][names[1]]['f4']
         times = data[0]['data'][names[1]]['f5']
