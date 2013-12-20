@@ -59,7 +59,10 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
     ###########################
     sys.stdout.write(startindent + "dimensions:\n")
     for dim_name, dim in f.dimensions.iteritems():
-        sys.stdout.write(startindent + 1*indent+("%s = %s ;\n" % (dim_name,len(dim))))
+        if dim.isunlimited():
+            sys.stdout.write(startindent + 1*indent+("%s = UNLIMITED // (%s currently) \n" % (dim_name,len(dim))))
+        else:
+            sys.stdout.write(startindent + 1*indent+("%s = %s ;\n" % (dim_name,len(dim))))
     
     ###################################
     # CDL Section 2: variables metadata
@@ -72,7 +75,8 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         int32='integer', \
                         int64='long', \
                         bool='bool', \
-                        string8='char')[var.dtype.name]
+                        string8='char', \
+                        string80='char')[var.dtype.name]
         sys.stdout.write(startindent + 1*indent+("%s %s%s;\n" % (var_type, var_name,str(var.dimensions).replace('u\'', '').replace('\'','').replace(',)',')'))))
         for prop_name in var.ncattrs():
             prop = getattr(var, prop_name)
