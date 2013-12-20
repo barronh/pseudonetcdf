@@ -13,7 +13,7 @@ are attached and the arrays implement the Scientific.IO.NetCDF.NetCDFVariable
 interfaces.
 """
 
-__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFDimension', 'PseudoNetCDFVariableConvertUnit', 'PseudoNetCDFFileMemmap', 'PseudoNetCDFVariable', 'PseudoNetCDFMaskedVariable', 'PseudoIOAPIVariable', 'PseudoNetCDFVariables', 'Pseudo2NetCDF', 'reduce_dim', 'slice_dim', 'getvarpnc']
+__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFDimension', 'PseudoNetCDFVariableConvertUnit', 'PseudoNetCDFFileMemmap', 'PseudoNetCDFVariable', 'PseudoNetCDFMaskedVariable', 'PseudoIOAPIVariable', 'PseudoNetCDFVariables', 'Pseudo2NetCDF', 'reduce_dim', 'slice_dim', 'getvarpnc', 'interpvars', 'extract']
 
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
@@ -24,7 +24,8 @@ __version__ = RevisionNum
 import numpy as np
 from numpy import array, zeros, ndarray, isscalar, abs
 from numpy.ma import MaskedArray, zeros as mazeros
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
+
 from warnings import warn
     
 from numpy import arange
@@ -37,6 +38,24 @@ from os.path import isdir
 import sys
 
 from _getreader import registerreader
+
+class OrderedDefaultDict(OrderedDict):
+    def __init__(self, *args, **kwargs):
+        if not args:
+            self.default_factory = None
+        else:
+            if not (args[0] is None or callable(args[0])):
+                raise TypeError('first argument must be callable or None')
+            self.default_factory = args[0]
+            args = args[1:]
+        super(OrderedDefaultdict, self).__init__(*args, **kwargs)
+
+    def __missing__ (self, key):
+        if self.default_factory is None:
+            raise KeyError(key)
+        self[key] = default = self.default_factory()
+        return default
+
 class PseudoNetCDFDimension(object):
     """
     Dimension object responds like that of netcdf4-python
@@ -91,8 +110,8 @@ class PseudoNetCDFFile(object):
             
     def __new__(cls, *args, **kwds):
         new = object.__new__(cls, *args, **kwds)
-        new.variables={}
-        new.dimensions={}
+        new.variables = OrderedDict()
+        new.dimensions = OrderedDict()
         new._ncattrs = ()
         return new
     
@@ -247,7 +266,37 @@ class PseudoNetCDFVariable(ndarray):
         """
         self.itemset(value)
 
-class PseudoNetCDFMaskedVariable(MaskedArray, PseudoNetCDFVariable):
+class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, MaskedArray):
+    def __setattr__(self, k, v):
+        """
+        Set attributes (aka properties) and identify user-defined attributes.
+        """
+        if not hasattr(self, k) and k[:1] != '_':
+            self._ncattrs += (k,)
+        MaskedArray.__setattr__(self, k, v)
+
+    def __delattr__(self, k):
+        if k in self._ncattrs:
+            self._ncattrs = tuple([k_ for k_ in self._ncattrs if k_ != k])
+        object.__delattr__(self, k)
+
+    def ncattrs(self):
+        """
+        Returns a tuple of attributes that have been user defined
+        """
+        
+        return self._ncattrs
+
+    def swapaxes(self, a1, a2):
+        out = np.ma.MaskedArray.swapaxes(self, a1, a2)
+        out = self.__array_wrap__(out)
+        return out
+
+    def reshape(self, shape):
+        out = np.ma.MaskedArray.reshape(self, shape)
+        out = self.__array_wrap__(out)
+        return out
+    
     def __new__(subtype,parent,name,typecode,dimensions,**kwds):
         """
         Creates a variable using the dimensions as defined in
@@ -264,6 +313,7 @@ class PseudoNetCDFMaskedVariable(MaskedArray, PseudoNetCDFVariable):
               the array
 
         """
+        __array_priority__ = 1000000000.
         if 'values' in kwds.keys():
             result=kwds.pop('values')
         else:
@@ -284,13 +334,12 @@ class PseudoNetCDFMaskedVariable(MaskedArray, PseudoNetCDFVariable):
             result.__dict__['typecode'] = lambda: typecode
             result.__dict__['dimensions'] = tuple(dimensions)
         else:
-            result.__dict__={
+            result.__dict__ = {
                 'typecode': lambda: typecode,
                 'dimensions': tuple(dimensions)
             }
 
 #        object.__setattr__(result, '_ncattrs', ())
-
         for k,v in kwds.iteritems():
             setattr(result,k,v)
         return result
@@ -303,7 +352,43 @@ class PseudoNetCDFMaskedVariable(MaskedArray, PseudoNetCDFVariable):
             if hasattr(obj, '_ncattrs'):
                 for k in obj._ncattrs:
                     setattr(self, k, getattr(obj, k))
+        if not hasattr(self, 'dimensions'):
+            if hasattr(obj, 'dimensions'):
+                setattr(self, 'dimensions', obj.dimensions)
+                self._ncattrs = self._ncattrs[:-1]
+
+    def __array_wrap__(self, obj, context = None):
+        MaskedArray.__array_finalize__(self, obj)
+        if hasattr(self, '_ncattrs'):
+            for k in self._ncattrs:
+                setattr(obj, k, getattr(self, k))
+        else:
+            self._ncattrs = ()
         
+        obj.dimensions = self.dimensions
+        return obj
+        
+    def __getitem__(self, item):
+        out = np.ma.MaskedArray.__getitem__(self, item)
+        out.dimensions = self.dimensions
+        if hasattr(self, '_ncattrs'):
+            for k in self._ncattrs:
+                setattr(out, k, getattr(self, k))
+        else:
+            self._ncattrs = ()
+        return out
+
+    def getValue(self):
+        """
+        Return scalar value
+        """
+        return self.item()
+
+    def assignValue(self,value):
+        """
+        assign value to scalar variable
+        """
+        self.itemset(value)
 
     
 def PseudoIOAPIVariable(parent,name,typecode,dimensions,**kwds):
@@ -335,7 +420,7 @@ def PseudoIOAPIVariable(parent,name,typecode,dimensions,**kwds):
 
     return retval
     
-class PseudoNetCDFVariables(defaultdict):
+class PseudoNetCDFVariables(OrderedDefaultDict):
     """
     PseudoNetCDFVariables provides a special implementation
     of the default dictionary that provides efficient access 
@@ -424,36 +509,97 @@ def get_dimension_length(pfile, key):
     else:
         return len(dim)
 
-def extract(f, lonlat):
+def interpvars(f, weights, dimension):
+    """
+    f - PseudoNetCDFFile
+    weights - weights for new dimensions from old dimension dim(new, old)
+    dimension - which dimensions will be reduced
+    """
+    outf = f
+    if hasattr(outf, 'groups'):
+        for grpk, grpv in outf.groups.items():
+            outf.groups[grpk] = interpvars(grpv, weights, dimension)
+    
+    oldd = outf.dimensions[dimension]
+    newd = outf.createDimension(dimension, weights.shape[0])
+    newd.setunlimited(oldd.isunlimited())
+    for vark, oldvar in outf.variables.iteritems():
+        if dimension in oldvar.dimensions:
+            dimidx = list(oldvar.dimensions).index(dimension)
+            newvar = outf.createVariable(vark, oldvar.dtype.char, oldvar.dimensions)
+            for ak in oldvar.ncattrs():
+                setattr(newvar, ak, getattr(oldvar, ak))
+            weightslice = (None,) * (dimidx) + (Ellipsis,) + (None,) * len(oldvar.dimensions[dimidx + 1:])
+            varslice = (slice(None,),) * dimidx + (None,)
+            newvar[:] = (weights[weightslice] * oldvar[varslice]).sum(dimidx + 1)
+    return outf
+
+    
+
+def extract(f, lonlat, unique = False, gridded = None):
+    from StringIO import StringIO
     outf = f
     if hasattr(outf, 'groups'):
         for grpk, grpv in outf.groups.items():
             outf.groups[grpk] = extract(grpv, lonlat)
     
-    longitude = f.variables['longitude']
-    latitude = f.variables['latitude']
-    latidxs = []
-    lonidxs = []
-    for lls in lonlat:
-        for ll in lls.split('/'):
-            lon, lat = map(float, ll.split(','))
-            londist = lon - longitude
-            latdist = lat - latitude
-            totaldist = (latdist[:, None]**2 + londist[None, :]**2)**.5
-            latidxa, lonidxa = np.where(totaldist.min() == totaldist)
-            if len(latidxa) > 1:
-                warn("Selecting first of equidistant points")
-                
-            latidx = latidxa[0]
-            lonidx = lonidxa[0]
-            #lonidx = abs(londist).argmin()
-            #latidx = abs(latdist).argmin()
-            #import pdb; pdb.set_trace()
-            latidxs.append(latidx)
-            lonidxs.append(lonidx)
-    latidxs = array(latidxs)
-    lonidxs = array(lonidxs)
-    for k, v in outf.variables.iteritems():
+    longitude = f.variables['longitude'][:]
+    latitude = f.variables['latitude'][:]
+    if gridded is None:
+        gridded = ('longitude' in f.dimensions and 'latitude' in f.dimensions) or \
+                  ('COL' in f.dimensions and 'ROW' in f.dimensions) or \
+                  ('x' in f.dimensions and 'y' in f.dimensions)
+    latlon1d = longitude.ndim == 1 and latitude.ndim == 1
+    if latlon1d and gridded:
+        latitude = latitude[(slice(None), None, None)]
+        longitude = longitude[(None, slice(None), None)]
+    else:
+        latitude = latitude[Ellipsis, None]
+        longitude = longitude[Ellipsis, None]
+    
+    lonlatdims = latitude.ndim - 1
+    outf.lonlatcoords = ('/'.join(lonlat))
+    lons, lats = np.genfromtxt(StringIO(outf.lonlatcoords.replace('/', '\n')), delimiter = ',').T
+    londists = longitude - lons[(None,) * lonlatdims]
+    latdists = latitude - lats[(None,) * lonlatdims]
+    totaldists = ((latdists**2 + londists**2)**.5)
+    
+    if latlon1d and not gridded:
+        latidxs, = lonidxs, = np.unravel_index(totaldists.reshape(-1, latdists.shape[-1]).argmin(0), totaldists.shape[:-1])
+    else:
+        latidxs, lonidxs = np.unravel_index(totaldists.reshape(-1, latdists.shape[-1]).argmin(0), totaldists.shape[:-1])
+    
+    if unique:
+        tmpx = OrderedDict()
+        for lon, lat, lonlatstr in zip(lonidxs, latidxs, outf.lonlatcoords.split('/')):
+            if (lon, lat) not in tmpx:
+                tmpx[(lon, lat)] = lonlatstr
+        
+        lonidxs, latidxs = np.array(tmpx.keys()).T
+        outf.lonlatcoords_orig = outf.lonlatcoords
+        outf.lonlatcoords = '/'.join([tmpx[k] for k in zip(lonidxs, latidxs)])
+#     longitude = f.variables['longitude'][:]
+#     latitude = f.variables['latitude'][:]
+#     latidxs = []
+#     lonidxs = []
+#     for lon, lat in zip(lons, lats):
+#         londist = lon - longitude
+#         latdist = lat - latitude
+#         totaldist = (latdist[:, None]**2 + londist[None, :]**2)**.5
+#         latidxa, lonidxa = np.where(totaldist.min() == totaldist)
+#         if len(latidxa) > 1:
+#             warn("Selecting first of equidistant points")
+#             
+#         latidx = latidxa[0]
+#         lonidx = lonidxa[0]
+#         #lonidx = abs(londist).argmin()
+#         #latidx = abs(latdist).argmin()
+#         #import pdb; pdb.set_trace()
+#         latidxs.append(latidx)
+#         lonidxs.append(lonidx)
+#     latidxs = array(latidxs)
+#     lonidxs = array(lonidxs)
+    for k, v in outf.variables.items():
         try:
             coords = v.coordinates.split()
         except:
@@ -475,11 +621,12 @@ def extract(f, lonlat):
                         
             
             newdims = tuple(newdims)
-            newslice = tuple([{'latitude': latidxs, 'longitude': lonidxs}.get(d, slice(None)) for d in dims]) 
+            newslice = tuple([{'latitude': latidxs, 'longitude': lonidxs, 'points': latidxs, 'PERIM': latidxs}.get(d, slice(None)) for d in dims]) 
             
             nv = outf.createVariable(k, v.dtype.char, newdims, values = v[newslice])
             for ak in v.ncattrs():
                 setattr(nv, ak, getattr(v, ak))
+            setattr(nv, 'coordinates', getattr(v, 'coordinates', ' '.join(coords)))
             for di, dk in enumerate(newdims):
                 if dk not in outf.dimensions:
                     outf.createDimension(dk, nv.shape[di])
