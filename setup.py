@@ -71,7 +71,7 @@ data = find_data()
 
 
 setup(name = 'PseudoNetCDF',
-      version = '1.0rc',
+      version = '1.0',
       author = 'Barron Henderson',
       author_email = 'barronh@gmail.com',
       maintainer = 'Barron Henderson',

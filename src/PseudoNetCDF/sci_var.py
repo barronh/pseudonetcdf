@@ -48,7 +48,7 @@ class OrderedDefaultDict(OrderedDict):
                 raise TypeError('first argument must be callable or None')
             self.default_factory = args[0]
             args = args[1:]
-        super(OrderedDefaultdict, self).__init__(*args, **kwargs)
+        super(OrderedDefaultDict, self).__init__(*args, **kwargs)
 
     def __missing__ (self, key):
         if self.default_factory is None:
@@ -436,6 +436,7 @@ class PseudoNetCDFVariables(OrderedDefaultDict):
         keys: list of keys that the dictionary should
               act as if it has
         """
+        super(PseudoNetCDFVariables, self).__init__()
         self.__func=func
         self.__keys=keys
     def __missing__(self,k):

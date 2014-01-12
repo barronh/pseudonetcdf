@@ -1,4 +1,5 @@
 __all__ = ['bpch']
+from matplotlib import use
 
 import os
 import gc
@@ -13,7 +14,6 @@ from StringIO import StringIO
 import numpy as np
 from numpy import ndarray, fromfile, memmap, dtype, arange, zeros, ceil, diff, concatenate, append, pi, sin
 
-from matplotlib import use
 try:
     from PseudoNetCDF import PseudoNetCDFDimension, PseudoNetCDFVariable, PseudoNetCDFFile
 except:
@@ -1249,8 +1249,6 @@ def pncdump(f, outpath, format):
     from netCDF4 import Dataset
     outf = Dataset(outpath, 'w', format = format)
     for dk, dv in f.dimensions.iteritems():
-        if dk == 'time':
-            import pdb; pdb.set_trace()
         if dv.isunlimited():
             outf.createDimension(dk, None)
         else:
@@ -1318,10 +1316,13 @@ For use as a library, use "from bpch import bpch" in a python script. For more i
 
     parser.add_option("", "--oldplot", dest = "oldplot", action='store_true', default = False, help = "Use old plot interface")
 
-    (options, args) = parser.parse_args()
-    if options.oldplot:
-        runold()
-        exit()
+    try:
+        (options, args) = parser.parse_args()
+    except:
+        import sys
+        if sys.argv[1] == '--oldplot':
+            runold()
+            exit()
     nfiles = len(args)
     if nfiles == 0:
         parser.print_help()
