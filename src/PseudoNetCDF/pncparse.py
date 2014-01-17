@@ -56,7 +56,9 @@ def pncparser(has_ofile):
 
     parser.add_option("", "--dump-name", dest = "cdlname", type = "string", default = None, help = "Name for display in ncdump")
 
-    parser.add_option("", "--op_typ", dest = "operators", type = "string", action = 'append', default = [], help = "Operator for binary file operations. Binary file operations use the first two files, then the result and the next file, etc. Use " + " or ".join(['//', '<=', '%', 'is not', '>>', '&', '==', '!=', '+', '*', '-', '/', '<', '>=', '**', '>', '<<', '|', 'is', '^']))
+    parser.add_option("", "--op-typ", dest = "operators", type = "string", action = 'append', default = [], help = "Operator for binary file operations. Binary file operations use the first two files, then the result and the next file, etc. Use " + " or ".join(['//', '<=', '%', 'is not', '>>', '&', '==', '!=', '+', '*', '-', '/', '<', '>=', '**', '>', '<<', '|', 'is', '^']))
+
+    parser.add_option("", "--op-first", dest = "operatorsfirst", action = 'store_true', default = False, help = "Use operations before slice/aggregate.")
 
     parser.add_option("", "--expr", dest = "expressions", type = "string", action = 'append', default = [], help = "Generic expressions to execute in the context of the file.")
     
@@ -80,12 +82,27 @@ def pncparser(has_ofile):
     else:
         ofile = None
     fs = getfiles(ipaths, options)
-    fs = seqpncbo(options.operators, fs)
+    
+    if options.operatorsfirst: fs = seqpncbo(options.operators, fs)
+    fs = subsetfiles(fs, options)
+    if not options.operatorsfirst: fs = seqpncbo(options.operators, fs)
+    
     f, = fs
     for expr in options.expressions:
         f = pncexpr(expr, f)
     return f, ofile, options
 
+def subsetfiles(ifiles, options):
+    fs = []
+    for f in ifiles:
+        for opts in options.slice:
+            f = slice_dim(f, opts)
+        for opts in options.reduce:
+            f = reduce_dim(f, opts)
+        if len(options.extract) > 0:
+            extract(f, options.extract)
+        fs.append(f)
+    return fs
 def getfiles(ipaths, options):
     fs = []
     for ipath in ipaths:
@@ -103,14 +120,8 @@ def getfiles(ipaths, options):
             f = getvarpnc(f, None)
         for opts in options.masks:
             f = mask_vals(f, opts)
-        for opts in options.slice:
-            f = slice_dim(f, opts)
-        for opts in options.reduce:
-            f = reduce_dim(f, opts)
         if laddconv:
             eval('add_%s_from_%s' % (options.toconv, options.fromconv))(f)
-        if len(options.extract) > 0:
-            extract(f, options.extract)
         if options.cdlname is None:
             options.cdlname = ipath
         try:
