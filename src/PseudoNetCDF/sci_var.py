@@ -127,6 +127,7 @@ class PseudoNetCDFFile(object):
         if k in self._ncattrs:
             self._ncattrs = tuple([k_ for k_ in self._ncattrs if k_ != k])
         object.__delattr__(self, k)
+
     def createDimension(self,name,length):
         """
         name - string name for dimension
@@ -480,13 +481,13 @@ def get_ncf_object(path_or_object, mode, format = 'NETCDF4_CLASSIC'):
             if isfile(path_or_object):
                 ncf_object = NetCDFFile(path_or_object, mode, format = format)
             elif isdir(path_or_object):
-                raise ValueError, "Got directory at %s; not sure what to do" % path_or_object
+                raise ValueError("Got directory at %s; not sure what to do" % path_or_object)
             else:
-                raise ValueError, "Expected file or directory at %s" % path_or_object
+                raise ValueError("Expected file or directory at %s" % path_or_object)
         elif mode not in read_only:
             ncf_object = NetCDFFile(path_or_object, mode, format = format)
         else:
-            raise IOError, "Cannot open missing file for reading"
+            raise IOError("Cannot open missing file for reading")
     elif isinstance(path_or_object, NetCDFFile) or isinstance(path_or_object, PseudoNetCDFFile):
         return path_or_object
     elif path_or_object is None and mode not in read_only:
@@ -494,7 +495,7 @@ def get_ncf_object(path_or_object, mode, format = 'NETCDF4_CLASSIC'):
         npath=tfile.name
         ncf_object=NetCDFFile(npath,mode)
     else:
-        raise ValueError, "Not a path; not a netCDF file; not a PseudoNetCDF file... I don't know what to do"
+        raise ValueError("Not a path; not a netCDF file; not a PseudoNetCDF file... I don't know what to do")
     return ncf_object
 
 def get_dimension_length(pfile, key):
@@ -837,12 +838,19 @@ class Pseudo2NetCDF:
         
     def addDimensions(self,pfile,nfile):
         for d,v in pfile.dimensions.iteritems():
-            if d in self.unlimited_dimensions or v.isunlimited():
-                v = None
-            elif not isinstance(v, (int, long)) and v is not None:
+            unlim = (d in self.unlimited_dimensions or v.isunlimited())
+            if not isinstance(v, (int, long)) and v is not None:
                 v = len(v)
             
-            nfile.createDimension(d,v)
+            if unlim:
+                if isinstance(nfile, PseudoNetCDFFile):
+                    nd = nfile.createDimension(d,v)
+                    nd.setunlimited(True)
+                else:
+                    nd = nfile.createDimension(d,None)
+            else:
+                nd = nfile.createDimension(d,v)
+
         nfile.sync()
     
     def addGlobalProperties(self,pfile,nfile):
@@ -891,8 +899,7 @@ class Pseudo2NetCDF:
     def addVariableData(self, pfile, nfile, k):
         nvar = nfile.variables[k]
         pvar = pfile.variables[k]
-        
-        if isscalar(nvar):
+        if isscalar(nvar) or nvar.ndim == 0:
             nvar.assignValue(pvar)
         elif isinstance(pvar[...], MaskedArray):
             nvar[:] = pvar[...].filled()
