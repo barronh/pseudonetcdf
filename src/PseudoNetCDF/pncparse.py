@@ -11,7 +11,7 @@ try:
     from netCDF4 import Dataset as netcdf
 except:
     pass
-from sci_var import reduce_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo
+from sci_var import reduce_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr
 
 def pncparser(has_ofile):
     parser = OptionParser()
@@ -57,6 +57,8 @@ def pncparser(has_ofile):
     parser.add_option("", "--dump-name", dest = "cdlname", type = "string", default = None, help = "Name for display in ncdump")
 
     parser.add_option("", "--op_typ", dest = "operators", type = "string", action = 'append', default = [], help = "Operator for binary file operations. Binary file operations use the first two files, then the result and the next file, etc. Use " + " or ".join(['//', '<=', '%', 'is not', '>>', '&', '==', '!=', '+', '*', '-', '/', '<', '>=', '**', '>', '<<', '|', 'is', '^']))
+
+    parser.add_option("", "--expr", dest = "expressions", type = "string", action = 'append', default = [], help = "Generic expressions to execute in the context of the file.")
     
     parser.add_option("", "--out-format", dest = "outformat", default = "NETCDF3_CLASSIC", metavar = "OFMT", help = "File output format (e.g., NETCDF3_CLASSIC, NETCDF4_CLASSIC, NETCDF4;pncgen only)", type = "choice", choices = 'NETCDF3_CLASSIC NETCDF4_CLASSIC NETCDF4'.split())
 
@@ -64,7 +66,7 @@ def pncparser(has_ofile):
 
     (options, args) = parser.parse_args()
     
-    if len(args) == 0 or (len(args) - len(options.operators)) > 1:
+    if len(args) == 0 or (len(args) - len(options.operators) - has_ofile) > 1:
         parser.print_help()
         exit()
     
@@ -80,6 +82,8 @@ def pncparser(has_ofile):
     fs = getfiles(ipaths, options)
     fs = seqpncbo(options.operators, fs)
     f, = fs
+    for expr in options.expressions:
+        f = pncexpr(expr, f)
     return f, ofile, options
 
 def getfiles(ipaths, options):

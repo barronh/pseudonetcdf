@@ -13,7 +13,7 @@ are attached and the arrays implement the Scientific.IO.NetCDF.NetCDFVariable
 interfaces.
 """
 
-__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFDimension', 'PseudoNetCDFVariableConvertUnit', 'PseudoNetCDFFileMemmap', 'PseudoNetCDFVariable', 'PseudoNetCDFMaskedVariable', 'PseudoIOAPIVariable', 'PseudoNetCDFVariables', 'Pseudo2NetCDF', 'reduce_dim', 'slice_dim', 'getvarpnc', 'interpvars', 'extract', 'pncbo', 'seqpncbo']
+__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFDimension', 'PseudoNetCDFVariableConvertUnit', 'PseudoNetCDFFileMemmap', 'PseudoNetCDFVariable', 'PseudoNetCDFMaskedVariable', 'PseudoIOAPIVariable', 'PseudoNetCDFVariables', 'Pseudo2NetCDF', 'reduce_dim', 'slice_dim', 'getvarpnc', 'interpvars', 'extract', 'pncbo', 'seqpncbo', 'pncexpr']
 
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
@@ -113,6 +113,7 @@ class PseudoNetCDFFile(object):
         new.variables = OrderedDict()
         new.dimensions = OrderedDict()
         new._ncattrs = ()
+        new._operator_exclude_vars = ()
         return new
     
     def __init__(self, *args, **properties):
@@ -158,6 +159,55 @@ class PseudoNetCDFFile(object):
     def ncattrs(self):
         return self._ncattrs
 
+    def __add__(self, lhs):
+        return pncbo(op = '+', ifile1 = self, ifile2 = lhs, verbose = False, excludevars = self._operator_exclude_vars)
+    
+    def __sub__(self, lhs):
+        return pncbo(op = '-', ifile1 = self, ifile2 = lhs, verbose = False, excludevars = self._operator_exclude_vars)
+    
+    def __mul__(self, lhs):
+        return pncbo(op = '*', ifile1 = self, ifile2 = lhs, verbose = False, excludevars = self._operator_exclude_vars)
+    
+    def __div__(self, lhs):
+        return pncbo(op = '/', ifile1 = self, ifile2 = lhs, verbose = False, excludevars = self._operator_exclude_vars)
+    
+    def __floordiv__(self, lhs):
+        return pncbo(op = '//', ifile1 = self, ifile2 = lhs, verbose = False, excludevars = self._operator_exclude_vars)
+    
+    def __pow__(self, lhs):
+        return pncbo(op = '**', ifile1 = self, ifile2 = lhs, verbose = False, excludevars = self._operator_exclude_vars)
+    
+    def __and__(self, lhs):
+        return pncbo(op = '&', ifile1 = self, ifile2 = lhs, verbose = False, excludevars = self._operator_exclude_vars)
+    
+    def __or__(self, lhs):
+        return pncbo(op = '|', ifile1 = self, ifile2 = lhs, verbose = False, excludevars = self._operator_exclude_vars)
+
+    def __xor__(self, lhs):
+        return pncbo(op = '^', ifile1 = self, ifile2 = lhs, verbose = False, excludevars = self._operator_exclude_vars)
+
+    def __mod__(self, lhs):
+        return pncbo(op = '%', ifile1 = self, ifile2 = lhs, verbose = False, excludevars = self._operator_exclude_vars)
+    
+    def __lt__(self, lhs):
+        return pncbo(op = '<', ifile1 = self, ifile2 = lhs, verbose = False, excludevars = self._operator_exclude_vars)
+    
+    def __gt__(self, lhs):
+        return pncbo(op = '>', ifile1 = self, ifile2 = lhs, verbose = False, excludevars = self._operator_exclude_vars)
+
+    def __eq__(self, lhs):
+        return pncbo(op = '==', ifile1 = self, ifile2 = lhs, verbose = False, excludevars = self._operator_exclude_vars)
+
+    def __le__(self, lhs):
+        return pncbo(op = '<=', ifile1 = self, ifile2 = lhs, verbose = False, excludevars = self._operator_exclude_vars)
+    
+    def __ge__(self, lhs):
+        return pncbo(op = '>=', ifile1 = self, ifile2 = lhs, verbose = False, excludevars = self._operator_exclude_vars)
+
+    def __ne__(self, lhs):
+        return pncbo(op = '!=', ifile1 = self, ifile2 = lhs, verbose = False, excludevars = self._operator_exclude_vars)
+    
+    
     sync=close
     flush=close
 
@@ -751,8 +801,9 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
     setattr(f, 'history', history)
     return f
 
-def pncbo(op, ifile1, ifile2):
+def pncbo(op, ifile1, ifile2, verbose = False):
     p2p = Pseudo2NetCDF()
+    p2p.verbose = verbose
     tmpfile = PseudoNetCDFFile()
     p2p.convert(ifile1, tmpfile)
     for k in tmpfile.variables.keys():
@@ -763,12 +814,44 @@ def pncbo(op, ifile1, ifile2):
             outvar[:] = eval('in1var[:] %s in2var[:]' % op)
         else:
             outvar.itemset(eval('in1var %s in2var' % op))
+    
     return tmpfile
 
+def _namemangler(k):
+    k = k.replace('$', 'dollar')
+    k = k.replace('-', 'hyphen')
+    return k
+
+def pncexpr(expr, ifile, verbose = False):
+    p2p = Pseudo2NetCDF()
+    p2p.verbose = verbose
+    tmpfile = PseudoNetCDFFile()
+    p2p.convert(ifile, tmpfile)
+    vardict = dict([(_namemangler(k), ifile.variables[k]) for k in ifile.variables.keys()])
+    assign_keys = re.findall(r'(?:^|;)\s*([a-zA-Z][a-zA-Z0-9_]*)\s*(?=[=])', expr, re.M)
+    tmp3dict = defaultdict(lambda: 1)
+    tmp4dict = dict([(k, 1) for k in assign_keys])
+    exec(expr, tmp4dict, tmp3dict)
+    used_keys = tmp3dict.keys()
+    tmpvar = vardict[used_keys[0]]
+    for key in assign_keys:
+        newvar = tmpfile.createVariable(key, tmpvar.dtype.char, tmpvar.dimensions)
+        for propk in tmpvar.ncattrs():
+            setattr(newvar, propk, getattr(tmpvar, propk))
+    for assign_key in assign_keys:
+        expr = re.sub(r'\b%s\b' % assign_key, '%s[:]' % assign_key, expr)
+
+    tmpdict = defaultdict(lambda: 1)
+    exec(expr, tmpfile.variables, vardict)
+    return tmpfile
+    
+    
+    
+    
 def seqpncbo(ops, ifiles):
     for op in ops:
         ifile1, ifile2 = ifiles[:2]
-        newfile = pncbo(op, ifile1, ifile2)
+        newfile = pncbo(op = op, ifile1 = ifile1, ifile2 = ifile2)
         del ifiles[:2]
         ifiles.insert(0, newfile)
     return ifiles
