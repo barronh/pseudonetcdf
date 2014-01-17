@@ -120,22 +120,28 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
             for var_name in display_variables:
                 var = f.variables[var_name]
                 if isinstance(var, PseudoNetCDFMaskedVariable):
-                    def writer(row):
+                    def writer(row, last):
                         if isscalar(row) or row.ndim == 0:
                             sys.stdout.write(startindent + '  ' + str(row.filled().astype(ndarray)))
                             return
                         tmpstr = StringIO('')
-                        savetxt(tmpstr, row.filled(nan), fmt, delimiter = ', ')
+                        savetxt(tmpstr, row.filled(nan), fmt, delimiter = ', ', newline =', ')
+                        if last:
+                            tmpstr.seek(-2, 1)
+                            tmpstr.write(';')
                         tmpstr.seek(0, 0)
                         sys.stdout.write(textwrap.fill(tmpstr.read(), line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
                         sys.stdout.write('\n')
                 else:
-                    def writer(row):
+                    def writer(row, last):
                         if isscalar(row) or row.ndim == 0:
                             sys.stdout.write(startindent + '  ' + str(row.astype(ndarray)))
                             return
                         tmpstr = StringIO('')
-                        savetxt(tmpstr, row, fmt, delimiter = ', ')
+                        savetxt(tmpstr, row, fmt, delimiter = ', ', newline =', ')
+                        if last:
+                            tmpstr.seek(-2, 1)
+                            tmpstr.write(';')
                         tmpstr.seek(0, 0)
                         sys.stdout.write(textwrap.fill(tmpstr.read(), line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
                         sys.stdout.write('\n')
@@ -171,9 +177,11 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                     var2d = var[...].reshape(*shape)
                     fmt = ', '.join(shape[-1] * [formats[var.dtype.name]])
                     fmt = formats[var.dtype.name]
+                    lastrow = var2d.shape[0] - 1
                     for rowi, row in enumerate(var2d):
                         try:
-                            writer(row)
+                            writer(row, rowi == lastrow)
+                                
                         except IOError, e:
                             warn(repr(e) + "; Typically from CTRL+C or exiting less")
                             exit()

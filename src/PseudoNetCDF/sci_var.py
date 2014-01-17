@@ -834,7 +834,7 @@ def pncexpr(expr, ifile, verbose = False):
     tmp3dict = defaultdict(lambda: 1)
     tmp4dict = dict([(k, 1) for k in assign_keys])
     exec(expr, tmp4dict, tmp3dict)
-    used_keys = tmp3dict.keys()
+    used_keys = list(set(tmp3dict.keys()).difference(assign_keys))
     tmpvar = vardict[used_keys[0]]
     for key in assign_keys:
         newvar = tmpfile.createVariable(key, tmpvar.dtype.char, tmpvar.dimensions)
