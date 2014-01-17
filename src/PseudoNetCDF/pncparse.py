@@ -7,12 +7,11 @@ from icarttfiles.ffi1001 import ffi1001
 from geoschemfiles import *
 from noaafiles import *
 from conventions.ioapi import add_cf_from_ioapi
-from pncbo import seqncbo
 try:
     from netCDF4 import Dataset as netcdf
 except:
     pass
-from sci_var import reduce_dim, slice_dim, getvarpnc, extract, mask_vals
+from sci_var import reduce_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo
 
 def pncparser(has_ofile):
     parser = OptionParser()
@@ -79,7 +78,7 @@ def pncparser(has_ofile):
     else:
         ofile = None
     fs = getfiles(ipaths, options)
-    fs = seqncbo(options.operators, fs)
+    fs = seqpncbo(options.operators, fs)
     f, = fs
     return f, ofile, options
 

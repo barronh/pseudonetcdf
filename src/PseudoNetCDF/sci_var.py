@@ -13,7 +13,7 @@ are attached and the arrays implement the Scientific.IO.NetCDF.NetCDFVariable
 interfaces.
 """
 
-__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFDimension', 'PseudoNetCDFVariableConvertUnit', 'PseudoNetCDFFileMemmap', 'PseudoNetCDFVariable', 'PseudoNetCDFMaskedVariable', 'PseudoIOAPIVariable', 'PseudoNetCDFVariables', 'Pseudo2NetCDF', 'reduce_dim', 'slice_dim', 'getvarpnc', 'interpvars', 'extract']
+__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFDimension', 'PseudoNetCDFVariableConvertUnit', 'PseudoNetCDFFileMemmap', 'PseudoNetCDFVariable', 'PseudoNetCDFMaskedVariable', 'PseudoIOAPIVariable', 'PseudoNetCDFVariables', 'Pseudo2NetCDF', 'reduce_dim', 'slice_dim', 'getvarpnc', 'interpvars', 'extract', 'pncbo', 'seqpncbo']
 
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
@@ -750,6 +750,29 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
     history += historydef
     setattr(f, 'history', history)
     return f
+
+def pncbo(op, ifile1, ifile2):
+    p2p = Pseudo2NetCDF()
+    tmpfile = PseudoNetCDFFile()
+    p2p.convert(ifile1, tmpfile)
+    for k in tmpfile.variables.keys():
+        outvar = tmpfile.variables[k]
+        in1var = ifile1.variables[k]
+        in2var = ifile2.variables[k]
+        if outvar.ndim > 0:
+            outvar[:] = eval('in1var[:] %s in2var[:]' % op)
+        else:
+            outvar.itemset(eval('in1var %s in2var' % op))
+    return tmpfile
+
+def seqpncbo(ops, ifiles):
+    for op in ops:
+        ifile1, ifile2 = ifiles[:2]
+        newfile = pncbo(op, ifile1, ifile2)
+        del ifiles[:2]
+        ifiles.insert(0, newfile)
+    return ifiles
+    
 
 def getvarpnc(f, varkeys, coordkeys = []):
     coordkeys = set(coordkeys)
