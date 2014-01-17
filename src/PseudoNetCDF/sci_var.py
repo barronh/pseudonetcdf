@@ -343,8 +343,8 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, MaskedArray):
         out = self.__array_wrap__(out)
         return out
 
-    def reshape(self, shape):
-        out = np.ma.MaskedArray.reshape(self, shape)
+    def reshape(self, *shape):
+        out = np.ma.MaskedArray.reshape(self, *shape)
         out = self.__array_wrap__(out)
         return out
     
@@ -410,6 +410,8 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, MaskedArray):
 
     def __array_wrap__(self, obj, context = None):
         MaskedArray.__array_finalize__(self, obj)
+        if not isscalar(obj._mask):
+            obj._mask = obj._mask.reshape(*obj.shape)
         if hasattr(self, '_ncattrs'):
             for k in self._ncattrs:
                 setattr(obj, k, getattr(self, k))
@@ -811,10 +813,10 @@ def pncbo(op, ifile1, ifile2, verbose = False):
         in1var = ifile1.variables[k]
         in2var = ifile2.variables[k]
         if outvar.ndim > 0:
-            outvar[:] = eval('in1var[:] %s in2var[:]' % op)
+            outvar[:] = np.ma.masked_invalid(eval('in1var[:] %s in2var[:]' % op)).filled(-999)
         else:
-            outvar.itemset(eval('in1var %s in2var' % op))
-    
+            outvar.itemset(np.ma.masked_invalid(eval('in1var %s in2var' % op))).filled(-999)
+        outvar.fill_value = -999
     return tmpfile
 
 def _namemangler(k):
