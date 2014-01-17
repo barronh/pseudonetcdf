@@ -9,7 +9,7 @@ def pncgen(ifile,outpath, inmode = 'r', outmode = 'w', format = 'NETCDF4_CLASSIC
     
 def main():
     from pncparse import pncparser
-    ifile, ofile, options = pncparser()
+    ifile, ofile, options = pncparser(has_ofile = True)
     pncgen(ifile, ofile, outmode = options.mode, format = options.outformat, verbose = options.verbose)
 
 if __name__ == '__main__':
