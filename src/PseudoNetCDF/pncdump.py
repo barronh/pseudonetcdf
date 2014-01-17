@@ -11,9 +11,11 @@ __doc__ = r"""
 """
 
 __all__=['pncdump',]
-from numpy import float32, float64, int16, int32, int64, ndenumerate
+from numpy import float32, float64, int16, int32, int64, ndenumerate, nan, savetxt, isscalar, ndarray
 from warnings import warn
+from PseudoNetCDF import PseudoNetCDFMaskedVariable
 
+from StringIO import StringIO
 import textwrap
 import sys
 import operator
@@ -117,6 +119,28 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
             # currently assumes 3-D data
             for var_name in display_variables:
                 var = f.variables[var_name]
+                if isinstance(var, PseudoNetCDFMaskedVariable):
+                    def writer(row):
+                        if isscalar(row) or row.ndim == 0:
+                            sys.stdout.write(startindent + '  ' + str(row.filled().astype(ndarray)))
+                            return
+                        tmpstr = StringIO('')
+                        savetxt(tmpstr, row.filled(nan), fmt, delimiter = ', ')
+                        tmpstr.seek(0, 0)
+                        sys.stdout.write(textwrap.fill(tmpstr.read(), line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
+                        sys.stdout.write('\n')
+                else:
+                    def writer(row):
+                        if isscalar(row) or row.ndim == 0:
+                            sys.stdout.write(startindent + '  ' + str(row.astype(ndarray)))
+                            return
+                        tmpstr = StringIO('')
+                        savetxt(tmpstr, row, fmt, delimiter = ', ')
+                        tmpstr.seek(0, 0)
+                        sys.stdout.write(textwrap.fill(tmpstr.read(), line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
+                        sys.stdout.write('\n')
+                        
+                        
                 sys.stdout.write(startindent + 1*indent+("%s =\n" % var_name))
                 if full_indices is not None:
                     id_display = {'f': lambda idx: str(tuple([idx[i]+1 for i in range(len(idx)-1,-1,-1)])), \
@@ -144,22 +168,12 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         shape = [first_dim, second_dim]
                     else:
                         shape = [1]+dimensions
-                    var2d = var[...].reshape(shape)
+                    var2d = var[...].reshape(*shape)
                     fmt = ', '.join(shape[-1] * [formats[var.dtype.name]])
+                    fmt = formats[var.dtype.name]
                     for rowi, row in enumerate(var2d):
                         try:
-                            row = tuple(row)
-                        except:
-                            pass
-                        array_str = fmt % row
-                        if rowi == (shape[0]-1):
-                            array_str += ';'
-                        else:
-                            array_str += ','
-                            
-                        try:
-                            sys.stdout.write(textwrap.fill(array_str, line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
-                            sys.stdout.write('\n')
+                            writer(row)
                         except IOError, e:
                             warn(repr(e) + "; Typically from CTRL+C or exiting less")
                             exit()
