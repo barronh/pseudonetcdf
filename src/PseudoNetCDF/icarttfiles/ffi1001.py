@@ -50,10 +50,12 @@ class ffi1001(PseudoNetCDFFile):
                 USER_COMMENT_COUNT_LINE = 12+len(missing)+2+n_special_comments
                 if li == DATE_LINE:
                     l = l.replace(',', '').split()
-                    SDATE = " ".join(l[:3])
-                    WDATE = " ".join(l[3:])
-                    self.SDATE = datetime.strptime(SDATE, '%Y %m %d')
-                    self.WDATE = datetime.strptime(WDATE, '%Y %m %d')
+                    SDATE = "".join(l[:3])
+                    WDATE = "".join(l[3:])
+                    self.SDATE = SDATE
+                    self.WDATE = WDATE
+                    self._SDATE = datetime.strptime(SDATE, '%Y%m%d')
+                    self._WDATE = datetime.strptime(WDATE, '%Y%m%d')
                 elif li == UNIT_LINE:
                     units.append(l.replace('\n', '').replace('\r', '').strip())
                 elif li == SCALE_LINE:
@@ -136,7 +138,7 @@ class ffi1001(PseudoNetCDFFile):
             vals = MaskedArray(dat, mask = dat == miss, fill_value = miss)
             tmpvar = self.variables[var] = PseudoNetCDFVariable(self, var, 'd', ('POINTS',), values = vals)
             tmpvar.units = unit
-            tmpvar.name = var
+            tmpvar.standard_name = var
             tmpvar.missing_value = miss
             tmpvar.fill_value = miss
             tmpvar.scale = scale
@@ -150,10 +152,4 @@ class ffi1001(PseudoNetCDFFile):
                 tmpvar.ulod_value = ulod_val
 
         
-        self.date_objs = self.SDATE + vectorize(lambda s: timedelta(seconds = int(s), microseconds = (s - int(s)) * 1.E6 ))(self.variables[self.TFLAG]).view(type = ndarray)
-        self.createDimension('YYYYMMDDTHHMMSS.microS', 22)
-        var = self.createVariable('TFLAG', 'c', ('POINTS', 'YYYYMMDDTHHMMSS.microS'))
-        var[:] = array(['%(Y)04d%(m)02d%(d)02dT%(H)02d%(M)02d%(S)02d.%(f)06d' % dict(Y = d.year, m = d.month, d = d.day, H = d.hour, M = d.minute, S = d.second, f = d.microsecond) for d in self.date_objs], dtype = '|S22').view('|S1').reshape(self.date_objs.shape[0], len(self.dimensions['YYYYMMDDTHHMMSS.microS']))
-        var.units = 'YYYYMMDDTHHMMSS.microS'
-        var.fill_value = ''
-        var.scale = 1.
+        self._date_objs = self._SDATE + vectorize(lambda s: timedelta(seconds = int(s), microseconds = (s - int(s)) * 1.E6 ))(self.variables[self.TFLAG]).view(type = ndarray)
