@@ -34,19 +34,25 @@ from PseudoNetCDF.camxfiles.timetuple import timediff,timeadd,timerange
 from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile,read_into,writeline,Int2Asc,Asc2Int
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
 
-def ncf2hp(ncffile,outpath,hght='HGHT',pres='PRES',tflag='TFLAG'):
+def ncf2height_pressure(ncffile,outpath,hght='HGHT',pres='PRES',tflag='TFLAG'):
     outfile=file(outpath,'wb')
     for (d,t),h3d,p3d in zip(ncffile.variables[tflag][:,0,:],ncffile.variables[hght],ncffile.variables[pres]):
-        t=array(t.astype('>f')/10000,ndmin=1).astype('>f')
+        t=array(t.astype('>f')/100,ndmin=1).astype('>f')
         d=array(d,ndmin=1).astype('>i')
         d=(d%(d/100000*100000)).astype('>i')
         for i,(h2d,p2d) in enumerate(zip(h3d,p3d)):
             h2d=h2d.astype('>f')
             p2d=p2d.astype('>f')
             buf=array((h2d.size+2)*4,ndmin=1).astype('>i').tostring()
-            outfile.write(buf+t.tostring()+d.tostring()+h2d.tostring()+buf)
-            outfile.write(buf+t.tostring()+d.tostring()+p2d.tostring()+buf)
-            
+            outfile.write(buf+t.tostring()+d.tostring());
+            h2d.tofile(outfile)
+            outfile.write(buf)
+            outfile.write(buf+t.tostring()+d.tostring())
+            p2d.tofile(outfile)
+            outfile.write(buf)
+    outfile.flush()
+    return outfile
+
 def write_hgtprss(sdate,stime,time_step,vals):
     """
     Takes an iterable and some defining information
