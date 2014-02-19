@@ -2,6 +2,7 @@ __all__ = ['profile']
 from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariables
 from matplotlib.mlab import csv2rec
 from StringIO import StringIO
+from datetime import datetime
 import numpy as np
 
 class profile(PseudoNetCDFFile):
@@ -11,7 +12,10 @@ class profile(PseudoNetCDFFile):
         nlay, nspc = map(int, header[:2])
         sigmas = map(float, header[2:])
         nsigmas = len(sigmas)
-        date, time = map(int, lines[4].split())
+        try:
+            dateo = datetime.strptime(lines[4].strip(), '%Y-%m-%d')
+        except:
+            date, time = map(int, lines[4].split())
         starts =  [5 + i + i * nspc for i in range(4)]
         ends = [s + 1 + nspc for s in starts]
         keys = [lines[s].strip().lower() for s in starts]
