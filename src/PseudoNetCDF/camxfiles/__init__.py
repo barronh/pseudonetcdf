@@ -32,8 +32,6 @@ __all__=['Memmaps',
     'util',
     'timetuple']
 
-import Memmaps
-import Readers
 import cloud_rain
 import height_pressure
 import humidity
@@ -50,3 +48,5 @@ import FortranFileUtil
 import util
 import timetuple
 import lateral_boundary
+import Readers
+import Memmaps
