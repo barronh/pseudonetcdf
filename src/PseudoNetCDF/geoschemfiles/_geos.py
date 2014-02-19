@@ -1,4 +1,4 @@
-from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoNetCDFVariable
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoNetCDFVariable
 from numpy import fromfile
 
 import numpy as np
