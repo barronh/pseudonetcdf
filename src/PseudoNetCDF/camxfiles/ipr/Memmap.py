@@ -21,6 +21,7 @@ __version__ = RevisionNum
 import unittest
 import struct
 from warnings import warn
+from mmap import error as MemmapLimitError
 
 #Site-Packages
 from numpy import zeros,array,where,memmap,newaxis,dtype,nan
@@ -188,8 +189,8 @@ class ipr(PseudoNetCDFFile):
             proc_spc=proc_spc+'_'+self.spcnames[0]
             return PseudoNetCDFVariable(self,proc_spc,'f',('TSTEP','LAY','ROW','COL'),values=self.__memmaps[pk][:,0,:,:,:][proc].swapaxes(1, 3).swapaxes(2, 3))
         if proc_spc=='TFLAG':
-            thisdate = self.__memmaps[pk][:,0,:,:,:]['DATE'].swapaxes(1, 3).swapaxes(2, 3)
-            thistime = self.__memmaps[pk][:,0,:,:,:]['TIME'].swapaxes(1, 3).swapaxes(2, 3)
+            thisdate = self.__memmaps[pk][:,0,:,:,:]['DATE'].swapaxes(1, 3).swapaxes(2, 3)[..., 0, 0, 0]
+            thistime = self.__memmaps[pk][:,0,:,:,:]['TIME'].swapaxes(1, 3).swapaxes(2, 3)[..., 0, 0, 0]
             return ConvertCAMxTime(thisdate, thistime, len(self.groups[pk].dimensions['VAR']))
         for k in self.__ipr_record_type.names:
             proc=proc_spc[:len(k)]
