@@ -39,6 +39,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
     formats = dict(float64 = "%%.%de" % (double_precision,), \
                    float32 = "%%.%de" % (float_precision,), \
                    int32 = "%i", \
+                   uint32 = "%i", \
                    int64 = "%i", \
                    str = "%s", \
                    bool = "%s", \
@@ -75,6 +76,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
         var_type = dict(float32='float', \
                         float64='double', \
                         int32='integer', \
+                        uint32='integer', \
                         int64='long', \
                         bool='bool', \
                         string8='char', \
