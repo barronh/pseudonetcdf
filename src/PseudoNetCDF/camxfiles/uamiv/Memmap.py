@@ -66,7 +66,7 @@ class uamiv(PseudoNetCDFFile):
     """
     
 
-    __emiss_hdr_fmt=dtype(dict(names=['SPAD','name','note','itzone','nspec','ibdate','btime','iedate','etime','EPAD'],formats=['>i','(10,4)>S1','(60,4)>S1','>i','>i','>i','>f','>i','>f','>i']))
+    __emiss_hdr_fmt=dtype(dict(names=['SPAD','name','note','itzon','nspec','ibdate','btime','iedate','etime','EPAD'],formats=['>i','(10,4)>S1','(60,4)>S1','>i','>i','>i','>f','>i','>f','>i']))
     __grid_hdr_fmt=dtype(dict(names=['SPAD','plon','plat','iutm','xorg','yorg','delx','dely','nx','ny','nz','iproj','istag','tlat1','tlat2','rdum','EPAD'],formats=['>i','>f','>f','>i','>f','>f','>f','>f','>i','>i','>i','>i','>i','>f','>f','>f','>i']))
     __cell_hdr_fmt=dtype(dict(names=['SPAD','ione1','ione2','nx','ny','EPAD'],formats=['>i','>i','>i','>i','>i','>i']))
     __time_hdr_fmt=dtype(dict(names=['SPAD','ibdate','btime','iedate','etime','EPAD'],formats=['>i','>i','>f','>i','>f','>i']))
@@ -98,7 +98,8 @@ class uamiv(PseudoNetCDFFile):
         setattr(self,'VAR-LIST',"".join([i.ljust(16) for i in self.__var_names__]+['TFLAG'.ljust(16)]))
         self.GDTYP=2
         self.NAME="".join(self.__emiss_hdr['name'][0,:,0])
-        self.ITZON=self.__emiss_hdr['itzone'][0]
+        self.NOTE="".join(self.__emiss_hdr['note'][0,:,0])
+        self.ITZON=self.__emiss_hdr['itzon'][0]
         self.FTYPE = 1 ;
         self.VGTYP = 2 ;
         self.VGTOP = 10000. ;
@@ -170,12 +171,14 @@ class uamiv(PseudoNetCDFFile):
         self.YORIG=self.__grid_hdr['yorg'][0]
         self.XCELL=self.__grid_hdr['delx'][0]
         self.YCELL=self.__grid_hdr['dely'][0]
-        plon = self.__grid_hdr['plon'][0]
-        plat = self.__grid_hdr['plat'][0]
-        tlat1 = self.__grid_hdr['tlat1'][0]
-        tlat2 = self.__grid_hdr['tlat2'][0]
-        iutm = self.__grid_hdr['iutm'][0]
-        cproj = self.__grid_hdr['iproj'][0]
+        self.PLON = plon = self.__grid_hdr['plon'][0]
+        self.PLAT = plat = self.__grid_hdr['plat'][0]
+        self.TLAT1 = tlat1 = self.__grid_hdr['tlat1'][0]
+        self.TLAT2 = tlat2 = self.__grid_hdr['tlat2'][0]
+        self.IUTM = iutm = self.__grid_hdr['iutm'][0]
+        self.ISTAG = istag = self.__grid_hdr['istag'][0]        
+        self.CPROJ = cproj = self.__grid_hdr['iproj'][0]
+        
         if not all(map(lambda x: x == 0, [plon, plat, tlat1, tlat2, iutm, cproj])):
             # Map CAMx projection constants to IOAPI
             GDTYPE = self.GDTYP={0: 1, 1: 5, 2: 2, 3: 6}[cproj]
@@ -264,33 +267,12 @@ class TestMemmap(unittest.TestCase):
         pass
     def setUp(self):
         pass
-    def testGE(self):
-        import PseudoNetCDF.testcase
-        emissfile=uamiv(PseudoNetCDF.testcase.CAMxAreaEmissions)
-        emissfile.variables['TFLAG']
-        v=emissfile.variables['NO']
-        self.assert_((emissfile.variables['NO'].mean(1).mean(1).mean(1)==array([  52.05988312,   51.58646774,   51.28796387,   55.63090134,
-         63.95315933,  105.3456192 ,  158.26776123,  152.04057312,
-         147.32403564,  154.80661011,  164.03274536,  171.88658142,
-         174.36567688,  180.03359985,  173.81938171,  180.50257874,
-         178.56637573,  161.35736084,  110.38669586,   97.90225983,
-         89.08138275,   81.10474396,   73.36611938,   58.82622528],dtype='f')).all())
-
     def testAvg(self):
         import PseudoNetCDF.testcase
-        emissfile=uamiv(PseudoNetCDF.testcase.CAMxAverage)
+        emissfile=uamiv(PseudoNetCDF.testcase.camxfiles_paths['uamiv'])
         emissfile.variables['TFLAG']
-        v=emissfile.variables['NO']
-        self.assert_((v.mean(1).mean(1).mean(1)==array([  9.44490694e-06,   2.17493564e-07,   6.08432686e-07,   9.48155161e-07,
-         1.15099192e-05,   1.02132122e-04,   2.57815613e-04,   3.35910037e-04,
-         3.17813188e-04,   2.51695659e-04,   1.85225872e-04,   1.40698961e-04,
-         1.16110547e-04,   1.04519037e-04,   1.00367179e-04,   9.81789271e-05,
-         8.98482831e-05,   6.31201983e-05,   2.18762198e-05,   1.78832056e-06,
-         1.20556749e-07,   1.57714638e-07,   1.82648236e-07,   2.02759026e-07],dtype='f')).all())
+        v=emissfile.variables['NO2']
+        self.assert_((v==array([ 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.24175494e-04, 2.79196858e-04, 1.01672206e-03, 4.36782313e-04, 0.00000000e+00, 1.54810550e-04, 3.90250643e-04, 6.18023798e-04, 3.36963218e-04, 0.00000000e+00, 1.85579920e-04, 1.96825975e-04, 2.16468165e-04, 2.19882189e-04],dtype='f').reshape(1, 1, 4, 5)).all())
 
-    def testInst(self):
-        from warnings import warn
-        warn("Instantaneous file test not implemented")
-       
 if __name__ == '__main__':
     unittest.main()
