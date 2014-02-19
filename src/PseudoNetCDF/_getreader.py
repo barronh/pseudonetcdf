@@ -25,7 +25,10 @@ def getreader(*args, **kwds):
 
 def registerreader(name, reader):
     global _readers
-    _readers.append((name, reader))
+    _readers.insert(0, (name, reader))
 
 def anyfile(*args, **kwds):
     return getreader(*args, **kwds)(*args, **kwds)
+
+def getreaderdict():
+    return dict(_readers)
