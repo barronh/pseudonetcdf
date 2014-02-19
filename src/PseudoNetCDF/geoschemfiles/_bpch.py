@@ -1,4 +1,4 @@
-__all__ = ['bpch']
+__all__ = ['bpch', 'ncf2bpch']
 from matplotlib import use
 
 import os
@@ -6,7 +6,7 @@ import gc
 import re
 
 # part of the default Python distribution
-from collections import defaultdict
+from collections import OrderedDict
 from warnings import warn
 from StringIO import StringIO
 
@@ -14,8 +14,25 @@ from StringIO import StringIO
 import numpy as np
 from numpy import ndarray, fromfile, memmap, dtype, arange, zeros, ceil, diff, concatenate, append, pi, sin
 
+class OrderedDefaultDict(OrderedDict):
+    def __init__(self, *args, **kwargs):
+        if not args:
+            self.default_factory = None
+        else:
+            if not (args[0] is None or callable(args[0])):
+                raise TypeError('first argument must be callable or None')
+            self.default_factory = args[0]
+            args = args[1:]
+        super(OrderedDefaultDict, self).__init__(*args, **kwargs)
+
+    def __missing__ (self, key):
+        if self.default_factory is None:
+            raise KeyError(key)
+        self[key] = default = self.default_factory()
+        return default
+
 try:
-    from PseudoNetCDF import PseudoNetCDFDimension, PseudoNetCDFVariable, PseudoNetCDFFile
+    from PseudoNetCDF.sci_var import PseudoNetCDFDimension, PseudoNetCDFVariable, PseudoNetCDFFile
 except:
     warn('Using static PseudoNetCDF')
     # PseudoNetCDF is my own home grown
@@ -43,8 +60,8 @@ except:
         """
         def __new__(cls, *args, **kwds):
             new = object.__new__(cls, *args, **kwds)
-            new.variables={}
-            new.dimensions={}
+            new.variables=OrderedDict()
+            new.dimensions=OrderedDict()
             new._ncattrs = ()
             return new
     
@@ -186,7 +203,7 @@ _general_header_type = dtype('>i4, S40, >i4, >i4, S80, >i4')
 _datablock_header_type = dtype('>i4, S20, 2>f4, >i4, >i4, >i4, >i4, S40, >i4, S40, >f8, >f8, S40, 3>i4, 3>i4, >i4, >i4')
 _first_header_size = _general_header_type.itemsize + _datablock_header_type.itemsize
 
-class defaultdictfromkey(defaultdict):
+class defaultdictfromkey(OrderedDefaultDict):
     """
     defaultdictfromkey dynamically produces dictionary items
     for keys, using the default_factor function called
@@ -202,7 +219,7 @@ class defaultdictfromkey(defaultdict):
         """
         return self.default_factory(key)
 
-class defaultdictfromthesekeys(defaultdict):
+class defaultdictfromthesekeys(OrderedDefaultDict):
     """
     defaultdictfromthesekeys dynamically produces dictionary items
     for known keys, using the default_factor function called
@@ -214,8 +231,8 @@ class defaultdictfromthesekeys(defaultdict):
         default_factory - function that takes a key as an argument
                           to create a dictionary item
         """
-        self._keys = set([k for k in keys])
-        defaultdict.__init__(self, default_factory)
+        self._keys = [k for k in keys]
+        OrderedDefaultDict.__init__(self, default_factory)
     
     def __iter__(self):
         """
@@ -255,23 +272,28 @@ class defaultdictfromthesekeys(defaultdict):
         """
         Add value with key and add to pre-defined keys
         """
-        val = defaultdict.__setitem__(self, key, value)
-        self._keys.add(key)
+        val = OrderedDefaultDict.__setitem__(self, key, value)
+        if key not in self._keys:
+            self._keys.append(key)
         return val
     
     def __delitem__(self, key):
         """
         Delete value with key and remove pre-defined key
         """
-        self._keys.discard(key)
-        return defaultdict.__delitem__(self, key)
+        if key in self._keys:
+            ki = self._keys.index(key)
+            del self._keys[ki]
+        return OrderedDefaultDict.__delitem__(self, key)
     
     def pop(self, key):
         """
         Pop value with key and remove pre-defined key
         """
-        val = defaultdict.pop(self, key)
-        self._keys.discard(key)
+        val = OrderedDefaultDict.pop(self, key)
+        if key in self._keys:
+            ki = self._keys.index(key)
+            del self._keys[ki]
         return val
         
     def __missing__(self, key):
@@ -346,15 +368,17 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
         tracerinfo: dictionary of tracer data keyed by ordinal
         keys: list of keys to serve
         """
-        self._noscale = noscale
+        self.noscale = noscale
         self._tracer_data = tracerinfo
         self._diag_data = diaginfo
         self._memmap = datamap
         self._parent = parent
         self._special_keys = set(metakeys)
-        self._keys = set(keys).union(self._special_keys)
+        unique_keys = set(keys).union(self._special_keys)
+        self._keys = [k for k in keys + metakeys if k in unique_keys]
         if 'BXHGHT-$_BXHEIGHT' not in keys:
-            self._keys.discard('VOL')
+            ki = self._keys.index('VOL')
+            del self._keys[ki]
         self._example_key = keys[0]
         
     def __missing__(self, key):
@@ -479,8 +503,10 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             sl, sj, si = header['f14'][::-1] - 1
             group = header['f7'].strip()
             offset = self._diag_data.get(group, {}).get('offset', 0)
+            tracerid = header['f8']
             ord = header['f8'] + offset
             base_units = header['f9']
+            reserved = header['f12']
             scale = self._tracer_data[ord]['SCALE']
             molwt = self._tracer_data[ord]['MOLWT']
             carbon = self._tracer_data[ord]['C']
@@ -489,10 +515,10 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             dims = ('time', 'layer', 'latitude', 'longitude')
             if len(['layer' in dk_ for dk_ in self._parent.dimensions]) > 1:
                 dims = ('time', 'layer%d' % tmp_data.dtype['f1'].shape[0], 'latitude', 'longitude')
-            kwds = dict(scale = scale, kgpermole = molwt, carbon = carbon, units = units, base_units = base_units, standard_name = key, long_name = key, var_desc = key, coordinates = ' '.join(dims), grid_mapping = "crs")
+            kwds = dict(scale = scale, kgpermole = molwt, carbon = carbon, units = units, base_units = base_units, standard_name = key, long_name = key, var_desc = key, coordinates = ' '.join(dims), grid_mapping = "crs", reserved = reserved, tracerid = tracerid, category = group)
                 
             assert((tmp_data['f0'] == tmp_data['f2']).all())
-            if self._noscale:
+            if self.noscale:
                 if scale != 1.:
                     warn("Not scaling variables; good for writing")
                 data = tmp_data['f1']
@@ -568,7 +594,7 @@ class bpch(PseudoNetCDFFile):
          vertgrid: vertical coordinate system (options: 'GEOS-5-REDUCED', 'GEOS-5-NATIVE', 'MERRA-REDUCED', 'MERRA-NATIVE', 'GEOS-4-REDUCED', 'GEOS-4-NATIVE' -- default 'GEOS-5-REDUCED')
         """
         self._ncattrs = () 
-        self._noscale = noscale
+        self.noscale = noscale
         # Read binary data for general header and first datablock header
         header_block = fromfile(bpch_path, dtype = 'bool', count = _first_header_size)
         
@@ -597,14 +623,15 @@ class bpch(PseudoNetCDFFile):
                 tracerinfo = 'tracerinfo.dat'
             if os.path.exists(tracerinfo):
                 if os.path.isdir(tracerinfo): tracerinfo = os.path.join(tracerinfo, 'tracerinfo.dat')
-        
+            
             tracerinfo = file(tracerinfo)
+        self._tracerinfofile = tracerinfo
         if isinstance(tracerinfo, (file, StringIO)):
             tracer_data = dict([(int(l[52:61].strip()), dict(NAME = l[:8].strip(), FULLNAME = l[9:39].strip(), MOLWT = float(l[39:49]), C = int(l[49:52]), TRACER = int(l[52:61]), SCALE = float(l[61:71]), UNIT = l[72:].strip())) for l in tracerinfo.readlines() if l[0] not in ('#', ' ')])
             tracer_names = dict([(k, v['NAME']) for k, v in tracer_data.iteritems()])
         else:
             warn('Reading file without tracerinfo.dat means that names and scaling are unknown')
-            tracer_data = defaultdict(lambda: dict(SCALE = 1., C = 1.))
+            tracer_data = OrderedDefaultDict(lambda: dict(SCALE = 1., C = 1.))
             tracer_names = defaultdictfromkey(lambda key: key)
         
         diaginfo = diaginfo or os.path.join(os.path.dirname(bpch_path), 'diaginfo.dat')
@@ -615,6 +642,7 @@ class bpch(PseudoNetCDFFile):
                 if os.path.isdir(diaginfo): diaginfo = os.path.join(diaginfo, 'diaginfo.dat')
             diaginfo = file(diaginfo)
 
+        self._diaginfofile = diaginfo
         if isinstance(diaginfo, (file, StringIO)):
             diag_data = dict([(l[9:49].strip(), dict(offset = int(l[:8]), desc = l[50:].strip())) for l in diaginfo.read().strip().split('\n') if l[0] != '#'])
         else:
@@ -628,7 +656,7 @@ class bpch(PseudoNetCDFFile):
         data_types = []
         first_header = None
         keys = []
-        self._groups = defaultdict(set)
+        self._groups = OrderedDefaultDict(set)
         while first_header is None or \
               offset < file_size:
             header = memmap(bpch_path, offset = offset, shape = (1,), dtype = _datablock_header_type, mode = mode)[0]
@@ -750,11 +778,11 @@ class bpch(PseudoNetCDFFile):
         # Create variables and dimensions
         self.vertgrid = vertgrid
         layerns = set([datamap[0][k]['header']['f13'][-1] for k in datamap.dtype.names])
-        layerkeys = ['layer_edges'] + ['layer%d' % l for l in layerns]
+        layerkeys = ['layer_bounds'] + ['layer%d' % l for l in layerns]
         keys.extend(layerkeys)
         if self.vertgrid in ('GEOS-5-REDUCED', 'MERRA-REDUCED'):
             self.createDimension('layer', 47)
-            self.createDimension('layer_edges', 48)
+            self.createDimension('layer_bounds', 48)
             # Ap [hPa] for 47 levels (48 edges)
             self.Ap = np.array([0.000000e+00, 4.804826e-02, 6.593752e+00, 1.313480e+01,
                              1.961311e+01, 2.609201e+01, 3.257081e+01, 3.898201e+01,
@@ -785,7 +813,7 @@ class bpch(PseudoNetCDFFile):
 
         elif self.vertgrid in ('GEOS-5-NATIVE', 'MERRA-NATIVE'):
             self.createDimension('layer', 72)
-            self.createDimension('layer_edges', 73)
+            self.createDimension('layer_bounds', 73)
             # Ap [hPa] for 72 levels (73 edges)
             self.Ap = np.array([0.000000e+00, 4.804826e-02, 6.593752e+00, 1.313480e+01,
                      1.961311e+01, 2.609201e+01, 3.257081e+01, 3.898201e+01,
@@ -829,7 +857,7 @@ class bpch(PseudoNetCDFFile):
                      0.000000e+00])
         elif self.vertgrid == 'GEOS-4-REDUCED':
             self.createDimension('layer', 30)
-            self.createDimension('layer_edges', 31)
+            self.createDimension('layer_bounds', 31)
             # Ap [hPa] for 30 levels (31 edges)
             self.AP = np.array([0.000000e0,   0.000000e0,  12.704939e0,  35.465965e0, 
                         66.098427e0, 101.671654e0, 138.744400e0, 173.403183e0, 
@@ -851,7 +879,7 @@ class bpch(PseudoNetCDFFile):
                          0.000000e0,   0.000000e0,   0.000000e0])
         elif self.vertgrid == 'GEOS-4-NATIVE':
             self.createDimension('layer', 55)
-            self.createDimension('layer_edges', 56)
+            self.createDimension('layer_bounds', 56)
             # AP [hPa] for 55 levels (56 edges)
             self.Ap = np.array([0.000000e0,   0.000000e0,  12.704939e0,  35.465965e0, 
                        66.098427e0, 101.671654e0, 138.744400e0, 173.403183e0,
@@ -886,7 +914,7 @@ class bpch(PseudoNetCDFFile):
         else:
             warn('Assuming GEOS-5 reduced vertical coordinate')
             self.createDimension('layer', 47)
-            self.createDimension('layer_edges', 48)
+            self.createDimension('layer_bounds', 48)
             self.Ap = np.array([0.000000e+00, 4.804826e-02, 6.593752e+00, 1.313480e+01,
                              1.961311e+01, 2.609201e+01, 3.257081e+01, 3.898201e+01,
                              4.533901e+01, 5.169611e+01, 5.805321e+01, 6.436264e+01,
@@ -914,7 +942,7 @@ class bpch(PseudoNetCDFFile):
                              0.000000e+00, 0.000000e+00, 0.000000e+00, 0.000000e+00,
                              0.000000e+00, 0.000000e+00, 0.000000e+00, 0.000000e+00])
 
-        self.variables = _tracer_lookup(parent = self, datamap = datamap, tracerinfo = tracer_data, diaginfo = diag_data, keys = keys, noscale = self._noscale)
+        self.variables = _tracer_lookup(parent = self, datamap = datamap, tracerinfo = tracer_data, diaginfo = diag_data, keys = keys, noscale = self.noscale)
         del datamap
         tdim = self.createDimension('time', self.variables['tau0'].shape[0])
         tdim.setunlimited(True)
@@ -929,6 +957,72 @@ class bpch(PseudoNetCDFFile):
     def __repr__(self):
         return PseudoNetCDFFile.__repr__(self) + str(self.variables)
 
+def ncf2bpch(ncffile, outpath):
+    outfile = file(outpath, 'wb')
+    _general_header_type = np.dtype(dict(names = ['SPAD1', 'ftype', 'EPAD1', 'SPAD2', 'toptitle', 'EPAD2'], formats = '>i4, S40, >i4, >i4, S80, >i4'.split()))
+    _datablock_header_type = np.dtype(dict(names = ['SPAD1', 'modelname', 'modelres', 'halfpolar', 'center180', 'EPAD1', 'SPAD2', 'category', 'tracerid', 'unit', 'tau0', 'tau1', 'reserved', 'dim', 'skip', 'EPAD2'], formats = '>i4, S20, 2>f4, >i4, >i4, >i4, >i4, S40, >i4, S40, >f8, >f8, S40, 6>i4, >i4, >i4'.split(', ')))
+    varkeys = [k for k in ncffile.variables.keys() if k not in ['tau0', 'tau1', 'time', 'time_bounds', 'latitude', 'longitude', 'latitude_bounds', 'longitude_bounds', 'AREA', 'crs', 'layer', 'layer_edges', 'layer_bounds'] + ['layer%d' % i for i in range(200)]]
+    var_types = []
+    for varkey in varkeys:
+        var = ncffile.variables[varkey]
+        data_type = '%s>f' % str(tuple(var[0].shape))
+        var_types.append(np.dtype(dict(names = ['header', 'SPAD1', 'data', 'EPAD1'], formats = [_datablock_header_type, '>i', data_type, '>i'])))
+    general_header = np.zeros((1,), dtype = _general_header_type)
+    general_header['SPAD1'] = general_header['EPAD1'] = 40
+    general_header['SPAD2'] = general_header['EPAD2'] = 80
+    general_header['ftype'] = ncffile.ftype.ljust(80)
+    general_header['toptitle'] = ncffile.toptitle.ljust(80)
+    general_header.tofile(outfile)
+    time_data = zeros((1,), dtype = np.dtype(dict(names = varkeys, formats = var_types)))
+    
+    for varkey in varkeys:
+        for attrk in _datablock_header_type.names[1:5]:
+            time_data[varkey]['header'][attrk] = getattr(ncffile, attrk)
+        
+        time_data[varkey]['header']['SPAD1'] = time_data[varkey]['header']['EPAD1'] = 36
+        time_data[varkey]['header']['SPAD2'] = time_data[varkey]['header']['EPAD2'] = 168
+    
+    for ti, (tau0, tau1) in enumerate(zip(ncffile.variables['tau0'], ncffile.variables['tau0'])):
+        for varkey in varkeys:
+            print varkey
+            var = ncffile.variables[varkey]
+            vals = var[ti]
+            header = time_data[varkey]['header']
+            data = time_data[varkey]['data']
+            header['tau0'] = tau0
+            header['tau1'] = tau1
+            header['reserved'] = getattr(var, 'reserved', ' ').ljust(40)
+            header['tracerid'] = var.tracerid
+            header['category'] = var.category.ljust(40)
+            header['unit'] = var.base_units
+            header['dim'] = list(vals.shape[::-1]) + [getattr(var, k_) + 1 for k_ in 'STARTI STARTJ STARTK'.split()]
+            time_data[varkey]['SPAD1'] = time_data[varkey]['EPAD1'] = np.prod(vals.shape) * 4
+            header['skip'] = time_data[varkey]['SPAD1'] + 8
+            if ncffile.noscale:
+                data[:] = vals
+            else:
+                data[:] = vals / var.scale
+        time_data.tofile(outfile)
+    
+    
+    outfile.flush()
+    outdir = os.path.dirname(outpath)
+    tracerpath = os.path.join(outdir, 'tracerinfo.dat')
+    diagpath = os.path.join(outdir, 'diaginfo.dat')
+    if hasattr(ncffile, '_tracerinfofile'):
+        if not os.path.exists(tracerpath):
+            ncffile._tracerinfofile.seek(0, 0)
+            ncffile._tracerinfofile.seek(0, 0)
+            outtrace = file(tracerpath, 'w')
+            outtrace.write(ncffile._tracerinfofile.read())
+            outtrace.flush()
+    if hasattr(ncffile, '_diaginfofile'):
+        if not os.path.exists(diagpath):
+            ncffile._diaginfofile.seek(0, 0)
+            outdiag = file(diagpath, 'w')
+            outdiag.write(ncffile._diaginfofile.read())
+            outdiag.flush()
+    return outfile
 def tileplot(f, toplot, vmin = None, vmax = None, xmin = None, xmax = None, ymin = None, ymax = None, title = '', unit = '', maptype = 0, log = False, cmap = None):
     # Example: spatial plotting
     from pylab import figure, colorbar, axis
