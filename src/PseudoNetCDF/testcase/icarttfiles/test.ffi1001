@@ -1,0 +1,44 @@
+36 1001
+Brune, William
+Penn State University
+ATHOS - OH and HO2 concentrations using cryo water mix ratio data for quenching corrections
+ICARTT_INTEX
+1 1
+2004 06 26 2005 01 12
+0
+Start_UTC
+4
+1 1 1 1
+-9999 -9999 -9999 -9999
+Stop_UTC
+Mid_UTC
+OH_pptv
+HO2_pptv
+0
+18
+PI_CONTACT_INFO: Address: 503 Walker Building, University Park, PA 16802; email: brune@essc.psu.edu; 814-865-3286
+PLATFORM: NASA DFRC DC8 - sampling underneath aircraft forward cargo bay location
+LOCATION: Aircraft location data in nav_dc8_20040626_R0.ict file
+ASSOCIATED_DATA: see ftp://ftp-air.larc.nasa.gov/pub-air/INTEXNA/
+INSTRUMENT_INFO: OH/HO2 LIF
+DATA_INFO: Units are pptv.
+UNCERTAINTY: The absolute accuracy is conservatively estimated to be +/- 32% at two sigma confidence
+ULOD_FLAG: -7777
+ULOD_VALUE: N/A
+LLOD_FLAG: -8888
+LLOD_VALUE: N/A
+DM_CONTACT_INFO: Bob Lesher; Penn State University; blesher@psu.edu
+PROJECT_INFO: INTEX Mission 26 June-14 August 2004; California, Illinois, and New Hampshire
+STIPULATIONS_ON_USE: Use of these data requires prior approval from William Brune
+OTHER_COMMENTS: N/A
+REVISION: R0
+R0: Final Data using water mixing ratio in cryo_dc8_20040626_R0.ict file for quenching corrections
+Start_UTC Stop_UTC Mid_UTC OH_pptv HO2_pptv
+63481 63500 63490 -9999.000 -9999.000
+64239 64258 64248 0.094 -9999.000
+66325 66344 66334 0.051 4.718
+66345 66364 66354 -9999.000 5.363
+66365 66384 66374 0.085 7.152
+66385 66404 66394 -9999.000 6.759
+80007 80026 80016 -9999.000 -9999.000
+80027 80046 80036 -9999.000 -9999.000
