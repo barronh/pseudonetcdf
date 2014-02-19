@@ -27,7 +27,7 @@ from numpy import zeros,array,where,memmap,newaxis,dtype,nan
 #This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timediff,timeadd
 from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile,Int2Asc
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables, OrderedDict
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 #for use in identifying uncaught nan
@@ -87,7 +87,7 @@ class wind(PseudoNetCDFFile):
             times+=1
         times-=1
         
-        self.variables={}
+        self.variables=OrderedDict
         del rf
         self.createDimension('TSTEP',times)
         self.createDimension('DATE-TIME',2)
@@ -156,14 +156,9 @@ class TestMemmap(unittest.TestCase):
 
     def testWD(self):
         import PseudoNetCDF.testcase
-        wdfile=wind(PseudoNetCDF.testcase.CAMxWind,65,83)
+        wdfile=wind(PseudoNetCDF.testcase.camxfiles_paths['wind'],4,5)
         wdfile.variables['TFLAG']
-        self.assert_((wdfile.variables['V'].mean(0).mean(1).mean(1)==array([ 1.11006343,  1.55036175,  2.00059319,  2.1433928 ,  2.22216082,
-        2.32335973,  2.35524583,  2.35921693,  2.33058643,  2.28071952,
-        2.23793173,  2.04576039,  2.01241875,  2.30642509,  2.36914039,
-        2.21509433,  1.73041999,  1.55570471,  1.25667989,  1.12686849,
-        0.8800422 ,  1.38759625,  1.08145201, -0.32430261, -2.38370752,
-       -4.76881075, -7.09392786, -5.76552343],dtype='f')).all())
+        self.assert_((wdfile.variables['V'][:]==array([   -1.73236704e+00, -1.99612117e+00, -3.00912833e+00, -3.92667437e+00, -3.49521232e+00, 2.04542422e+00, 8.57666790e-01, -1.71201074e+00, -4.24386787e+00, -5.37704515e+00, 1.85697508e+00, 6.34313405e-01, -1.21529281e+00, -3.03180861e+00, -4.36278439e+00, -1.90753967e-01, -1.08261776e+00, -1.73634803e+00, -2.10829663e+00, -2.28424144e+00, -1.88443780e+00, -2.02582169e+00, -3.09955978e+00, -4.14587784e+00, -3.72402787e+00, 2.16277528e+00, 8.94082963e-01, -1.86343944e+00, -4.58147812e+00, -5.81837606e+00, 1.97949493e+00, 6.12511635e-01, -1.35096896e+00, -3.25313163e+00, -4.67790413e+00, -1.89851984e-01, -1.16381800e+00, -1.84269297e+00, -2.21348834e+00, -2.40952253e+00, -2.04972148e+00, -2.11795568e+00, -3.06094027e+00, -4.11207581e+00, -3.74964952e+00, 2.09780049e+00, 8.01259458e-01, -1.90404522e+00, -4.59170580e+00, -5.83114100e+00, 1.97475648e+00, 5.54396451e-01, -1.41695607e+00, -3.28227353e+00, -4.67724609e+00, -1.94723800e-01, -1.18353117e+00, -1.86556363e+00, -2.22842574e+00, -2.42080784e+00, -1.65720737e+00, -1.58054411e+00, -2.25336742e+00, -3.06462526e+00, -2.47261453e+00, 1.37642264e+00, 1.16142654e+00, -6.82058990e-01, -2.68112469e+00, -3.38680530e+00, 1.80796599e+00, 1.48641026e+00, -1.71508826e-02, -1.68607295e+00, -2.89399385e+00, 3.40398103e-01, 3.25049832e-02, -5.91206312e-01, -1.19038010e+00, -1.52301860e+00, -1.83006203e+00, -1.74505961e+00, -2.50190806e+00, -3.29507184e+00, -2.65367699e+00, 1.55719578e+00, 1.25234461e+00, -9.14537191e-01, -3.16307521e+00, -4.00584650e+00, 2.07018161e+00, 1.60957754e+00, -1.46312386e-01, -2.04018188e+00, -3.40377665e+00, 4.11731720e-01, -2.29119677e-02, -7.27373540e-01, -1.35116744e+00, -1.70711970e+00, -1.72859466e+00, -1.73683071e+00, -2.65253377e+00, -3.43689489e+00, -2.75470304e+00, 1.58366191e+00, 1.19656324e+00, -1.09935236e+00, -3.38544369e+00, -4.26436615e+00, 2.04826832e+00, 1.53576791e+00, -2.60809243e-01, -2.18679833e+00, -3.59082842e+00, 3.77060443e-01, -1.05680525e-01, -8.10511589e-01, -1.40993130e+00, -1.76300752e+00],dtype='f').reshape(2,3,4,5)).all())
        
 TestSuite=unittest.makeSuite(TestMemmap,'test')               
 if __name__ == '__main__':
