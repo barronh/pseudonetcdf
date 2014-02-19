@@ -12,4 +12,4 @@ __doc__ = """
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
 
-from PseudoNetCDF.camxfiles.one3d.Write import ncf2one3d as ncf2kv
+from PseudoNetCDF.camxfiles.one3d.Write import ncf2one3d as ncf2vertical_diffusivity
