@@ -18,103 +18,118 @@ sum_num_pattern='([-]?\d+[.]\d+)'
 sum_num_sep='\s+'
 
 def print_net_rxns(net_rxns,time='Daily'):
-  nrxns=net_rxns.NET_RXN
-  for nrxn in nrxns:
-    print "%s: %s" % (nrxn,net_reaction(net_rxns,nrxn,time))
+    nrxns=net_rxns.NET_RXN
+    for nrxn in nrxns:
+        print "%s: %s" % (nrxn,net_reaction(net_rxns,nrxn,time))
 
 class sum_reader(pncf):
-  def __init__(self,sumfile):
-    if type(sumfile)==str:
-      self.sumfile=file(sumfile,'r')
+    @classmethod
+    def isMine(cls, *args, **kwds):
+        return False
+    def __init__(self,sumfile):
+        if type(sumfile)==str:
+          self.sumfile=file(sumfile,'r')
+        else:
+          self.sumfile = sumfile
+        if not 'Sum'.lower() in self.sumfile.readline().lower():
+            raise IOError('Not a sum file')
+        self.sumfile.seek(0, 0)
+        time,var_names,values=self.parse()
     
-    time,var_names,values=self.parse()
+        self.createDimension('TSTEP',len(time))
     
-    self.createDimension('TSTEP',len(time))
-    
-    for vn,vv in zip(var_names,values):
-        tv=self.createVariable(vn,'f',('TSTEP',))
-        tv[:] = vv
+        for vn,vv in zip(var_names,values):
+            tv=self.createVariable(vn,'f',('TSTEP',))
+            tv[:] = vv
 
-    tv=self.createVariable('TFLAG','S10',('TSTEP',))
-    tv[:] = time
+        tv=self.createVariable('TFLAG','S10',('TSTEP',))
+        tv[:] = time
     
-  def parse(self):
-    time=[]
-    var_names=[]
-    values=[]
-    lines=self.sumfile.readlines()
-    for line in lines:
-      line=line[:-1]
-      if net_time_dim_re.match(line)!=None and time==[]:
-        time=list(set(line.split(' ')[2:]))[1:]
-        time.sort()
-        sum_num_re=re.compile('(.*)\s+'+sum_num_sep.join([sum_num_pattern]*len(time)))
+    def parse(self):
+        time=[]
+        var_names=[]
+        values=[]
+        lines=self.sumfile.readlines()
+        for line in lines:
+            line=line[:-1]
+            if net_time_dim_re.match(line)!=None and time==[]:
+                time=list(set(line.split(' ')[2:]))[1:]
+                time.sort()
+            sum_num_re=re.compile('(.*)\s+'+sum_num_sep.join([sum_num_pattern]*len(time)))
 
-      if time!=[] and sum_num_re.match(line)==None and line!='':
-        category=line
+            if time!=[] and sum_num_re.match(line)==None and line!='':
+                category=line
         
-      if time!=[] and sum_num_re.match(line)!=None:
-        grps=sum_num_re.match(line).groups()
-        var_names.append(category.strip()+': '+grps[0].strip())
-        values.append(map(float,grps[1:]))
+            if time!=[] and sum_num_re.match(line)!=None:
+                grps=sum_num_re.match(line).groups()
+                var_names.append(category.strip()+': '+grps[0].strip())
+                values.append(map(float,grps[1:]))
   
-    return time,var_names,values
+        return time,var_names,values
       
 def net_reaction(net_rxns,net_rxn,time='Daily'):
-  spcs=net_rxns.SPECIES
-  reactants=[]
-  products=[]
-  tmp="%f %s"
-  for spc in spcs:
-    v=net_rxns(NET_RXN=net_rxn,TIME=time,SPECIES=spc)
-    if v==0:
-      pass
-    elif v>0:
-      products.extend((v,spc))
-    elif v<0:
-      reactants.extend((-1*v,spc))
+    spcs=net_rxns.SPECIES
+    reactants=[]
+    products=[]
+    tmp="%f %s"
+    for spc in spcs:
+        v=net_rxns(NET_RXN=net_rxn,TIME=time,SPECIES=spc)
+        if v==0:
+            pass
+        elif v>0:
+            products.extend((v,spc))
+        elif v<0:
+            reactants.extend((-1*v,spc))
       
-  return (" + ".join([tmp for i in reactants if type(i)==str])+" <-> "+" + ".join([tmp for i in products if type(i)==str])) % tuple(reactants + products)
+    return (" + ".join([tmp for i in reactants if type(i)==str])+" <-> "+" + ".join([tmp for i in products if type(i)==str])) % tuple(reactants + products)
 
 class ctb_reader(pncf):
-  def __init__(self,file):
-    if type(file)==str:
-      file=open(file)
-    lines=file.readlines()
-    parameters,daily,peak=self.parse(lines)
+    @classmethod
+    def isMine(cls, *args, **kwds):
+        return False
+
+    def __init__(self,file):
+        if type(file)==str:
+          file=open(file)
+        lines=file.readlines()
+        parameters,daily,peak=self.parse(lines)
 
 
-    self.createDimension('PARAMETERS',len(parameters))
-    self.createDimension('PEAK_DAILY',2)
+        self.createDimension('PARAMETERS',len(parameters))
+        self.createDimension('PEAK_DAILY',2)
 
-    v=self.createVariable('CTB','f',('PARAMETERS','PEAK_DAILY'))
-    v[:] = array([daily,peak]).swapaxes(0,1)
-    v.units='ppbV'
+        v=self.createVariable('CTB','f',('PARAMETERS','PEAK_DAILY'))
+        v[:] = array([daily,peak]).swapaxes(0,1)
+        v.units='ppbV'
     
-  def parse(self,lines):
-    lines=lines[16:]
-    parameters,daily,hourly=[],[],[]
-    for l in lines:
-      try:
-        p,d,h=l[:-1].split('\t')
-        parameters.append(p)
-        daily.append(float(d))
-        hourly.append(float(h))
-      except:
-        break
-    return parameters,daily,hourly
+    def parse(self,lines):
+        lines=lines[16:]
+        parameters,daily,hourly=[],[],[]
+        for l in lines:
+            try:
+                p,d,h=l[:-1].split('\t')
+                parameters.append(p)
+                daily.append(float(d))
+                hourly.append(float(h))
+            except:
+                break
+        return parameters,daily,hourly
 
 
 class net_reader(pncf):
-    def __init__(self,file):
+    @classmethod
+    def isMine(cls, *args, **kwds):
+        return False
+
+    def __init__(self,infile):
         self.spc=[]
         self.nrxns=[]
         self.time=[]
 
         netdict={}
-        if type(file)==str:
-            file=open(file)
-        lines=file.readlines()
+        if type(infile)==str:
+            infile=file(infile)
+        lines=infile.readlines()
         self.parse(lines,False)
         self.createDimension('NET_RXN',len(self.nrxns))
         self.createDimension('SPECIES',len(self.spc))
@@ -146,6 +161,11 @@ class mrgaloft(pncf):
     irr_re   = re.compile('\{\s*(\d+)\}\s+('+sci_not+')', re.IGNORECASE)
     ipr_re   = re.compile('"\w+\s*"\s*('+sci_not+'\s+)+', re.IGNORECASE)
     split_on_blanks_re = re.compile('[ ]+')
+
+    @classmethod
+    def isMine(cls, *args, **kwds):
+        return False
+
     def __init__(self,mrgfile):
         if isinstance(mrgfile,str):
             mrgfile=open(mrgfile,'rb')
@@ -209,10 +229,11 @@ class mrgaloft(pncf):
     def read_time(self):
         f=self.mrgfile
         line = f.readline()
-        if line[0] == '|':
-            raise EOFError, 'EOF File: found |'
+        if line[0].strip() == '|':
+            raise EOFError('EOF File: found |')
     
         # next line is first Time =
+        print line
         ir_time=self.time_re.match(line).groups()[0]
         if ir_time == None:
             raise ValueError, "ERROR:: in get_data read, did not find a time."
@@ -279,9 +300,9 @@ class mrgaloft(pncf):
 
 class TestReaders(unittest.TestCase):
     def setUp(self):
-        import PseudoNetCDF.testcase
-        self.netfile=PseudoNetCDF.testcase.net_file
-        self.mrgfile=PseudoNetCDF.testcase.mrg_file
+        from PseudoNetCDF.testcase import net_balance_paths
+        self.netfile=net_balance_paths['net_file']
+        self.mrgfile=net_balance_paths['mrg_file']
         
     def testNet(self):
         netfile=net_reader(file(self.netfile))
