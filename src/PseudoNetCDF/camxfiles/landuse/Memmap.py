@@ -66,28 +66,28 @@ class landuse(PseudoNetCDFFile):
     
     def __init__(self, rf, rows, cols, mode = 'r'):
         self.__mode = mode
-        self.rffile = OpenRecordFile(rf)
-        self.rffile.infile.seek(0, 2)
+        self._rffile = OpenRecordFile(rf)
+        self._rffile.infile.seek(0, 2)
         self.__rf = rf
-        rflen = self.rffile.infile.tell()
-        self.rffile._newrecord(0)
+        rflen = self._rffile.infile.tell()
+        self._rffile._newrecord(0)
         
         self.createDimension('ROW', rows)
         self.createDimension('COL', cols)
-        first_line, =  self.rffile.read('8s')
+        first_line, =  self._rffile.read('8s')
         if first_line ==  'LUCAT11 ':
             self.createDimension('LANDUSE', 11)
-            self.__newstyle =  True
+            self._newstyle =  True
         elif first_line ==  'LUCAT26 ':
             self.createDimension('LANDUSE', 26)
-            self.__newstyle =  True
+            self._newstyle =  True
         else:
             self.createDimension('LANDUSE', 11)
-            self.__newstyle =  False
+            self._newstyle =  False
         nland = len(self.dimensions['LANDUSE'])
         nrows = len(self.dimensions['ROW'])
         ncols = len(self.dimensions['COL'])
-        if self.__newstyle:
+        if self._newstyle:
             self.__fland_dtype = dtype(dict(names = ['SPAD1', 'KEY', 'EPAD1', 'SPAD2', 'DATA', 'EPAD2'], formats = ['>i', '8>S', '>i', '>i', '(%d, %d, %d)>f' % (nland, nrows, ncols), '>i']))
             self.__other_dtype = dtype(dict(names = ['SPAD1', 'KEY', 'EPAD1', 'SPAD2', 'DATA', 'EPAD2'], formats = ['>i', '8>S', '>i', '>i', '(%d, %d)>f' % (nrows, ncols), '>i']))
         else:
@@ -95,7 +95,7 @@ class landuse(PseudoNetCDFFile):
             self.__other_dtype = dtype(dict(names = ['SPAD2', 'DATA', 'EPAD2'], formats = ['>i', '(%d, %d)>f' % (nrows, ncols), '>i']))
             
         self.__addvars()
-        if self.__newstyle:
+        if self._newstyle:
             self.__keys = [first_line]
             
         else:
@@ -105,8 +105,8 @@ class landuse(PseudoNetCDFFile):
         nrows =  len(self.dimensions['ROW'])
         ncols =  len(self.dimensions['COL'])
         nland =  len(self.dimensions['LANDUSE'])
-        self.rffile.infile.seek(0, 2)
-        rflen = self.rffile.infile.tell()
+        self._rffile.infile.seek(0, 2)
+        rflen = self._rffile.infile.tell()
         fland_dtype = self.__fland_dtype
         other_dtype = self.__other_dtype
         nfland = fland_dtype.itemsize
@@ -122,7 +122,7 @@ class landuse(PseudoNetCDFFile):
             raise IOError('File size is expected to be %d or %d; was %d' % (nfland, nfland1opt, nfland2opt))
         
         data = memmap(self.__rf, mode = self.__mode, dtype = file_dtype, offset = 0)
-        if not self.__newstyle:
+        if not self._newstyle:
             varkeys = ['FLAND', 'TOPO']
         else:
             varkeys = [data[k]['KEY'][0].strip() for k in file_dtype.names]
@@ -146,9 +146,9 @@ class TestMemmap(unittest.TestCase):
         from numpy import testing
         import PseudoNetCDF.testcase
         aassert = testing.assert_array_almost_equal
-        lufile = landuse(PseudoNetCDF.testcase.CAMxLandUse, 65, 83)
+        lufile = landuse(PseudoNetCDF.testcase.camxfiles_paths['landuse'], 4, 5)
         
-        aassert(lufile.variables['FLAND'].mean(1).mean(1), array([ 0.02158891,  0.07436389,  0.01858414,  0.05096908,  0.08888154, 0.1731019 ,  0.33590844,  0.00156044,  0.05768339,  0.16663153, 0.01072681], dtype = 'f'))
+        aassert(lufile.variables['LUCAT11'], array([  0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 6.25000000e-02, 0.00000000e+00, 6.25000000e-02, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 6.25000000e-02, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.00000000e+00, 9.37500000e-01, 1.00000000e+00, 9.37500000e-01, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 9.37500000e-01, 6.87500000e-01, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 6.25000000e-02, 2.50000000e-01, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00], dtype = 'f').reshape(11, 4, 5))
 
 if __name__ ==  '__main__':
     unittest.main()
