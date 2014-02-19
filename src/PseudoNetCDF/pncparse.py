@@ -1,17 +1,21 @@
 import sys
+from _getreader import getreaderdict
+globals().update(getreaderdict())
 from optparse import OptionParser
 from camxfiles.Memmaps import *
 from camxfiles.Readers import irr as irr_read, ipr as ipr_read
+from net_balance import mrgaloft, sum_reader, net_reader, ctb_reader
 from _getreader import anyfile
 from icarttfiles.ffi1001 import ffi1001
 from geoschemfiles import *
 from noaafiles import *
 from conventions.ioapi import add_cf_from_ioapi
+
 try:
     from netCDF4 import Dataset as netcdf
 except:
     pass
-from sci_var import reduce_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr
+from sci_var import reduce_dim, mesh_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr, stack_files, add_attr, convolve_dim
 
 def pncparser(has_ofile):
     parser = OptionParser()
@@ -34,9 +38,21 @@ def pncparser(has_ofile):
     parser.add_option("", "--to-convention", dest = "toconv", type = "string", default = None, help = "To convention currently only supports cf")
 
     parser.add_option("-s", "--slice", dest = "slice", type = "string", action = "append", default = [],
-                        help = "bpch variables have dimensions (time, layer, lat, lon), which can be subset using dim,start,stop,stride (e.g., --slice=layer,0,47,5 would sample every fifth layer starting at 0)")
+                        help = "Variables have dimensions (time, layer, lat, lon), which can be subset using dim,start,stop,stride (e.g., --slice=layer,0,47,5 would sample every fifth layer starting at 0)")
 
-    parser.add_option("-r", "--reduce", dest = "reduce", type = "string", action = "append", default = [], help = "bpch variable dimensions can be reduced using dim,function,weight syntax (e.g., --reduce=layer,mean,weight). Weighting is not fully functional.")
+    parser.add_option("-r", "--reduce", dest = "reduce", type = "string", action = "append", default = [], help = "Variable dimensions can be reduced using dim,function,weight syntax (e.g., --reduce=layer,mean,weight). Weighting is not fully functional.")
+
+    parser.add_option("-c", "--convolve", dest = "convolve", type = "string", action = "append", default = [], help = "Variable dimension is reduced by convolve function (dim,mode,wgt1,wgt2,...wgtN)")
+    
+    parser.add_option("-a", "--attribute", dest = "attribute", type = "string", action = "append", default = [],
+                        help = "Variables have attributes that can be added following nco syntax (--attribute att_nm,var_nm,mode,att_typ,att_val); mode = a,c,d,m,o and att_typ = f,d,l,s,c,b; att_typ is any valid numpy type.")
+
+    parser.add_option("", "--post-attribute", dest = "postattribute", type = "string", action = "append", default = [],
+                        help = "Variables have attributes that can be added following nco syntax (--attribute att_nm,var_nm,mode,att_typ,att_val); mode = a,c,d,m,o and att_typ = f,d,l,s,c,b; att_typ is any valid numpy type.")
+
+
+    parser.add_option("", "--mesh", dest = "mesh", type = "string", action = "append", default = [], help = "Variable dimensions can be reduced using dim,function,weight syntax (e.g., --mesh=time,0.5,mean).")
+    
 
     parser.add_option("-e", "--extract", dest = "extract", action = "append", default = [],
                         help = "lon/lat coordinates to extract")
@@ -58,17 +74,22 @@ def pncparser(has_ofile):
 
     parser.add_option("", "--op-typ", dest = "operators", type = "string", action = 'append', default = [], help = "Operator for binary file operations. Binary file operations use the first two files, then the result and the next file, etc. Use " + " or ".join(['//', '<=', '%', 'is not', '>>', '&', '==', '!=', '+', '*', '-', '/', '<', '>=', '**', '>', '<<', '|', 'is', '^']))
 
+    parser.add_option("", "--stack", dest = "stack", type = "string", help = "Concatentate (stack) files on the dimension.")
+    
     parser.add_option("", "--op-first", dest = "operatorsfirst", action = 'store_true', default = False, help = "Use operations before slice/aggregate.")
 
     parser.add_option("", "--expr", dest = "expressions", type = "string", action = 'append', default = [], help = "Generic expressions to execute in the context of the file.")
     
-    parser.add_option("", "--out-format", dest = "outformat", default = "NETCDF3_CLASSIC", metavar = "OFMT", help = "File output format (e.g., NETCDF3_CLASSIC, NETCDF4_CLASSIC, NETCDF4;pncgen only)", type = "choice", choices = 'NETCDF3_CLASSIC NETCDF4_CLASSIC NETCDF4'.split())
+    parser.add_option("", "--out-format", dest = "outformat", default = "NETCDF3_CLASSIC", metavar = "OFMT", help = "File output format (e.g., NETCDF3_CLASSIC, NETCDF4_CLASSIC, NETCDF4;pncgen only)", type = "choice", choices = 'NETCDF3_CLASSIC NETCDF4_CLASSIC NETCDF4 height_pressure cloud_rain humidity landuse lateral_boundary temperature vertical_diffusivity wind uamiv point_source bpch'.split())
 
     parser.add_option("", "--mode", dest = "mode", type = "choice", default = "w", help = "File mode for writing (w, a or r+ or with unbuffered writes ws, as, or r+s; pncgen only).", choices = 'w a r+ ws as r+s'.split())
 
     (options, args) = parser.parse_args()
     
-    if len(args) == 0 or (len(args) - len(options.operators) - has_ofile) > 1:
+    if hasattr(options, 'stack'):
+        pass
+    elif len(args) == 0 or (len(args) - len(options.operators) - has_ofile) > 1:
+        print 'Too many arguments', len(args), len(options.operators), has_ofile
         parser.print_help()
         exit()
     
@@ -86,11 +107,16 @@ def pncparser(has_ofile):
     if options.operatorsfirst: fs = seqpncbo(options.operators, fs)
     fs = subsetfiles(fs, options)
     if not options.operatorsfirst: fs = seqpncbo(options.operators, fs)
-    
     f, = fs
     for expr in options.expressions:
         f = pncexpr(expr, f)
+    decorate(fs, options)
     return f, ofile, options
+
+def decorate(ifiles, options):
+    for f in ifiles:
+        for opts in options.postattribute:
+            add_attr(f, opts)
 
 def subsetfiles(ifiles, options):
     fs = []
@@ -99,10 +125,15 @@ def subsetfiles(ifiles, options):
             f = slice_dim(f, opts)
         for opts in options.reduce:
             f = reduce_dim(f, opts)
+        for opts in options.mesh:
+            f = mesh_dim(f, opts)
+        for opts in options.convolve:
+            f = convolve_dim(f, opts)
         if len(options.extract) > 0:
             extract(f, options.extract)
         fs.append(f)
     return fs
+
 def getfiles(ipaths, options):
     fs = []
     for ipath in ipaths:
@@ -118,6 +149,8 @@ def getfiles(ipaths, options):
             f = getvarpnc(f, options.variables.split(','))
         elif laddconv or lslice:
             f = getvarpnc(f, None)
+        for opts in options.attribute:
+            add_attr(f, opts)
         for opts in options.masks:
             f = mask_vals(f, opts)
         if laddconv:
@@ -128,4 +161,6 @@ def getfiles(ipaths, options):
             setattr(f, 'history', history)
         except: pass
         fs.append(f)
+    if options.stack is not None:
+        fs = stack_files(fs, options.stack)
     return fs
