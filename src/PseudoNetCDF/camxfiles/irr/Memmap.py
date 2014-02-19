@@ -109,6 +109,8 @@ class irr(PseudoNetCDFFile):
             prefix = dk + '_'
             pavarkeys.extend([prefix + k for k in varkeys])
             grp = self.groups[dk]
+            for propk, propv in domain.iteritems():
+                setattr(grp, propk, propv)
             grp.createDimension('TSTEP', self.time_step_count)
             grp.createDimension('VAR',  len(varkeys)-1)
             grp.createDimension('DATE-TIME', 2)
@@ -120,6 +122,8 @@ class irr(PseudoNetCDFFile):
                 self.createDimension('COL', domain['iend']-domain['istart']+1)
                 self.createDimension('ROW', domain['jend']-domain['jstart']+1)
                 self.createDimension('LAY', domain['tlay']-domain['blay']+1)
+                for propk, propv in domain.iteritems():
+                    setattr(grp, propk, propv)
             exec("""def varget(k):
                 return self._irr__variables('%s', k)""" % dk, dict(self = self), locals())
             if len(self._padomains) == 1:
