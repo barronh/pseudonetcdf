@@ -97,6 +97,8 @@ class lateral_boundary(PseudoNetCDFFile):
         setattr(self,'VAR-LIST',"".join([i.ljust(16) for i in self.__var_names__]+['TFLAG'.ljust(16)]))
         self.GDTYP=2
         self.NAME="".join(self.__emiss_hdr['name'][0,:,0])
+        self.NOTE="".join(self.__emiss_hdr['note'][0,:,0])
+        self.ITZON=self.__emiss_hdr['itzon'][0]
 
         # Create variables
         self.variables=PseudoNetCDFVariables(self.__variables,self.__var_names__+['TFLAG','ETFLAG'])
@@ -124,6 +126,14 @@ class lateral_boundary(PseudoNetCDFFile):
         self.YORIG=self.__grid_hdr['yorg'][0]
         self.XCELL=self.__grid_hdr['delx'][0]
         self.YCELL=self.__grid_hdr['dely'][0]
+        self.PLON = plon = self.__grid_hdr['plon'][0]
+        self.PLAT = plat = self.__grid_hdr['plat'][0]
+        self.TLAT1 = tlat1 = self.__grid_hdr['tlat1'][0]
+        self.TLAT2 = tlat2 = self.__grid_hdr['tlat2'][0]
+        self.IUTM = iutm = self.__grid_hdr['iutm'][0]
+        self.ISTAG = istag = self.__grid_hdr['istag'][0]
+        self.CPROJ = cproj = self.__grid_hdr['iproj'][0]
+
         # Map CAMx projection constants to IOAPI
         GDTYPE = self.GDTYP={0: 1, 1: 5, 2: 2, 3: 6}[self.__grid_hdr['iproj'][0]]
         self.XCENT = self.__grid_hdr['plon'][0]
@@ -155,10 +165,11 @@ class lateral_boundary(PseudoNetCDFFile):
         self.__spc_hdr=memmap(self.__rffile,mode=self.__mode,dtype=self.__spc_fmt,shape=nspec,offset=offset)
         
         offset+=self.__spc_hdr.dtype.itemsize*self.__spc_hdr.size+4
-        self.__boundary_def = {}
-        for bkey, bdim in [('west', ny), ('east', ny), ('south', nx), ('north', nx)]:
-            __bound_fmt = dtype(dict(names=['SPAD','ione','iedge','ncell','edgedata','EPAD'],formats=['>i', '>i', '>i', '>i','(%d,4)>f' % bdim, '>i']))
-            self.__boundary_def[bkey] = memmap(self.__rffile, mode = self.__mode, dtype = __bound_fmt, shape = 1, offset = offset)
+        self._boundary_def = {}
+        for bkey, bdim in [('WEST', ny), ('EAST', ny), ('SOUTH', nx), ('NORTH', nx)]:
+            __bound_fmt = dtype(dict(names=['SPAD','ione','iedge','ncell','edgedata','EPAD'],formats=['>i', '>i', '>i', '>i','(%d,%d)>i' % (bdim, 4), '>i']))
+            self._boundary_def[bkey] = memmap(self.__rffile, mode = self.__mode, dtype = __bound_fmt, shape = 1, offset = offset)
+            assert(self._boundary_def[bkey]['SPAD'] == (__bound_fmt.itemsize - 8))
             offset+=__bound_fmt.itemsize
         
         date_time_fmt=dtype(dict(names=['SPAD','BDATE','BTIME','EDATE','ETIME','EPAD'],formats=['>i','>i','>f','>i','>f','>i']))
@@ -187,12 +198,11 @@ class lateral_boundary(PseudoNetCDFFile):
         if int(ntimes)!=ntimes:
             raise ValueError, "Not an even number of times %f" % ntimes
         ntimes=int(ntimes)
-        
         self.createDimension('LAY',nz)
         self.createDimension('COL',nx)
         self.createDimension('ROW',ny)
         self.createDimension('TSTEP',ntimes)
-        self.createDimension('VAR',nspec)
+        self.createDimension('VAR',nspec*4)
         
         self.__memmap__=memmap(self.__rffile,mode=self.__mode,dtype=data_block_fmt,offset=offset)
 
@@ -200,7 +210,10 @@ class lateral_boundary(PseudoNetCDFFile):
         spc_index=self.__var_names__.index(k)
         edgename = k.split('_')[0]
         spcname = k[len(edgename)+1:]
-        dimensions=('TSTEP','LAY','ROW','COL')
+        if edgename in ('WEST', 'EAST'):
+            dimensions=('TSTEP', 'ROW', 'LAY')
+        else:
+            dimensions=('TSTEP', 'COL', 'LAY')
         outvals=self.__memmap__[spcname][edgename]['DATA']
         units = get_uamiv_units(self.NAME, k)
         
@@ -221,25 +234,13 @@ class TestMemmap(unittest.TestCase):
         pass
     def testLB(self):
         import PseudoNetCDF.testcase
-        latfile=lateral_boundary(PseudoNetCDF.testcase.CAMxBoundaryConditions)
+        latfile=lateral_boundary(PseudoNetCDF.testcase.camxfiles_paths['lateral_boundary'])
         latfile.variables['TFLAG']
         aassert = testing.assert_array_almost_equal        
-        aassert(latfile.variables['WEST_O3'].mean(0).mean(0), array([ 0.04808197,  0.0492915 ,  0.05001351,  0.05058479,  0.05154518,
-        0.05243689,  0.05290997,  0.05321919,  0.05370211,  0.05439519,
-        0.05534975,  0.05724045,  0.06059229,  0.06795996,  0.08714935,
-        0.12116305],dtype='f'))
-        aassert(latfile.variables['EAST_O3'].mean(0).mean(0), array([ 0.05083468,  0.05205313,  0.05279936,  0.05333328,  0.05405153,
-        0.05494502,  0.05536552,  0.05566284,  0.05602615,  0.05638235,
-        0.05675893,  0.05746903,  0.05893617,  0.06294519,  0.07016463,
-        0.07722741],dtype='f'))
-        aassert(latfile.variables['SOUTH_O3'].mean(0).mean(0), array([ 0.03825374,  0.03862067,  0.03887746,  0.03906765,  0.03936813,
-        0.03965909,  0.03992134,  0.04021677,  0.04133762,  0.04258892,
-        0.04378233,  0.04545989,  0.04844284,  0.05464299,  0.06876393,
-        0.08342279],dtype='f'))
-        aassert(latfile.variables['NORTH_O3'].mean(0).mean(0), array([ 0.03276304,  0.03307483,  0.0332762 ,  0.03341749,  0.03368971,
-        0.03414582,  0.03467977,  0.03528095,  0.03693161,  0.03923673,
-        0.04262673,  0.048292  ,  0.05590018,  0.0680645 ,  0.08702289,
-        0.11128122],dtype='f'))
+        aassert(latfile.variables['WEST_O3'], array([5.09086549e-02, 5.15854955e-02, 5.20327762e-02, 4.51020785e-02, 4.81765866e-02, 5.01902141e-02, 5.11084236e-02, 5.30455858e-02, 5.39216697e-02, 5.49603552e-02, 5.52441478e-02, 5.53695373e-02, 4.70436066e-02, 4.88652885e-02, 5.00564687e-02, 4.30268869e-02, 4.65402082e-02, 4.93281633e-02, 4.84376177e-02, 5.15173525e-02, 5.32316864e-02, 5.27723655e-02, 5.43252379e-02, 5.51613718e-02],dtype='f').reshape(2,4,3))
+        aassert(latfile.variables['EAST_O3'], array([4.32289392e-02, 4.32576202e-02, 4.32824045e-02, 4.28533703e-02, 4.29217815e-02, 4.29747701e-02, 4.20787595e-02, 4.21368703e-02, 4.21847440e-02, 4.20016758e-02, 4.20646742e-02, 4.21276242e-02, 4.45125513e-02, 4.45423163e-02, 4.45689932e-02, 4.34477255e-02, 4.35189568e-02, 4.35763896e-02, 4.23655175e-02, 4.24236283e-02, 4.24756072e-02, 4.21473905e-02, 4.22183946e-02, 4.22968678e-02],dtype='f').reshape(2,4,3))
+        aassert(latfile.variables['SOUTH_O3'], array([5.00756986e-02, 5.07836118e-02, 5.12398519e-02, 4.53975834e-02, 4.85784635e-02, 5.06106876e-02, 4.88935970e-02, 5.18746264e-02, 5.34388497e-02, 5.52802160e-02, 5.66427484e-02, 5.73641062e-02, 5.76447174e-02, 5.91668785e-02, 5.98937273e-02, 4.64089997e-02, 4.85925563e-02, 4.98120859e-02, 4.31438088e-02, 4.85876575e-02, 5.05158082e-02, 4.63983566e-02, 5.09891734e-02, 5.34970984e-02, 5.16217351e-02, 5.49310222e-02, 5.70215993e-02, 5.37858233e-02, 5.71687669e-02, 5.90757653e-02],dtype='f').reshape(2, 5, 3))
+        aassert(latfile.variables['NORTH_O3'], array([4.67120931e-02, 4.72769439e-02, 4.75757420e-02, 4.63561714e-02, 4.69456315e-02, 4.72794324e-02, 4.45141681e-02, 4.53266129e-02, 4.58004810e-02, 4.20911871e-02, 4.29873653e-02, 4.35210876e-02, 3.29810269e-02, 3.38455141e-02, 3.43711227e-02, 4.65101935e-02, 4.71580848e-02, 4.75305654e-02, 4.55248095e-02, 4.63739596e-02, 4.68796641e-02, 4.44590077e-02, 4.58386838e-02, 4.66508269e-02, 4.33906466e-02, 4.47074845e-02, 4.51488644e-02, 3.23279053e-02, 3.31198536e-02, 3.36514898e-02],dtype='f').reshape(2, 5, 3))
        
 if __name__ == '__main__':
     lb = lateral_boundary('../../testcase/utils/CAMx/lateral_boundary/BC.vistas_2002gt2a_STL_36_68X68_16L.2002154')
