@@ -190,7 +190,7 @@ class TestMemmap(unittest.TestCase):
 
     def testFinst(self):
         import PseudoNetCDF.testcase
-        finstfile=finst(PseudoNetCDF.testcase.CAMxFinst)
+        finstfile=finst(PseudoNetCDF.testcase.camxfiles_paths['finst'])
         vars=[i for i in finstfile.variables.keys() if i!='TFLAG']
         for var in vars:
             v=finstfile.variables[var]
