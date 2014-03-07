@@ -172,7 +172,7 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         olddims = list(var.dimensions)
         if _withlatlon:
             dims = map(lambda x: {'ROW': 'latitude', 'COL': 'longitude', 'TSTEP': 'time', 'LAY': 'level'}.get(x, x), olddims)
-        dims = [d for d in dims if d != 'time']
+        dims = [d for d in dims] # Why was I excluding time  if d != 'time'
         if olddims != dims:
             if ('PERIM' in dims or 
                 ('latitude' in dims and 'longitude' in dims)
