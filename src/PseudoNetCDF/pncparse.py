@@ -1,3 +1,4 @@
+import os
 import sys
 from _getreader import getreaderdict
 globals().update(getreaderdict())
@@ -55,10 +56,17 @@ def pncparser(has_ofile):
     
 
     parser.add_option("-e", "--extract", dest = "extract", action = "append", default = [],
-                        help = "lon/lat coordinates to extract")
+                        help = "lon/lat coordinates to extract lon1,lat1/lon2,lat2/lon3,lat3/.../lonN,latN")
 
     parser.add_option("-m", "--mask", dest = "masks", action = "append", default = [],
                         help = "Masks to apply (e.g., greater,0 or less,0 or values,0)")
+    
+    parser.add_option("", "--gui", dest = "gui", action = "store_true", default = False,
+                        help = "Use the Graphical user interface to select variable ploting options.")
+    
+    parser.add_option("", "--plottype", dest = "plottype", type = "str", action = "append", default = [],
+                        help = "Select plot type (currently: plot, tileplot, mapplot, timeseries).")
+    
     
     parser.add_option("", "--full-indices", dest="full_indices",default=None, metavar = "[c|f]", choices = ['c', 'f'])
 
@@ -79,6 +87,8 @@ def pncparser(has_ofile):
     parser.add_option("", "--op-first", dest = "operatorsfirst", action = 'store_true', default = False, help = "Use operations before slice/aggregate.")
 
     parser.add_option("", "--expr", dest = "expressions", type = "string", action = 'append', default = [], help = "Generic expressions to execute in the context of the file.")
+
+    parser.add_option("-O", "--clobber", dest = "clobber", action = 'store_true', default = False, help = "Overwrite existing file if necessary.")
     
     parser.add_option("", "--out-format", dest = "outformat", default = "NETCDF3_CLASSIC", metavar = "OFMT", help = "File output format (e.g., NETCDF3_CLASSIC, NETCDF4_CLASSIC, NETCDF4;pncgen only)", type = "choice", choices = 'NETCDF3_CLASSIC NETCDF4_CLASSIC NETCDF4 height_pressure cloud_rain humidity landuse lateral_boundary temperature vertical_diffusivity wind uamiv point_source bpch'.split())
 
@@ -100,8 +110,12 @@ def pncparser(has_ofile):
             ofile = ifiles[0] + '.nc'
         else:
             ofile = args[-1]
+        
+        if not options.clobber and os.path.exists(ofile):
+            raise IOError('Output path (%s) exists; enable clobber (--clobber or -O) to overwrite.' % (ofile,))
     else:
         ofile = None
+    options.outpath = ofile
     fs = getfiles(ipaths, options)
     
     if options.operatorsfirst: fs = seqpncbo(options.operators, fs)
@@ -130,7 +144,7 @@ def subsetfiles(ifiles, options):
         for opts in options.convolve:
             f = convolve_dim(f, opts)
         if len(options.extract) > 0:
-            extract(f, options.extract)
+            f = extract(f, options.extract)
         fs.append(f)
     return fs
 
@@ -162,5 +176,5 @@ def getfiles(ipaths, options):
         except: pass
         fs.append(f)
     if options.stack is not None:
-        fs = stack_files(fs, options.stack)
+        fs = [stack_files(fs, options.stack)]
     return fs
