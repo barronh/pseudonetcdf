@@ -4,6 +4,7 @@ from types import MethodType
 from PseudoNetCDF.netcdf import NetCDFFile
 from sci_var import PseudoNetCDFFile
 from sci_var import get_ncf_object
+import numpy as np
 
 class Pseudo2NetCDF:
     """
@@ -60,8 +61,13 @@ class Pseudo2NetCDF:
             if not isinstance(value, MethodType):
                 try:
                     setattr(nfile,k,value)
-                except:
-                    warn("Could not add %s to file" % k)
+                except TypeError, e:
+                    if isinstance(value, bool):
+                        setattr(nfile, k, np.int8(value))
+                    else:
+                        raise e
+                except Exception, e:
+                    warn("Could not add %s to file; %s: %s" % (k, type(e), e))
 
     def addVariableProperties(self,pvar,nvar):
         for a in [k for k in pvar.ncattrs() if (k not in self.ignore_variable_properties and self.ignore_variable_re.match(k)==None) or k in self.special_properties]:
@@ -69,11 +75,16 @@ class Pseudo2NetCDF:
             if not isinstance(value, MethodType):
                 try:
                     setattr(nvar,a,value)
-                except:
-                    if 'long_name' in pvar.ncattrs():
-                        warn("Could not add %s=%s to variable %s" % (a,str(value),str(pvar.long_name)))
+                except TypeError, e:
+                    if isinstance(value, bool):
+                        setattr(nvar, a, np.int8(value))
                     else:
-                        warn("Could not add %s=%s to variable" % (a,str(value)))
+                        raise e
+                except Exception, e:
+                    if 'long_name' in pvar.ncattrs():
+                        warn("Could not add %s=%s to variable %s; %s" % (a,str(value),str(pvar.long_name), e))
+                    else:
+                        warn("Could not add %s=%s to variable; %s" % (a,str(value), e))
                         
     
     def addVariable(self,pfile,nfile,k, data = True):
@@ -133,7 +144,7 @@ def pncgen(ifile,outpath, inmode = 'r', outmode = 'w', format = 'NETCDF4_CLASSIC
         for writers in [CAMxWriters, geoschemwriters]:
             writer = getattr(writers, 'ncf2%s' % format, None)
             if not writer is None:
-                writer(ifile, outpath)
+                return writer(ifile, outpath)
                 break
         else:
             raise KeyError('Unknown output file type "%s"' % format)
@@ -144,7 +155,7 @@ def pncgen(ifile,outpath, inmode = 'r', outmode = 'w', format = 'NETCDF4_CLASSIC
 def main():
     from pncparse import pncparser
     ifile, ofile, options = pncparser(has_ofile = True)
-    pncgen(ifile, ofile, outmode = options.mode, format = options.outformat, verbose = options.verbose)
+    return pncgen(ifile, ofile, outmode = options.mode, format = options.outformat, verbose = options.verbose), options
 
 if __name__ == '__main__':
     main()
