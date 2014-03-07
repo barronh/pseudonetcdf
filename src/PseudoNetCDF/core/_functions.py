@@ -1,9 +1,11 @@
 from warnings import warn
-
+import re
 import numpy as np
+from collections import defaultdict, OrderedDict
+
 
 from _files import PseudoNetCDFFile
-from _variables import PseudoNetCDFMaskedVariable
+from _variables import PseudoNetCDFMaskedVariable, PseudoNetCDFVariable
 
 def getvarpnc(f, varkeys, coordkeys = []):
     coordkeys = set(coordkeys)
@@ -110,7 +112,6 @@ def extract(f, lonlat, unique = False, gridded = None):
     londists = longitude - lons[(None,) * lonlatdims]
     latdists = latitude - lats[(None,) * lonlatdims]
     totaldists = ((latdists**2 + londists**2)**.5)
-    
     if latlon1d and not gridded:
         latidxs, = lonidxs, = np.unravel_index(totaldists.reshape(-1, latdists.shape[-1]).argmin(0), totaldists.shape[:-1])
     else:
@@ -159,8 +160,12 @@ def extract(f, lonlat, unique = False, gridded = None):
             except:
                 pass
             newdims = []
-            for d in dims:
-                if d not in ('longitude', 'latitude'):
+            if len(dims) != len(coords):
+                thiscoords = dims
+            else:
+                thiscoords = coords
+            for d, c in zip(dims, thiscoords):
+                if d not in ('longitude', 'latitude') and c not in ('longitude', 'latitude'):
                     newdims.append(d)
                 else:
                     if 'points' not in newdims:
@@ -168,7 +173,7 @@ def extract(f, lonlat, unique = False, gridded = None):
                         
             
             newdims = tuple(newdims)
-            newslice = tuple([{'latitude': latidxs, 'longitude': lonidxs, 'points': latidxs, 'PERIM': latidxs}.get(d, slice(None)) for d in dims]) 
+            newslice = tuple([{'latitude': latidxs, 'longitude': lonidxs, 'points': latidxs, 'PERIM': latidxs}.get(d, slice(None)) for d in thiscoords])
             
             nv = outf.createVariable(k, v.dtype.char, newdims, values = v[newslice])
             for ak in v.ncattrs():
@@ -289,7 +294,9 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
             else:
                 vout = getattr(var[(slice(None),) * (axis + 1) + (None,)], func)(axis = axis)
                 vout[0] = var[...].min(), var[...].max()
-        f.variables[varkey] = PseudoNetCDFMaskedVariable(f, varkey, var.dtype.char, var.dimensions, values = vout)
+        nvar = f.variables[varkey] = PseudoNetCDFMaskedVariable(f, varkey, var.dtype.char, var.dimensions, values = vout)
+        for k in var.ncattrs():
+            setattr(nvar, k, getattr(var, k))
 
     history = getattr(f, 'history', '')
     history += historydef
@@ -470,6 +477,7 @@ def stack_files(fs, stackdim):
     Create files with dimensions extended by stacking.
     
     Currently, there is no sanity check...
+    
     """
     f = PseudoNetCDFFile()
     tmpf = fs[0]
@@ -485,15 +493,16 @@ def stack_files(fs, stackdim):
     assert(all([different == set([stackdim]) for different in differentdims]))
     from PseudoNetCDF.sci_var import Pseudo2NetCDF
     p2p = Pseudo2NetCDF(verbose = False)
-    p2p.convert(tmpf, f)
+    p2p.addDimensions(tmpf, f)
     f.createDimension(stackdim, sum([len(dims[stackdim]) for dims in dimensions]))
+    p2p.addGlobalProperties(tmpf, f)
     for varkey, var in tmpf.variables.iteritems():
         if not stackdim in var.dimensions:
             p2p.addVariable(tmpf, f, varkey, data = True)
         else:
             axisi = list(var.dimensions).index(stackdim)
             values = np.ma.concatenate([f_.variables[varkey][:] for f_ in fs], axis = axisi)
-            p2p.addVariable(tmpf, f, varkey, data = True)
+            p2p.addVariable(tmpf, f, varkey, data = False)
             f.variables[varkey][:] = values
         
-    return [f]
+    return f
