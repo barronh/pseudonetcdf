@@ -8,6 +8,7 @@ class PseudoNetCDFVariable(np.ndarray):
     but unlike that type, provides a contructor for variables that could be used
     without adding it to the parent file
     """
+    __array_priority__ = 100000000.
     def __setattr__(self, k, v):
         """
         Set attributes (aka properties) and identify user-defined attributes.
