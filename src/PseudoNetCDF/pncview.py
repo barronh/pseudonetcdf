@@ -205,7 +205,7 @@ def getlatbnds(f):
         latb = f.variables['latitude']
         unit = latb.units.strip()
         latdiff = np.diff(latb, axis = 0)
-        if latdiff == latdiff[0]:
+        if (latdiff == latdiff[0]).all():
             latb = latb - .5 * latdiff[0]
             latb = np.append(latb, latb[-1] + latdiff[0])
     elif 'ROW' in f.dimensions:
@@ -233,7 +233,7 @@ def getlonbnds(f):
         lonb = f.variables['longitude']
         unit = lonb.units.strip()
         londiff = np.diff(lonb, axis = 0)
-        if londiff == londiff[0]:
+        if (londiff == londiff[0]).all():
             lonb = lonb - .5 * londiff[0]
             lonb = np.append(lonb, lonb[-1] + londiff[0])
     else:
