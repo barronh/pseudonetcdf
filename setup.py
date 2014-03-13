@@ -12,7 +12,7 @@ for pkg, reader, variable in netcdf_pkgs:
     try:
         NetCDFFile = getattr(__import__(pkg, fromlist = [reader]),reader)
         define_function = "from %s import %s as NetCDFFile" % (pkg, reader)
-        define_variable = "from %s import %s as NetCDFFile" % (pkg, variable)
+        define_variable = "from %s import %s as NetCDFVariable" % (pkg, variable)
         netcdfpkg = [pkg]
         break
     except ImportError, e:
