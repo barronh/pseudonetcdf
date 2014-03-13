@@ -43,7 +43,7 @@ def pncparser(has_ofile):
 
         parser.add_argument("--double-precision", dest="double_precision", type = int, default=16, metavar = "PDIG", help = "pdig double precision digits (default 16; pncdump only)")
 
-        parser.add_argument("--dump-name", dest = "cdlname", type = str, default = None, help = "Name for display in ncdump")
+    parser.add_argument("--dump-name", dest = "cdlname", type = str, default = None, help = "Name for display in ncdump")
 
     parser.add_argument("-v", "--variables", dest = "variables", default = None,
                         metavar = 'varname1[,varname2[,...,varnameN]',
