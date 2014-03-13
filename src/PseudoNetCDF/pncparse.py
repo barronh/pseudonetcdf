@@ -2,7 +2,7 @@ import os
 import sys
 from _getreader import getreaderdict
 globals().update(getreaderdict())
-from optparse import OptionParser
+from argparse import ArgumentParser
 from camxfiles.Memmaps import *
 from camxfiles.Readers import irr as irr_read, ipr as ipr_read
 from net_balance import mrgaloft, sum_reader, net_reader, ctb_reader
@@ -19,162 +19,154 @@ except:
 from sci_var import reduce_dim, mesh_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr, stack_files, add_attr, convolve_dim
 
 def pncparser(has_ofile):
-    parser = OptionParser()
-    parser.set_usage("""Usage: python -m %prog [-f netcdf|uamiv|bpch|ffi1001|...] ifile [ifile2 [ifile3 [...]]] [ofile]
+    parser = ArgumentParser(description = 'PseudoNetCDF Argument Parsing')
+    parser.add_argument('ifile', nargs='+', help='path to a file formatted as type -f')
+    parser.add_argument("-f", "--format", dest = "format", default = 'netcdf', help = "File format (default netcdf)")
 
-    ifile - path to a file formatted as type -f
-    ofile - path to the desired output (pncgen only)
-    
-    """)
+    # Only has output file if pncgen is called.
+    if has_ofile:
+        parser.add_argument('outpath', type = str, help='path to a output file formatted as --out-format')
+        parser.add_argument("-O", "--clobber", dest = "clobber", action = 'store_true', default = False, help = "Overwrite existing file if necessary.")
+        parser.add_argument("--out-format", dest = "outformat", default = "NETCDF3_CLASSIC", metavar = "OFMT", help = "File output format (e.g., NETCDF3_CLASSIC, NETCDF4_CLASSIC, NETCDF4;pncgen only)", type = str, choices = 'NETCDF3_CLASSIC NETCDF4_CLASSIC NETCDF4 height_pressure cloud_rain humidity landuse lateral_boundary temperature vertical_diffusivity wind uamiv point_source bpch'.split())
+        parser.add_argument("--verbose", dest="verbose", action = "store_true", default=False, help = "Provides verbosity with pncgen")
 
-    parser.add_option("-f", "--format", dest = "format", default = 'netcdf', help = "File format (default netcdf)")
+        parser.add_argument("--mode", dest = "mode", type = str, default = "w", help = "File mode for writing (w, a or r+ or with unbuffered writes ws, as, or r+s; pncgen only).", choices = 'w a r+ ws as r+s'.split())
 
-    parser.add_option("-H", "--header", dest="header", action = "store_true", default=False)
+    else:
+        parser.add_argument("-H", "--header", dest="header", action = "store_true", default=False)
+        
+        parser.add_argument("--full-indices", dest="full_indices",default=None, metavar = "[c|f]", choices = ['c', 'f'])
 
-    parser.add_option("-v", "--variables", dest = "variables", default = None,
+        parser.add_argument("-l", "--length", dest="line_length", type = int, default=80, metavar = "LEN", help = "CDL line length (pncdump only)")
+
+        parser.add_argument("--float-precision", dest="float_precision", type = int, default=8, metavar = "FDIG", help = "single precision digitis (default 8; pncdump only)")
+
+        parser.add_argument("--double-precision", dest="double_precision", type = int, default=16, metavar = "PDIG", help = "pdig double precision digits (default 16; pncdump only)")
+
+        parser.add_argument("--dump-name", dest = "cdlname", type = str, default = None, help = "Name for display in ncdump")
+
+    parser.add_argument("-v", "--variables", dest = "variables", default = None,
+                        metavar = 'varname1[,varname2[,...,varnameN]',
                         help = "Variable names or regular expressions (using match) separated by ','. If a group(s) has been specified, only variables in that (those) group(s) will be selected.")
 
-    parser.add_option("", "--from-convention", dest = "fromconv", type = "string", default = None, help = "From convention currently only support ioapi")
+    parser.add_argument("--from-convention", dest = "fromconv", type = str, default = None, help = "From convention currently only support ioapi")
 
-    parser.add_option("", "--to-convention", dest = "toconv", type = "string", default = None, help = "To convention currently only supports cf")
+    parser.add_argument("--to-convention", dest = "toconv", type = str, default = None, help = "To convention currently only supports cf")
 
-    parser.add_option("-s", "--slice", dest = "slice", type = "string", action = "append", default = [],
+    parser.add_argument("-s", "--slice", dest = "slice", type = str, action = "append", default = [], metavar = 'dim,start[,stop[,step]]',
                         help = "Variables have dimensions (time, layer, lat, lon), which can be subset using dim,start,stop,stride (e.g., --slice=layer,0,47,5 would sample every fifth layer starting at 0)")
 
-    parser.add_option("-r", "--reduce", dest = "reduce", type = "string", action = "append", default = [], help = "Variable dimensions can be reduced using dim,function,weight syntax (e.g., --reduce=layer,mean,weight). Weighting is not fully functional.")
+    parser.add_argument("-r", "--reduce", dest = "reduce", type = str, action = "append", default = [], metavar = 'dim,function[,weight]', help = "Variable dimensions can be reduced using dim,function,weight syntax (e.g., --reduce=layer,mean,weight). Weighting is not fully functional.")
 
-    parser.add_option("-c", "--convolve", dest = "convolve", type = "string", action = "append", default = [], help = "Variable dimension is reduced by convolve function (dim,mode,wgt1,wgt2,...wgtN)")
+    parser.add_argument("-c", "--convolve", dest = "convolve", type = str, action = "append", default = [], metavar = 'dim,mode,wgt1,wgt2,...wgtN', help = "Variable dimension is reduced by convolve function (dim,mode,wgt1,wgt2,...wgtN)")
     
-    parser.add_option("-a", "--attribute", dest = "attribute", type = "string", action = "append", default = [],
+    parser.add_argument("-a", "--attribute", dest = "attribute", type = str, action = "append", default = [], metavar = "att_nm,var_nm,mode,att_typ,att_val", 
                         help = "Variables have attributes that can be added following nco syntax (--attribute att_nm,var_nm,mode,att_typ,att_val); mode = a,c,d,m,o and att_typ = f,d,l,s,c,b; att_typ is any valid numpy type.")
 
-    parser.add_option("", "--post-attribute", dest = "postattribute", type = "string", action = "append", default = [],
+    parser.add_argument("--post-attribute", dest = "postattribute", type = str, action = "append", default = [], metavar = "att_nm,var_nm,mode,att_typ,att_val", 
                         help = "Variables have attributes that can be added following nco syntax (--attribute att_nm,var_nm,mode,att_typ,att_val); mode = a,c,d,m,o and att_typ = f,d,l,s,c,b; att_typ is any valid numpy type.")
 
 
-    parser.add_option("", "--mesh", dest = "mesh", type = "string", action = "append", default = [], help = "Variable dimensions can be reduced using dim,function,weight syntax (e.g., --mesh=time,0.5,mean).")
+    parser.add_argument("--mesh", dest = "mesh", type = str, action = "append", default = [], metavar = 'dim,weight,function', help = "Variable dimensions can be reduced using dim,function,weight syntax (e.g., --mesh=time,0.5,mean).")
     
 
-    parser.add_option("-e", "--extract", dest = "extract", action = "append", default = [],
+    parser.add_argument("-e", "--extract", dest = "extract", action = "append", default = [],
                         help = "lon/lat coordinates to extract lon1,lat1/lon2,lat2/lon3,lat3/.../lonN,latN")
 
-    parser.add_option("-m", "--mask", dest = "masks", action = "append", default = [],
+    parser.add_argument("-m", "--mask", dest = "masks", action = "append", default = [],
                         help = "Masks to apply (e.g., greater,0 or less,0 or values,0)")
     
-    parser.add_option("", "--gui", dest = "gui", action = "store_true", default = False,
-                        help = "Use the Graphical user interface to select variable ploting options.")
+    parser.add_argument("--gui", dest = "gui", action = "store_true", default = False,
+                        help = "Use the Graphical user interface to select variable plotting options.")
     
-    parser.add_option("", "--plottype", dest = "plottype", type = "str", action = "append", default = [],
+    parser.add_argument("--plottype", dest = "plottype", type = str, action = "append", default = [],
                         help = "Select plot type (currently: plot, tileplot, mapplot, timeseries).")
     
     
-    parser.add_option("", "--full-indices", dest="full_indices",default=None, metavar = "[c|f]", choices = ['c', 'f'])
+    parser.add_argument("--op-typ", dest = "operators", type = str, action = 'append', default = [], help = "Operator for binary file operations. Binary file operations use the first two files, then the result and the next file, etc. Use " + " or ".join(['//', '<=', '%%', 'is not', '>>', '&', '==', '!=', '+', '*', '-', '/', '<', '>=', '**', '>', '<<', '|', 'is', '^']))
 
-    parser.add_option("-l", "--length", dest="line_length", type = "int", default=80, metavar = "LEN", help = "CDL line length (pncdump only)")
-
-    parser.add_option("", "--verbose", dest="verbose", action = "store_true", default=False, help = "Provides verbosity with pncgen")
-
-    parser.add_option("", "--float-precision", dest="float_precision", type="int", default=8, metavar = "FDIG", help = "single precision digitis (default 8; pncdump only)")
-
-    parser.add_option("", "--double-precision", dest="double_precision", type="int", default=16, metavar = "PDIG", help = "pdig double precision digits (default 16; pncdump only)")
-
-    parser.add_option("", "--dump-name", dest = "cdlname", type = "string", default = None, help = "Name for display in ncdump")
-
-    parser.add_option("", "--op-typ", dest = "operators", type = "string", action = 'append', default = [], help = "Operator for binary file operations. Binary file operations use the first two files, then the result and the next file, etc. Use " + " or ".join(['//', '<=', '%', 'is not', '>>', '&', '==', '!=', '+', '*', '-', '/', '<', '>=', '**', '>', '<<', '|', 'is', '^']))
-
-    parser.add_option("", "--stack", dest = "stack", type = "string", help = "Concatentate (stack) files on the dimension.")
+    parser.add_argument("--stack", dest = "stack", type = str, help = "Concatentate (stack) files on the dimension.")
     
-    parser.add_option("", "--op-first", dest = "operatorsfirst", action = 'store_true', default = False, help = "Use operations before slice/aggregate.")
+    parser.add_argument("--op-first", dest = "operatorsfirst", action = 'store_true', default = False, help = "Use operations before slice/aggregate.")
 
-    parser.add_option("", "--expr", dest = "expressions", type = "string", action = 'append', default = [], help = "Generic expressions to execute in the context of the file.")
+    parser.add_argument("--expr", dest = "expressions", type = str, action = 'append', default = [], help = "Generic expressions to execute in the context of the file.")
 
-    parser.add_option("-O", "--clobber", dest = "clobber", action = 'store_true', default = False, help = "Overwrite existing file if necessary.")
+    args = parser.parse_args()
     
-    parser.add_option("", "--out-format", dest = "outformat", default = "NETCDF3_CLASSIC", metavar = "OFMT", help = "File output format (e.g., NETCDF3_CLASSIC, NETCDF4_CLASSIC, NETCDF4;pncgen only)", type = "choice", choices = 'NETCDF3_CLASSIC NETCDF4_CLASSIC NETCDF4 height_pressure cloud_rain humidity landuse lateral_boundary temperature vertical_diffusivity wind uamiv point_source bpch'.split())
-
-    parser.add_option("", "--mode", dest = "mode", type = "choice", default = "w", help = "File mode for writing (w, a or r+ or with unbuffered writes ws, as, or r+s; pncgen only).", choices = 'w a r+ ws as r+s'.split())
-
-    (options, args) = parser.parse_args()
+    #if args.stack is not None:
+    #    pass
+    #elif len(args.ifile) == 0 or (len(args.ifile) - len(args.operators) - has_ofile) > 1:
+    #    print 'Too many arguments', len(args.ifile), len(args.operators), has_ofile
+    #    parser.print_help()
+    #    exit()
     
-    if hasattr(options, 'stack'):
-        pass
-    elif len(args) == 0 or (len(args) - len(options.operators) - has_ofile) > 1:
-        print 'Too many arguments', len(args), len(options.operators), has_ofile
-        parser.print_help()
-        exit()
-    
-    nifiles = len(args) - has_ofile
-    ipaths = args[:nifiles]
+    #nifiles = len(args.ifile) - has_ofile
+    ipaths = args.ifile[:]
     if has_ofile:
-        if len(args) == 1:
-            ofile = ifiles[0] + '.nc'
-        else:
-            ofile = args[-1]
-        
-        if not options.clobber and os.path.exists(ofile):
-            raise IOError('Output path (%s) exists; enable clobber (--clobber or -O) to overwrite.' % (ofile,))
+        if not args.clobber and os.path.exists(args.outpath):
+            parser.error(message = 'Output path (%s) exists; enable clobber (--clobber or -O) to overwrite.' % (args.outpath,))
     else:
-        ofile = None
-    options.outpath = ofile
-    fs = getfiles(ipaths, options)
+        args.outpath = None
     
-    if options.operatorsfirst: fs = seqpncbo(options.operators, fs)
-    fs = subsetfiles(fs, options)
-    if not options.operatorsfirst: fs = seqpncbo(options.operators, fs)
+    fs = getfiles(ipaths, args)
+    
+    if args.operatorsfirst: fs = seqpncbo(args.operators, fs)
+    fs = subsetfiles(fs, args)
+    if not args.operatorsfirst: fs = seqpncbo(args.operators, fs)
     f, = fs
-    for expr in options.expressions:
+    for expr in args.expressions:
         f = pncexpr(expr, f)
-    decorate(fs, options)
-    return f, ofile, options
+    decorate(fs, args)
+    return f, args
 
-def decorate(ifiles, options):
+def decorate(ifiles, args):
     for f in ifiles:
-        for opts in options.postattribute:
+        for opts in args.postattribute:
             add_attr(f, opts)
 
-def subsetfiles(ifiles, options):
+def subsetfiles(ifiles, args):
     fs = []
     for f in ifiles:
-        for opts in options.slice:
+        for opts in args.slice:
             f = slice_dim(f, opts)
-        for opts in options.reduce:
+        for opts in args.reduce:
             f = reduce_dim(f, opts)
-        for opts in options.mesh:
+        for opts in args.mesh:
             f = mesh_dim(f, opts)
-        for opts in options.convolve:
+        for opts in args.convolve:
             f = convolve_dim(f, opts)
-        if len(options.extract) > 0:
-            f = extract(f, options.extract)
+        if len(args.extract) > 0:
+            f = extract(f, args.extract)
         fs.append(f)
     return fs
 
-def getfiles(ipaths, options):
+def getfiles(ipaths, args):
     fs = []
     for ipath in ipaths:
-        format_options = options.format.split(',')
+        format_options = args.format.split(',')
         file_format = format_options.pop(0)
         format_options = eval('dict(' + ', '.join(format_options) + ')')
         f = eval(file_format)(ipath, **format_options)
         history = getattr(f, 'history', '')
         history += ' '.join(sys.argv) + ';'
-        laddconv = options.fromconv is not None and options.toconv is not None
-        lslice = len(options.slice + options.reduce) > 0
-        if options.variables is not None:
-            f = getvarpnc(f, options.variables.split(','))
+        laddconv = args.fromconv is not None and args.toconv is not None
+        lslice = len(args.slice + args.reduce) > 0
+        if args.variables is not None:
+            f = getvarpnc(f, args.variables.split(','))
         elif laddconv or lslice:
             f = getvarpnc(f, None)
-        for opts in options.attribute:
+        for opts in args.attribute:
             add_attr(f, opts)
-        for opts in options.masks:
+        for opts in args.masks:
             f = mask_vals(f, opts)
         if laddconv:
-            eval('add_%s_from_%s' % (options.toconv, options.fromconv))(f)
-        if options.cdlname is None:
-            options.cdlname = ipath
+            eval('add_%s_from_%s' % (args.toconv, args.fromconv))(f)
+        if args.cdlname is None:
+            args.cdlname = ipath
         try:
             setattr(f, 'history', history)
         except: pass
         fs.append(f)
-    if options.stack is not None:
-        fs = [stack_files(fs, options.stack)]
+    if args.stack is not None:
+        fs = [stack_files(fs, args.stack)]
     return fs

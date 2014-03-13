@@ -1,9 +1,10 @@
-from Tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar
+from Tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar, Text, DISABLED, PhotoImage, LEFT, E, W
 import os
 from types import MethodType
 import pylab as pl
 from matplotlib.colors import Normalize, LogNorm
 import numpy as np
+
 class TkApp:
     def __init__(self, master, ncffile, options):
         self.ncffile = ncffile
@@ -12,8 +13,11 @@ class TkApp:
         frame.grid(row = 0)
         codeframe = Frame(master)
         codeframe.grid(row = 1)
-        goframe = Frame(master)
-        goframe.grid(column = 1, row = 0)
+        metaframe = Frame(master)
+        metaframe.grid(row = 2)
+        goframe = Frame(frame)
+        goframe.grid(column = 3, row = 1)
+
         var_label = Label(frame, text = 'Select Variable')
         var_label.grid(column = 0, row = 0)
         var_scrollbar = Scrollbar(frame, orient = VERTICAL)
@@ -26,7 +30,6 @@ class TkApp:
         what_to_do.grid(column = 2, row = 0)
         self.method_list = Listbox(frame, selectmode = SINGLE, exportselection = 0)
         self.method_list.grid(column = 2, row = 1)
-
         self.pre_txt = StringVar()
         pre_label = Label(codeframe, text = 'Before any figures, execute code')
         self.pre_txt.set('pl.figure();')
@@ -54,12 +57,35 @@ class TkApp:
         self.post = Entry(codeframe, width = 120, textvariable = self.post_txt)
         self.post.grid(row = 9, sticky = 'E')
 
+        options_label = Label(goframe, text = 'Options:')
+        options_label.grid(column = 0, row = 1, sticky = 'W')
         self.logscale = IntVar()
         self.logscale.set(0)
-        c = Checkbutton(goframe, text = "log?", variable = self.logscale)
-        c.grid(column = 0, row = 1)
-        self.execute_button = Button(goframe, text = "go", command = self.execute)
-        self.execute_button.grid(row = 0, column = 0)
+        c = Checkbutton(goframe, text = "log-scale?", variable = self.logscale)
+        c.grid(column = 0, row = 2, sticky = 'W')
+
+        self.coastlines = IntVar()
+        self.coastlines.set(0)
+        coastlines = Checkbutton(goframe, text = "coastlines?", variable = self.coastlines, justify = LEFT)
+        coastlines.grid(column = 0, row = 3, sticky = 'W')
+
+        self.countries = IntVar()
+        self.countries.set(0)
+        countries = Checkbutton(goframe, text = "countries?", variable = self.countries, justify = LEFT)
+        countries.grid(column = 0, row = 4, sticky = 'W')
+
+        self.states = IntVar()
+        self.states.set(0)
+        states = Checkbutton(goframe, text = "states?", variable = self.states, justify = LEFT)
+        states.grid(column = 0, row = 5, sticky = 'W')
+
+        self.counties = IntVar()
+        self.counties.set(0)
+        counties = Checkbutton(goframe, text = "counties?", variable = self.counties, justify = LEFT)
+        counties.grid(column = 0, row = 6, sticky = 'W')
+
+        self.execute_button = Button(goframe, text = "Make Figure", command = self.execute)
+        self.execute_button.grid(row = 0, column = 0, sticky = 'W')
                 
         self.methods = ['plot', 'timeseries', 'tileplot', 'mapplot']
         method_labels= ['Plot', 'Time Series', 'Tile Plot', 'Map']
@@ -72,6 +98,20 @@ class TkApp:
         for spc in var_keys:
             self.var.insert(END, spc)
             self.vars.append(spc)
+
+        meta_label = Label(metaframe, text = 'Common Data Language Header:')
+        meta_label.grid(column = 0, row = 0, sticky = 'W')
+        meta_scrollbar = Scrollbar(metaframe, orient = VERTICAL)
+        meta_scrollbar.grid(column = 1, row = 1, sticky = N + S)
+        self.meta = Text(metaframe, height=10, width=118, bg='white', relief='flat', yscrollcommand = meta_scrollbar.set)
+        self.meta.grid(column = 0, row = 1, sticky = 'W')
+        from PseudoNetCDF.pncdump import pncdump
+        from StringIO import StringIO
+        pdump = StringIO("")
+        pncdump(self.ncffile, header = True, outfile = pdump, name = ', '.join(options.ifile))
+        pdump.seek(0, 0)
+        self.meta.insert(END, pdump.read())
+        self.meta.config(state=DISABLED)
 
     def _get_var(self, list):
         items = list.curselection()
@@ -94,9 +134,21 @@ class TkApp:
         vars = self.get_var()
         methods, = self.get_methods()
         self.options.logscale = bool(self.logscale.get())
+        self.options.coastlines = bool(self.coastlines.get())
+        self.options.countries = bool(self.countries.get())
+        self.options.states = bool(self.states.get())
+        self.options.counties = bool(self.counties.get())
         exec(self.pre_txt.get())
-        eval(methods)(f = self.ncffile, vars = vars, options = self.options, before = self.before_txt.get(), after = self.after_txt.get())
+        figpath = eval(methods)(f = self.ncffile, vars = vars, options = self.options, before = self.before_txt.get(), after = self.after_txt.get())
         exec(self.post_txt.get())
+        self.showfig(figpath)
+    
+    def showfig(self, figpath):
+        import Image
+
+        photoimage = Image.open(figpath)
+        photoimage.show()
+
 
 def StartTk(ncffile, options):
     root = Tk(className = 'PNCVIEW')
@@ -156,6 +208,7 @@ def timeseries(f, vars, options, before, after):
         exec(after)
         pl.savefig(figpath)
         print 'Saved fig', figpath
+    return figpath
 
 def plot(f, vars, options, before, after):
     outpath = getattr(options, 'outpath', '.')
@@ -176,8 +229,9 @@ def plot(f, vars, options, before, after):
         exec(after)
         pl.savefig(figpath)
         print 'Saved fig', figpath
+    return figpath
 
-def tileplot(f, vars, options, between, after):
+def tileplot(f, vars, options, before, after):
     outpath = getattr(options, 'outpath', '.')
     for varkey in vars:
         ax = pl.gca()
@@ -194,6 +248,7 @@ def tileplot(f, vars, options, between, after):
         exec(after)
         pl.savefig(figpath)
         print 'Saved fig', figpath
+    return figpath
 
 def getlatbnds(f):
     if 'latitude_bounds' in f.variables:
@@ -264,10 +319,10 @@ def getmap(f):
         try:
             lat, latunit = getlatbnds(f)
             lon, lonunit = getlonbnds(f)
-            kwds['llcrnrlat'] = lat.min()
-            kwds['urcrnrlat'] = lat.max()
-            kwds['llcrnrlon'] = lon.min()
-            kwds['urcrnrlon'] = lon.max()
+            kwds['llcrnrlat'] = lat[:].min()
+            kwds['urcrnrlat'] = lat[:].max()
+            kwds['llcrnrlon'] = lon[:].min()
+            kwds['urcrnrlon'] = lon[:].max()
         except:
             pass
         m = Basemap(**kwds)
@@ -288,20 +343,23 @@ def mapplot(f, vars, options, before, after):
         LON, LAT = np.meshgrid(lonb, latb)
     for varkey in vars:
         ax = pl.gca()
+        if options.logscale:
+            norm = LogNorm()
+        else:
+            norm = Normalize()
         exec(before)
         ax = pl.gca()
         var = f.variables[varkey]
         vunit = getattr(var, 'units', 'unknown').strip()
         print varkey,
         try:
-            map.drawcoastlines(ax = ax); map.drawcountries(ax = ax); map.drawstates(ax = ax); map.drawcounties(ax = ax)
+            if options.coastlines: map.drawcoastlines(ax = ax)
+            if options.countries: map.drawcountries(ax = ax)
+            if options.states: map.drawstates(ax = ax)
+            if options.counties: map.drawcounties(ax = ax)
         except:
             print 'nomap'
             pass
-        if options.logscale:
-            norm = LogNorm()
-        else:
-            norm = Normalize()
         patches = map.pcolor(LON, LAT, var[:].squeeze(), norm = norm, ax = ax)
         ax.set_xlabel(lonunit)
         ax.set_ylabel(latunit)
@@ -318,6 +376,7 @@ def mapplot(f, vars, options, before, after):
         exec(after)
         pl.savefig(figpath)
         print 'Saved fig', figpath
+    return figpath
             
 def main():
     from pncgen import main as pncgenmain

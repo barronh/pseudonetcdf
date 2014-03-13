@@ -13,4 +13,5 @@ __doc__ = """
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
 from netCDF4 import Dataset as NetCDFFile
+from netCDF4 import Variable as NetCDFVariable
 

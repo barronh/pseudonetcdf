@@ -1,7 +1,7 @@
 import sys
 from warnings import warn
 from types import MethodType
-from PseudoNetCDF.netcdf import NetCDFFile
+from PseudoNetCDF.netcdf import NetCDFFile, NetCDFVariable
 from sci_var import PseudoNetCDFFile
 from sci_var import get_ncf_object
 import numpy as np
@@ -72,6 +72,8 @@ class Pseudo2NetCDF:
     def addVariableProperties(self,pvar,nvar):
         for a in [k for k in pvar.ncattrs() if (k not in self.ignore_variable_properties and self.ignore_variable_re.match(k)==None) or k in self.special_properties]:
             value=getattr(pvar,a)
+            if isinstance(nvar, NetCDFVariable) and a == '_FillValue':
+                continue
             if not isinstance(value, MethodType):
                 try:
                     setattr(nvar,a,value)
@@ -114,6 +116,8 @@ class Pseudo2NetCDF:
         nvar = nfile.variables[k]
         pvar = pfile.variables[k]
         if isscalar(nvar) or nvar.ndim == 0:
+            if isinstance(pvar, NetCDFVariable):
+                pvar = pvar[...]
             nvar.assignValue(pvar)
         elif isinstance(pvar[...], MaskedArray):
             nvar[:] = pvar[...].filled()
@@ -154,8 +158,8 @@ def pncgen(ifile,outpath, inmode = 'r', outmode = 'w', format = 'NETCDF4_CLASSIC
     
 def main():
     from pncparse import pncparser
-    ifile, ofile, options = pncparser(has_ofile = True)
-    return pncgen(ifile, ofile, outmode = options.mode, format = options.outformat, verbose = options.verbose), options
+    ifile, options = pncparser(has_ofile = True)
+    return pncgen(ifile, options.outpath, outmode = options.mode, format = options.outformat, verbose = options.verbose), options
 
 if __name__ == '__main__':
     main()

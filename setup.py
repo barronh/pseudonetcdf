@@ -5,13 +5,14 @@ except:
 import os
 import sys
 from warnings import warn
-netcdf_pkgs = [('netCDF4', 'Dataset'), \
-               ('netCDF3', 'Dataset'), \
-               ('pupynere', 'NetCDFFile')]
-for pkg, reader in netcdf_pkgs:
+netcdf_pkgs = [('netCDF4', 'Dataset', 'Variable'), \
+               ('netCDF3', 'Dataset', 'Variable'), \
+               ('pupynere', 'NetCDFFile', 'NetCDFVariable')]
+for pkg, reader, variable in netcdf_pkgs:
     try:
         NetCDFFile = getattr(__import__(pkg, fromlist = [reader]),reader)
         define_function = "from %s import %s as NetCDFFile" % (pkg, reader)
+        define_variable = "from %s import %s as NetCDFFile" % (pkg, variable)
         netcdfpkg = [pkg]
         break
     except ImportError, e:
@@ -40,7 +41,8 @@ __doc__ = \"\"\"
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 \"\"\"
 %s
-""" % define_function
+%s
+""" % (define_function, define_variable)
 
 def find_packages():
     import os
