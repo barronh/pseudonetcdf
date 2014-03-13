@@ -32,7 +32,7 @@ class TkApp:
         self.method_list.grid(column = 2, row = 1)
         self.pre_txt = StringVar()
         pre_label = Label(codeframe, text = 'Before any figures, execute code')
-        self.pre_txt.set('pl.figure();')
+        self.pre_txt.set('pl.figure(); pl.rcParams["image.cmap"] = "jet"')
         pre_label.grid(row = 2, sticky = 'W')
         self.pre = Entry(codeframe, width = 120, textvariable = self.pre_txt)
         self.pre.grid(row =3, sticky = 'E')
