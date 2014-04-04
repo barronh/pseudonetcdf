@@ -158,7 +158,10 @@ def pncgen(ifile,outpath, inmode = 'r', outmode = 'w', format = 'NETCDF4_CLASSIC
     
 def main():
     from pncparse import pncparser
-    ifile, options = pncparser(has_ofile = True)
+    ifiles, options = pncparser(has_ofile = True)
+    if len(ifiles) != 1:
+        raise IOError('pncgen can output only 1 file; user requested %d' % len(ifiles))
+    ifile, = ifiles
     return pncgen(ifile, options.outpath, outmode = options.mode, format = options.outformat, verbose = options.verbose), options
 
 if __name__ == '__main__':

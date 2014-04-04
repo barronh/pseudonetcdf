@@ -198,8 +198,9 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
 
 def main():
     from pncparse import pncparser
-    ifile, options = pncparser(has_ofile = False)
-    pncdump(ifile, header = options.header, full_indices = options.full_indices, line_length = options.line_length, float_precision = options.float_precision, name = options.cdlname)
+    ifiles, options = pncparser(has_ofile = False)
+    for ifile in ifiles:
+        pncdump(ifile, header = options.header, full_indices = options.full_indices, line_length = options.line_length, float_precision = options.float_precision, name = options.cdlname)
 
 if __name__ == '__main__':
     main()
