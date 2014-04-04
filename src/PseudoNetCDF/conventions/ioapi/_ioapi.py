@@ -31,9 +31,9 @@ def add_time_variable(ifileo, key):
         elif key == 'time_bounds':
             time = np.arange(0, max(1, len(ifileo.dimensions['TSTEP'])) + 1, dtype = 'i') * tmpseconds
             time = time.repeat(2, 0)[1:-1].reshape(-1, 2)
-            dims = ('TSTEP','nv')
-            if 'nv' not in ifileo.dimensions.keys():
-                ifileo.createDimension('nv', 2)
+            dims = ('TSTEP','tnv')
+            if 'tnv' not in ifileo.dimensions.keys():
+                ifileo.createDimension('tnv', 2)
         else:
             raise KeyError('time variables are time and time_bounds, got %s' % key)
         var = ifileo.createVariable(key, time.dtype.char, dims)
@@ -71,20 +71,24 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         wy = _y[:-1]
         lcc_x = x = np.concatenate([bx, ex, tx, wx])
         lcc_y = y = np.concatenate([by, ey, ty, wy])
-        lcc_xe = np.array([x - ifileo.XCELL / 2., x + ifileo.XCELL / 2.]).T
-        lcc_ye = np.array([y - ifileo.YCELL / 2., y + ifileo.YCELL / 2.]).T
+        lcc_xe = np.array([x - ifileo.XCELL / 2., x + ifileo.XCELL / 2., x + ifileo.XCELL / 2., x - ifileo.XCELL / 2.]).T
+        lcc_ye = np.array([y - ifileo.YCELL / 2., y - ifileo.YCELL / 2., y + ifileo.YCELL / 2., y + ifileo.YCELL / 2.]).T
         latlon_dim = ('PERIM',)
         latlone_dim = ('PERIM', 'nv')
+        latlon_coord = 'PERIM'
     else:
         xdim = 'COL'
         ydim = 'ROW'
         latlon_dim = (ydim, xdim)
-        latlone_dim = (ydim + '_STAG', xdim + '_STAG')
-        xe = np.arange(0, (ifileo.NCOLS + 1) * ifileo.XCELL, ifileo.XCELL) + ifileo.XORIG
-        ye = np.arange(0, (ifileo.NROWS + 1) * ifileo.YCELL, ifileo.YCELL) + ifileo.YORIG
+        latlon_coord = 'latitude longitude'
+        latlone_dim = (ydim, xdim, 'nv')
+        xe = np.arange(0, ifileo.NCOLS) * ifileo.XCELL
+        ye = np.arange(0, ifileo.NROWS) * ifileo.YCELL
         lcc_xe, lcc_ye = np.meshgrid(xe, ye)
-        x = np.arange(0, ifileo.NCOLS * ifileo.XCELL, ifileo.XCELL) + ifileo.XORIG + ifileo.XCELL / 2.
-        y = np.arange(0, ifileo.NROWS * ifileo.YCELL, ifileo.YCELL) + ifileo.YORIG + ifileo.YCELL / 2.
+        lcc_xe = np.concatenate([lcc_xe[:, :, None], lcc_xe[:, :, None] + ifileo.XCELL, lcc_xe[:, :, None] + ifileo.XCELL, lcc_xe[:, :, None]], axis = 2)
+        lcc_ye = np.concatenate([lcc_ye[:, :, None], lcc_ye[:, :, None], lcc_ye[:, :, None] + ifileo.YCELL, lcc_ye[:, :, None] + ifileo.YCELL], axis = 2)
+        x = np.arange(0, ifileo.NCOLS) * ifileo.XCELL + ifileo.XCELL / 2.
+        y = np.arange(0, ifileo.NROWS) * ifileo.YCELL  + ifileo.YCELL / 2.
         lcc_x, lcc_y = np.meshgrid(x, y)
 
     if _withlatlon:
@@ -123,6 +127,7 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         var.units = 'degrees_north'
         var.standard_name = 'latitude'
         var.bounds = 'latitude_bounds'
+        var.coordinates = latlon_coord
 
     if _withlatlon and 'longitude' not in ifileo.variables.keys():
         var = ifileo.createVariable('longitude', lon.dtype.char, latlon_dim)
@@ -130,11 +135,11 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         var.units = 'degrees_east'
         var.standard_name = 'longitude';
         var.bounds = 'longitude_bounds'
+        var.coordinates = latlon_coord
 
-    if _withlatlon and latlone_dim[0] not in ifileo.dimensions.keys():
-        ifileo.createDimension(latlone_dim[0], len(ifileo.dimensions[latlon_dim[0]]) + 1)
-    if _withlatlon and latlone_dim[1] not in ifileo.dimensions.keys():
-        ifileo.createDimension(latlone_dim[1], len(ifileo.dimensions[latlon_dim[1]]) + 1)
+    if _withlatlon:
+        for dk, dl in zip(latlone_dim, late.shape):
+            ifileo.createDimension(dk, dl)
 
     if _withlatlon and 'latitude_bounds' not in ifileo.variables.keys():
         var = ifileo.createVariable('latitude_bounds', lat.dtype.char, latlone_dim)
