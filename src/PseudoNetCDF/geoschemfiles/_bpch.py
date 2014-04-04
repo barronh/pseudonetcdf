@@ -984,7 +984,7 @@ def ncf2bpch(ncffile, outpath):
     
     for ti, (tau0, tau1) in enumerate(zip(ncffile.variables['tau0'], ncffile.variables['tau0'])):
         for varkey in varkeys:
-            print varkey
+            print ti, tau0, tau1, varkey
             var = ncffile.variables[varkey]
             vals = var[ti]
             header = time_data[varkey]['header']
