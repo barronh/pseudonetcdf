@@ -2,7 +2,8 @@ import os
 import sys
 from _getreader import getreaderdict
 globals().update(getreaderdict())
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Action
+from cmaqfiles import *
 from camxfiles.Memmaps import *
 from camxfiles.Readers import irr as irr_read, ipr as ipr_read
 from net_balance import mrgaloft, sum_reader, net_reader, ctb_reader
@@ -17,6 +18,14 @@ try:
 except:
     pass
 from sci_var import reduce_dim, mesh_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr, stack_files, add_attr, convolve_dim
+
+class AggCommaString(Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        startv = getattr(namespace, self.dest)
+        if startv is None:
+            startv = []
+        setattr(namespace, self.dest, startv + values.split(','))
+
 
 def pncparser(has_ofile):
     parser = ArgumentParser(description = 'PseudoNetCDF Argument Parsing')
@@ -45,7 +54,7 @@ def pncparser(has_ofile):
 
     parser.add_argument("--dump-name", dest = "cdlname", type = str, default = None, help = "Name for display in ncdump")
 
-    parser.add_argument("-v", "--variables", dest = "variables", default = None,
+    parser.add_argument("-v", "--variables", dest = "variables", default = None, action = AggCommaString,
                         metavar = 'varname1[,varname2[,...,varnameN]',
                         help = "Variable names or regular expressions (using match) separated by ','. If a group(s) has been specified, only variables in that (those) group(s) will be selected.")
 
@@ -66,6 +75,9 @@ def pncparser(has_ofile):
     parser.add_argument("--post-attribute", dest = "postattribute", type = str, action = "append", default = [], metavar = "att_nm,var_nm,mode,att_typ,att_val", 
                         help = "Variables have attributes that can be added following nco syntax (--attribute att_nm,var_nm,mode,att_typ,att_val); mode = a,c,d,m,o and att_typ = f,d,l,s,c,b; att_typ is any valid numpy type.")
 
+    parser.add_argument("--coordkeys", dest = "coordkeys", type = lambda c_: str(c_).split(), action = "append", default = ["time time_bounds latitude latitude_bounds longitude longitude_bounds lat lat_bnds lon lon_bnds".split()], metavar = "key1,key2", 
+                        help = "Variables to be ignored in pncbo.")
+
 
     parser.add_argument("--mesh", dest = "mesh", type = str, action = "append", default = [], metavar = 'dim,weight,function', help = "Variable dimensions can be reduced using dim,function,weight syntax (e.g., --mesh=time,0.5,mean).")
     
@@ -75,13 +87,7 @@ def pncparser(has_ofile):
 
     parser.add_argument("-m", "--mask", dest = "masks", action = "append", default = [],
                         help = "Masks to apply (e.g., greater,0 or less,0 or values,0)")
-    
-    parser.add_argument("--gui", dest = "gui", action = "store_true", default = False,
-                        help = "Use the Graphical user interface to select variable plotting options.")
-    
-    parser.add_argument("--plottype", dest = "plottype", type = str, action = "append", default = [],
-                        help = "Select plot type (currently: plot, tileplot, mapplot, timeseries).")
-    
+        
     
     parser.add_argument("--op-typ", dest = "operators", type = str, action = 'append', default = [], help = "Operator for binary file operations. Binary file operations use the first two files, then the result and the next file, etc. Use " + " or ".join(['//', '<=', '%%', 'is not', '>>', '&', '==', '!=', '+', '*', '-', '/', '<', '>=', '**', '>', '<<', '|', 'is', '^']))
 
@@ -91,8 +97,9 @@ def pncparser(has_ofile):
 
     parser.add_argument("--expr", dest = "expressions", type = str, action = 'append', default = [], help = "Generic expressions to execute in the context of the file.")
 
+
     args = parser.parse_args()
-    
+    args.coordkeys = reduce(list.__add__, args.coordkeys)
     #if args.stack is not None:
     #    pass
     #elif len(args.ifile) == 0 or (len(args.ifile) - len(args.operators) - has_ofile) > 1:
@@ -110,14 +117,14 @@ def pncparser(has_ofile):
     
     fs = getfiles(ipaths, args)
     
-    if args.operatorsfirst: fs = seqpncbo(args.operators, fs)
+    if args.operatorsfirst: fs = seqpncbo(args.operators, fs, coordkeys = args.coordkeys)
     fs = subsetfiles(fs, args)
-    if not args.operatorsfirst: fs = seqpncbo(args.operators, fs)
-    f, = fs
+    if not args.operatorsfirst: fs = seqpncbo(args.operators, fs, coordkeys = args.coordkeys)
     for expr in args.expressions:
-        f = pncexpr(expr, f)
+        for f in fs:
+            f = pncexpr(expr, f)
     decorate(fs, args)
-    return f, args
+    return fs, args
 
 def decorate(ifiles, args):
     for f in ifiles:
@@ -151,9 +158,10 @@ def getfiles(ipaths, args):
         history += ' '.join(sys.argv) + ';'
         laddconv = args.fromconv is not None and args.toconv is not None
         lslice = len(args.slice + args.reduce) > 0
+        lexpr = len(args.expressions) > 0
         if args.variables is not None:
-            f = getvarpnc(f, args.variables.split(','))
-        elif laddconv or lslice:
+            f = getvarpnc(f, args.variables)
+        elif laddconv or lslice or lexpr:
             f = getvarpnc(f, None)
         for opts in args.attribute:
             add_attr(f, opts)
