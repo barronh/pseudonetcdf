@@ -55,7 +55,7 @@ class PseudoNetCDFVariable(np.ndarray):
                 shape.append(dim)
 
             result=np.zeros(shape,typecode)
-
+        
         result=result[...].view(subtype)
 
         if hasattr(result, '__dict__'):
@@ -204,7 +204,8 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
         
     def __getitem__(self, item):
         out = np.ma.MaskedArray.__getitem__(self, item)
-        out.dimensions = self.dimensions
+        if hasattr(self, 'dimensions'):
+            out.dimensions = self.dimensions
         if hasattr(self, '_ncattrs'):
             for k in self._ncattrs:
                 setattr(out, k, getattr(self, k))
