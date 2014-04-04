@@ -1,6 +1,6 @@
 import numpy as np
 try:
-    from mpl_toolkits.basemap import pyproj
+    import pyproj
     _withlatlon = True
 except:
     _withlatlon = False

@@ -27,7 +27,7 @@ class AggCommaString(Action):
         setattr(namespace, self.dest, startv + values.split(','))
 
 
-def pncparser(has_ofile):
+def pncparser(has_ofile, plot_options = False):
     parser = ArgumentParser(description = 'PseudoNetCDF Argument Parsing')
     parser.add_argument('ifile', nargs='+', help='path to a file formatted as type -f')
     parser.add_argument("-f", "--format", dest = "format", default = 'netcdf', help = "File format (default netcdf)")
@@ -35,8 +35,11 @@ def pncparser(has_ofile):
     # Only has output file if pncgen is called.
     if has_ofile:
         parser.add_argument('outpath', type = str, help='path to a output file formatted as --out-format')
+
         parser.add_argument("-O", "--clobber", dest = "clobber", action = 'store_true', default = False, help = "Overwrite existing file if necessary.")
+
         parser.add_argument("--out-format", dest = "outformat", default = "NETCDF3_CLASSIC", metavar = "OFMT", help = "File output format (e.g., NETCDF3_CLASSIC, NETCDF4_CLASSIC, NETCDF4;pncgen only)", type = str, choices = 'NETCDF3_CLASSIC NETCDF4_CLASSIC NETCDF4 height_pressure cloud_rain humidity landuse lateral_boundary temperature vertical_diffusivity wind uamiv point_source bpch'.split())
+
         parser.add_argument("--verbose", dest="verbose", action = "store_true", default=False, help = "Provides verbosity with pncgen")
 
         parser.add_argument("--mode", dest = "mode", type = str, default = "w", help = "File mode for writing (w, a or r+ or with unbuffered writes ws, as, or r+s; pncgen only).", choices = 'w a r+ ws as r+s'.split())
@@ -96,7 +99,9 @@ def pncparser(has_ofile):
     parser.add_argument("--op-first", dest = "operatorsfirst", action = 'store_true', default = False, help = "Use operations before slice/aggregate.")
 
     parser.add_argument("--expr", dest = "expressions", type = str, action = 'append', default = [], help = "Generic expressions to execute in the context of the file.")
-
+    if plot_options:
+        parser.add_argument("--plot-commands", dest = "plotcommands", type = str, action = 'append', default = [], help = "Plotting functions to call for all variables expressions to execute in the context of the file.")
+        
 
     args = parser.parse_args()
     args.coordkeys = reduce(list.__add__, args.coordkeys)

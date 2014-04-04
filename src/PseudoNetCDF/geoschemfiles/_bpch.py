@@ -1,6 +1,4 @@
 __all__ = ['bpch', 'ncf2bpch']
-from matplotlib import use
-
 import os
 import gc
 import re
