@@ -275,10 +275,12 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
             continue
         
         axis = list(var.dimensions).index(dimkey)
-        
+        def addunitydim(var):
+            return var[(slice(None),) * (axis + 1) + (None,)]
+        vreshape = addunitydim(var)
         if not varkey in metakeys:
             if numweightkey is None:
-                vout = getattr(var[(slice(None),) * (axis + 1) + (None,)], func)(axis = axis)
+                vout = getattr(vreshape, func)(axis = axis)
             elif denweightkey is None:
                 wvar = var * np.array(numweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]),)]
                 vout = getattr(wvar[(slice(None),) * (axis + 1) + (None,)], func)(axis = axis)
@@ -290,10 +292,18 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
                 vout = getattr(nwvar[(slice(None),) * (axis + 1) + (None,)], func)(axis = axis) / getattr(np.array(denweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]), None)], func)(axis = axis)
         else:
             if '_bounds' not in varkey and '_bnds' not in varkey:
-                vout = getattr(var[(slice(None),) * (axis + 1) + (None,)], func)(axis = axis)
+                vout = getattr(vreshape, func)(axis = axis)
             else:
-                vout = getattr(var[(slice(None),) * (axis + 1) + (None,)], func)(axis = axis)
-                vout[0] = var[...].min(), var[...].max()
+                vout = getattr(vreshape, func)(axis = axis)
+                vmin = getattr(vreshape, 'min')(axis = axis)
+                vmax = getattr(vreshape, 'max')(axis = axis)
+                if 'lon' in varkey:
+                    vout[..., [0, 3]] = vmin[..., [0, 3]]
+                    vout[..., [1, 2]] = vmin[..., [1, 2]]
+                elif 'lat' in varkey:
+                    nmin = vout.shape[-1] // 2
+                    vout[..., :nmin] = vmin[..., :nmin]
+                    vout[..., nmin:] = vmax[..., nmin:]
         nvar = f.variables[varkey] = PseudoNetCDFMaskedVariable(f, varkey, var.dtype.char, var.dimensions, values = vout)
         for k in var.ncattrs():
             setattr(nvar, k, getattr(var, k))
@@ -303,7 +313,7 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
     setattr(f, 'history', history)
     return f
 
-def pncbo(op, ifile1, ifile2, verbose = False):
+def pncbo(op, ifile1, ifile2, coordkeys = [], verbose = False):
     """
     Perform binary operation (op) on all variables in ifile1
     and ifile2.  The returned file (rfile) contains the result
@@ -323,8 +333,12 @@ def pncbo(op, ifile1, ifile2, verbose = False):
     # For each variable, assign the new value
     # to the tmpfile variables.
     for k in tmpfile.variables.keys():
+        if k in coordkeys: continue
         outvar = tmpfile.variables[k]
         in1var = ifile1.variables[k]
+        if k not in ifile2.variables.keys():
+            warn('%s not found in ifile2')
+            continue
         in2var = ifile2.variables[k]
         if outvar.ndim > 0:
             outvar[:] = np.ma.masked_invalid(eval('in1var[:] %s in2var[:]' % op)).filled(-999)
@@ -357,6 +371,7 @@ def pncexpr(expr, ifile, verbose = False):
     # names mangled to allow special characters
     # in the names
     vardict = dict([(_namemangler(k), ifile.variables[k]) for k in ifile.variables.keys()])
+    vardict['np'] = np
     
     # Final all assignments in the expression
     # expr should allow for any valid expression
@@ -365,12 +380,14 @@ def pncexpr(expr, ifile, verbose = False):
     # Create temporary default dictionaries
     # and evaluate the expression
     # this results in identifying all used variables
-    tmp3dict = defaultdict(lambda: 1)
+    tmp3dict = defaultdict(lambda: 1, dict(np = np))
     tmp4dict = dict([(k, 1) for k in assign_keys])
-    exec(expr, tmp4dict, tmp3dict)
     
+    exec(expr, tmp4dict, tmp3dict)
+    tmp3dict.pop('np')
+
     # Distinguish between used variables and new variables
-    used_keys = list(set(tmp3dict.keys()).difference(assign_keys))
+    used_keys = [k_ for k_ in set(tmp3dict.keys()) if k_ in vardict]
     
     # Use the first used variable
     # to get properties and create all
@@ -380,7 +397,7 @@ def pncexpr(expr, ifile, verbose = False):
         newvar = tmpfile.createVariable(key, tmpvar.dtype.char, tmpvar.dimensions)
         for propk in tmpvar.ncattrs():
             setattr(newvar, propk, getattr(tmpvar, propk))
-    
+        
     # Use null slide to prevent reassignment of new variables.
     for assign_key in assign_keys:
         expr = re.sub(r'\b%s\b' % assign_key, '%s[:]' % assign_key, expr)
@@ -397,10 +414,10 @@ def pncexpr(expr, ifile, verbose = False):
     
     return tmpfile
     
-def seqpncbo(ops, ifiles):
+def seqpncbo(ops, ifiles, coordkeys = []):
     for op in ops:
         ifile1, ifile2 = ifiles[:2]
-        newfile = pncbo(op = op, ifile1 = ifile1, ifile2 = ifile2)
+        newfile = pncbo(op = op, ifile1 = ifile1, ifile2 = ifile2, coordkeys = coordkeys)
         del ifiles[:2]
         ifiles.insert(0, newfile)
     return ifiles
@@ -462,7 +479,6 @@ def convolve_dim(f, convolve_def):
     dim = outf.dimensions[dimkey]
     dim = outf.createDimension(dimkey, len(np.convolve(weights, np.arange(len(dim)), mode = mode)))
     dim.setunlimited(f.dimensions[dimkey].isunlimited())
-    print len(dim), 
     for vark, var in f.variables.iteritems():
         lconvolve = dimkey in var.dimensions
         p2p.addVariable(f, outf, vark, data = not lconvolve)
