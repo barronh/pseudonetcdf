@@ -395,7 +395,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                 kwds['bounds'] = 'latitude_bounds'
             else:
                 dims += ('nv',)
-                data = data.repeat(2,0)[1:-1].reshape(-1, 2)
+                data = data.repeat(2,0)[1:-1].reshape(-1, 2)[:, [0, 0, 1, 1]]
             example = self[self._example_key]
             sj = getattr(example, 'STARTJ', 0)
             data = data[sj:sj + example.shape[2]]
@@ -411,7 +411,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                 kwds['bounds'] = 'longitude_bounds'
             else:
                 dims += ('nv',)
-                data = data.repeat(2,0)[1:-1].reshape(-1, 2)
+                data = data.repeat(2,0)[1:-1].reshape(-1, 2)[:, [0, 1, 1, 0]]
             example = self[self._example_key]
             si = getattr(example, 'STARTI', 0)
             data = data[si:si + example.shape[3]]
@@ -450,7 +450,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
         elif key in ('time', 'time_bounds'):
             tmp_key = self._example_key
             data = np.array([self['tau0'], self['tau1']]).T
-            dims = ('time', 'nv')
+            dims = ('time', 'tnv')
             if key == 'time':
                 data = data.mean(1)
                 dims = ('time',)
@@ -482,7 +482,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             data = data[:len(self._parent.dimensions[key])]
             dims = (key,)
             dtype = 'f'
-            kwds = dict(units = 'model layer', base_units = 'model layer', standard_name = 'atmosphere_hybrid_sigma_pressure_coordinate', long_name = key, var_desc = key, axis = "Z")
+            kwds = dict(units = 'hPa', base_units = 'model layer', standard_name = 'atmosphere_hybrid_sigma_pressure_coordinate', long_name = key, var_desc = key, axis = "Z")
         elif key == 'tau0':
             tmp_key = self._example_key
             data = self._memmap[tmp_key]['header']['f10']
@@ -614,7 +614,8 @@ class bpch(PseudoNetCDFFile):
         dummy, dummy, dummy, self.start_tau0, self.start_tau1, dummy, dim, dummy, dummy = header[13:-1]
         for dk, dv in zip('longitude latitude layer'.split(), dim):
             self.createDimension(dk, dv)
-        self.createDimension('nv', 2)
+        self.createDimension('nv', 4)
+        self.createDimension('tnv', 2)
         tracerinfo = tracerinfo or os.path.join(os.path.dirname(bpch_path), 'tracerinfo.dat')
         if isinstance(tracerinfo, (str, unicode)):
             if not os.path.exists(tracerinfo) and tracerinfo != ' ':
@@ -1306,7 +1307,7 @@ def getvarpnc(f, varkeys):
         varkeys = newvarkeys
 
     outf = PseudoNetCDFFile()
-    outf.createDimension('nv', 2)
+    outf.createDimension('nv', 4)
     for propkey in f.ncattrs():
         setattr(outf, propkey, getattr(f, propkey))
     thiscoordkeys = [k for k in coordkeys]
