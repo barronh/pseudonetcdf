@@ -60,36 +60,51 @@ def getvarpnc(f, varkeys, coordkeys = []):
     return outf
 
 
-def interpvars(f, weights, dimension):
+def interpvars(f, weights, dimension, loginterp = []):
     """
     f - PseudoNetCDFFile
     weights - weights for new dimensions from old dimension dim(new, old)
     dimension - which dimensions will be reduced
+    loginterp - iterable of keys to interp on log scale
     """
-    outf = f
-    if hasattr(outf, 'groups'):
-        for grpk, grpv in outf.groups.items():
+    outf = PseudoNetCDFFile()
+    outf.dimensions = f.dimensions.copy()
+    if hasattr(f, 'groups'):
+        for grpk, grpv in f.groups.items():
             outf.groups[grpk] = interpvars(grpv, weights, dimension)
     
-    oldd = outf.dimensions[dimension]
+    oldd = f.dimensions[dimension]
     newd = outf.createDimension(dimension, weights.shape[0])
     newd.setunlimited(oldd.isunlimited())
-    for vark, oldvar in outf.variables.iteritems():
+    for vark, oldvar in f.variables.iteritems():
         if dimension in oldvar.dimensions:
             dimidx = list(oldvar.dimensions).index(dimension)
-            newvar = outf.createVariable(vark, oldvar.dtype.char, oldvar.dimensions)
+            if hasattr(oldvar, '_FillValue'):
+                kwds = dict(fill_value = oldvar._FillValue)
+            else:
+                kwds = dict()
+            newvar = outf.createVariable(vark, oldvar.dtype.char, oldvar.dimensions, **kwds)
             for ak in oldvar.ncattrs():
                 setattr(newvar, ak, getattr(oldvar, ak))
             weightslice = (None,) * (dimidx) + (Ellipsis,) + (None,) * len(oldvar.dimensions[dimidx + 1:])
             varslice = (slice(None,),) * dimidx + (None,)
-            newvar[:] = (weights[weightslice] * oldvar[varslice]).sum(dimidx + 1)
+            if vark in loginterp:
+                logv = np.ma.exp((weights[weightslice] * np.ma.log(oldvar[varslice])).sum(dimidx + 1))
+                newvar[:] = logv
+            else:
+                linv = (weights[weightslice] * oldvar[varslice]).sum(dimidx + 1)
+                newvar[:] = linv
+        else:
+            outf.variables[vark] = oldvar
     return outf
 
-def extract(f, lonlat, unique = False, gridded = None):
+def extract(f, lonlat, unique = False, gridded = None, method = 'nn'):
     from StringIO import StringIO
-    outf = f
-    if hasattr(outf, 'groups'):
-        for grpk, grpv in outf.groups.items():
+    outf = PseudoNetCDFFile()
+    outf.dimensions = f.dimensions.copy()
+    if hasattr(f, 'groups'):
+        outf.groups = {}
+        for grpk, grpv in f.groups.items():
             outf.groups[grpk] = extract(grpv, lonlat)
     
     longitude = f.variables['longitude'][:]
@@ -98,25 +113,50 @@ def extract(f, lonlat, unique = False, gridded = None):
         gridded = ('longitude' in f.dimensions and 'latitude' in f.dimensions) or \
                   ('COL' in f.dimensions and 'ROW' in f.dimensions) or \
                   ('x' in f.dimensions and 'y' in f.dimensions)
-    latlon1d = longitude.ndim == 1 and latitude.ndim == 1
-    if latlon1d and gridded:
-        latitude = latitude[(slice(None), None, None)]
-        longitude = longitude[(None, slice(None), None)]
-    else:
-        latitude = latitude[Ellipsis, None]
-        longitude = longitude[Ellipsis, None]
-    
-    lonlatdims = latitude.ndim - 1
     outf.lonlatcoords = ('/'.join(lonlat))
     lons, lats = np.genfromtxt(StringIO(outf.lonlatcoords.replace('/', '\n')), delimiter = ',').T
-    londists = longitude - lons[(None,) * lonlatdims]
-    latdists = latitude - lats[(None,) * lonlatdims]
-    totaldists = ((latdists**2 + londists**2)**.5)
-    if latlon1d and not gridded:
-        latidxs, = lonidxs, = np.unravel_index(totaldists.reshape(-1, latdists.shape[-1]).argmin(0), totaldists.shape[:-1])
-    else:
-        latidxs, lonidxs = np.unravel_index(totaldists.reshape(-1, latdists.shape[-1]).argmin(0), totaldists.shape[:-1])
+    latlon1d = longitude.ndim == 1 and latitude.ndim == 1
+    if method == 'nn':
+        if latlon1d and gridded:
+            latitude = latitude[(slice(None), None, None)]
+            longitude = longitude[(None, slice(None), None)]
+        else:
+            latitude = latitude[Ellipsis, None]
+            longitude = longitude[Ellipsis, None]
     
+        lonlatdims = latitude.ndim - 1
+        londists = longitude - lons[(None,) * lonlatdims]
+        latdists = latitude - lats[(None,) * lonlatdims]
+        totaldists = ((latdists**2 + londists**2)**.5)
+        if latlon1d and not gridded:
+            latidxs, = lonidxs, = np.unravel_index(totaldists.reshape(-1, latdists.shape[-1]).argmin(0), totaldists.shape[:-1])
+        else:
+            latidxs, lonidxs = np.unravel_index(totaldists.reshape(-1, latdists.shape[-1]).argmin(0), totaldists.shape[:-1])
+        def extractfunc(v, thiscoords):
+            newslice = tuple([{'latitude': latidxs, 'longitude': lonidxs, 'points': latidxs, 'PERIM': latidxs}.get(d, slice(None)) for d in thiscoords])
+            return v[newslice]
+    elif method == 'KDTree':
+        if latlon1d and gridded:
+            longitude, latitude = np.meshgrid(longitude, latitude)
+        from scipy.spatial import KDTree
+        tree = KDTree(np.ma.array([latitude.ravel(), longitude.ravel()]).T)
+        dists, idxs = tree.query(np.ma.array([lats, lons]).T)
+        if latlon1d and not gridded:
+            latidxs, = lonidxs, = np.unravel_index(idxs, latitude.shape)
+        else:
+            latidxs, lonidxs = np.unravel_index(idxs, latitude.shape)
+        def extractfunc(v, thiscoords):
+            newslice = tuple([{'latitude': latidxs, 'longitude': lonidxs, 'points': latidxs, 'PERIM': latidxs}.get(d, slice(None)) for d in thiscoords])
+            return v[newslice]
+    elif method in ('linear', 'cubic', 'quintic'):
+        from scipy.interpolate import interp2d
+        if latlon1d and gridded:
+            longitude, latitude = np.meshgrid(longitude, latitude)
+        def extractfunc(v, thiscoords):
+            i2df = interp2d(latitude, longitude, v, method = method)
+            np.ma.array([i2df(lat, lon) for lat, lon in zip(lats, lons)])
+    else:
+        raise ValueError('method must be: nn, KDTree')
     if unique:
         tmpx = OrderedDict()
         for lon, lat, lonlatstr in zip(lonidxs, latidxs, outf.lonlatcoords.split('/')):
@@ -147,13 +187,13 @@ def extract(f, lonlat, unique = False, gridded = None):
 #         lonidxs.append(lonidx)
 #     latidxs = array(latidxs)
 #     lonidxs = array(lonidxs)
-    for k, v in outf.variables.items():
+    for k, v in f.variables.items():
         try:
             coords = v.coordinates.split()
         except:
             coords = v.dimensions
         dims = v.dimensions
-        f.createDimension('points', len(latidxs))
+        outf.createDimension('points', len(latidxs))
         if 'longitude' in coords or 'latitude' in coords:
             try:
                 del outf.variables[k]
@@ -173,16 +213,16 @@ def extract(f, lonlat, unique = False, gridded = None):
                         
             
             newdims = tuple(newdims)
-            newslice = tuple([{'latitude': latidxs, 'longitude': lonidxs, 'points': latidxs, 'PERIM': latidxs}.get(d, slice(None)) for d in thiscoords])
+            newv = extractfunc(v, thiscoords)
             
-            nv = outf.createVariable(k, v.dtype.char, newdims, values = v[newslice])
+            nv = outf.createVariable(k, v.dtype.char, newdims, values = extractfunc(v, thiscoords))
             for ak in v.ncattrs():
                 setattr(nv, ak, getattr(v, ak))
             setattr(nv, 'coordinates', getattr(v, 'coordinates', ' '.join(coords)))
             for di, dk in enumerate(newdims):
                 if dk not in outf.dimensions:
                     outf.createDimension(dk, nv.shape[di])
-    return f
+    return outf
     
 def mask_vals(f, maskdef, metakeys = 'time layer level latitude longitude time_bounds latitude_bounds longitude_bounds ROW COL LAY TFLAG ETFLAG'.split()):
     for varkey, var in f.variables.iteritems():
@@ -393,8 +433,12 @@ def pncexpr(expr, ifile, verbose = False):
     # to get properties and create all
     # new variables
     tmpvar = vardict[used_keys[0]]
+    if hasattr(tmpvar, '_FillValue'):
+        kwds = dict(fill_value = tmpvar._FillValue)
+    else:
+        kwds = {}
     for key in assign_keys:
-        newvar = tmpfile.createVariable(key, tmpvar.dtype.char, tmpvar.dimensions)
+        newvar = tmpfile.createVariable(key, tmpvar.dtype.char, tmpvar.dimensions, **kwds)
         for propk in tmpvar.ncattrs():
             setattr(newvar, propk, getattr(tmpvar, propk))
         
@@ -453,13 +497,14 @@ def add_attr(f, attr_def):
     else:
         var = f.variables[var_nm]
     
-    att_val = np.array(att_val, dtype = att_typ)
+    if not (att_typ == 'c' and isinstance(att_val, (str, unicode))):
+        att_val = np.array(att_val, dtype = att_typ)
         
     if mode in ('a',):
         att_val = np.append(getattr(var, att_nm, []), att_val)
     
     if mode in ('a', 'c', 'm', 'o'):
-        setattr(var, att_nm, np.array(att_val, dtype = att_typ))
+        setattr(var, att_nm, att_val)
     elif mode in ('d',):
         delattr(var, att_nm)
     else:
