@@ -36,15 +36,30 @@ class PNCConsole(code.InteractiveConsole):
     def save_history(self, histfile):
         readline.write_history_file(histfile)
 
+_torem = ['(', ')', '[', ']', '{', '}', '@', ',', ':', '.', '`', '=', ';', '+=', '-=', '*=', '/=', '//=', '%=', '&=', '|=', '^=', '>>=', '<<=', '**=', '+', '-', '*', '**', '/', '//', '%', '<<', '>>', '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!=', '<>']
+def _clean(p):
+    for d in _torem:
+        p = p.replace(d, '')
+    return p
 def main():
     from pncparse import pncparser
     ifiles, options = pncparser(has_ofile = False)
-    from permm.Shell import PERMConsole
     console = PNCConsole()
     exec("from pylab import *", None, console.locals)
     exec("from PseudoNetCDF.pncview import *; interactive(True)", None, console.locals)
-    for filei, ifile in enumerate(ifiles):
-        console.locals['ifile%d' % filei] = ifile
+    ipaths = [_clean(ipath) for ipath in options.ifile]
+    spaths = [ipath[:6] for ipath in ipaths]
+    spathsoc = dict([(k, 0) for k in spaths])
+    spathso = []
+    for spath in spaths:
+        spathso.append(spath + '_' + str(spathsoc[spath]))
+        spathsoc[spath] += 1
+    
+    for filei, (ipath, spath, ifile) in enumerate(zip(ipaths, spathso, ifiles)):
+        npath = 'ifile%d' % filei
+        console.locals[npath] = ifile
+        exec(ipath + ' = ' + npath, None, console.locals)
+        exec(spath + ' = ' + npath, None, console.locals)
     console.interact()
     
 if __name__ == '__main__':
