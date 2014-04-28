@@ -1,13 +1,21 @@
+from warnings import warn
 import numpy as np
-try:
-    import pyproj
-    _withlatlon = True
-except:
-    _withlatlon = False
+_withlatlon = False
+for impstmt in ['import pyproj', 'from mpl_toolkits.basemap import pyproj']:
+    try:
+        exec(impstmt)
+    except ImportError:
+        pass
+    else:
+        _withlatlon = True
+        break
+else:
+    warn('pyproj could not be found, so IO/API coordinates cannot be converted to lat/lon')
 
 def add_time_variables(ifileo):
     add_time_variable(ifileo, 'time')
     add_time_variable(ifileo, 'time_bounds')
+
 def add_time_variable(ifileo, key):
     if key not in ifileo.variables.keys():
         from datetime import datetime, timedelta
@@ -94,10 +102,8 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
     if _withlatlon:
         lccstr = '+proj=lcc +lon_0=%s +lat_1=%s +lat_2=%s +a=%s +lat_0=%s' % (lccdef.longitude_of_central_meridian, lccdef.standard_parallel[0], lccdef.standard_parallel[1], lccdef.earth_radius, lccdef.latitude_of_projection_origin,) 
         lcc = pyproj.Proj(lccstr)
-
-
-    lon, lat = lcc(lcc_x, lcc_y, inverse = True)
-    lone, late = lcc(lcc_xe, lcc_ye, inverse = True)
+        lon, lat = lcc(lcc_x, lcc_y, inverse = True)
+        lone, late = lcc(lcc_xe, lcc_ye, inverse = True)
         
     if 'x' not in ifileo.variables.keys():
         """
