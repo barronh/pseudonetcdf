@@ -137,15 +137,15 @@ class Pseudo2NetCDF:
             nfile.sync()
 
 from PseudoNetCDF.camxfiles import Writers as CAMxWriters
-import  PseudoNetCDF.geoschemfiles as geoschemwriters
-
+import PseudoNetCDF.geoschemfiles as geoschemwriters
+import PseudoNetCDF.icarttfiles.ffi1001 as icarttwriters
 def pncgen(ifile,outpath, inmode = 'r', outmode = 'w', format = 'NETCDF4_CLASSIC', verbose = True):
     if format[:6] == 'NETCDF':
         p2n = Pseudo2NetCDF()
         p2n.verbose = verbose
         return p2n.convert(ifile, outpath, inmode = inmode, outmode = outmode, format = format)
     else:
-        for writers in [CAMxWriters, geoschemwriters]:
+        for writers in [CAMxWriters, geoschemwriters, icarttwriters]:
             writer = getattr(writers, 'ncf2%s' % format, None)
             if not writer is None:
                 return writer(ifile, outpath)

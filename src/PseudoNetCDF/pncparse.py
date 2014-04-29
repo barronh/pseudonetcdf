@@ -8,10 +8,10 @@ from camxfiles.Memmaps import *
 from camxfiles.Readers import irr as irr_read, ipr as ipr_read
 from net_balance import mrgaloft, sum_reader, net_reader, ctb_reader
 from _getreader import anyfile
-from icarttfiles.ffi1001 import ffi1001
+from icarttfiles.ffi1001 import ffi1001, ncf2ffi1001
 from geoschemfiles import *
 from noaafiles import *
-from conventions.ioapi import add_cf_from_ioapi
+from conventions.ioapi import add_cf_from_ioapi, add_cf_from_wrfioapi
 
 try:
     from netCDF4 import Dataset as netcdf
@@ -38,7 +38,7 @@ def pncparser(has_ofile, plot_options = False):
 
         parser.add_argument("-O", "--clobber", dest = "clobber", action = 'store_true', default = False, help = "Overwrite existing file if necessary.")
 
-        parser.add_argument("--out-format", dest = "outformat", default = "NETCDF3_CLASSIC", metavar = "OFMT", help = "File output format (e.g., NETCDF3_CLASSIC, NETCDF4_CLASSIC, NETCDF4;pncgen only)", type = str, choices = 'NETCDF3_CLASSIC NETCDF4_CLASSIC NETCDF4 height_pressure cloud_rain humidity landuse lateral_boundary temperature vertical_diffusivity wind uamiv point_source bpch'.split())
+        parser.add_argument("--out-format", dest = "outformat", default = "NETCDF3_CLASSIC", metavar = "OFMT", help = "File output format (e.g., NETCDF3_CLASSIC, NETCDF4_CLASSIC, NETCDF4;pncgen only)", type = str, choices = 'NETCDF3_CLASSIC NETCDF4_CLASSIC NETCDF4 height_pressure cloud_rain humidity landuse lateral_boundary temperature vertical_diffusivity wind uamiv point_source bpch ffi1001'.split())
 
         parser.add_argument("--verbose", dest="verbose", action = "store_true", default=False, help = "Provides verbosity with pncgen")
 
@@ -126,8 +126,8 @@ def pncparser(has_ofile, plot_options = False):
     fs = subsetfiles(fs, args)
     if not args.operatorsfirst: fs = seqpncbo(args.operators, fs, coordkeys = args.coordkeys)
     for expr in args.expressions:
-        for f in fs:
-            f = pncexpr(expr, f)
+        fs = [pncexpr(expr, f) for f in fs]
+
     decorate(fs, args)
     return fs, args
 

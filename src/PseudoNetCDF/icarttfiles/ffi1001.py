@@ -1,6 +1,6 @@
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFMaskedVariable as PseudoNetCDFVariable
 from numpy import fromstring, vectorize, ndarray, array, genfromtxt
-from numpy.ma import MaskedArray
+from numpy.ma import MaskedArray, filled
 from datetime import datetime, timedelta
 import re
 import yaml
@@ -15,14 +15,20 @@ def get_lodval(v):
 
 loddelim = re.compile('(;\s?)|,|\s')
 
+PI_LINE = 2
+ORG_LINE = 3
+PLAT_LINE = 4
+MISSION_LINE = 5
+VOL_LINE = 6
 DATE_LINE = 7
+TIME_INT_LINE = 8
 UNIT_LINE = 9
+DATE_VAR_LINE = 10
 SCALE_LINE = 11
 MISSING_LINE = 12
 class ffi1001(PseudoNetCDFFile):
     def __init__(self,path):
-        self.dimensions = {}
-        self.variables = {}
+        PseudoNetCDFFile.__init__(self)
         f = file(path, 'r')
         missing = []
         units = []
@@ -48,7 +54,17 @@ class ffi1001(PseudoNetCDFFile):
                 SPECIAL_COMMENT_COUNT_LINE = LAST_VAR_DESC_LINE + 1
                 LAST_SPECIAL_COMMENT_LINE = SPECIAL_COMMENT_COUNT_LINE + n_special_comments
                 USER_COMMENT_COUNT_LINE = 12+len(missing)+2+n_special_comments
-                if li == DATE_LINE:
+                if li == PI_LINE:
+                    self.PI_NAME = l.strip()
+                elif li == ORG_LINE:
+                    self.ORGANIZATION_NAME = l.strip()
+                elif li == PLAT_LINE:
+                    self.SOURCE_DESCRIPTION = l.strip()
+                elif li == MISSION_LINE:
+                    self.MISSION_NAME = l.strip()
+                elif li == VOL_LINE:
+                    self.VOLUME_INFO = l.strip()
+                elif li == DATE_LINE:
                     l = l.replace(',', '').split()
                     SDATE = "".join(l[:3])
                     WDATE = "".join(l[3:])
@@ -56,8 +72,11 @@ class ffi1001(PseudoNetCDFFile):
                     self.WDATE = WDATE
                     self._SDATE = datetime.strptime(SDATE, '%Y%m%d')
                     self._WDATE = datetime.strptime(WDATE, '%Y%m%d')
+                elif li == TIME_INT_LINE:
+                    self.TIME_INTERVAL = l.strip()
                 elif li == UNIT_LINE:
                     units.append(l.replace('\n', '').replace('\r', '').strip())
+                    self.INDEPENDENT_VARIABLE = units[-1]
                 elif li == SCALE_LINE:
                     scales = [eval(i) for i in split(l)]
                     if set([float(s) for s in scales]) != set([1.]):
@@ -153,3 +172,34 @@ class ffi1001(PseudoNetCDFFile):
 
         
         self._date_objs = self._SDATE + vectorize(lambda s: timedelta(seconds = int(s), microseconds = (s - int(s)) * 1.E6 ))(self.variables[self.TFLAG]).view(type = ndarray)
+
+def ncf2ffi1001(f, outpath, mode = 'w'):
+    outfile = file(outpath, mode)
+    header_keys = "PI_CONTACT_INFO PLATFORM LOCATION ASSOCIATED_DATA INSTRUMENT_INFO DATA_INFO UNCERTAINTY ULOD_FLAG ULOD_VALUE LLOD_FLAG LLOD_VALUE DM_CONTACT_INFO PROJECT_INFO STIPULATIONS_ON_USE OTHER_COMMENTS REVISION".split()
+    print >> outfile, '%d, %d' % (len(f.ncattrs()) + len(f.variables), 1001)
+    print >> outfile, getattr(f, 'PI_NAME', 'Unknown')
+    print >> outfile, getattr(f, 'ORGANIZATION_NAME', 'Unknown')
+    print >> outfile, getattr(f, 'SOURCE_DESCRIPTION', 'Unknown')
+    print >> outfile, getattr(f, 'VOLUME_INFO', 'Unknown')
+    print >> outfile, f.SDATE, f.WDATE
+    print >> outfile, f.TIME_INTERVAL
+    print >> outfile, f.INDEPENDENT_VARIABLE
+    print >> outfile, '%d' % len(f.variables)
+    for key, var in f.variables.iteritems():
+        print >> outfile, '%s, %s' % (key, getattr(var, 'units', 'unknown'))
+    
+    print >> outfile, len(f.ncattrs())
+    for key in f.ncattrs():
+        print >> outfile, '%s: %s' % (key, getattr(f, key, ''))
+    
+    vals = [filled(f.variables[f.INDEPENDENT_VARIABLE][:]).ravel()]
+    keys = [f.INDEPENDENT_VARIABLE]
+    for key, var in f.variables.iteritems():
+        if key == f.INDEPENDENT_VARIABLE: continue
+        keys.append(key)
+        vals.append(filled(var[:]).ravel())
+        
+    print >> outfile, ', '.join(keys)
+    for row in array(vals).T:
+        row.tofile(outfile, format = '%.6e', sep = ', ')
+        print >> outfile, ''
