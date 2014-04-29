@@ -1,5 +1,6 @@
 __all__ = ['mapplot', 'profile', 'tileplot', 'presslon', 'presslat', 'timeseries', 'OptionDict']
 
+from warnings import warn
 from matplotlib import use; use('TkAgg')
 from Tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar, Text, DISABLED, PhotoImage, LEFT, E, W
 import os
@@ -111,8 +112,8 @@ class TkApp:
         self.execute_button = Button(goframe, text = "Make Figure", command = self.execute)
         self.execute_button.grid(row = 0, column = 0, sticky = 'W')
                 
-        self.methods = ['mapplot', 'presslat', 'presslon', 'time-lat', 'profile', 'timeseries', 'tileplot', 'plot']
-        method_labels= ['lat-lon', 'press-lat', 'press-lon', 'time-lat', 'Vertical Profile', 'Time Series', 'Tile Plot (2-D)', 'Plot (1-D)']
+        self.methods = ['mapplot', 'presslat', 'presslon', 'time-lat', 'profile', 'timeseries', 'pressx', 'tileplot', 'plot']
+        method_labels= ['lat-lon', 'press-lat', 'press-lon', 'time-lat', 'Vertical Profile', 'Time Series', 'press-? (2-D)', 'Tile Plot (2-D)', 'Plot (1-D)']
         for method in method_labels:
             self.method_list.insert(END, method)
             
@@ -265,6 +266,36 @@ def plot(ifile, varkey, options, before = '', after = ''):
     print 'Saved fig', figpath
     return figpath
 
+def pressx(ifile, varkey, options, before = '', after = ''):
+    outpath = getattr(options, 'outpath', '.')
+    ax = pl.gca()
+    vert = getpresbnds(ifile)
+    var = ifile.variables[varkey]
+    dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
+    if len(dims) > 2:
+        raise ValueError('Press-x can have 2 non-unity dimensions; got %d - %s' % (len(dims), str(dims)))
+    exec(before)
+    ax = pl.gca()
+    print varkey,
+    if options.logscale:
+        norm = LogNorm()
+    else:
+        norm = Normalize()
+    vals = var[:].squeeze()
+    x = np.arange(vals.shape[1])
+    patches = ax.pcolor(x, vert, vals, norm = norm)
+    #ax.set_xlabel(X.units.strip())
+    #ax.set_ylabel(Y.units.strip())
+    pl.colorbar(patches)
+    ax.set_ylim(vert.max(), vert.min())
+    ax.set_xlim(x.min(), x.max())
+    fmt = 'png'
+    figpath = os.path.join(outpath + '_PRESX_' + varkey + '.' + fmt)
+    exec(after)
+    pl.savefig(figpath)
+    print 'Saved fig', figpath
+    return figpath
+
 def presslat(ifile, varkey, options, before = '', after = ''):
     outpath = getattr(options, 'outpath', '.')
     ax = pl.gca()
@@ -285,11 +316,15 @@ def presslat(ifile, varkey, options, before = '', after = ''):
     patches = ax.pcolor(lat, vert, var[:].squeeze(), norm = norm)
     #ax.set_xlabel(X.units.strip())
     #ax.set_ylabel(Y.units.strip())
-    pl.colorbar(patches)
+    cbar = pl.colorbar(patches)
+    vunit = getattr(var, 'units', 'unknown').strip()
+    cbar.set_label(varkey + ' (' + vunit + ')')
+    cbar.ax.text(.5, 1, '%.2g' % var[:].max(), horizontalalignment = 'center', verticalalignment = 'bottom')
+    cbar.ax.text(.5, 0, '%.2g' % var[:].min(), horizontalalignment = 'center', verticalalignment = 'top')
     ax.set_ylim(vert.max(), vert.min())
     ax.set_xlim(lat.min(), lat.max())
     fmt = 'png'
-    figpath = os.path.join(outpath + '_PRESLAT_' + varkey + '.' + fmt)
+    figpath = os.path.join(outpath + '_PRESSLAT_' + varkey + '.' + fmt)
     exec(after)
     pl.savefig(figpath)
     print 'Saved fig', figpath
@@ -315,7 +350,12 @@ def presslon(ifile, varkey, options, before = '', after = ''):
     patches = ax.pcolor(lon, vert, var[:].squeeze(), norm = norm)
     #ax.set_xlabel(X.units.strip())
     #ax.set_ylabel(Y.units.strip())
-    pl.colorbar(patches)
+    cbar = pl.colorbar(patches)
+    vunit = getattr(var, 'units', 'unknown').strip()
+    cbar.set_label(varkey + ' (' + vunit + ')')
+    cbar.ax.text(.5, 1, '%.2g' % var[:].max(), horizontalalignment = 'center', verticalalignment = 'bottom')
+    cbar.ax.text(.5, 0, '%.2g' % var[:].min(), horizontalalignment = 'center', verticalalignment = 'top')
+
     ax.set_ylim(vert.max(), vert.min())
     ax.set_xlim(lon.min(), lon.max())
     fmt = 'png'
@@ -349,6 +389,8 @@ def tileplot(ifile, varkey, options, before = '', after = ''):
     #ax.set_xlabel(X.units.strip())
     #ax.set_ylabel(Y.units.strip())
     cbar = pl.colorbar(patches)
+    vunit = getattr(var, 'units', 'unknown').strip()
+    cbar.set_label(varkey + ' (' + vunit + ')')
     cbar.ax.text(.5, 1, '%.2g' % var[:].max(), horizontalalignment = 'center', verticalalignment = 'bottom')
     cbar.ax.text(.5, 0, '%.2g' % var[:].min(), horizontalalignment = 'center', verticalalignment = 'top')
     fmt = 'png'
@@ -368,8 +410,8 @@ def pres_from_sigma(sigma, pref, ptop, avg = False):
 def getsigmabnds(ifile):
     if hasattr(ifile, 'VGLVLS'):
         return ifile.VGLVLS[:]
-    elif 'layer_edges' in ifile.variables:
-        lay = ifile.variables['layer_edges']
+    elif 'layer_bounds' in ifile.variables:
+        lay = ifile.variables['layer_bounds']
         if lay.units.strip() in ('Pa', 'hPa'):
             sigma = (lay[:] -lay[-1]) / (lay[0] - lay[-1])
             return sigma
@@ -390,8 +432,8 @@ def getsigmamid(ifile):
     return sigmab[:-1] + np.diff(sigmab) / 2
 
 def getpresbnds(ifile):
-    if 'layer_edges' in ifile.variables:
-        return ifile.variables['layer_edges'][:]
+    if 'layer_bounds' in ifile.variables:
+        return ifile.variables['layer_bounds'][:]
     else:
         sigma = getsigmabnds(ifile)
         if hasattr(ifile, 'VGTOP'):
@@ -406,7 +448,10 @@ def getlatbnds(ifile):
         latb = ifile.variables['latitude_bounds']
         unit = latb.units.strip()
         if 'nv' in latb.dimensions and latb[:].ndim == 2:
-            latb = np.append(latb[:][:, 0], latb[:][-1, 1])
+            if len(ifile.dimensions['nv']) == 2:
+                latb = np.append(latb[:][:, 0], latb[:][-1, 1])
+            elif len(ifile.dimensions['nv']) == 4:
+                latb = np.append(latb[:][:, 0], latb[:][-1, 1])
     elif 'latitude' in ifile.variables:
         latb = ifile.variables['latitude']
         unit = latb.units.strip()
@@ -415,7 +460,7 @@ def getlatbnds(ifile):
             latb = latb - .5 * latdiff[0]
             latb = np.append(latb, latb[-1] + latdiff[0])
     elif 'ROW' in ifile.dimensions:
-        unit = 'x (LCC km)'
+        unit = 'x (LCC m)'
         latb = np.arange(len(ifile.dimensions['ROW']) + 1) * getattr(ifile, 'YCELL', 1) / 1000.
     else:
         raise KeyError('latitude bounds not found')
@@ -423,7 +468,7 @@ def getlatbnds(ifile):
 
 def getybnds(ifile):
     if 'ROW' in ifile.dimensions:
-        unit = 'x (LCC km)'
+        unit = 'y (LCC m)'
         latb = np.arange(len(ifile.dimensions['ROW']) + 1) * getattr(ifile, 'YCELL', 1)
     else:
         raise KeyError('latitude bounds not found')
@@ -448,7 +493,7 @@ def getlonbnds(ifile):
 
 def getxbnds(ifile):
     if 'COL' in ifile.dimensions:
-        unit = 'x (LCC km)'
+        unit = 'x (LCC m)'
         lonb = np.arange(len(ifile.dimensions['COL']) + 1) * getattr(ifile, 'XCELL', 1)
     else:
         raise KeyError('x bounds not found')
@@ -513,22 +558,25 @@ def profile(ifile, varkey, options, before = '', after = ''):
         vert = getsigmamid(ifile)
         vunit = r'\sigma'
     var = ifile.variables[varkey]
+    
     dims = list(var.dimensions)
-    for knownvert in ('layer', 'LAY'):
+    for knownvert in ['layer', 'LAY'] + ['layer%d' % i for i in range(72)]:
         if knownvert in dims:
             vidx = dims.index(knownvert)
             break
     else:
         raise KeyError("No known vertical coordinate; got %s" % str(dims))
+    vert = vert[:var[:].shape[vidx]]
     units = var.units.strip()
-    vals = np.rollaxis(var[:], vidx, start = 0).reshape(vert.size, -1)
+    vals = np.rollaxis(var[:], vidx, start = 0).view(np.ma.MaskedArray).reshape(vert.size, -1)
     ax = pl.gca()
     minmaxmean(ax, vals, vert)
     ax.set_xlabel(varkey + ' ('+units+')')
+    ax.set_ylabel(vunit)
     ax.set_ylim(vert.max(), vert.min())
     if options.logscale: ax.set_xscale('log')
     fmt = 'png'
-    figpath = os.path.join(outpath + '_map_' + varkey + '.' + fmt)
+    figpath = os.path.join(outpath + '_profile_' + varkey + '.' + fmt)
     exec(after)
     pl.savefig(figpath)
     print 'Saved fig', figpath
@@ -568,6 +616,12 @@ def mapplot(ifile, varkey, options, before = '', after = ''):
         print 'nomap'
         pass
     patches = map.pcolor(LON, LAT, var[:].squeeze(), norm = norm, ax = ax)
+    if lonunit == 'x (LCC m)':
+        ax.xaxis.get_major_formatter().set_scientific(True)
+        ax.xaxis.get_major_formatter().set_powerlimits((-3, 3))
+    if latunit == 'y (LCC m)':
+        ax.yaxis.get_major_formatter().set_scientific(True)
+        ax.yaxis.get_major_formatter().set_powerlimits((-3, 3))
     ax.set_xlabel(lonunit)
     ax.set_ylabel(latunit)
     height = LAT.max() - LAT.min()
@@ -578,6 +632,11 @@ def mapplot(ifile, varkey, options, before = '', after = ''):
         orientation = 'vertical'
     cbar = pl.gcf().colorbar(patches, orientation = orientation)
     cbar.set_label(varkey + ' (' + vunit + ')')
+    cbar.ax.text(.5, 1, '%.2g' % var[:].max(), horizontalalignment = 'center', verticalalignment = 'bottom')
+    cbar.ax.text(.5, 0, '%.2g' % var[:].min(), horizontalalignment = 'center', verticalalignment = 'top')
+    cbar.formatter.set_scientific(True)
+    cbar.formatter.set_powerlimits((-3, 3))
+    cbar.update_ticks()
     fmt = 'png'
     figpath = os.path.join(outpath + '_map_' + varkey + '.' + fmt)
     exec(after)
