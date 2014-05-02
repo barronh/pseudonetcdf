@@ -159,13 +159,13 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         var.units = 'degrees_east'
         var.standard_name = 'longitude_bounds';
 
-    if 'layer' not in ifileo.variables.keys():
+    if 'layer' not in ifileo.variables.keys() and 'LAY' in ifileo.dimensions:
         var = ifileo.createVariable('layer', lon.dtype.char, ('LAY',))
         var[:] = np.arange(len(ifileo.dimensions['LAY']))
         var.units = 'model layers'
         var.standard_name = 'layer';
 
-    if 'level' not in ifileo.variables.keys():
+    if 'level' not in ifileo.variables.keys() and 'LAY' in ifileo.dimensions:
         var = ifileo.createVariable('level', lon.dtype.char, ('LAY',))
         var[:] = np.arange(len(ifileo.dimensions['LAY']))
         var.units = 'sigma'
