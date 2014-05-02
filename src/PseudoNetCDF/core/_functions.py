@@ -74,7 +74,9 @@ def interpvars(f, weights, dimension, loginterp = []):
             outf.groups[grpk] = interpvars(grpv, weights, dimension)
     
     oldd = f.dimensions[dimension]
-    newd = outf.createDimension(dimension, weights.shape[0])
+    didx, = [i for i, l in enumerate(weights.shape) if len(oldd) == l]
+    
+    newd = outf.createDimension(dimension, weights.shape[didx - 1])
     newd.setunlimited(oldd.isunlimited())
     for vark, oldvar in f.variables.iteritems():
         if dimension in oldvar.dimensions:
@@ -86,7 +88,10 @@ def interpvars(f, weights, dimension, loginterp = []):
             newvar = outf.createVariable(vark, oldvar.dtype.char, oldvar.dimensions, **kwds)
             for ak in oldvar.ncattrs():
                 setattr(newvar, ak, getattr(oldvar, ak))
-            weightslice = (None,) * (dimidx) + (Ellipsis,) + (None,) * len(oldvar.dimensions[dimidx + 1:])
+            if len(weights.shape) <= len(oldvar.dimensions):
+                weightslice = (None,) * (dimidx) + (Ellipsis,) + (None,) * len(oldvar.dimensions[dimidx + 1:])
+            else:
+                weightslice = slice(None)        
             varslice = (slice(None,),) * dimidx + (None,)
             if vark in loginterp:
                 logv = np.ma.exp((weights[weightslice] * np.ma.log(oldvar[varslice])).sum(dimidx + 1))
