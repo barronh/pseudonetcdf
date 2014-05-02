@@ -371,13 +371,13 @@ def tileplot(ifile, varkey, options, before = '', after = ''):
     outpath = getattr(options, 'outpath', '.')
     ax = pl.gca()
     var = ifile.variables[varkey]
-    exec(before)
-    ax = pl.gca()
-    print varkey,
     if options.logscale:
         norm = LogNorm()
     else:
         norm = Normalize()
+    exec(before)
+    ax = pl.gca()
+    print varkey,
     dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
     if len(dims) > 2:
         raise ValueError('Tile plots can have 2 non-unity dimensions; got %d - %s' % (len(dims), str(dims)))
