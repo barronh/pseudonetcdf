@@ -90,13 +90,13 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         latlon_dim = (ydim, xdim)
         latlon_coord = 'latitude longitude'
         latlone_dim = (ydim, xdim, 'nv')
-        xe = np.arange(0, ifileo.NCOLS) * ifileo.XCELL
-        ye = np.arange(0, ifileo.NROWS) * ifileo.YCELL
+        xe = np.arange(0, ifileo.NCOLS) * ifileo.XCELL + ifileo.XORIG
+        ye = np.arange(0, ifileo.NROWS) * ifileo.YCELL + ifileo.YORIG
         lcc_xe, lcc_ye = np.meshgrid(xe, ye)
         lcc_xe = np.concatenate([lcc_xe[:, :, None], lcc_xe[:, :, None] + ifileo.XCELL, lcc_xe[:, :, None] + ifileo.XCELL, lcc_xe[:, :, None]], axis = 2)
         lcc_ye = np.concatenate([lcc_ye[:, :, None], lcc_ye[:, :, None], lcc_ye[:, :, None] + ifileo.YCELL, lcc_ye[:, :, None] + ifileo.YCELL], axis = 2)
-        x = np.arange(0, ifileo.NCOLS) * ifileo.XCELL + ifileo.XCELL / 2.
-        y = np.arange(0, ifileo.NROWS) * ifileo.YCELL  + ifileo.YCELL / 2.
+        x = np.arange(0, ifileo.NCOLS) * ifileo.XCELL + ifileo.XCELL / 2. + ifileo.XORIG
+        y = np.arange(0, ifileo.NROWS) * ifileo.YCELL  + ifileo.YCELL / 2. + ifileo.YORIG
         lcc_x, lcc_y = np.meshgrid(x, y)
 
     if _withlatlon:
