@@ -103,7 +103,7 @@ def interpvars(f, weights, dimension, loginterp = []):
             outf.variables[vark] = oldvar
     return outf
 
-def extract(f, lonlat, unique = False, gridded = None, method = 'nn'):
+def extract(f, lonlat, unique = False, gridded = None, method = 'nn', passthrough = True):
     from StringIO import StringIO
     outf = PseudoNetCDFFile()
     outf.dimensions = f.dimensions.copy()
@@ -199,7 +199,7 @@ def extract(f, lonlat, unique = False, gridded = None, method = 'nn'):
             coords = v.dimensions
         dims = v.dimensions
         outf.createDimension('points', len(latidxs))
-        if 'longitude' in coords or 'latitude' in coords:
+        if passthrough or 'longitude' in coords or 'latitude' in coords:
             try:
                 del outf.variables[k]
             except:
@@ -358,6 +358,43 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
     setattr(f, 'history', history)
     return f
 
+def pncfunc(func, ifile1, coordkeys = [], verbose = False):
+    """
+    Perform function (func) on all variables in ifile1.  The returned file (rfile) contains the result
+    
+    rfile = ifile1 <op>
+    
+    func can be a function or string
+    """
+    from PseudoNetCDF.sci_var import Pseudo2NetCDF
+    
+    # Copy infile1 to a temporary PseudoNetCDFFile
+    p2p = Pseudo2NetCDF()
+    p2p.verbose = verbose
+    tmpfile = PseudoNetCDFFile()
+    p2p.convert(ifile1, tmpfile)
+    
+    # For each variable, assign the new value
+    # to the tmpfile variables.
+    for k in tmpfile.variables.keys():
+        if k in coordkeys: continue
+        outvar = tmpfile.variables[k]
+        in1var = ifile1.variables[k]
+        if isinstance(func, (str, unicode)):
+            if hasattr(in1var, func):
+                outval = getattr(in1var, func)()
+            elif '.' == func[:1]:
+                outval = eval('in1var[:]' + func)
+        else:
+            outval = func(in1var[:])
+        outval = np.ma.filled(np.ma.masked_invalid(outval), -999)
+        if outvar.ndim > 0:
+            outvar[:] = outval
+        else:
+            outvar.itemset(outval)
+        outvar.fill_value = -999
+    return tmpfile
+
 def pncbo(op, ifile1, ifile2, coordkeys = [], verbose = False):
     """
     Perform binary operation (op) on all variables in ifile1
@@ -385,10 +422,49 @@ def pncbo(op, ifile1, ifile2, coordkeys = [], verbose = False):
             warn('%s not found in ifile2')
             continue
         in2var = ifile2.variables[k]
+        outval = np.ma.filled(np.ma.masked_invalid(eval('in1var[...] %s in2var[...]' % op)), -999)
         if outvar.ndim > 0:
-            outvar[:] = np.ma.masked_invalid(eval('in1var[:] %s in2var[:]' % op)).filled(-999)
+            outvar[:] = outval
         else:
-            outvar.itemset(np.ma.masked_invalid(eval('in1var %s in2var' % op))).filled(-999)
+            outvar.itemset(outval)
+        outvar.fill_value = -999
+        unit1 = getattr(in1var, 'units', 'unknown')
+        unit2 = getattr(in2var, 'units', 'unknown')
+        outvar.units = '(%s) %s (%s)' % (unit1, op, unit2)
+    return tmpfile
+
+def pncbfunc(func, ifile1, ifile2, coordkeys = [], verbose = False):
+    """
+    Perform binary function (func) on all variables in ifile1
+    and ifile2.  The returned file (rfile) contains the result
+    
+    rfile = ifile1 <op> ifile2
+    
+    op can be any valid operator (e.g., +, -, /, *, **, &, ||)
+    """
+    from PseudoNetCDF.sci_var import Pseudo2NetCDF
+    
+    # Copy infile1 to a temporary PseudoNetCDFFile
+    p2p = Pseudo2NetCDF()
+    p2p.verbose = verbose
+    tmpfile = PseudoNetCDFFile()
+    p2p.convert(ifile1, tmpfile)
+    
+    # For each variable, assign the new value
+    # to the tmpfile variables.
+    for k in tmpfile.variables.keys():
+        if k in coordkeys: continue
+        outvar = tmpfile.variables[k]
+        in1var = ifile1.variables[k]
+        if k not in ifile2.variables.keys():
+            warn('%s not found in ifile2' % k)
+            continue
+        in2var = ifile2.variables[k]
+        outval = np.ma.filled(np.ma.masked_invalid(func(in1var[:], in2var[:])), -999)
+        if outvar.ndim > 0:
+            outvar[:] = outval
+        else:
+            outvar.itemset(outval)
         outvar.fill_value = -999
     return tmpfile
 
