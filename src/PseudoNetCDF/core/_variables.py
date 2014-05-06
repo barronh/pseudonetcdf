@@ -199,7 +199,8 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
         else:
             self._ncattrs = ()
         
-        obj.dimensions = self.dimensions
+        if hasattr(self, 'dimensions'):
+            obj.dimensions = self.dimensions
         return obj
         
     def __getitem__(self, item):
