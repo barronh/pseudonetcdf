@@ -630,7 +630,7 @@ class bpch(PseudoNetCDFFile):
             tracer_names = dict([(k, v['NAME']) for k, v in tracer_data.iteritems()])
         else:
             warn('Reading file without tracerinfo.dat means that names and scaling are unknown')
-            tracer_data = OrderedDefaultDict(lambda: dict(SCALE = 1., C = 1.))
+            tracer_data = OrderedDefaultDict(lambda: dict(SCALE = 1., C = 1., MOLWT = 1., UNIT = 'unknown', FULLNAME = 'unknown', NAME = 'unknown'))
             tracer_names = defaultdictfromkey(lambda key: key)
         
         diaginfo = diaginfo or os.path.join(os.path.dirname(bpch_path), 'diaginfo.dat')
@@ -674,7 +674,7 @@ class bpch(PseudoNetCDFFile):
                     # The unit for adjoint, for instance, is unitless.
                     if tracer_number not in tracer_names:
                         tracername = str(tracer_number)
-                        tracer_data[tracer_number + goffset] = dict(SCALE = 1., C = 0, UNIT = unit)
+                        tracer_data[tracer_number + goffset] = dict(SCALE = 1., C = 0, UNIT = unit, MOLWT = 1., FULLNAME = 'unknown', NAME = 'unknown')
                     else:
                         tracername = tracer_names[tracer_number]
                         tracer_data[tracer_number + goffset] = dict(SCALE = 1., C = tracer_data[tracer_number]['C'], UNIT = unit)
