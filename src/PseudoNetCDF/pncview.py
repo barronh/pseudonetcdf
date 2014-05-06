@@ -137,9 +137,15 @@ class TkApp:
         pdump.seek(0, 0)
         self.meta.insert(END, pdump.read())
         self.meta.config(state=DISABLED)
+        help = Button(goframe, text = 'Help', command = self.help)
+        help.grid(column = 0, row = 7)
         quit = Button(goframe, text = 'Quit', command = self.quit)
-        quit.grid(column = 0, row = 7)
+        quit.grid(column = 0, row = 8)
         master.mainloop()
+   
+    def help(self):
+        print "pl is pylab: details at matplotlib;"
+        
     def quit(self):
         self.root.destroy()
 
