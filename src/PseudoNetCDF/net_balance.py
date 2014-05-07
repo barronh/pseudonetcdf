@@ -233,7 +233,6 @@ class mrgaloft(pncf):
             raise EOFError('EOF File: found |')
     
         # next line is first Time =
-        print line
         ir_time=self.time_re.match(line).groups()[0]
         if ir_time == None:
             raise ValueError, "ERROR:: in get_data read, did not find a time."
@@ -312,10 +311,10 @@ class TestReaders(unittest.TestCase):
         irr=mrgfile.variables['IRR']
         ipr=mrgfile.variables['IPR']
         self.assertEqual(irr[0,60],array(2.34061E-02,'f')[...])
-        self.assertEqual(irr[23,60],array(5.21899E-04,'f')[...])
+        self.assertEqual(irr[6,60],array(5.21899E-04,'f')[...])
 
         self.assertEqual(ipr[0,6,3],array(1.290572E+01,'f')[...])
-        self.assertEqual(ipr[23,6,3],array(1.497632E-01,'f')[...])
+        self.assertEqual(ipr[6,6,3],array(1.497632E-01,'f')[...])
         
     def runTest(self):
         pass
