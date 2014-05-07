@@ -1,4 +1,4 @@
-__all__ = ['MO', 'MP', 'RM', 'MB', 'MdnB', 'FB', 'MNB', 'NMB', 'NMdnB', 'MNBd', 'ME', 'MdnE', 'FE', 'MNE', 'NME', 'NMdnE', 'MNEd', 'R2', 'RMSE', 'RMSEs', 'RMSEu', 'E1', 'IOA', 'd1']
+__all__ = ['NO', 'NP', 'NOP', 'MO', 'MdnO', 'MP', 'MdnP', 'RM', 'RMdn', 'MB', 'MdnB', 'FB', 'MNB', 'MdnNB', 'NMB', 'NMdnB', 'USUTPB', 'PSUTMNPB', 'PSUTMdnNPB', 'PSUTNMPB', 'PSUTNMdnPB', 'ME', 'MdnE', 'FE', 'MNE', 'MdnNE', 'NME', 'NMdnE', 'USUTPE',  'PSUTMNPE', 'PSUTMdnNPE', 'PSUTNMPE', 'PSUTNMdnPE', 'R2', 'RMSE', 'RMSEs', 'RMSEu', 'E1', 'IOA', 'd1']
 from pncload import createconsole
 import numpy as np
 def MNB(obs, mod):
@@ -6,12 +6,34 @@ def MNB(obs, mod):
     return  np.ma.masked_invalid((mod-obs)/obs).mean()*100.
 
 def MNE(obs, mod):
-    """ Mean Normalzied Gross Error (%)"""
+    """ Mean Normalized Gross Error (%)"""
     return np.ma.masked_invalid(np.ma.abs(mod-obs)/obs).mean()*100.
 
+def MdnNB(obs, mod):
+    """ Median Normalized Bias (%)"""
+    return np.ma.median(np.ma.masked_invalid((mod-obs)/obs))*100.
+
+def MdnNE(obs, mod):
+    """ Median Normalized Gross Error (%)"""
+    return np.ma.median(np.ma.masked_invalid(np.ma.abs(mod-obs)/obs))*100.
+
 def NMdnE(obs, mod):
-    """ Normalzied Median Gross Error (%)"""
+    """ Normalized Median Gross Error (%)"""
     return np.ma.masked_invalid(np.ma.abs(mod-obs).mean()/obs.mean())*100.
+
+def NO(obs, mod):
+    """ N Observations (#)"""
+    return (np.ma.getmaskarray(obs) == False).sum()
+
+def NOP(obs, mod):
+    """ N Observations/Prediction Pairs (#)"""
+    obsc, modc = matchedcompressed(obs, mod)
+    return obsc.size
+
+def NP(obs, mod):
+    """ N Predictions (#)"""
+    return (np.ma.getmaskarray(mod) == False).sum()
+
 
 def MO(obs, mod):
     """ Mean Observations (obs unit)"""
@@ -21,9 +43,21 @@ def MP(obs, mod):
     """ Mean Predictions (model unit)"""
     return mod.mean()
 
+def MdnO(obs, mod):
+    """ Median Observations (obs unit)"""
+    return np.ma.median(obs)
+
+def MdnP(obs, mod):
+    """ Median Predictions (model unit)"""
+    return np.ma.median(mod)
+
 def RM(obs, mod):
     """ Mean Ratio Observations/Predictions (none)"""
     return np.ma.masked_invalid(obs/mod).mean()
+
+def RMdn(obs, mod):
+    """ Median Ratio Observations/Predictions (none)"""
+    return np.ma.median(np.ma.masked_invalid(obs/mod))
 
 def MB(obs, mod):
     """ Mean Bias"""
@@ -70,13 +104,45 @@ def FE(obs, mod):
     return (np.ma.abs(mod-obs)/(mod+obs)).mean()*2.*100.
     #Part 1b. For daily peak (or some period)
 
-def MNBd(obs, mod):
-    """ Unpaired Peak Bias (%)"""
+def USUTPB(obs, mod):
+    """ Unpaired Space/Unpaired Time Peak Bias (%)"""
     return ((mod.max()-obs.max())/obs.max())*100.
 
-def MNEd(obs, mod):
-    """ Unpaired Peak Error (%)"""
+def USUTPE(obs, mod):
+    """ Unpaired Space/Unpaired Time Peak Error (%)"""
     return (np.ma.abs(mod.max()-obs.max())/obs.max())*100.
+
+def PSUTMNPB(obs, mod):
+    """ Paired Space/Unpaired Time Mean Normalized Peak Bias (%)"""
+    return ((mod.max(0)-obs.max(0))/obs.max(0)).mean()*100.
+
+def PSUTMdnNPB(obs, mod):
+    """ Paired Space/Unpaired Time Median Normalized Peak Bias (%)"""
+    return np.ma.median((mod.max(0)-obs.max(0))/obs.max(0))*100.
+
+def PSUTMNPE(obs, mod):
+    """ Paired Space/Unpaired Time Mean Normalized Peak Error (%)"""
+    return (np.ma.abs(mod.max(0)-obs.max(0))/obs.max(0)).mean()*100.
+
+def PSUTMdnNPE(obs, mod):
+    """ Paired Space/Unpaired Time Median Normalized Peak Error (%)"""
+    return np.ma.median(np.ma.abs(mod.max(0)-obs.max(0))/obs.max(0))*100.
+
+def PSUTNMPB(obs, mod):
+    """ Paired Space/Unpaired Time Normalized Mean Peak Bias (%)"""
+    return (mod.max(0)-obs.max(0)).mean()/obs.max(0).mean()*100.
+
+def PSUTNMPE(obs, mod):
+    """ Paired Space/Unpaired Time Normalized Mean Peak Error (%)"""
+    return np.ma.abs(mod.max(0)-obs.max(0)).mean()/obs.max(0).mean()*100.
+
+def PSUTNMdnPB(obs, mod):
+    """ Paired Space/Unpaired Time Normalized Median Peak Bias (%)"""
+    return np.ma.median(mod.max(0)-obs.max(0))/np.ma.median(obs.max(0))*100.
+
+def PSUTNMdnPE(obs, mod):
+    """ Paired Space/Unpaired Time Normalized Median Peak Error (%)"""
+    return np.ma.median(np.ma.abs(mod.max(0)-obs.max(0)))/np.ma.median(obs.max(0))*100.
 
 def R2(obs, mod):
     """ Correlation Coefficient (unit squared)"""
@@ -130,7 +196,7 @@ def IOA(obs, mod):
     """ Index of Agreement, IOA"""
     return 1.0 - (np.ma.abs(obs-mod)**2).sum()/((np.ma.abs(mod-obs.mean())+np.ma.abs(obs-obs.mean()))**2).sum()
 
-def stat_spatial(ifile0, ifile1, variables = ['O3'], counties = False):
+def stat_spatial(ifile0, ifile1, funcs = __all__, variables = ['O3'], counties = False):
     """
     ifile0 - left hand side of equation
     ifile1 - right hand side of equation
@@ -138,19 +204,23 @@ def stat_spatial(ifile0, ifile1, variables = ['O3'], counties = False):
     """
     from mpl_toolkits.basemap import Basemap
     from pylab import figure, show, colorbar
-    lon, lat = np.array(map(lambda x: map(float, x.split(',')), ifile0.lonlatcoords.split('/'))).T
+    lonlatcoords = getattr(ifile0, 'lonlatcoords', getattr(ifile1, 'lonlatcoords', ''))
+    lon, lat = np.array(map(lambda x: map(float, x.split(',')), lonlatcoords.split('/'))).T
     latmin, latmax = lat.min(), lat.max()
     lonmin, lonmax = lon.min(), lon.max()
-    bmap = Basemap(llcrnrlat = latmin, llcrnrlon = lonmin, urcrnrlat = latmax, urcrnrlon = lonmax)
+    bmap = Basemap(llcrnrlat = latmin, llcrnrlon = lonmin, urcrnrlat = latmax, urcrnrlon = lonmax, resolution = 'i')
     for vark in variables:
-        for statname in __all__:
+        for statname in funcs:
             statfunc = eval(statname)
             fig = figure()
             ax = fig.add_subplot(111)
             ax.set_title(vark + ' ' + statname)
             var_0 = ifile0.variables[vark]
             var_1 = ifile1.variables[vark]
-            pidx = list(var_0.dimensions).index('points')
+            try:
+                pidx = list(var_0.dimensions).index('points')
+            except:
+                pidx = list(var_1.dimensions).index('points')
             statvs = []
             for sitei in range(var_0.shape[pidx]):
                 val_0 = var_0[:].take([sitei], axis = pidx).ravel()
@@ -198,8 +268,9 @@ def main():
         console.locals[k] = func = eval(k)
         console.locals[k+'_f'] = ofile = pncbfunc(func, ifile1, ifile2)
         for vk in ofile.variables.keys():
-            print func.__doc__.strip(), '(' + k + ')', vk, ofile.variables[vk].ravel()[0]
+            print vk, func.__doc__.strip(), '(' + k + ')', ofile.variables[vk].ravel()[0]
     np.seterr(divide = 'warn', invalid = 'warn')
-    console.interact()
+    if options.interactive:
+        console.interact()
 if __name__ == '__main__':
     main()
