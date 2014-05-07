@@ -27,7 +27,7 @@ class AggCommaString(Action):
         setattr(namespace, self.dest, startv + values.split(','))
 
 
-def pncparser(has_ofile, plot_options = False):
+def pncparser(has_ofile, plot_options = False, interactive = True):
     parser = ArgumentParser(description = 'PseudoNetCDF Argument Parsing')
     parser.add_argument('ifile', nargs='+', help='path to a file formatted as type -f')
     parser.add_argument("-f", "--format", dest = "format", default = 'netcdf', help = "File format (default netcdf)")
@@ -101,6 +101,9 @@ def pncparser(has_ofile, plot_options = False):
     parser.add_argument("--expr", dest = "expressions", type = str, action = 'append', default = [], help = "Generic expressions to execute in the context of the file.")
     if plot_options:
         parser.add_argument("--plot-commands", dest = "plotcommands", type = str, action = 'append', default = [], help = "Plotting functions to call for all variables expressions to execute in the context of the file.")
+    if interactive:
+        parser.add_argument("-i", "--interactive", dest = "interactive", action = 'store_true', default = False, help = "Use interactive mode")
+        
         
 
     args = parser.parse_args()
