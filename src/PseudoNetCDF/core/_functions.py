@@ -273,6 +273,23 @@ def slice_dim(f, slicedef, fuzzydim = True):
 
     return f
     
+def _getfunc(a, func):
+    """
+    Get an approriate function that takes one optional keyword (axis)
+    """
+    if isinstance(func, (str,unicode)):
+        if hasattr(a, func):
+            outfunc = getattr(a, func)
+        elif isinstance(a, np.ma.MaskedArray):
+            outfunc = lambda axis = None: getattr(np.ma, func)(a, axis = axis)
+        elif hasattr(np, func):
+            outfunc = lambda axis = None: getattr(np, func)(a, axis = axis)
+        else:
+            outfunc = lambda axis = None: eval(func)(a, axis = axis)
+    else:
+        outfunc = lambda axis = None: func(a, axis = axis)
+    return outfunc
+    
 def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latitude longitude time_bounds latitude_bounds longitude_bounds ROW COL LAY TFLAG ETFLAG'.split()):
     """
     variable dimensions can be reduced using
@@ -325,7 +342,7 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
         vreshape = addunitydim(var)
         if not varkey in metakeys:
             if numweightkey is None:
-                vout = getattr(vreshape, func)(axis = axis)
+                vout = _getfunc(vreshape, func)(axis = axis)
             elif denweightkey is None:
                 wvar = var * np.array(numweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]),)]
                 vout = getattr(wvar[(slice(None),) * (axis + 1) + (None,)], func)(axis = axis)
@@ -337,11 +354,11 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
                 vout = getattr(nwvar[(slice(None),) * (axis + 1) + (None,)], func)(axis = axis) / getattr(np.array(denweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]), None)], func)(axis = axis)
         else:
             if '_bounds' not in varkey and '_bnds' not in varkey:
-                vout = getattr(vreshape, func)(axis = axis)
+                vout = _getfunc(vreshape, func)(axis = axis)
             else:
-                vout = getattr(vreshape, func)(axis = axis)
-                vmin = getattr(vreshape, 'min')(axis = axis)
-                vmax = getattr(vreshape, 'max')(axis = axis)
+                vout = _getfunc(vreshape, func)(axis = axis)
+                vmin = _getfunc(vreshape, 'min')(axis = axis)
+                vmax = _getfunc(vreshape, 'max')(axis = axis)
                 if 'lon' in varkey:
                     vout[..., [0, 3]] = vmin[..., [0, 3]]
                     vout[..., [1, 2]] = vmin[..., [1, 2]]
