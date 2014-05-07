@@ -28,6 +28,10 @@ addTestCasesFromModule(camxfiles.timetuple)
 import net_balance
 addTestCasesFromModule(net_balance)
 
+import geoschemfiles
+addTestCasesFromModule(geoschemfiles._bpch)
+addTestCasesFromModule(geoschemfiles._geos)
+
 
 def test():
 	TextTestRunner(verbosity=2).run(test_suite)
