@@ -1,4 +1,4 @@
-__all__ = ['camxfiles_paths', 'net_balance_paths']
+__all__ = ['camxfiles_paths', 'net_balance_paths', 'geoschemfiles_paths']
 
 from os.path import join
 
@@ -17,9 +17,14 @@ for key, val in camxfiles_paths.iteritems():
     camxfiles_paths[key] = join(*__path__ + val.split('/'))
 
 net_balance_paths = dict(
-                 mrg_file = 'testcase/net_balance/test.mrg_file',
-                 net_file = 'testcase/net_balance/test.net_file',
+                 mrg_file = 'net_balance/test.mrg_file',
+                 net_file = 'net_balance/test.net_file',
                  )
 
-for key, v in net_balance_paths.iteritems():
+for key, val in net_balance_paths.iteritems():
     net_balance_paths[key] = join(*__path__ + val.split('/'))
+
+geoschemfiles_paths = dict(bpch = 'geoschemfiles/test.bpch')
+
+for key, val in geoschemfiles_paths.iteritems():
+    geoschemfiles_paths[key] = join(*__path__ + val.split('/'))
