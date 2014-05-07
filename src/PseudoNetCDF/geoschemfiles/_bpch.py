@@ -677,7 +677,7 @@ class bpch(PseudoNetCDFFile):
                         tracer_data[tracer_number + goffset] = dict(SCALE = 1., C = 0, UNIT = unit, MOLWT = 1., FULLNAME = 'unknown', NAME = 'unknown')
                     else:
                         tracername = tracer_names[tracer_number]
-                        tracer_data[tracer_number + goffset] = dict(SCALE = 1., C = tracer_data[tracer_number]['C'], UNIT = unit)
+                        tracer_data[tracer_number + goffset] = dict(SCALE = 1., C = tracer_data[tracer_number]['C'], UNIT = unit, MOLWT = 1.)
 
             else:
                 warn('%s is not in diaginfo.dat; names and scaling cannot be resolved' % group)
@@ -699,22 +699,7 @@ class bpch(PseudoNetCDFFile):
                     assert(data_type.itemsize == header[-2])
                     data_types.append(data_type)
                     keys.append('%s_%s' % (group, tracername))
-
-                # Repeating tracer indicates end of timestep
-                time_type = dtype([(k, dtype([('header', _datablock_header_type), ('data', d)])) for k, d in zip(keys, data_types)])
-                field_shapes = set([v[0].fields['data'][0].fields['f1'][0].shape for k, v in time_type.fields.iteritems()])
-                field_levs = set([s_[0] for s_ in field_shapes])
-                field_rows = set([s_[1] for s_ in field_shapes])
-                field_cols = set([s_[2] for s_ in field_shapes])
-                field_levs = list(field_levs)
-                field_levs.sort()
-                for fl in field_levs:
-                    self.createDimension('layer%d' % fl, fl)
-
-                itemcount = ((float(os.path.getsize(bpch_path)) - _general_header_type.itemsize) / time_type.itemsize)
-                if (itemcount % 1) != 0:
-                    warn("Cannot read whole file; assuming partial time block is at the end; skipping partial time record")
-                    itemcount = np.floor(itemcount)
+                
                 break
             dim = header[13][::-1]
             start = header[14][::-1]
@@ -722,6 +707,22 @@ class bpch(PseudoNetCDFFile):
             assert(data_type.itemsize == header[-2])
             data_types.append(data_type)
             keys.append('%s_%s' % (group, tracername))
+
+        # Repeating tracer indicates end of timestep
+        time_type = dtype([(k, dtype([('header', _datablock_header_type), ('data', d)])) for k, d in zip(keys, data_types)])
+        field_shapes = set([v[0].fields['data'][0].fields['f1'][0].shape for k, v in time_type.fields.iteritems()])
+        field_levs = set([s_[0] for s_ in field_shapes])
+        field_rows = set([s_[1] for s_ in field_shapes])
+        field_cols = set([s_[2] for s_ in field_shapes])
+        field_levs = list(field_levs)
+        field_levs.sort()
+        for fl in field_levs:
+            self.createDimension('layer%d' % fl, fl)
+
+        itemcount = ((float(os.path.getsize(bpch_path)) - _general_header_type.itemsize) / time_type.itemsize)
+        if (itemcount % 1) != 0:
+            warn("Cannot read whole file; assuming partial time block is at the end; skipping partial time record")
+            itemcount = np.floor(itemcount)
 
         # load all data blocks  
         try:
@@ -1726,6 +1727,22 @@ Examples:
         except IOError, e:
             print("Unable to produce test figure (maybe you don't have matplotlib or basemap); " + str(e))
     
+import unittest
+class TestMemmaps(unittest.TestCase):
+    def setUp(self):
+        from PseudoNetCDF.testcase import geoschemfiles_paths
+        self.bpchpath=geoschemfiles_paths['bpch']
+        
+    def testBPCH(self):
+        bpchfile=bpch(self.bpchpath)
+        ALD2=bpchfile.variables['IJ-AVG-$_ALD2']
+        ALD2g=bpchfile.groups['IJ-AVG-$'].variables['ALD2']
+        ALD2_check = np.array([1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02, 1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02, 1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02]).reshape(ALD2.shape)
+        np.testing.assert_allclose(ALD2, ALD2_check)
+        np.testing.assert_allclose(ALD2g, ALD2_check)
+        
+    def runTest(self):
+        pass
 
 if __name__ == '__main__':
     run()

@@ -437,6 +437,17 @@ class geos(PseudoNetCDFFile):
         self.createVariable('latitude', 'f', ('latitude',), values = latitude, units = 'degrees_north', standard_name = 'latitude', bounds = 'latitude_bounds')
         self.createVariable('latitude_bounds', 'f', ('latitude','nv'), values = latitude_bounds, units = 'degrees_north', standard_name = 'latitude')
 
+import unittest
+from warnings import warn
+class TestMemmaps(unittest.TestCase):
+    def runTest(self):
+        pass
+    def setUp(self):
+        pass
+        
+    def testGEOS(self):
+        warn('Test not implemented')
+
 if __name__ == '__main__':
     path = sys.argv[1]
     f = geos(path)
