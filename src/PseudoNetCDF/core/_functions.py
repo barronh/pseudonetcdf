@@ -287,7 +287,7 @@ def _getfunc(a, func):
         else:
             outfunc = lambda axis = None: eval(func)(a, axis = axis)
     else:
-        outfunc = lambda axis = None: func(a, axis = axis)
+        outfunc = lambda axis = None: np.apply_along_axis(func1d = func, axis = axis, arr = a)
     return outfunc
     
 def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latitude longitude time_bounds latitude_bounds longitude_bounds ROW COL LAY TFLAG ETFLAG'.split()):
@@ -303,17 +303,22 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
     metakeys = [k for k in metakeys if k in f.variables.keys()]
     historydef = "reduce_dim(f, %s, fuzzydim = %s, metakeys = %s); " % (reducedef, fuzzydim, metakeys)
     import numpy as np
-    commacount = reducedef.count(',')
+    if isinstance(reducedef, (str, unicode)):
+        commacount = reducedef.count(',')
+        reducevals = reducedef.split(',')
+    else:
+        commacount = len(reducedef)
+        reducevals = reducedef
     if commacount == 3:
-        dimkey, func, numweightkey, denweightkey = reducedef.split(',')
+        dimkey, func, numweightkey, denweightkey = reducevals
         numweight = f.variables[numweightkey]
         denweight = f.variables[denweightkey]
     elif commacount == 2:
-        dimkey, func, numweightkey = reducedef.split(',')
+        dimkey, func, numweightkey = reducevals
         numweight = f.variables[numweightkey]
         denweightkey = None
     elif commacount == 1:
-        dimkey, func = reducedef.split(',')
+        dimkey, func = reducevals
         numweightkey = None
         denweightkey = None
     if fuzzydim:
@@ -502,57 +507,31 @@ def pncexpr(expr, ifile, verbose = False):
     # Copy file to temporary PseudoNetCDF file
     p2p = Pseudo2NetCDF()
     p2p.verbose = verbose
+    co = compile(expr, 'none', 'exec')
+    varkeys = [key for key in co.co_names if key in ifile.variables]
+    varpnc = getvarpnc(ifile, varkeys)
     tmpfile = PseudoNetCDFFile()
     p2p.convert(ifile, tmpfile)
 
     # Get NetCDF variables as a dictionary with 
     # names mangled to allow special characters
     # in the names
-    vardict = dict([(_namemangler(k), ifile.variables[k]) for k in ifile.variables.keys()])
+    vardict = dict([(_namemangler(k), ifile.variables[k]) for k in varpnc.variables.keys()])
     vardict['np'] = np
-    
-    # Final all assignments in the expression
-    # expr should allow for any valid expression
-    assign_keys = re.findall(r'(?:^|;)\s*([a-zA-Z][a-zA-Z0-9_]*)\s*(?=[=])', expr, re.M)
-    
-    # Create temporary default dictionaries
-    # and evaluate the expression
-    # this results in identifying all used variables
-    tmp3dict = defaultdict(lambda: 1, dict(np = np))
-    tmp4dict = dict([(k, 1) for k in assign_keys])
-    
-    exec(expr, tmp4dict, tmp3dict)
-    tmp3dict.pop('np')
-
-    # Distinguish between used variables and new variables
-    used_keys = [k_ for k_ in set(tmp3dict.keys()) if k_ in vardict]
-    
-    # Use the first used variable
-    # to get properties and create all
-    # new variables
-    tmpvar = vardict[used_keys[0]]
-    if hasattr(tmpvar, '_FillValue'):
-        kwds = dict(fill_value = tmpvar._FillValue)
-    else:
-        kwds = {}
-    for key in assign_keys:
-        newvar = tmpfile.createVariable(key, tmpvar.dtype.char, tmpvar.dimensions, **kwds)
-        for propk in tmpvar.ncattrs():
-            setattr(newvar, propk, getattr(tmpvar, propk))
-        
-    # Use null slide to prevent reassignment of new variables.
-    for assign_key in assign_keys:
-        expr = re.sub(r'\b%s\b' % assign_key, '%s[:]' % assign_key, expr)
     
     # Add all used constants as properties
     # of the output file
-    from scipy import constants
-    for k in dir(constants):
-        if k not in vardict:
-            vardict[k] = getattr(constants, k)
+    exec('from scipy.constants import *', None, vardict)
+    oldkeys = set(vardict.keys())
     
     # Assign expression to new variable.
-    exec(expr, tmpfile.variables, vardict)
+    exec(expr, None, vardict)
+    newkeys = set(vardict.keys())
+    assignedkeys = newkeys.difference(oldkeys)
+    for key in assignedkeys:
+        val = vardict[key]
+        if isinstance(val, (PseudoNetCDFVariable,)):
+            tmpfile.variables[key] = val
     
     return tmpfile
     

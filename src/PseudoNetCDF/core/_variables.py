@@ -13,19 +13,24 @@ class PseudoNetCDFVariable(np.ndarray):
         """
         Set attributes (aka properties) and identify user-defined attributes.
         """
-        if not hasattr(self, k) and k[:1] != '_':
+        if not hasattr(self, k) and \
+           k[:1] != '_' and \
+           not k in ('dimensions', 'typecode'):
             self._ncattrs += (k,)
         np.ndarray.__setattr__(self, k, v)
+    
     def __delattr__(self, k):
         if k in self._ncattrs:
             self._ncattrs = tuple([k_ for k_ in self._ncattrs if k_ != k])
         object.__delattr__(self, k)
+    
     def ncattrs(self):
         """
         Returns a tuple of attributes that have been user defined
         """
         
         return self._ncattrs
+    
     def __new__(subtype,parent,name,typecode,dimensions,**kwds):
         """
         Creates a variable using the dimensions as defined in
@@ -58,34 +63,29 @@ class PseudoNetCDFVariable(np.ndarray):
         
         result=result[...].view(subtype)
 
-        if hasattr(result, '__dict__'):
-            result.__dict__['typecode'] = lambda: typecode
-            result.__dict__['dimensions'] = tuple(dimensions)
-        else:
-            result.__dict__ = {
-                'typecode': lambda: typecode,
-                'dimensions': tuple(dimensions)
-            }
-
-#        object.__setattr__(result, '_ncattrs', ())
-
+        result.typecode = lambda: typecode
+        result.dimensions = tuple(dimensions)
+        result._ncattrs = ()
         for k,v in kwds.iteritems():
             setattr(result,k,v)
         return result
 
     def __array_finalize__(self, obj):
-        if not hasattr(self, '_ncattrs'):
-            self._ncattrs = ()
-            if obj is None: return
-            if hasattr(obj, '_ncattrs'):
-                for k in obj._ncattrs:
-                    setattr(self, k, getattr(obj, k))
-        if not hasattr(self, 'dimensions'):
-            if hasattr(obj, 'dimensions'):
-                setattr(self, 'dimensions', obj.dimensions)
-                self._ncattrs = self._ncattrs[:-1]
+        self.typecode = getattr(obj, 'typecode', lambda: self.dtype.char)
+        self.dimensions = getattr(obj, 'dimensions', getattr(self, 'dimensions', ()))
+        self._ncattrs = getattr(obj, '_ncattrs', getattr(self, '_ncattrs', ()))
+        if hasattr(obj, '_ncattrs'):
+            for k in obj._ncattrs:
+                setattr(self, k, getattr(obj, k))
         
-    
+    def swapaxes(self, a1, a2):
+        out = np.ndarray.swapaxes(self, a1, a2)
+        newdims = list(self.dimensions)
+        newdims[a1] = self.dimensions[a2]
+        newdims[a2] = self.dimensions[a1]
+        out.dimensions = tuple(newdims)
+        return out
+        
     def getValue(self):
         """
         Return scalar value
@@ -99,37 +99,7 @@ class PseudoNetCDFVariable(np.ndarray):
         self.itemset(value)
 
 class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
-    def __setattr__(self, k, v):
-        """
-        Set attributes (aka properties) and identify user-defined attributes.
-        """
-        if not hasattr(self, k) and k[:1] != '_':
-            self._ncattrs += (k,)
-        np.ma.MaskedArray.__setattr__(self, k, v)
-
-    def __delattr__(self, k):
-        if k in self._ncattrs:
-            self._ncattrs = tuple([k_ for k_ in self._ncattrs if k_ != k])
-        object.__delattr__(self, k)
-
-    def ncattrs(self):
-        """
-        Returns a tuple of attributes that have been user defined
-        """
-        
-        return self._ncattrs
-
-    def swapaxes(self, a1, a2):
-        out = np.ma.MaskedArray.swapaxes(self, a1, a2)
-        out = self.__array_wrap__(out)
-        return out
-
-    def reshape(self, *shape):
-        out = np.ma.MaskedArray.reshape(self, *shape)
-        out = self.__array_wrap__(out)
-        return out
-    
-    def __new__(subtype,parent,name,typecode,dimensions,**kwds):
+    def __new__(subtype,parent,name,typecode = 'f',dimensions = (),**kwds):
         """
         Creates a variable using the dimensions as defined in
         the parent object
@@ -138,7 +108,7 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
         name: name for variable
         typecode: numpy style typecode
         dimensions: a typle of dimension names to be used from
-                    parrent
+                    parent
         kwds: Dictionary of keywords to be added as properties
               to the variable.  **The keyword 'values' is a special
               case that will be used as the starting values of
@@ -160,51 +130,29 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
 
             result=np.ma.zeros(shape,typecode)
 
-        result=np.ndarray.view(result, subtype)
-
-        if hasattr(result, '__dict__'):
-            result.__dict__['typecode'] = lambda: typecode
-            result.__dict__['dimensions'] = tuple(dimensions)
-        else:
-            result.__dict__ = {
-                'typecode': lambda: typecode,
-                'dimensions': tuple(dimensions)
-            }
-
-#        object.__setattr__(result, '_ncattrs', ())
+        result=np.ma.MaskedArray.view(result, subtype)
+        result._ncattrs = ()
+        result.typecode = lambda: typecode
+        result.dimensions = tuple(dimensions)
         for k,v in kwds.iteritems():
             setattr(result,k,v)
         return result
 
     def __array_finalize__(self, obj):
         np.ma.MaskedArray.__array_finalize__(self, obj)
-        if not hasattr(self, '_ncattrs'):
-            self._ncattrs = ()
-            if obj is None: return
-            if hasattr(obj, '_ncattrs'):
-                for k in obj._ncattrs:
-                    setattr(self, k, getattr(obj, k))
-        if not hasattr(self, 'dimensions'):
-            if hasattr(obj, 'dimensions'):
-                setattr(self, 'dimensions', obj.dimensions)
-                self._ncattrs = self._ncattrs[:-1]
-
-    def __array_wrap__(self, obj, context = None):
-        np.ma.MaskedArray.__array_finalize__(self, obj)
-        if not np.isscalar(obj._mask):
-            obj._mask = obj._mask.reshape(*obj.shape)
-        if hasattr(self, '_ncattrs'):
-            for k in self._ncattrs:
-                setattr(obj, k, getattr(self, k))
-        else:
-            self._ncattrs = ()
-        
-        if hasattr(self, 'dimensions'):
-            obj.dimensions = self.dimensions
-        return obj
-        
+    
+    def _update_from(self, obj):
+        self.typecode = getattr(obj, 'typecode', lambda: self.dtype.char)
+        self.dimensions = getattr(obj, 'dimensions', getattr(self, 'dimensions', ()))
+        self._ncattrs = getattr(obj, '_ncattrs', getattr(self, '_ncattrs', ()))
+        if hasattr(obj, '_ncattrs'):
+            for k in obj._ncattrs:
+                setattr(self, k, getattr(obj, k))
+        np.ma.MaskedArray._update_from(self, obj)
+                
     def __getitem__(self, item):
-        out = np.ma.MaskedArray.__getitem__(self, item)
+        out = np.ma.MaskedArray.__getitem__(self, item).view(PseudoNetCDFMaskedVariable)
+        if np.isscalar(out): return out
         if hasattr(self, 'dimensions'):
             out.dimensions = self.dimensions
         if hasattr(self, '_ncattrs'):
@@ -213,6 +161,37 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
         else:
             self._ncattrs = ()
         return out
+
+    def __setattr__(self, k, v):
+        """
+        Set attributes (aka properties) and identify user-defined attributes.
+        """
+        if not hasattr(self, k) and \
+           k[:1] != '_' and \
+           not k in ('dimensions', 'typecode'):
+            self._ncattrs += (k,)
+        np.ma.MaskedArray.__setattr__(self, k, v)
+
+    def __delattr__(self, k):
+        if k in self._ncattrs:
+            self._ncattrs = tuple([k_ for k_ in self._ncattrs if k_ != k])
+        object.__delattr__(self, k)
+
+    def swapaxes(self, a1, a2):
+        out = np.ma.masked_array.swapaxes(self, a1, a2)
+        newdims = list(self.dimensions)
+        newdims[a1] = self.dimensions[a2]
+        newdims[a2] = self.dimensions[a1]
+        out.dimensions = tuple(newdims)
+        return out
+        
+
+    def ncattrs(self):
+        """
+        Returns a tuple of attributes that have been user defined
+        """
+        
+        return self._ncattrs
 
     def getValue(self):
         """
