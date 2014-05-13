@@ -99,6 +99,8 @@ def pncparser(has_ofile, plot_options = False, interactive = True):
     parser.add_argument("--op-first", dest = "operatorsfirst", action = 'store_true', default = False, help = "Use operations before slice/aggregate.")
 
     parser.add_argument("--expr", dest = "expressions", type = str, action = 'append', default = [], help = "Generic expressions to execute in the context of the file.")
+
+    parser.add_argument("--exprscript", dest = "expressionscripts", type = str, action = 'append', default = [], help = "Generic expressions to execute in the context of the file.")
     if plot_options:
         parser.add_argument("--plot-commands", dest = "plotcommands", type = str, action = 'append', default = [], help = "Plotting functions to call for all variables expressions to execute in the context of the file.")
     if interactive:
@@ -130,7 +132,9 @@ def pncparser(has_ofile, plot_options = False, interactive = True):
     if not args.operatorsfirst: fs = seqpncbo(args.operators, fs, coordkeys = args.coordkeys)
     for expr in args.expressions:
         fs = [pncexpr(expr, f) for f in fs]
-
+    for script in args.expressionscripts:
+        expr = file(script).read()
+        fs = [pncexpr(expr, f) for f in fs]
     decorate(fs, args)
     return fs, args
 
