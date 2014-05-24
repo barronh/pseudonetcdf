@@ -638,10 +638,17 @@ def mapplot(ifile, varkey, options, before = '', after = ''):
         orientation = 'vertical'
     cbar = pl.gcf().colorbar(patches, orientation = orientation)
     cbar.set_label(varkey + ' (' + vunit + ')')
-    cbar.ax.text(.5, 1, '%.2g' % var[:].max(), horizontalalignment = 'center', verticalalignment = 'bottom')
-    cbar.ax.text(.5, 0, '%.2g' % var[:].min(), horizontalalignment = 'center', verticalalignment = 'top')
-    cbar.formatter.set_scientific(True)
-    cbar.formatter.set_powerlimits((-3, 3))
+    if orientation == 'vertical':
+        cbar.ax.text(.5, 1, '%.2g' % var[:].max(), horizontalalignment = 'center', verticalalignment = 'bottom')
+        cbar.ax.text(.5, 0, '%.2g' % var[:].min(), horizontalalignment = 'center', verticalalignment = 'top')
+    else:
+        cbar.ax.text(1, .5, '%.2g' % var[:].max(), verticalalignment = 'center', horizontalalignment = 'left')
+        cbar.ax.text(0, .5, '%.2g' % var[:].min(), verticalalignment = 'center', horizontalalignment = 'right')
+    try:
+        cbar.formatter.set_scientific(True)
+        cbar.formatter.set_powerlimits((-3, 3))
+    except:
+        pass
     cbar.update_ticks()
     fmt = 'png'
     figpath = os.path.join(outpath + '_map_' + varkey + '.' + fmt)
