@@ -220,7 +220,7 @@ def extract(f, lonlat, unique = False, gridded = None, method = 'nn', passthroug
             newdims = tuple(newdims)
             newv = extractfunc(v, thiscoords)
             
-            nv = outf.createVariable(k, v.dtype.char, newdims, values = extractfunc(v, thiscoords))
+            nv = outf.createVariable(k, v.dtype.char, newdims, values = newv)
             for ak in v.ncattrs():
                 setattr(nv, ak, getattr(v, ak))
             setattr(nv, 'coordinates', getattr(v, 'coordinates', ' '.join(coords)))
@@ -330,7 +330,9 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
                 f = reduce_dim(f, '%s,%s,%s' % (dimk, func, numweightkey),)
             elif commacount == 3:
                 f = reduce_dim(f, '%s,%s,%s,%s' % (dimk, func, numweightkey, denweightkey),)
-    
+    if dimkey not in f.dimensions:
+        warn('%s not in file' % dimkey)
+        return f
     unlimited = f.dimensions[dimkey].isunlimited()
     f.createDimension(dimkey, 1)
     if unlimited:
@@ -427,32 +429,28 @@ def pncbo(op, ifile1, ifile2, coordkeys = [], verbose = False):
     op can be any valid operator (e.g., +, -, /, *, **, &, ||)
     """
     from PseudoNetCDF.sci_var import Pseudo2NetCDF
-    
     # Copy infile1 to a temporary PseudoNetCDFFile
     p2p = Pseudo2NetCDF()
     p2p.verbose = verbose
     tmpfile = PseudoNetCDFFile()
-    p2p.convert(ifile1, tmpfile)
+    p2p.addGlobalProperties(ifile1, tmpfile)
+    p2p.addDimensions(ifile1, tmpfile)
     
     # For each variable, assign the new value
     # to the tmpfile variables.
-    for k in tmpfile.variables.keys():
-        if k in coordkeys: continue
-        outvar = tmpfile.variables[k]
+    for k in ifile1.variables.keys():
         in1var = ifile1.variables[k]
-        if k not in ifile2.variables.keys():
-            warn('%s not found in ifile2')
-            continue
-        in2var = ifile2.variables[k]
-        outval = np.ma.filled(np.ma.masked_invalid(eval('in1var[...] %s in2var[...]' % op)), -999)
-        if outvar.ndim > 0:
-            outvar[:] = outval
+        if k not in ifile2.variables.keys() or k in coordkeys:
+            warn('%s not found in ifile2' % k)
+            p2p.addVariable(ifile1, tmpfile, k)
         else:
-            outvar.itemset(outval)
-        outvar.fill_value = -999
-        unit1 = getattr(in1var, 'units', 'unknown')
-        unit2 = getattr(in2var, 'units', 'unknown')
-        outvar.units = '(%s) %s (%s)' % (unit1, op, unit2)
+            in2var = ifile2.variables[k]
+            propd = dict([(ak, getattr(in1var, ak)) for ak in in1var.ncattrs()])
+            unit1 = getattr(in1var, 'units', 'unknown')
+            unit2 = getattr(in2var, 'units', 'unknown')
+            propd['units'] = '(%s) %s (%s)' % (unit1, op, unit2)
+            outval = np.ma.masked_invalid(eval('in1var[...] %s in2var[...]' % op))
+            outvar = tmpfile.createVariable(k, in1var.dtype.char, in1var.dimensions, fill_value = -999, values = outval)
     return tmpfile
 
 def pncbfunc(func, ifile1, ifile2, coordkeys = [], verbose = False):
@@ -517,21 +515,32 @@ def pncexpr(expr, ifile, verbose = False):
     # names mangled to allow special characters
     # in the names
     vardict = dict([(_namemangler(k), ifile.variables[k]) for k in varpnc.variables.keys()])
-    vardict['np'] = np
-    
+    # Compile the expr
+    comp = compile(expr, 'none', 'exec')
+    for key in comp.co_names:
+        if key in vardict:
+            tmpvar = vardict[key]
+            break
+    else:
+        tmpvar = PseudoNetCDFVariable(None, 'temp', 'f', ())
+    propd = dict([(k, getattr(tmpvar, k)) for k in tmpvar.ncattrs()])
+    dimt = tmpvar.dimensions
     # Add all used constants as properties
     # of the output file
+    vardict['ifile'] = ifile
+    vardict['np'] = np
     exec('from scipy.constants import *', None, vardict)
     oldkeys = set(vardict.keys())
-    
     # Assign expression to new variable.
-    exec(expr, None, vardict)
+    exec(comp, None, vardict)
     newkeys = set(vardict.keys())
     assignedkeys = newkeys.difference(oldkeys)
     for key in assignedkeys:
         val = vardict[key]
         if isinstance(val, (PseudoNetCDFVariable,)):
             tmpfile.variables[key] = val
+        else:
+            tmpfile.createVariable(key, val.dtype.char, dimt, values = val, **propd)
     
     return tmpfile
     
