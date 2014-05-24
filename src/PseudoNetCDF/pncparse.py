@@ -1,5 +1,7 @@
 import os
 import sys
+from warnings import warn
+
 from _getreader import getreaderdict
 globals().update(getreaderdict())
 from argparse import ArgumentParser, Action
@@ -28,6 +30,10 @@ class AggCommaString(Action):
 
 
 def pncparser(has_ofile, plot_options = False, interactive = True):
+    args = pncjustparse(has_ofile, plot_options = plot_options, interactive = interactive)
+    return pncprep(args)
+
+def getparser(has_ofile, plot_options = False, interactive = True):
     parser = ArgumentParser(description = 'PseudoNetCDF Argument Parsing')
     parser.add_argument('ifile', nargs='+', help='path to a file formatted as type -f')
     parser.add_argument("-f", "--format", dest = "format", default = 'netcdf', help = "File format (default netcdf)")
@@ -105,9 +111,11 @@ def pncparser(has_ofile, plot_options = False, interactive = True):
         parser.add_argument("--plot-commands", dest = "plotcommands", type = str, action = 'append', default = [], help = "Plotting functions to call for all variables expressions to execute in the context of the file.")
     if interactive:
         parser.add_argument("-i", "--interactive", dest = "interactive", action = 'store_true', default = False, help = "Use interactive mode")
+    return parser
         
         
-
+def pncjustparse(has_ofile, plot_options = False, interactive = True):
+    parser = getparser(has_ofile, plot_options = plot_options, interactive = interactive)
     args = parser.parse_args()
     args.coordkeys = reduce(list.__add__, args.coordkeys)
     #if args.stack is not None:
@@ -116,14 +124,16 @@ def pncparser(has_ofile, plot_options = False, interactive = True):
     #    print 'Too many arguments', len(args.ifile), len(args.operators), has_ofile
     #    parser.print_help()
     #    exit()
-    
-    #nifiles = len(args.ifile) - has_ofile
-    ipaths = args.ifile[:]
     if has_ofile:
         if not args.clobber and os.path.exists(args.outpath):
             parser.error(message = 'Output path (%s) exists; enable clobber (--clobber or -O) to overwrite.' % (args.outpath,))
     else:
         args.outpath = None
+    return args
+
+def pncprep(args):
+    #nifiles = len(args.ifile) - has_ofile
+    ipaths = args.ifile[:]
     
     fs = getfiles(ipaths, args)
     
@@ -180,7 +190,10 @@ def getfiles(ipaths, args):
         for opts in args.masks:
             f = mask_vals(f, opts)
         if laddconv:
-            eval('add_%s_from_%s' % (args.toconv, args.fromconv))(f)
+            try:
+                eval('add_%s_from_%s' % (args.toconv, args.fromconv))(f)
+            except Exception, e:
+                warn('Cannot add %s from %s; %s' % (args.toconv, args.fromconv, str(e)))
         if args.cdlname is None:
             args.cdlname = ipath
         try:
