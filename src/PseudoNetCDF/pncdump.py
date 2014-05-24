@@ -13,6 +13,7 @@ __doc__ = r"""
 __all__=['pncdump',]
 from numpy import float32, float64, int16, int32, int64, ndenumerate, nan, savetxt, isscalar, ndarray
 from warnings import warn
+from collections import defaultdict
 from PseudoNetCDF import PseudoNetCDFMaskedVariable
 
 from StringIO import StringIO
@@ -36,7 +37,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
     pncdump(vertical_diffusivity('camx_kv.20000825.hgbpa_04km.TCEQuh1_eta.v43.tke',rows=65,cols=83))
     """
     file_type = str(type(f)).split("'")[1]
-    formats = dict(float64 = "%%.%de" % (double_precision,), \
+    formats = defaultdict(lambda: "%s", float64 = "%%.%de" % (double_precision,), \
                    float32 = "%%.%de" % (float_precision,), \
                    int32 = "%i", \
                    uint32 = "%i", \
@@ -81,7 +82,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         int64='long', \
                         bool='bool', \
                         string8='char', \
-                        string80='char')[var.dtype.name]
+                        string80='char').get(var.dtype.name, var.dtype.name)
         outfile.write(startindent + 1*indent+("%s %s%s;\n" % (var_type, var_name,str(var.dimensions).replace('u\'', '').replace('\'','').replace(',)',')'))))
         for prop_name in var.ncattrs():
             prop = getattr(var, prop_name)
@@ -122,18 +123,23 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
             # currently assumes 3-D data
             for var_name in display_variables:
                 var = f.variables[var_name]
-                if isinstance(var, PseudoNetCDFMaskedVariable):
+                if isinstance(var, PseudoNetCDFMaskedVariable) or hasattr(var, '_FillValue'):
                     def writer(row, last):
                         if isscalar(row) or row.ndim == 0:
                             outfile.write(startindent + '  ' + str(row.filled().astype(ndarray)))
                             return
                         tmpstr = StringIO('')
-                        savetxt(tmpstr, row.filled(nan), fmt, delimiter = ', ', newline =', ')
+                        if row.mask.all():
+                            tmpstr.write(', '.join(['_'] * row.size) + ', ')
+                        else:
+                            savetxt(tmpstr, row.filled(), fmt, delimiter = ', ', newline =', ')
                         if last:
                             tmpstr.seek(-2, 1)
                             tmpstr.write(';')
                         tmpstr.seek(0, 0)
-                        outfile.write(textwrap.fill(tmpstr.read(), line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
+                        tmpstr = tmpstr.read()
+                        tmpstr = tmpstr.replace(fmt % row.fill_value + ',', '_,')
+                        outfile.write(textwrap.fill(tmpstr, line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
                         outfile.write('\n')
                 else:
                     def writer(row, last):
