@@ -28,7 +28,7 @@ def NO(obs, mod, axis = None):
 def NOP(obs, mod, axis = None):
     """ N Observations/Prediction Pairs (#)"""
     obsc, modc = matchmasks(obs, mod)
-    return np.ma.getmaskarray(obsc.mask == False).sum(axis = axis)
+    return (np.ma.getmaskarray(obsc) == False).sum(axis = axis)
 
 def NP(obs, mod, axis = None):
     """ N Predictions (#)"""
@@ -355,8 +355,12 @@ def main():
     for k in __all__:
         console.locals[k] = func = eval(k)
         console.locals[k+'_f'] = ofile = pncbfunc(func, ifile1, ifile2)
+        times = ifile1.variables['time']
+        tstart = times[:].min()
+        tstop = times[:].max()
+        dt = tstop - tstart
         for vk in ofile.variables.keys():
-            print vk, func.__doc__.strip(), '(' + k + ')', ofile.variables[vk].ravel()[0]
+            print '%.2f,%.2f,%.2f,%s,%s,%s,%f' % (tstart, tstop, dt, vk, func.__doc__.strip(), k, ofile.variables[vk].ravel()[0])
     np.seterr(divide = 'warn', invalid = 'warn')
     if options.interactive:
         console.interact()
