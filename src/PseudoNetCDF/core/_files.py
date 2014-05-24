@@ -57,7 +57,8 @@ class PseudoNetCDFFile(object):
 
     def __setattr__(self, k, v):
         if not (k[:1] == '_' or k in ('dimensions', 'variables', 'groups')):
-            self._ncattrs += (k, )
+            if k not in self._ncattrs:
+                self._ncattrs += (k, )
         object.__setattr__(self, k, v)
     def __delattr__(self, k):
         if k in self._ncattrs:
