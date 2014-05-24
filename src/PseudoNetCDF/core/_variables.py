@@ -13,10 +13,10 @@ class PseudoNetCDFVariable(np.ndarray):
         """
         Set attributes (aka properties) and identify user-defined attributes.
         """
-        if not hasattr(self, k) and \
-           k[:1] != '_' and \
+        if k[:1] != '_' and \
            not k in ('dimensions', 'typecode'):
-            self._ncattrs += (k,)
+            if k not in self._ncattrs:
+                self._ncattrs += (k, )
         np.ndarray.__setattr__(self, k, v)
     
     def __delattr__(self, k):
@@ -130,7 +130,7 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
 
             result=np.ma.zeros(shape,typecode)
 
-        result=np.ma.MaskedArray.view(result, subtype)
+        result=result.view(subtype)
         result._ncattrs = ()
         result.typecode = lambda: typecode
         result.dimensions = tuple(dimensions)
@@ -145,13 +145,16 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
         self.typecode = getattr(obj, 'typecode', lambda: self.dtype.char)
         self.dimensions = getattr(obj, 'dimensions', getattr(self, 'dimensions', ()))
         self._ncattrs = getattr(obj, '_ncattrs', getattr(self, '_ncattrs', ()))
+        self._fill_value = getattr(obj, '_fill_value', getattr(self, '_fill_value', -999))
         if hasattr(obj, '_ncattrs'):
             for k in obj._ncattrs:
                 setattr(self, k, getattr(obj, k))
         np.ma.MaskedArray._update_from(self, obj)
                 
     def __getitem__(self, item):
-        out = np.ma.MaskedArray.__getitem__(self, item).view(PseudoNetCDFMaskedVariable)
+        out = np.ma.MaskedArray.__getitem__(self, item)
+        out._fill_value = self._fill_value
+        out = out.view(PseudoNetCDFMaskedVariable)
         if np.isscalar(out): return out
         if hasattr(self, 'dimensions'):
             out.dimensions = self.dimensions
@@ -166,10 +169,10 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
         """
         Set attributes (aka properties) and identify user-defined attributes.
         """
-        if not hasattr(self, k) and \
-           k[:1] != '_' and \
+        if k[:1] != '_' and \
            not k in ('dimensions', 'typecode'):
-            self._ncattrs += (k,)
+            if k not in self._ncattrs:
+                self._ncattrs += (k, )
         np.ma.MaskedArray.__setattr__(self, k, v)
 
     def __delattr__(self, k):
