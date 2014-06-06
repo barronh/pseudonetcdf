@@ -449,7 +449,7 @@ def pncbo(op, ifile1, ifile2, coordkeys = [], verbose = False):
             unit1 = getattr(in1var, 'units', 'unknown')
             unit2 = getattr(in2var, 'units', 'unknown')
             propd['units'] = '(%s) %s (%s)' % (unit1, op, unit2)
-            outval = np.ma.masked_invalid(eval('in1var[...] %s in2var[...]' % op))
+            outval = np.ma.masked_invalid(eval('in1var[...] %s in2var[...]' % op).view(np.ndarray))
             outvar = tmpfile.createVariable(k, in1var.dtype.char, in1var.dimensions, fill_value = -999, values = outval)
     return tmpfile
 
