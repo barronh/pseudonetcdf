@@ -1,17 +1,16 @@
 __all__ = ['mapplot', 'profile', 'tileplot', 'presslon', 'presslat', 'timeseries', 'OptionDict']
 
 from warnings import warn
-from matplotlib import use; use('TkAgg')
 from Tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar, Text, DISABLED, PhotoImage, LEFT, E, W
 import os
 from types import MethodType
 import pylab as pl
 from matplotlib.colors import Normalize, LogNorm
 import numpy as np
-_pre_code = 'pl.figure(); pl.rcParams["image.cmap"] = "jet"'
-_before_code = 'pl.clf();'
-_after_code = 'ax.set_title(varkey); pl.show()'
-_post_code = 'pl.close()'
+_pre_code = 'pl.close(); pl.rcParams["image.cmap"] = "jet"'
+_before_code = 'pl.figure(); pl.interactive(True); '
+_after_code = 'ax.set_title(varkey); pl.draw()'
+_post_code = ''
 _coastlines_opt = True
 _countries_opt = True
 _states_opt = True
@@ -228,7 +227,6 @@ def gettime(ifile):
 def timeseries(ifile, varkey, options, before = '', after = ''):
     outpath = getattr(options, 'outpath', '.')
     time = gettime(ifile)
-    ax = pl.gca()
     var = ifile.variables[varkey]
     dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
     if len(dims) > 1:
@@ -251,7 +249,6 @@ def timeseries(ifile, varkey, options, before = '', after = ''):
 
 def plot(ifile, varkey, options, before = '', after = ''):
     outpath = getattr(options, 'outpath', '.')
-    ax = pl.gca()
     var = ifile.variables[varkey]
     dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
     if len(dims) > 1:
@@ -274,19 +271,18 @@ def plot(ifile, varkey, options, before = '', after = ''):
 
 def pressx(ifile, varkey, options, before = '', after = ''):
     outpath = getattr(options, 'outpath', '.')
-    ax = pl.gca()
     vert = getpresbnds(ifile)
     var = ifile.variables[varkey]
     dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
     if len(dims) > 2:
         raise ValueError('Press-x can have 2 non-unity dimensions; got %d - %s' % (len(dims), str(dims)))
-    exec(before)
-    ax = pl.gca()
-    print varkey,
     if options.logscale:
         norm = LogNorm()
     else:
         norm = Normalize()
+    exec(before)
+    ax = pl.gca()
+    print varkey,
     vals = var[:].squeeze()
     x = np.arange(vals.shape[1])
     patches = ax.pcolor(x, vert, vals, norm = norm)
@@ -304,7 +300,6 @@ def pressx(ifile, varkey, options, before = '', after = ''):
 
 def presslat(ifile, varkey, options, before = '', after = ''):
     outpath = getattr(options, 'outpath', '.')
-    ax = pl.gca()
     vert = getpresbnds(ifile)
     lat, latunit = getlatbnds(ifile)
     lat = np.append(lat.squeeze()[..., :2].mean(1), lat.squeeze()[-1, 2:].mean(0))
@@ -312,13 +307,13 @@ def presslat(ifile, varkey, options, before = '', after = ''):
     dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
     if len(dims) > 2:
         raise ValueError('Press-lat can have 2 non-unity dimensions; got %d - %s' % (len(dims), str(dims)))
-    exec(before)
-    ax = pl.gca()
-    print varkey,
     if options.logscale:
         norm = LogNorm()
     else:
         norm = Normalize()
+    exec(before)
+    ax = pl.gca()
+    print varkey,
     patches = ax.pcolor(lat, vert, var[:].squeeze(), norm = norm)
     #ax.set_xlabel(X.units.strip())
     #ax.set_ylabel(Y.units.strip())
@@ -338,7 +333,6 @@ def presslat(ifile, varkey, options, before = '', after = ''):
 
 def presslon(ifile, varkey, options, before = '', after = ''):
     outpath = getattr(options, 'outpath', '.')
-    ax = pl.gca()
     vert = getpresbnds(ifile)
     lon, lonunit = getlonbnds(ifile)
     lon = np.append(lon.squeeze()[..., [0, 3]].mean(1), lon.squeeze()[-1, [1, 2]].mean(0))
@@ -346,13 +340,13 @@ def presslon(ifile, varkey, options, before = '', after = ''):
     dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
     if len(dims) > 2:
         raise ValueError('Press-lon plots can have 2 non-unity dimensions; got %d - %s' % (len(dims), str(dims)))
-    exec(before)
-    ax = pl.gca()
-    print varkey,
     if options.logscale:
         norm = LogNorm()
     else:
         norm = Normalize()
+    exec(before)
+    ax = pl.gca()
+    print varkey,
     patches = ax.pcolor(lon, vert, var[:].squeeze(), norm = norm)
     #ax.set_xlabel(X.units.strip())
     #ax.set_ylabel(Y.units.strip())
@@ -375,7 +369,6 @@ def presslon(ifile, varkey, options, before = '', after = ''):
 
 def tileplot(ifile, varkey, options, before = '', after = ''):
     outpath = getattr(options, 'outpath', '.')
-    ax = pl.gca()
     var = ifile.variables[varkey]
     if options.logscale:
         norm = LogNorm()
@@ -388,8 +381,8 @@ def tileplot(ifile, varkey, options, before = '', after = ''):
     if len(dims) > 2:
         raise ValueError('Tile plots can have 2 non-unity dimensions; got %d - %s' % (len(dims), str(dims)))
     patches = ax.pcolor(var[:].squeeze(), norm = norm)
-    ax.set_xlim(0, var.squeeze().shape[1])
-    ax.set_ylim(0, var.squeeze().shape[0])
+    ax.set_xlim(0, var[:].squeeze().shape[1])
+    ax.set_ylim(0, var[:].squeeze().shape[0])
     ax.set_xlabel(dims[1][0])
     ax.set_ylabel(dims[0][0])
     #ax.set_xlabel(X.units.strip())
