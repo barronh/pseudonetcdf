@@ -395,7 +395,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                 kwds['bounds'] = 'latitude_bounds'
             else:
                 dims += ('nv',)
-                data = data.repeat(2,0)[1:-1].reshape(-1, 2)[:, [0, 0, 1, 1]]
+                data = data.repeat(2,0)[1:-1].reshape(-1, 2)
             example = self[self._example_key]
             sj = getattr(example, 'STARTJ', 0)
             data = data[sj:sj + example.shape[2]]
@@ -411,7 +411,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                 kwds['bounds'] = 'longitude_bounds'
             else:
                 dims += ('nv',)
-                data = data.repeat(2,0)[1:-1].reshape(-1, 2)[:, [0, 1, 1, 0]]
+                data = data.repeat(2,0)[1:-1].reshape(-1, 2)
             example = self[self._example_key]
             si = getattr(example, 'STARTI', 0)
             data = data[si:si + example.shape[3]]
@@ -459,7 +459,72 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             kwds = dict(units = 'hours since 1985-01-01 00:00:00 UTC', base_units = 'hours since 1985-01-01 00:00:00 UTC', standard_name = key, long_name = key, var_desc = key)
             if key == 'time':
                 kwds['bounds'] = 'time_bounds'
+        elif key == 'hyai':
+            data = self._parent.Ap
+            dims = ('layer_bounds', )
+            dtype = data.dtype.char
+            if dims[0] not in self._parent.dimensions:
+                self._parent.createDimension(dims[0], data.size)
+            kwds = dict(units = "hPa", long_name = "hybrid A coefficient at layer interfaces", note = "unit consistent with GEOS-Chem pressure outputs")
+        elif key == 'hyam':
+            data = np.convolve(a = self._parent.Ap, v = [0.5, 0.5], mode = 'valid')
+            dims = ('layer', )
+            dtype = data.dtype.char
+            if dims[0] not in self._parent.dimensions:
+                self._parent.createDimension(dims[0], data.size)
+            kwds = dict(units = "hPa", long_name = "hybrid B coefficient at layer midpoints", note = "unit consistent with GEOS-Chem pressure outputs")
+        elif key == 'hybi':
+            data = self._parent.Bp
+            dims = ('layer_bounds',)
+            dtype = data.dtype.char
+            if dims[0] not in self._parent.dimensions:
+                self._parent.createDimension(dims[0], data.size)
+            kwds = dict(units = "1", long_name = "hybrid B coefficient at layer interfaces")
+        elif key == 'hybm':
+            data = np.convolve(a = self._parent.Bp, v = [0.5, 0.5], mode = 'valid')
+            dims = ('layer', )
+            dtype = data.dtype.char
+            if dims[0] not in self._parent.dimensions:
+                self._parent.createDimension(dims[0], data.size)
+            kwds = dict(units = "1", long_name = "hybrid B coefficient at layer midpoints")
         elif key[:5] == 'layer':
+            if self._parent.vertgrid in ('GEOS-5-REDUCED', 'MERRA-REDUCED'):
+                if key[5:] in ('48', '_edges', '_bounds'):
+                    data = np.arange(0, 49, dtype = 'f')
+                else:
+                    data = np.arange(1, 49, dtype = 'f')
+                    
+            elif self._parent.vertgrid in ('GEOS-5-NATIVE', 'MERRA-NATIVE'):
+                if key[5:] in ('73', '_edges', '_bounds'):
+                    data = np.arange(0, 74, dtype = 'f')
+                else:
+                    data = np.arange(1, 74, dtype = 'f')
+            elif self._parent.vertgrid == 'GEOS-4-REDUCED':
+                if key[5:] in ('31', '_edges', '_bounds'):
+                    data = np.arange(0, 31, dtype = 'f')
+                else:
+                    data = np.arange(1, 31, dtype = 'f')
+            elif self._parent.vertgrid == 'GEOS-4-NATIVE':
+                if key[5:] in ('55', '_edges', '_bounds'):
+                    data = np.arange(0, 55, dtype = 'f')
+                else:
+                    data = np.arange(1, 55, dtype = 'f')
+            else:
+                warn('Assuming GEOS-5 reduced vertical coordinate')
+                if key[5:] in ('48', '_edges', '_bounds'):
+                    data = np.arange(0, 49, dtype = 'f')
+                else:
+                    data = np.arange(1, 49, dtype = 'f')
+            
+            data = data[:len(self._parent.dimensions[key])]
+            dims = (key,)
+            dtype = 'f'
+            kwds = dict(units = 'level', base_units = 'model layer', standard_name = 'model layer', long_name = key, var_desc = key, axis = "Z")
+            kwds = dict(standard_name = "hybrid_sigma_pressure",
+                        long_name = "hybrid level at layer midpoints",
+                        units = "level",
+                        positive = "up",)
+        elif key[:5] == 'avgpress':
             if self._parent.vertgrid in ('GEOS-5-REDUCED', 'MERRA-REDUCED'):
                 if key[5:] in ('48', '_edges', '_bounds'):
                     data = np.array([1013.25, 998.051, 982.765, 967.48, 952.195, 936.911, 921.626, 906.342, 891.059, 875.776, 860.493, 845.211, 829.929, 809.556, 784.088, 758.621, 733.16, 707.699, 682.239, 644.054, 605.88, 567.706, 529.55, 491.401, 453.269, 415.155, 377.07, 339.005, 288.927, 245.246, 208.244, 176.93, 150.393, 127.837, 108.663, 92.366, 78.512, 56.388, 40.175, 28.368, 19.792, 9.293, 4.077, 1.651, 0.617, 0.211, 0.066, 0.01], dtype = 'f')
@@ -482,7 +547,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             data = data[:len(self._parent.dimensions[key])]
             dims = (key,)
             dtype = 'f'
-            kwds = dict(units = 'hPa', base_units = 'model layer', standard_name = 'atmosphere_hybrid_sigma_pressure_coordinate', long_name = key, var_desc = key, axis = "Z")
+            kwds = dict(units = 'hPa', base_units = 'hPa', standard_name = 'atmosphere_hybrid_sigma_pressure_coordinate', long_name = key, var_desc = key)
         elif key == 'tau0':
             tmp_key = self._example_key
             data = self._memmap[tmp_key]['header']['f10']
@@ -614,7 +679,7 @@ class bpch(PseudoNetCDFFile):
         dummy, dummy, dummy, self.start_tau0, self.start_tau1, dummy, dim, dummy, dummy = header[13:-1]
         for dk, dv in zip('longitude latitude layer'.split(), dim):
             self.createDimension(dk, dv)
-        self.createDimension('nv', 4)
+        self.createDimension('nv', 2)
         self.createDimension('tnv', 2)
         tracerinfo = tracerinfo or os.path.join(os.path.dirname(bpch_path), 'tracerinfo.dat')
         if isinstance(tracerinfo, (str, unicode)):
@@ -780,6 +845,7 @@ class bpch(PseudoNetCDFFile):
         layerns = set([datamap[0][k]['header']['f13'][-1] for k in datamap.dtype.names])
         layerkeys = ['layer_bounds'] + ['layer%d' % l for l in layerns]
         keys.extend(layerkeys)
+        keys.extend(['hyai', 'hyam', 'hybi', 'hybm'])
         if self.vertgrid in ('GEOS-5-REDUCED', 'MERRA-REDUCED'):
             self.createDimension('layer', 47)
             self.createDimension('layer_bounds', 48)
