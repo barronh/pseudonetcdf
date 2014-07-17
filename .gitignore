@@ -1,3 +1,4 @@
 *.pyc
 dist
 src/PseudoNetCDF.egg-info
+build
