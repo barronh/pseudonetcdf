@@ -55,14 +55,17 @@ def add_time_variable(ifileo, key):
         
 
 def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
-    lccdef = ifileo.createVariable(lccname, 'i', ())
-    lccdef.grid_mapping_name = "lambert_conformal_conic" ;
-    lccdef.latitude_of_projection_origin = ifileo.YCENT
-    lccdef.longitude_of_central_meridian = ifileo.XCENT
-    lccdef.standard_parallel = np.array([ifileo.P_ALP, ifileo.P_BET], dtype = 'f')
-    lccdef.earth_radius = 6371000. # Add search for earth radius later
-    lccdef._CoordinateTransformType = "Projection" ;
-    lccdef._CoordinateAxes = "x y" ;
+    mapdef = ifileo.createVariable(lccname, 'i', ())
+    if ifileo.GDTYP == 2:
+        mapdef.grid_mapping_name = "lambert_conformal_conic" ;
+    elif ifileo.GDTYP == 7:
+        mapdef.grid_mapping_name = "equatorial_mercator" ;
+    mapdef.standard_parallel = np.array([ifileo.P_ALP, ifileo.P_BET], dtype = 'f')
+    mapdef.earth_radius = 6371000. # Add search for earth radius later
+    mapdef.latitude_of_projection_origin = ifileo.YCENT
+    mapdef.longitude_of_central_meridian = ifileo.XCENT
+    mapdef._CoordinateTransformType = "Projection" ;
+    mapdef._CoordinateAxes = "x y" ;
 
     if 'PERIM' in ifileo.dimensions.keys():
         xdim = 'PERIM'
@@ -100,10 +103,13 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         lcc_x, lcc_y = np.meshgrid(x, y)
 
     if _withlatlon:
-        lccstr = '+proj=lcc +lon_0=%s +lat_1=%s +lat_2=%s +a=%s +lat_0=%s' % (lccdef.longitude_of_central_meridian, lccdef.standard_parallel[0], lccdef.standard_parallel[1], lccdef.earth_radius, lccdef.latitude_of_projection_origin,) 
-        lcc = pyproj.Proj(lccstr)
-        lon, lat = lcc(lcc_x, lcc_y, inverse = True)
-        lone, late = lcc(lcc_xe, lcc_ye, inverse = True)
+        if ifileo.GDTYP == 2:
+            mapstr = '+proj=lcc +lon_0=%s +lat_1=%s +lat_2=%s +a=%s +b=%s +lat_0=%s' % (mapdef.longitude_of_central_meridian, mapdef.standard_parallel[0], mapdef.standard_parallel[1], mapdef.earth_radius, mapdef.earth_radius, mapdef.latitude_of_projection_origin,) 
+        elif ifileo.GDTYP == 7:
+            mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (mapdef.earth_radius, mapdef.earth_radius, mapdef.longitude_of_central_meridian)
+        mapproj = pyproj.Proj(mapstr)
+        lon, lat = mapproj(lcc_x, lcc_y, inverse = True)
+        lone, late = mapproj(lcc_xe, lcc_ye, inverse = True)
         
     if 'x' not in ifileo.variables.keys():
         """
@@ -193,7 +199,7 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
 
 def add_cf_from_ioapi(ifileo):
     add_time_variables(ifileo)
-    if ifileo.GDTYP == 2:
+    if ifileo.GDTYP in (2, 7):
         add_lcc_coordinates(ifileo)
     else:
         raise TypeError('IOAPI is only aware of LCC (GDTYP=2)')
