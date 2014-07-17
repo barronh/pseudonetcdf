@@ -105,6 +105,7 @@ def interpvars(f, weights, dimension, loginterp = []):
 
 def extract(f, lonlat, unique = False, gridded = None, method = 'nn', passthrough = True):
     from StringIO import StringIO
+    import os
     outf = PseudoNetCDFFile()
     outf.dimensions = f.dimensions.copy()
     if hasattr(f, 'groups'):
@@ -118,8 +119,22 @@ def extract(f, lonlat, unique = False, gridded = None, method = 'nn', passthroug
         gridded = ('longitude' in f.dimensions and 'latitude' in f.dimensions) or \
                   ('COL' in f.dimensions and 'ROW' in f.dimensions) or \
                   ('x' in f.dimensions and 'y' in f.dimensions)
-    outf.lonlatcoords = ('/'.join(lonlat))
-    lons, lats = np.genfromtxt(StringIO(outf.lonlatcoords.replace('/', '\n')), delimiter = ',').T
+    if isinstance(lonlat, (str, unicode)):
+        lonlat = [lonlat]
+    lonlatin = lonlat
+    lonlatout = []
+    for ll in lonlat:
+        if isinstance(ll, (str, unicode)):
+            if os.path.exists(ll):
+                ll = file(ll, 'r').read().strip()
+            lonlatout.append(ll)
+    lonlat = ('/'.join(lonlatout))
+    try:
+        lons, lats = np.genfromtxt(StringIO(lonlat.replace('/', '\n')), delimiter = ',').T
+    except Exception, e:
+        print str(e)
+        raise e
+    outf.lonlatcoords = lonlat
     latlon1d = longitude.ndim == 1 and latitude.ndim == 1
     if method == 'nn':
         if latlon1d and gridded:
