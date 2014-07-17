@@ -419,7 +419,17 @@ def getsigmabnds(ifile):
             return lay
     else:
         warn("Unknown vertical coordinate")
-        return np.arange(ifile.NLAYS)
+        if hasattr(ifile, 'NLAYS'):
+            nlays = ifile.NLAYS
+        elif 'LAY' in ifile.dimensions:
+            nlays = len(ifile.dimensions['LAY'])
+        elif 'lev' in ifile.dimensions:
+            nlays = len(ifile.dimensions['lev'])
+        elif 'layer' in ifile.dimensions:
+            nlays = len(ifile.dimensions['laer'])
+        else:
+            nlays = 1
+        return np.arange(nlays)
         
 
 def getpresmid(ifile):

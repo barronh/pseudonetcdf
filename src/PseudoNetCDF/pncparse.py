@@ -94,6 +94,9 @@ def getparser(has_ofile, plot_options = False, interactive = True):
     parser.add_argument("-e", "--extract", dest = "extract", action = "append", default = [],
                         help = "lon/lat coordinates to extract lon1,lat1/lon2,lat2/lon3,lat3/.../lonN,latN")
 
+    parser.add_argument("--extractfirst", dest = "extractfirst", action = "store_true", default = False,
+                        help = "Extract lon/lat coordinates before other operations")
+
     parser.add_argument("-m", "--mask", dest = "masks", action = "append", default = [],
                         help = "Masks to apply (e.g., greater,0 or less,0 or values,0)")
         
@@ -164,7 +167,7 @@ def subsetfiles(ifiles, args):
             f = mesh_dim(f, opts)
         for opts in args.convolve:
             f = convolve_dim(f, opts)
-        if len(args.extract) > 0:
+        if not args.extractfirst and  len(args.extract) > 0:
             f = extract(f, args.extract)
         fs.append(f)
     return fs
@@ -196,6 +199,10 @@ def getfiles(ipaths, args):
                 warn('Cannot add %s from %s; %s' % (args.toconv, args.fromconv, str(e)))
         if args.cdlname is None:
             args.cdlname = ipath
+        
+        if args.extractfirst and  len(args.extract) > 0:
+            f = extract(f, args.extract)
+        
         try:
             setattr(f, 'history', history)
         except: pass
