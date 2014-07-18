@@ -503,7 +503,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                         long_name = "hybrid level at layer midpoints",
                         units = "level",
                         positive = "up",)
-        elif key in ('etai_pressure', 'etai_pressure'):
+        elif key in ('etai_pressure', 'etam_pressure'):
             from _vertcoord import geos_etai_pressure, geos_etam_pressure
             nlays = len(self._parent.dimensions['layer'])
             nedges = nlays + 1
@@ -814,7 +814,7 @@ class bpch(PseudoNetCDFFile):
         layerns = set([datamap[0][k]['header']['f13'][-1] for k in datamap.dtype.names])
         layerkeys = ['layer_bounds'] + ['layer%d' % l for l in layerns]
         keys.extend(layerkeys)
-        keys.extend(['hyai', 'hyam', 'hybi', 'hybm'])
+        keys.extend(['hyai', 'hyam', 'hybi', 'hybm', 'etai_pressure', 'etam_pressure'])
         
         # Ap [hPa]
         self.Ap = geos_hyai[self.vertgrid]
