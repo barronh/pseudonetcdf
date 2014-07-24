@@ -67,7 +67,7 @@ SLP = 'hPa',
 TO3 = 'DU',
 TTO3 = 'DU')
 class geos(PseudoNetCDFFile):
-    def __init__(self, path, mode = 'r'):
+    def __init__(self, path, mode = 'r', reduced = True):
         from _vertcoord import geos_hyai, geos_hybi, geos_etam, geos_etai
         infile = file(path, 'r')
         infile.seek(0,0)
