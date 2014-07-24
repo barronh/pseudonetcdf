@@ -513,7 +513,10 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                 data = geos_etam_pressure[self._parent.vertgrid]
             
             data = data[:nedges]
-            dims = (key,)
+            if 'etai' in key:
+                dims = ('layer_bounds',)
+            else:
+                dims = ('layer',)
             dtype = 'f'
             kwds = dict(units = 'hPa', base_units = 'hPa', standard_name = 'atmosphere_hybrid_sigma_pressure_coordinate', long_name = key, var_desc = key)
         elif key == 'tau0':
