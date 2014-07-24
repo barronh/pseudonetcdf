@@ -203,3 +203,4 @@ def add_cf_from_ioapi(ifileo):
         add_lcc_coordinates(ifileo)
     else:
         raise TypeError('IOAPI is only aware of LCC (GDTYP=2)')
+    ifileo.Conventions = 'CF-1.6'

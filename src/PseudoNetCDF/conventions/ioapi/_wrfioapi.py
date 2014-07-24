@@ -10,3 +10,4 @@ def add_cf_from_wrfioapi(ifile):
     for k in ifile.variables.keys():
         var = ifile.variables[k]
         var.coordinates = ' '.join([_coorddict.get(dk, dk) for dk in var.dimensions])
+    ifile.Conventions = 'CF-1.6'
