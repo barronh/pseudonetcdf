@@ -7,7 +7,20 @@ def add_cf_from_wrfioapi(ifile):
         for pk in invar.ncattrs():
             setattr(outvar, pk, getattr(invar, pk))
         outvar[:] = invar[0]
+        
     for k in ifile.variables.keys():
         var = ifile.variables[k]
         var.coordinates = ' '.join([_coorddict.get(dk, dk) for dk in var.dimensions])
+    try:
+        outvar = ifile.createVariable('time', 'i', ('Time',))
+        invar = ifile.variables['Times']
+        for pk in invar.ncattrs():
+            setattr(outvar, pk, getattr(invar, pk))
+        outvar.units = 'seconds since 1985-01-01T00:00:00Z'
+        invals = invar[:].copy().view('S19')
+        sdate = np.datetime64('1985-01-01T00:00:00Z')
+        timesince = (np.array([np.datetime64(time[0].replace('_', 'T') + 'Z') for time in invals]) - sdate).astype('l')
+        outvar[:] = timesince
+    except: pass
     ifile.Conventions = 'CF-1.6'
+    
