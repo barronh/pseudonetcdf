@@ -14,6 +14,7 @@ from icarttfiles.ffi1001 import ffi1001, ncf2ffi1001
 from geoschemfiles import *
 from noaafiles import *
 from conventions.ioapi import add_cf_from_ioapi, add_cf_from_wrfioapi
+from PseudoNetCDF import PseudoNetCDFFile
 
 try:
     from netCDF4 import Dataset as netcdf
@@ -29,8 +30,8 @@ class AggCommaString(Action):
         setattr(namespace, self.dest, startv + values.split(','))
 
 
-def pncparser(has_ofile, plot_options = False, interactive = True):
-    args = pncjustparse(has_ofile, plot_options = plot_options, interactive = interactive)
+def pncparser(has_ofile, plot_options = False, interactive = True, args = None):
+    args = pncjustparse(has_ofile, plot_options = plot_options, interactive = interactive, args = args)
     return pncprep(args)
 
 def getparser(has_ofile, plot_options = False, interactive = True):
@@ -117,9 +118,9 @@ def getparser(has_ofile, plot_options = False, interactive = True):
     return parser
         
         
-def pncjustparse(has_ofile, plot_options = False, interactive = True):
+def pncjustparse(has_ofile, plot_options = False, interactive = True, args = None):
     parser = getparser(has_ofile, plot_options = plot_options, interactive = interactive)
-    args = parser.parse_args()
+    args = parser.parse_args(args = args)
     args.coordkeys = reduce(list.__add__, args.coordkeys)
     #if args.stack is not None:
     #    pass
@@ -178,7 +179,10 @@ def getfiles(ipaths, args):
         format_options = args.format.split(',')
         file_format = format_options.pop(0)
         format_options = eval('dict(' + ', '.join(format_options) + ')')
-        f = eval(file_format)(ipath, **format_options)
+        if isinstance(ipath, PseudoNetCDFFile):
+            f = ipath
+        else:
+            f = eval(file_format)(ipath, **format_options)
         history = getattr(f, 'history', '')
         history += ' '.join(sys.argv) + ';'
         laddconv = args.fromconv is not None and args.toconv is not None
