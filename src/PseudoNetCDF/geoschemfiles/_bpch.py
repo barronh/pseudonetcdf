@@ -380,6 +380,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
         self._example_key = keys[0]
         
     def __missing__(self, key):
+        from _vertcoord import geos_etai_pressure, geos_etam_pressure, geos_hyam, geos_hyai, geos_hybm, geos_hybi
         if key in ('latitude', 'latitude_bounds'):
             yres = self._parent.modelres[1]
             if self._parent.halfpolar == 1:
@@ -504,7 +505,6 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                         units = "level",
                         positive = "up",)
         elif key in ('etai_pressure', 'etam_pressure'):
-            from _vertcoord import geos_etai_pressure, geos_etam_pressure
             nlays = len(self._parent.dimensions['layer'])
             nedges = nlays + 1
             if key[:4] == 'etai':
