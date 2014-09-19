@@ -10,7 +10,30 @@ for impstmt in ['import pyproj', 'from mpl_toolkits.basemap import pyproj']:
         _withlatlon = True
         break
 else:
-    warn('pyproj could not be found, so IO/API coordinates cannot be converted to lat/lon')
+    warn('pyproj could not be found, so IO/API coordinates cannot be converted to lat/lon; to fix, install pyproj or basemap (e.g., `pip install pyproj)`')
+
+def add_lay_coordinates(ifileo):
+    if 'LAY' in ifileo.dimensions:
+        nlay = len(ifileo.dimensions['LAY'])
+    elif hasattr(ifileo, 'NLAYS'):
+        nlay = ifileo.NLAYS
+    elif hasattr(ifileo, 'VGLVLS'):
+        nlay = len(ifileo.VGLVLS) - 1
+    else:
+        return
+    if 'layer' not in ifileo.variables.keys():
+        var = ifileo.createVariable('layer', 'd', ('LAY',))
+        var[:] = np.arange(nlay, dtype = 'd')
+        var.units = 'model layers'
+        var.standard_name = 'layer';
+    if 'level' not in ifileo.variables.keys():
+        var = ifileo.createVariable('level', 'd', ('LAY',))
+        var[:] = np.arange(nlay, dtype = 'd')
+        var.units = 'sigma'
+        var.positive = 'down'
+        var.standard_name = 'level';
+        var._CoordinateAxisType = "GeoZ" ;
+        var._CoordinateZisPositive = "down";
 
 def add_time_variables(ifileo):
     add_time_variable(ifileo, 'time')
@@ -151,7 +174,8 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
 
     if _withlatlon:
         for dk, dl in zip(latlone_dim, late.shape):
-            ifileo.createDimension(dk, dl)
+            if not dk in ifileo.dimensions:
+                ifileo.createDimension(dk, dl)
 
     if _withlatlon and 'latitude_bounds' not in ifileo.variables.keys():
         var = ifileo.createVariable('latitude_bounds', lat.dtype.char, latlone_dim)
@@ -164,21 +188,6 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         var[:] = lone
         var.units = 'degrees_east'
         var.standard_name = 'longitude_bounds';
-
-    if 'layer' not in ifileo.variables.keys() and 'LAY' in ifileo.dimensions:
-        var = ifileo.createVariable('layer', lon.dtype.char, ('LAY',))
-        var[:] = np.arange(len(ifileo.dimensions['LAY']))
-        var.units = 'model layers'
-        var.standard_name = 'layer';
-
-    if 'level' not in ifileo.variables.keys() and 'LAY' in ifileo.dimensions:
-        var = ifileo.createVariable('level', lon.dtype.char, ('LAY',))
-        var[:] = np.arange(len(ifileo.dimensions['LAY']))
-        var.units = 'sigma'
-        var.positive = 'down'
-        var.standard_name = 'level';
-        var._CoordinateAxisType = "GeoZ" ;
-        var._CoordinateZisPositive = "down";
 
     for varkey in ifileo.variables.keys():
         var = ifileo.variables[varkey]
@@ -199,6 +208,7 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
 
 def add_cf_from_ioapi(ifileo):
     add_time_variables(ifileo)
+    add_lay_coordinates(ifileo)
     if ifileo.GDTYP in (2, 7):
         add_lcc_coordinates(ifileo)
     else:
