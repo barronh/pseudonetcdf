@@ -70,6 +70,7 @@ def interpvars(f, weights, dimension, loginterp = []):
     outf = PseudoNetCDFFile()
     outf.dimensions = f.dimensions.copy()
     if hasattr(f, 'groups'):
+        outf.groups = OrderedDict()
         for grpk, grpv in f.groups.items():
             outf.groups[grpk] = interpvars(grpv, weights, dimension)
     
@@ -93,11 +94,15 @@ def interpvars(f, weights, dimension, loginterp = []):
             else:
                 weightslice = slice(None)        
             varslice = (slice(None,),) * dimidx + (None,)
-            if vark in loginterp:
-                logv = np.ma.exp((weights[weightslice] * np.ma.log(oldvar[varslice])).sum(dimidx + 1))
+            weightsv = weights[weightslice]
+            oldvarv = oldvar[varslice]
+            if not (weightsv.ndim - 1) == oldvar.ndim:
+                warn('Wrong number of dimensiosn for %s' % (vark,))
+            elif vark in loginterp:
+                logv = np.ma.exp((weightsv * np.ma.log(oldvarv)).sum(dimidx + 1))
                 newvar[:] = logv
             else:
-                linv = (weights[weightslice] * oldvar[varslice]).sum(dimidx + 1)
+                linv = (weightsv * oldvarv).sum(dimidx + 1)
                 newvar[:] = linv
         else:
             outf.variables[vark] = oldvar
