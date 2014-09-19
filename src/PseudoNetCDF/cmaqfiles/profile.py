@@ -25,9 +25,11 @@ class icon_profile(PseudoNetCDFFile):
         data_shape =  data[keys[0]].shape
         self.createDimension('sigma', nsigmas)
         self.createDimension('sigma-mid', nsigmas - 1)
-        self.createDimension('senw', 4)
+        self.createDimension('south_east_north_west', 4)
         self.createVariable('sigma', 'f', ('sigma',), values = np.array(sigmas), units = 'sigma')
         self.createVariable('sigma-mid', 'f', ('sigma-mid',), values = np.array(sigmas).repeat(2, 0)[1:-1].reshape(-1, 2).mean(1), units = 'sigma')
+        self.VGLVLS = self.variables['sigma']
+        self.VGTOP = 5000
         ks = keys[1:]
         for k in ks:
             try:
@@ -37,7 +39,7 @@ class icon_profile(PseudoNetCDFFile):
             except AssertionError:
                 raise IOError('File is corrupt or inconsistent')
         for a in data['all']:
-            self.createVariable(a[0].strip(), 'f', ('sigma-mid', 'senw'), units = "None", values = np.array(map(lambda x: tuple(x)[1:], [a])).T, long_name = a[0].ljust(16), var_desc = a[0].ljust(16))
+            self.createVariable(a[0].strip(), 'f', ('sigma-mid', 'south_east_north_west'), units = "None", values = np.array(map(lambda x: tuple(x)[1:], [a])).T, long_name = a[0].ljust(16), var_desc = a[0].ljust(16))
 
 class bcon_profile(PseudoNetCDFFile):
     def __init__(self, path):
@@ -60,10 +62,12 @@ class bcon_profile(PseudoNetCDFFile):
         data_shape =  data[keys[0]].shape
         self.createDimension('sigma', nsigmas)
         self.createDimension('sigma-mid', nsigmas - 1)
-        self.createDimension('senw', 4)
+        self.createDimension('south_east_north_west', 4)
         self.createVariable('sigma', 'f', ('sigma',), values = np.array(sigmas), units = 'sigma')
         self.createVariable('sigma-mid', 'f', ('sigma-mid',), values = np.array(sigmas).repeat(2, 0)[1:-1].reshape(-1, 2).mean(1), units = 'sigma')
         ks = keys[1:]
+        self.VGLVLS = self.variables['sigma']
+        self.VGTOP = 5000
         for k in ks:
             try:
                 assert((np.char.strip(data[k]['name']) == profile_spcs).all())
@@ -73,7 +77,7 @@ class bcon_profile(PseudoNetCDFFile):
                 raise IOError('File is corrupt or inconsistent')
         for w, s, e, n in zip(data['west'], data['south'], data['east'], data['north']):
             assert(w[0] == s[0] and e[0] == n[0] and n[0] == s[0])
-            self.createVariable(w[0].strip(), 'f', ('sigma-mid', 'senw'), units = "None", values = np.array(map(lambda x: tuple(x)[1:], [s, e, n, w])).T, long_name = w[0].ljust(16), var_desc = w[0].ljust(16))
+            self.createVariable(w[0].strip(), 'f', ('sigma-mid', 'south_east_north_west'), units = "None", values = np.array(map(lambda x: tuple(x)[1:], [s, e, n, w])).T, long_name = w[0].ljust(16), var_desc = w[0].ljust(16))
 
 if __name__ == '__main__':
     po = profile('testdata/profile.dat')
