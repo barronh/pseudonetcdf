@@ -47,6 +47,9 @@ def getvarpnc(f, varkeys, coordkeys = []):
                     newdimv.setunlimited(True)
     
         propd = dict([(k, getattr(var, k)) for k in var.ncattrs()])
+        if 'name' in propd:
+            if propd['name'] == varkey:
+                del propd['name']
         outf.createVariable(varkey, var.dtype.char, var.dimensions, values = var[...], **propd)
     for coordkey in coordkeys:
         if coordkey in f.variables.keys():
