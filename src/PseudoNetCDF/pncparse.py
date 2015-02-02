@@ -17,9 +17,10 @@ from conventions.ioapi import add_cf_from_ioapi, add_cf_from_wrfioapi
 from PseudoNetCDF import PseudoNetCDFFile
 
 try:
-    from netCDF4 import Dataset as netcdf
+    from netCDF4 import Dataset as netcdf, MFDataset
 except:
     pass
+
 from sci_var import reduce_dim, mesh_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr, stack_files, add_attr, convolve_dim
 
 class AggCommaString(Action):
