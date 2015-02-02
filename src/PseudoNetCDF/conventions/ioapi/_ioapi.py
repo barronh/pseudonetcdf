@@ -76,7 +76,6 @@ def add_time_variable(ifileo, key):
         
         var.long_name = "synthesized time coordinate from SDATE, STIME, STEP global attributes" ;
         
-
 def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
     mapdef = ifileo.createVariable(lccname, 'i', ())
     if ifileo.GDTYP == 2:
@@ -128,9 +127,12 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
     if _withlatlon:
         if ifileo.GDTYP == 2:
             mapstr = '+proj=lcc +lon_0=%s +lat_1=%s +lat_2=%s +a=%s +b=%s +lat_0=%s' % (mapdef.longitude_of_central_meridian, mapdef.standard_parallel[0], mapdef.standard_parallel[1], mapdef.earth_radius, mapdef.earth_radius, mapdef.latitude_of_projection_origin,) 
+            mapproj = pyproj.Proj(mapstr)
         elif ifileo.GDTYP == 7:
             mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (mapdef.earth_radius, mapdef.earth_radius, mapdef.longitude_of_central_meridian)
-        mapproj = pyproj.Proj(mapstr)
+            mapproj = pyproj.Proj(mapstr)
+        elif ifileo.GDTYP == 1:
+            mapproj = lambda x, y, inverse: (x, y)
         lon, lat = mapproj(lcc_x, lcc_y, inverse = True)
         lone, late = mapproj(lcc_xe, lcc_ye, inverse = True)
         
@@ -209,7 +211,7 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
 def add_cf_from_ioapi(ifileo):
     add_time_variables(ifileo)
     add_lay_coordinates(ifileo)
-    if ifileo.GDTYP in (2, 7):
+    if ifileo.GDTYP in (1, 2, 7):
         add_lcc_coordinates(ifileo)
     else:
         raise TypeError('IOAPI is only aware of LCC (GDTYP=2)')

@@ -96,7 +96,6 @@ class uamiv(PseudoNetCDFFile):
         nvars=self.NVARS=len(self.dimensions['VAR'])
         nsteps=self.NSTEPS=len(self.dimensions['TSTEP'])
         setattr(self,'VAR-LIST',"".join([i.ljust(16) for i in self.__var_names__]+['TFLAG'.ljust(16)]))
-        self.GDTYP=2
         self.NAME="".join(self.__emiss_hdr['name'][0,:,0])
         self.NOTE="".join(self.__emiss_hdr['note'][0,:,0])
         self.ITZON=self.__emiss_hdr['itzon'][0]
@@ -178,10 +177,9 @@ class uamiv(PseudoNetCDFFile):
         self.IUTM = iutm = self.__grid_hdr['iutm'][0]
         self.ISTAG = istag = self.__grid_hdr['istag'][0]        
         self.CPROJ = cproj = self.__grid_hdr['iproj'][0]
-        
-        if not all(map(lambda x: x == 0, [plon, plat, tlat1, tlat2, iutm, cproj])):
+        GDTYPE = self.GDTYP={0: 1, 1: 5, 2: 2, 3: 6}[cproj]
+        if cproj == 0 or not all(map(lambda x: x == 0, [plon, plat, tlat1, tlat2, iutm, cproj])):
             # Map CAMx projection constants to IOAPI
-            GDTYPE = self.GDTYP={0: 1, 1: 5, 2: 2, 3: 6}[cproj]
             self.XCENT = plon
             self.YCENT = plat
             if GDTYPE in (1, 2):
