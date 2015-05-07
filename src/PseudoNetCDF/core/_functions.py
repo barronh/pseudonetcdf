@@ -14,7 +14,7 @@ def getvarpnc(f, varkeys, coordkeys = []):
     else:
         newvarkeys = list(set(varkeys).intersection(f.variables.keys()))
         newvarkeys.sort()
-        oldvarkeys = list(varkeys)
+        oldvarkeys = list(set(varkeys))
         oldvarkeys.sort()
         if newvarkeys != oldvarkeys:
             warn('Skipping %s' % ', '.join(set(oldvarkeys).difference(newvarkeys)))
@@ -86,7 +86,7 @@ def interpvars(f, weights, dimension, loginterp = []):
         if dimension in oldvar.dimensions:
             dimidx = list(oldvar.dimensions).index(dimension)
             if hasattr(oldvar, '_FillValue'):
-                kwds = dict(fill_value = oldvar._FillValue)
+                kwds = dict(fill_value = oldvar._FillValue, missing_value = oldvar._FillValue)
             else:
                 kwds = dict()
             newvar = outf.createVariable(vark, oldvar.dtype.char, oldvar.dimensions, **kwds)
@@ -162,7 +162,10 @@ def extract(f, lonlat, unique = False, gridded = None, method = 'nn', passthroug
             latidxs, lonidxs = np.unravel_index(totaldists.reshape(-1, latdists.shape[-1]).argmin(0), totaldists.shape[:-1])
         def extractfunc(v, thiscoords):
             newslice = tuple([{'latitude': latidxs, 'longitude': lonidxs, 'points': latidxs, 'PERIM': latidxs}.get(d, slice(None)) for d in thiscoords])
-            return v[newslice]
+            if newslice == ():
+                return v
+            else:
+                return v[:][newslice]
     elif method == 'KDTree':
         if latlon1d and gridded:
             longitude, latitude = np.meshgrid(longitude, latitude)
