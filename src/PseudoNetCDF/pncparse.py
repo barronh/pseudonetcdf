@@ -14,6 +14,7 @@ from icarttfiles.ffi1001 import ffi1001, ncf2ffi1001
 from geoschemfiles import *
 from noaafiles import *
 from conventions.ioapi import add_cf_from_ioapi, add_cf_from_wrfioapi
+from aermodfiles import *
 from PseudoNetCDF import PseudoNetCDFFile
 
 try:
@@ -122,6 +123,11 @@ def getparser(has_ofile, plot_options = False, interactive = True):
 def pncjustparse(has_ofile, plot_options = False, interactive = True, args = None):
     parser = getparser(has_ofile, plot_options = plot_options, interactive = interactive)
     args = parser.parse_args(args = args)
+    subargs = split_positionals(parser, args)
+    ifiles = []
+    for subarg in subargs:
+        ifiles.extend(pncprep(subarg)[0])
+    args.ifile = ifiles
     args.coordkeys = reduce(list.__add__, args.coordkeys)
     #if args.stack is not None:
     #    pass
@@ -135,6 +141,25 @@ def pncjustparse(has_ofile, plot_options = False, interactive = True, args = Non
     else:
         args.outpath = None
     return args
+
+def split_positionals(parser, args):
+    positionals = args.ifile
+    parser.set_defaults(**dict([(k, v) for k, v in args._get_kwargs() if k not in ('operators',)]))
+    outs = []
+    last_split = 0
+    for i in range(len(positionals)):
+        if positionals[i] == '--':
+            outs.append(positionals[last_split:i])
+            last_split = i + 1
+    outs.append(positionals[last_split:])        
+    outs = map(parser.parse_args, outs)
+    for out in outs:
+        if out.cdlname is None:
+            out.cdlname, = out.ifile
+    if len(outs) == 1 and args.cdlname is None:
+        args.cdlname = outs[0].cdlname
+    return outs
+
 
 def pncprep(args):
     #nifiles = len(args.ifile) - has_ofile
