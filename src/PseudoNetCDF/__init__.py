@@ -29,5 +29,6 @@ import MetaNetCDF
 import ArrayTransforms
 import units
 import icarttfiles
+import aermodfiles
 import test
 from _getreader import anyfile
