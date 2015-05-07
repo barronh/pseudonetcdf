@@ -1,6 +1,15 @@
-__all__ = ['NO', 'NP', 'NOP', 'MO', 'MdnO', 'MP', 'MdnP', 'RM', 'RMdn', 'MB', 'MdnB', 'WDMB', 'WDMdnB', 'FB', 'MNB', 'MdnNB', 'NMB', 'NMdnB', 'USUTPB', 'PSUTMNPB', 'PSUTMdnNPB', 'PSUTNMPB', 'PSUTNMdnPB', 'ME', 'MdnE', 'WDME', 'WDMdnE', 'FE', 'MNE', 'MdnNE', 'NME', 'NMdnE', 'USUTPE',  'PSUTMNPE', 'PSUTMdnNPE', 'PSUTNMPE', 'PSUTNMdnPE', 'R2', 'RMSE', 'RMSEs', 'RMSEu', 'E1', 'IOA', 'd1', 'AC', 'WDIOA', 'WDRMSE', 'WDAC']
+__all__ = ['NO', 'NP', 'NOP', 'MO', 'MP', 'MdnO', 'MdnP', 'STDO', 'STDP', 'RM', 'RMdn', 'MB', 'MdnB', 'WDMB', 'WDMdnB', 'FB', 'MNB', 'MdnNB', 'NMB', 'NMdnB', 'USUTPB', 'PSUTMNPB', 'PSUTMdnNPB', 'PSUTNMPB', 'PSUTNMdnPB', 'ME', 'MdnE', 'WDME', 'WDMdnE', 'FE', 'MNE', 'MdnNE', 'NME', 'NMdnE', 'USUTPE',  'PSUTMNPE', 'PSUTMdnNPE', 'PSUTNMPE', 'PSUTNMdnPE', 'R2', 'RMSE', 'RMSEs', 'RMSEu', 'E1', 'IOA', 'd1', 'AC', 'WDIOA', 'WDRMSE', 'WDAC']
 from pncload import createconsole
 import numpy as np
+
+def STDO(obs, mod, axis = None):
+    """ Standard deviation of Observations """
+    return np.ma.std(obs, axis = axis)
+
+def STDP(obs, mod, axis = None):
+    """ Standard deviation of Predictions """
+    return np.ma.std(mod, axis = axis)
+
 def MNB(obs, mod, axis = None):
     """ Mean Normalized Bias (%)"""
     return  np.ma.masked_invalid((mod-obs)/obs).mean(axis = axis)*100.
