@@ -97,8 +97,13 @@ class Pseudo2NetCDF:
             typecode = pvar[...].dtype.char
         
         create_variable_kwds = self.create_variable_kwds.copy()
-        if hasattr(pvar, 'fill_value'):
+        if hasattr(pvar, 'missing_value'):
+            create_variable_kwds['fill_value'] = pvar.missing_value
+        elif hasattr(pvar, 'fill_value'):
             create_variable_kwds['fill_value'] = pvar.fill_value
+        elif hasattr(pvar, '_FillValue'):
+            create_variable_kwds['fill_value'] = pvar._FillValue
+        
         nvar=nfile.createVariable(k,typecode,pvar.dimensions, **create_variable_kwds)
         self.addVariableProperties(pvar,nvar)
         if data:
@@ -120,7 +125,7 @@ class Pseudo2NetCDF:
                 pvar = pvar[...]
             nvar.assignValue(pvar)
         elif isinstance(pvar[...], MaskedArray):
-            nvar[:] = pvar[...].filled()
+            nvar[:] = pvar[...].filled(getattr(nvar, 'fill_value', getattr(nvar, '_FillValue', getattr(pvar, 'missing_value', -9999))))
         else:
             nvar[:] = pvar[...]
         
