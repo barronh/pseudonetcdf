@@ -82,6 +82,7 @@ class PseudoNetCDFFile(object):
                      found in objects' dimensions dictionary
         """
         import numpy as np
+        if type == 'S': type = 'c'
         if isinstance(properties.get('values', 1), np.ma.MaskedArray) or 'fill_value' in properties:
             var = self.variables[name] = PseudoNetCDFMaskedVariable(self, name, type, dimensions, **properties)
         else:
