@@ -1,3 +1,4 @@
+import numpy as np
 _coorddict = dict(west_east = 'longitude', south_north = 'latitude', Time = 'time', bottom_top = 'altitude',
                   west_east_stag = 'longitude', south_north_stag = 'latitude', Time_stag = 'time', bottom_top_stag = 'altitude',)
 def add_cf_from_wrfioapi(ifile):
