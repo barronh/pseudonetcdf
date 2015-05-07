@@ -46,6 +46,7 @@ def add_time_variable(ifileo, key):
         if sdate < 1400000:
             sdate += 2000000
         sdate = datetime(sdate // 1000, 1, 1) + timedelta(days = (sdate % 1000) - 1)
+        sdate = sdate + timedelta(days = ifileo.STIME / 240000.)
         if ifileo.TSTEP == 0:
             tmpseconds = 0;
         else:
@@ -55,7 +56,7 @@ def add_time_variable(ifileo, key):
             stmp = tmp[4:]
             tmpseconds = 3600 * int(htmp) + 60 * int(mtmp) + int(stmp)
     
-        time_unit = "seconds since %s 00:00:00 UTC" % (sdate.strftime('%Y-%m-%d'),)
+        time_unit = "seconds since %s UTC" % (sdate.strftime('%Y-%m-%d %H:%M:%S'),)
         if key == 'time':
             time = np.arange(0, max(1, len(ifileo.dimensions['TSTEP'])), dtype = 'i') * tmpseconds
             dims = ('TSTEP',)
@@ -75,7 +76,42 @@ def add_time_variable(ifileo, key):
             var.bounds = 'time_bounds'
         
         var.long_name = "synthesized time coordinate from SDATE, STIME, STEP global attributes" ;
-        
+# 0 Clarke 1866
+# 1 Clarke 1880
+# 2 Bessel
+# 3 New International 1967
+# 4 International 1909
+# 5 WGS 72
+# 6 Everest
+# 7 WGS 66
+# 8 GRS 1980
+# 9 Airy
+# 10 Modified Everest
+# 11 Modified Airy
+# 12 WGS 84
+# 13 Southeast Asia
+# 14 Australian National
+# 15 Krassovsky
+# 16 Hough
+# 17 Mercury 1960
+# 18 Modified Mercury 1968
+# 19 Normal Sphere
+# 20 MM5 Sphere
+# 21 WRF-NMM Sphere
+_AXIS = np.array([6378206.4,6378249.145,6377397.155,6378157.5,6378388.0,6378135.0,6377276.3452,6378145.0,6378137.0,6377563.396,6377304.063,6377340.189,6378137.0,6378155.,6378160.0,6378245.0,6378270.0,6378166.0,6378150.0,6370997.0,6370000.0,6371200.0])
+_BXIS = np.array([6356583.8,6356514.86955,6356078.96284,6356772.2,6356911.94613,6356750.519915,6356075.4133,6356759.769356,6356752.314140,6356256.91,6356103.039,6356034.448,6356752.314245,6356773.3205,6356774.719,6356863.0188,6356794.343479,6356784.283666,6356768.337303,6370997.0,6370000.0,6371200.0])
+def get_ioapi_sphere():
+    import os
+    isph_parts = map(eval, os.environ.get('IOAPI_ISPH', '6370000.').split(' '))
+    if len(isph_parts) > 2:
+        raise ValueError('IOAPI_ISPH must be 1 or 2 parameters (got: %s)' % str(isph_parts))
+    elif len(isph_parts) == 2:
+        return isph_parts
+    elif isph_parts > 0 and isph_parts < _AXIS.size :
+        return _AXIS[isph_parts], _BXIS[isph_parts]
+    else:
+        return isph_parts * 2
+
 def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
     mapdef = ifileo.createVariable(lccname, 'i', ())
     if ifileo.GDTYP == 2:
@@ -83,7 +119,9 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
     elif ifileo.GDTYP == 7:
         mapdef.grid_mapping_name = "equatorial_mercator" ;
     mapdef.standard_parallel = np.array([ifileo.P_ALP, ifileo.P_BET], dtype = 'f')
-    mapdef.earth_radius = 6371000. # Add search for earth radius later
+    ioapi_sphere = get_ioapi_sphere()
+    mapdef.semi_major_axis = getattr(ifileo, 'semi_major_axis', getattr(ifileo, 'earth_radius', ioapi_sphere[0]))
+    mapdef.semi_minor_axis = getattr(ifileo, 'semi_minor_axis', getattr(ifileo, 'earth_radius', ioapi_sphere[1]))
     mapdef.latitude_of_projection_origin = ifileo.YCENT
     mapdef.longitude_of_central_meridian = ifileo.XCENT
     mapdef._CoordinateTransformType = "Projection" ;
@@ -126,10 +164,10 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
 
     if _withlatlon:
         if ifileo.GDTYP == 2:
-            mapstr = '+proj=lcc +lon_0=%s +lat_1=%s +lat_2=%s +a=%s +b=%s +lat_0=%s' % (mapdef.longitude_of_central_meridian, mapdef.standard_parallel[0], mapdef.standard_parallel[1], mapdef.earth_radius, mapdef.earth_radius, mapdef.latitude_of_projection_origin,) 
+            mapstr = '+proj=lcc +lon_0=%s +lat_1=%s +lat_2=%s +a=%s +b=%s +lat_0=%s' % (mapdef.longitude_of_central_meridian, mapdef.standard_parallel[0], mapdef.standard_parallel[1], mapdef.semi_major_axis, mapdef.semi_minor_axis, mapdef.latitude_of_projection_origin,) 
             mapproj = pyproj.Proj(mapstr)
         elif ifileo.GDTYP == 7:
-            mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (mapdef.earth_radius, mapdef.earth_radius, mapdef.longitude_of_central_meridian)
+            mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (mapdef.semi_major_axis, mapdef.semi_minor_axis, mapdef.longitude_of_central_meridian)
             mapproj = pyproj.Proj(mapstr)
         elif ifileo.GDTYP == 1:
             mapproj = lambda x, y, inverse: (x, y)
@@ -209,8 +247,14 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
                 var.grid_mapping = lccname
 
 def add_cf_from_ioapi(ifileo):
-    add_time_variables(ifileo)
-    add_lay_coordinates(ifileo)
+    try:
+        add_lay_coordinates(ifileo)
+    except:
+        pass
+    try:
+        add_time_variables(ifileo)
+    except:
+        pass
     if ifileo.GDTYP in (1, 2, 7):
         add_lcc_coordinates(ifileo)
     else:
