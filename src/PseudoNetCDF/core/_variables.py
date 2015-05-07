@@ -17,7 +17,7 @@ class PseudoNetCDFVariable(np.ndarray):
            not k in ('dimensions', 'typecode'):
             if k not in self._ncattrs:
                 self._ncattrs += (k, )
-        np.ndarray.__setattr__(self, k, v)
+        object.__setattr__(self, k, v)
     
     def __delattr__(self, k):
         if k in self._ncattrs:
@@ -71,12 +71,17 @@ class PseudoNetCDFVariable(np.ndarray):
         return result
 
     def __array_finalize__(self, obj):
-        self.typecode = getattr(obj, 'typecode', lambda: self.dtype.char)
-        self.dimensions = getattr(obj, 'dimensions', getattr(self, 'dimensions', ()))
-        self._ncattrs = getattr(obj, '_ncattrs', getattr(self, '_ncattrs', ()))
+        if obj is None: return
+        ntypecode = getattr(obj, 'typecode', lambda: self.dtype.char)
+        object.__setattr__(self, 'typecode', ntypecode)
+        ndimensions = getattr(obj, 'dimensions', lambda: self.dtype.char)
+        object.__setattr__(self, 'dimensions', ndimensions)
+        nncattrs = getattr(obj, '_ncattrs', getattr(self, '_ncattrs', ()))
+        object.__setattr__(self, '_ncattrs', nncattrs) 
         if hasattr(obj, '_ncattrs'):
-            for k in obj._ncattrs:
-                setattr(self, k, getattr(obj, k))
+            for k in nncattrs:
+                if not hasattr(self, k):
+                    object.__setattr__(self, k, getattr(obj, k))
         
     def swapaxes(self, a1, a2):
         out = np.ndarray.swapaxes(self, a1, a2)
@@ -142,7 +147,8 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
         np.ma.MaskedArray.__array_finalize__(self, obj)
     
     def _update_from(self, obj):
-        self.typecode = getattr(obj, 'typecode', lambda: self.dtype.char)
+        dt = self.dtype.char
+        self.typecode = getattr(obj, 'typecode', lambda: ('c' if dt == 'S' else dt))
         self.dimensions = getattr(obj, 'dimensions', getattr(self, 'dimensions', ()))
         self._ncattrs = getattr(obj, '_ncattrs', getattr(self, '_ncattrs', ()))
         self._fill_value = getattr(obj, '_fill_value', getattr(self, '_fill_value', -999))
@@ -153,7 +159,8 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
                 
     def __getitem__(self, item):
         out = np.ma.MaskedArray.__getitem__(self, item)
-        out._fill_value = self._fill_value
+        try: out._fill_value = self._fill_value
+        except: pass
         out = out.view(PseudoNetCDFMaskedVariable)
         if np.isscalar(out): return out
         if hasattr(self, 'dimensions'):
