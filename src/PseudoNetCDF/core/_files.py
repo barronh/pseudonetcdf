@@ -24,9 +24,12 @@ class OrderedDefaultDict(OrderedDict):
 
 class classreg(type):
     def __init__(cls, name, bases, clsdict):
+        pieces = str(cls).split('\'')[1].split('.')
+        longname = '.'.join([p for p in pieces[1:-1]  if '_' != p[0] and p not in ('core',)] + [pieces[-1]])
         if len(cls.mro()) > 2:
             if name != 'PseudoNetCDFFileMemmap':
                 registerreader(name, cls)
+                registerreader(longname, cls)
         super(classreg, cls).__init__(name, bases, clsdict)
 
 class PseudoNetCDFFile(object):
