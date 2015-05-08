@@ -310,6 +310,9 @@ class defaultpseudonetcdfvariable(defaultdictfromthesekeys):
     """
     Overwrites __repr__ function to show variables
     """
+    def __contains__(self, key):
+        return key in self._keys
+    
     def __repr__(self):
         out = "{"
         for k in self._keys:
