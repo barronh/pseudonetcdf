@@ -1,9 +1,6 @@
 import os
 import sys
 from warnings import warn
-
-from _getreader import getreaderdict
-globals().update(getreaderdict())
 from argparse import ArgumentParser, Action
 from cmaqfiles import *
 from camxfiles.Memmaps import *
@@ -16,6 +13,9 @@ from noaafiles import *
 from conventions.ioapi import add_cf_from_ioapi, add_cf_from_wrfioapi
 from aermodfiles import *
 from PseudoNetCDF import PseudoNetCDFFile
+from _getreader import getreaderdict
+allreaders = getreaderdict()
+globals().update(allreaders)
 
 try:
     from netCDF4 import Dataset as netcdf, MFDataset
@@ -34,13 +34,23 @@ class AggCommaString(Action):
 
 def pncparser(has_ofile, plot_options = False, interactive = True, args = None):
     args = pncjustparse(has_ofile, plot_options = plot_options, interactive = interactive, args = args)
+    if plot_options:
+        from matplotlib import rcParams
+        for rcassign in args.matplotlibrc:
+            key, value = rcassign.split('=')
+            rcParams[key] = value
     return pncprep(args)
 
 def getparser(has_ofile, plot_options = False, interactive = True):
+    from PseudoNetCDF.register import readers
     parser = ArgumentParser(description = 'PseudoNetCDF Argument Parsing')
     parser.add_argument('ifile', nargs='+', help='path to a file formatted as type -f')
-    parser.add_argument("-f", "--format", dest = "format", default = 'netcdf', help = "File format (default netcdf)")
-
+    _readernames = [(k.count('.'), k) for k in getreaderdict().keys()]
+    _readernames.sort()
+    _readernames = [k for c, k in _readernames]
+    
+    parser.add_argument("-f", "--format", dest = "format", default = 'netcdf', help = "File format (default netcdf); " + '; '.join(_readernames))
+    
     # Only has output file if pncgen is called.
     if has_ofile:
         parser.add_argument('outpath', type = str, help='path to a output file formatted as --out-format')
@@ -114,7 +124,22 @@ def getparser(has_ofile, plot_options = False, interactive = True):
 
     parser.add_argument("--exprscript", dest = "expressionscripts", type = str, action = 'append', default = [], help = "Generic expressions to execute in the context of the file.")
     if plot_options:
+        parser.add_argument("--matplotlibrc", dest = "matplotlibrc", type = str, action = 'append', default = [], help = 'rc options for matplotlib')
+        
         parser.add_argument("--plot-commands", dest = "plotcommands", type = str, action = 'append', default = [], help = "Plotting functions to call for all variables expressions to execute in the context of the file.")
+        
+        parser.add_argument("--norm", dest = "normalize", type = str, default = None, help = "Typical examples Normalize(), LogNorm(), BoundaryNorm([0, 10, 20, 30, 40], ncolors = 256)")
+
+        parser.add_argument("--coastlines", dest = "coastlines", type = bool, default = True, help = "Disable coastlines by setting equal to False")
+
+        parser.add_argument("--countries", dest = "countries", type = bool, default = True, help = "Disable countries by setting equal to False")
+
+        parser.add_argument("--states", dest = "states", type = bool, default = True, help = "Disable states by setting equal to False")
+
+        parser.add_argument("--counties", dest = "counties", type = bool, default = True, help = "Disable counties by setting equal to False")
+
+        parser.add_argument("--overlay", dest = "overlay", type = bool, default = False, help = "Enable overlay by setting equal to True")
+
     if interactive:
         parser.add_argument("-i", "--interactive", dest = "interactive", action = 'store_true', default = False, help = "Use interactive mode")
     return parser
@@ -126,9 +151,12 @@ def pncjustparse(has_ofile, plot_options = False, interactive = True, args = Non
     args = parser.parse_args(args = args)
     subargs = split_positionals(subparser, args)
     ifiles = []
+    ipaths = []
     for subarg in subargs:
+        ipaths.extend(subarg.ifile)
         ifiles.extend(pncprep(subarg)[0])
     args.ifile = ifiles
+    args.ipath = ipaths
     args.coordkeys = reduce(list.__add__, args.coordkeys)
     #if args.stack is not None:
     #    pass
@@ -156,7 +184,7 @@ def split_positionals(parser, args):
     outs = map(parser.parse_args, outs)
     for out in outs:
         if out.cdlname is None:
-            out.cdlname, = out.ifile
+            out.cdlname = ', '.join(out.ifile)
     if len(outs) == 1 and args.cdlname is None:
         args.cdlname = outs[0].cdlname
     return outs
@@ -209,7 +237,10 @@ def getfiles(ipaths, args):
         if isinstance(ipath, PseudoNetCDFFile):
             f = ipath
         else:
-            f = eval(file_format)(ipath, **format_options)
+            try:
+                f = allreaders[file_format](ipath, **format_options)
+            except:
+                f = eval(file_format)(ipath, **format_options)
         history = getattr(f, 'history', '')
         history += ' '.join(sys.argv) + ';'
         laddconv = args.fromconv is not None and args.toconv is not None
