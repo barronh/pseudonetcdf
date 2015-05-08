@@ -122,8 +122,9 @@ def getparser(has_ofile, plot_options = False, interactive = True):
         
 def pncjustparse(has_ofile, plot_options = False, interactive = True, args = None):
     parser = getparser(has_ofile, plot_options = plot_options, interactive = interactive)
+    subparser = getparser(has_ofile = False, plot_options = plot_options, interactive = interactive)
     args = parser.parse_args(args = args)
-    subargs = split_positionals(parser, args)
+    subargs = split_positionals(subparser, args)
     ifiles = []
     for subarg in subargs:
         ifiles.extend(pncprep(subarg)[0])
