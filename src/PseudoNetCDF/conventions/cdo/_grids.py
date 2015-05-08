@@ -17,5 +17,5 @@ def griddes(infile):
     yunits    = %(YUNIT)s
     xvals     = %(LONSTR)s
     yvals     = %(LATSTR)s
-    """ % gridparams)
+    """ % gridparams
     return out
