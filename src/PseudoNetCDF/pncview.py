@@ -5,7 +5,7 @@ from Tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVa
 import os
 from types import MethodType
 import pylab as pl
-from matplotlib.colors import Normalize, LogNorm
+
 import numpy as np
 _pre_code = 'pl.close(); pl.rcParams["image.cmap"] = "jet"'
 _before_code = 'pl.figure(); pl.interactive(True); '
@@ -15,8 +15,20 @@ _coastlines_opt = True
 _countries_opt = True
 _states_opt = True
 _counties_opt = False
+
+from PseudoNetCDF.coordutil import *
 class OptionDict(dict):
     def __init__(self, *args, **kwds):
+        """
+        coastlines = %(_coastlines_opt)s
+        countries = %(_countries_opt)s
+        states = %(_states_opt)s
+        counties = %(_counties_opt)s
+        pre_txt = Code to run before any plots (%(_pre_code)s)
+        before_txt = Code to run before each variable-plot (%(_before_code)s)
+        after_txt = Code to run after each plot (%(_after_code)s)
+        post_txt = Code to run after all plots (%(_post_code)s)
+        """ % globals()
         dict.__init__(self, coastlines = _coastlines_opt, countries = _countries_opt, states = _states_opt, counties = _counties_opt, pre_txt = _pre_code, before_txt = _before_code, after_txt = _after_code, post_txt = _post_code)
         dict.__init__(self, *args, **kwds)
         if 'outpath' not in self:
@@ -132,7 +144,11 @@ class TkApp:
         from PseudoNetCDF.pncdump import pncdump
         from StringIO import StringIO
         pdump = StringIO("")
-        pncdump(self.ncffile, header = True, outfile = pdump, name = ', '.join(options.ifile))
+        try:
+            name = ', '.join(options.ifile)
+        except:
+            name = 'ifile'
+        pncdump(self.ncffile, header = True, outfile = pdump, )
         pdump.seek(0, 0)
         self.meta.insert(END, pdump.read())
         self.meta.config(state=DISABLED)
@@ -189,7 +205,6 @@ def plotwithopts(ifile, method, vars, options = defaultoption):
         pncgen(getvarpnc(ifile, list(vars) + ['TFLAG', 'time', 'latitude', 'longitude', 'latitude_bounds', 'longitude_bounds']), figpath + '.nc', verbose = False)
     exec(options.post_txt)
 
-
 def StartTk(ncffile, options):
     TkApp(ncffile, options)
 
@@ -225,6 +240,7 @@ def gettime(ifile):
     return PseudoNetCDFVariable(None, 'time', 'f', ('time',), values = time[:], units = unit)
     
 def timeseries(ifile, varkey, options, before = '', after = ''):
+    import pylab as pl
     outpath = getattr(options, 'outpath', '.')
     time = gettime(ifile)
     var = ifile.variables[varkey]
@@ -248,6 +264,7 @@ def timeseries(ifile, varkey, options, before = '', after = ''):
     return figpath
 
 def plot(ifile, varkey, options, before = '', after = ''):
+    import pylab as pl
     outpath = getattr(options, 'outpath', '.')
     var = ifile.variables[varkey]
     dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
@@ -270,6 +287,8 @@ def plot(ifile, varkey, options, before = '', after = ''):
     return figpath
 
 def pressx(ifile, varkey, options, before = '', after = ''):
+    import pylab as pl
+    from matplotlib.colors import Normalize, LogNorm
     outpath = getattr(options, 'outpath', '.')
     vert = getpresbnds(ifile)
     var = ifile.variables[varkey]
@@ -299,6 +318,8 @@ def pressx(ifile, varkey, options, before = '', after = ''):
     return figpath
 
 def presslat(ifile, varkey, options, before = '', after = ''):
+    import pylab as pl
+    from matplotlib.colors import Normalize, LogNorm
     outpath = getattr(options, 'outpath', '.')
     vert = getpresbnds(ifile)
     lat, latunit = getlatbnds(ifile)
@@ -332,6 +353,8 @@ def presslat(ifile, varkey, options, before = '', after = ''):
     return figpath
 
 def presslon(ifile, varkey, options, before = '', after = ''):
+    import pylab as pl
+    from matplotlib.colors import Normalize, LogNorm
     outpath = getattr(options, 'outpath', '.')
     vert = getpresbnds(ifile)
     lon, lonunit = getlonbnds(ifile)
@@ -365,9 +388,9 @@ def presslon(ifile, varkey, options, before = '', after = ''):
     print 'Saved fig', figpath
     return figpath
 
-
-
 def tileplot(ifile, varkey, options, before = '', after = ''):
+    import pylab as pl
+    from matplotlib.colors import Normalize, LogNorm
     outpath = getattr(options, 'outpath', '.')
     var = ifile.variables[varkey]
     if options.logscale:
@@ -405,144 +428,6 @@ def pres_from_sigma(sigma, pref, ptop, avg = False):
         pres = pres[:-1] + np.diff(pres) / 2.
     return pres
 
-
-def getsigmabnds(ifile):
-    if hasattr(ifile, 'VGLVLS'):
-        return ifile.VGLVLS[:]
-    elif 'layer_bounds' in ifile.variables:
-        lay = ifile.variables['layer_bounds']
-        if lay.units.strip() in ('Pa', 'hPa'):
-            sigma = (lay[:] -lay[-1]) / (lay[0] - lay[-1])
-            return sigma
-        else:
-            warn("Unknown tranform of layer to sigma; sigma units %s" % lay.units)
-            return lay
-    else:
-        warn("Unknown vertical coordinate")
-        if hasattr(ifile, 'NLAYS'):
-            nlays = ifile.NLAYS
-        elif 'LAY' in ifile.dimensions:
-            nlays = len(ifile.dimensions['LAY'])
-        elif 'lev' in ifile.dimensions:
-            nlays = len(ifile.dimensions['lev'])
-        elif 'layer' in ifile.dimensions:
-            nlays = len(ifile.dimensions['laer'])
-        else:
-            nlays = 1
-        return np.arange(nlays)
-        
-
-def getpresmid(ifile):
-    presb = getpresbnds(ifile)
-    return presb[:-1] + np.diff(presb) / 2
-
-def getsigmamid(ifile):
-    sigmab = getsigmabnds(ifile)
-    return sigmab[:-1] + np.diff(sigmab) / 2
-
-def getpresbnds(ifile):
-    if 'layer_bounds' in ifile.variables:
-        return ifile.variables['layer_bounds'][:]
-    else:
-        sigma = getsigmabnds(ifile)
-        if hasattr(ifile, 'VGTOP'):
-            ptop = ifile.VGTOP
-        else:
-            warn("Assuming VGTOP = 100 hPa")
-            ptop = 10000
-        return pres_from_sigma(sigma, pref = 101325., ptop = ptop)
-
-def getlatbnds(ifile):
-    if 'latitude_bounds' in ifile.variables:
-        latb = ifile.variables['latitude_bounds']
-        unit = latb.units.strip()
-        if 'nv' in latb.dimensions and latb[:].ndim == 2:
-            if len(ifile.dimensions['nv']) == 2:
-                latb = np.append(latb[:][:, 0], latb[:][-1, 1])
-            elif len(ifile.dimensions['nv']) == 4:
-                latb = np.append(latb[:][:, 0], latb[:][-1, 1])
-            elif latb.ndim == 3:
-                latb = latb[:, :, 0]
-            
-    elif 'latitude' in ifile.variables:
-        latb = ifile.variables['latitude']
-        unit = latb.units.strip()
-        latdiff = np.diff(latb, axis = 0)
-        if (latdiff == latdiff[0]).all():
-            latb = latb - .5 * latdiff[0]
-            latb = np.append(latb, latb[-1] + latdiff[0])
-    elif 'ROW' in ifile.dimensions:
-        unit = 'x (LCC m)'
-        latb = np.arange(len(ifile.dimensions['ROW']) + 1) * getattr(ifile, 'YCELL', 1) / 1000.
-    else:
-        raise KeyError('latitude bounds not found')
-    return latb, unit
-
-def getybnds(ifile):
-    if 'ROW' in ifile.dimensions:
-        unit = 'y (LCC m)'
-        latb = np.arange(len(ifile.dimensions['ROW']) + 1) * getattr(ifile, 'YCELL', 1)
-    else:
-        raise KeyError('latitude bounds not found')
-    return latb, unit
-
-def getlonbnds(ifile):
-    if 'longitude_bounds' in ifile.variables:
-        lonb = ifile.variables['longitude_bounds']
-        unit = lonb.units.strip()
-        if 'nv' in lonb.dimensions:
-            if lonb[:].ndim == 2 and len(ifile.dimensions['nv']) == 2:
-                lonb = np.append(lonb[:][:, 0], lonb[:][-1, 1])
-            elif lonb[:].ndim == 3:
-                lonb = lonb[:][:, :, 0]
-    elif 'longitude' in ifile.variables:
-        lonb = ifile.variables['longitude']
-        unit = lonb.units.strip()
-        londiff = np.diff(lonb, axis = 0)
-        if (londiff == londiff[0]).all():
-            lonb = lonb - .5 * londiff[0]
-            lonb = np.append(lonb, lonb[-1] + londiff[0])
-    else:
-        raise KeyError('longitude bounds not found')
-    return lonb, unit
-
-def getxbnds(ifile):
-    if 'COL' in ifile.dimensions:
-        unit = 'x (LCC m)'
-        lonb = np.arange(len(ifile.dimensions['COL']) + 1) * getattr(ifile, 'XCELL', 1)
-    else:
-        raise KeyError('x bounds not found')
-    return lonb, unit
-
-def getmap(ifile):
-    from mpl_toolkits.basemap import Basemap
-    from conventions.ioapi import get_ioapi_sphere
-    if getattr(ifile, 'GDTYP', 0) != 1 and all([hasattr(ifile, k) for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()]):
-        llcrnrx = ifile.XORIG
-        urcrnrx = ifile.XORIG + len(ifile.dimensions['COL']) * ifile.XCELL
-
-        llcrnry = ifile.YORIG
-        urcrnry = ifile.YORIG + len(ifile.dimensions['ROW']) * ifile.YCELL
-        semi_major_axis, semi_minor_axis = get_ioapi_sphere()
-        if ifile.GDTYP == 2:
-            m = Basemap(projection = 'lcc', a = semi_major_axis, b = semi_major_axis, lon_0=ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT, llcrnrx = llcrnrx, llcrnry = llcrnry, urcrnry = urcrnry, urcrnrx = urcrnrx, resolution = 'i', suppress_ticks = False)
-        
-        print 'Found IO/API Mapping parameters'
-    else:
-        kwds = dict(suppress_ticks = False)
-        try:
-            lat, latunit = getlatbnds(ifile)
-            lon, lonunit = getlonbnds(ifile)
-            kwds['resolution'] = 'i'
-            kwds['llcrnrlat'] = lat[:].min()
-            kwds['urcrnrlat'] = lat[:].max()
-            kwds['llcrnrlon'] = lon[:].min()
-            kwds['urcrnrlon'] = lon[:].max()
-        except:
-            pass
-        m = Basemap(**kwds)
-    return m
-
 def minmaxmean(ax, vals, vertcrd, **kwds):
     minval = vals.min(1)
     meanval = vals.mean(1)
@@ -569,6 +454,7 @@ def minmaxmean(ax, vals, vertcrd, **kwds):
     return line, range
 
 def profile(ifile, varkey, options, before = '', after = ''):
+    import pylab as pl
     print varkey,
     outpath = getattr(options, 'outpath', '.')
     try:
@@ -601,9 +487,15 @@ def profile(ifile, varkey, options, before = '', after = ''):
     pl.savefig(figpath)
     print 'Saved fig', figpath
     return figpath
-
     
 def mapplot(ifile, varkey, options, before = '', after = ''):
+    """
+    ifile - a pseudonetcdf file
+    varkey - the variable to plot
+    options - 
+    """
+    import pylab as pl
+    from matplotlib.colors import Normalize, LogNorm
     outpath = getattr(options, 'outpath', '.')
     map = getmap(ifile)
     if map.projection == 'cyl':
@@ -672,6 +564,7 @@ def mapplot(ifile, varkey, options, before = '', after = ''):
     return figpath
             
 def main():
+    import pylab as pl
     from pncparse import pncparser
     ifiles, options = pncparser(has_ofile = True, plot_options = True)
     if len(ifiles) != 1:
