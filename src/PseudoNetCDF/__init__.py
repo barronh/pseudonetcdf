@@ -30,5 +30,6 @@ import ArrayTransforms
 import units
 import icarttfiles
 import aermodfiles
+import coordutil
 import test
 from _getreader import anyfile
