@@ -13,6 +13,7 @@ from noaafiles import *
 from conventions.ioapi import add_cf_from_ioapi, add_cf_from_wrfioapi
 from aermodfiles import *
 from PseudoNetCDF import PseudoNetCDFFile
+from PseudoNetCDF.netcdf import NetCDFFile
 from _getreader import getreaderdict
 allreaders = getreaderdict()
 globals().update(allreaders)
@@ -31,15 +32,6 @@ class AggCommaString(Action):
             startv = []
         setattr(namespace, self.dest, startv + values.split(','))
 
-
-def pncparser(has_ofile, plot_options = False, interactive = True, args = None):
-    args = pncjustparse(has_ofile, plot_options = plot_options, interactive = interactive, args = args)
-    if plot_options:
-        from matplotlib import rcParams
-        for rcassign in args.matplotlibrc:
-            key, value = rcassign.split('=')
-            rcParams[key] = value
-    return pncprep(args)
 
 def getparser(has_ofile, plot_options = False, interactive = True):
     from PseudoNetCDF.register import readers
@@ -145,13 +137,14 @@ def getparser(has_ofile, plot_options = False, interactive = True):
     return parser
         
         
-def pncjustparse(has_ofile, plot_options = False, interactive = True, args = None):
+def pncparser(has_ofile, plot_options = False, interactive = True, args = None):
     parser = getparser(has_ofile, plot_options = plot_options, interactive = interactive)
     subparser = getparser(has_ofile = False, plot_options = plot_options, interactive = interactive)
     args = parser.parse_args(args = args)
     subargs = split_positionals(subparser, args)
     ifiles = []
     ipaths = []
+    import pdb; pdb.set_trace()
     for subarg in subargs:
         ipaths.extend(subarg.ifile)
         ifiles.extend(pncprep(subarg)[0])
@@ -169,7 +162,14 @@ def pncjustparse(has_ofile, plot_options = False, interactive = True, args = Non
             parser.error(message = 'Output path (%s) exists; enable clobber (--clobber or -O) to overwrite.' % (args.outpath,))
     else:
         args.outpath = None
-    return args
+
+    if plot_options:
+        from matplotlib import rcParams
+        for rcassign in args.matplotlibrc:
+            key, value = rcassign.split('=')
+            rcParams[key] = value
+
+    return pncprep(args)
 
 def split_positionals(parser, args):
     positionals = args.ifile
@@ -234,13 +234,16 @@ def getfiles(ipaths, args):
         format_options = args.format.split(',')
         file_format = format_options.pop(0)
         format_options = eval('dict(' + ', '.join(format_options) + ')')
-        if isinstance(ipath, PseudoNetCDFFile):
+        if isinstance(ipath, (PseudoNetCDFFile, NetCDFFile)):
             f = ipath
-        else:
+        elif isinstance(ipath, (str, unicode)) :
             try:
                 f = allreaders[file_format](ipath, **format_options)
             except:
                 f = eval(file_format)(ipath, **format_options)
+        else:
+            warn('File is type %s, which is unknown' % type(ipath))
+            f = ipath
         history = getattr(f, 'history', '')
         history += ' '.join(sys.argv) + ';'
         laddconv = args.fromconv is not None and args.toconv is not None
