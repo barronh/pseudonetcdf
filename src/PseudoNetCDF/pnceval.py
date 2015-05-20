@@ -266,7 +266,7 @@ def IOA(obs, mod, axis = None):
 
 def circlebias(b):
     b = np.ma.where(b > 180, b - 360, b)
-    b = np.ma.where(b < -180, b + 180, b)
+    b = np.ma.where(b < -180, b + 360, b)
     return b
 
 def WDIOA(obs, mod, axis = None):
@@ -369,6 +369,7 @@ def main():
         tstop = times[:].max()
         dt = tstop - tstart
         for vk in ofile.variables.keys():
+            if vk in ('time', 'TFLAG'): continue
             print '%.2f,%.2f,%.2f,%s,%s,%s,%f' % (tstart, tstop, dt, vk, func.__doc__.strip(), k, ofile.variables[vk].ravel()[0])
     np.seterr(divide = 'warn', invalid = 'warn')
     if options.interactive:
