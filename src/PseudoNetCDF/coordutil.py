@@ -21,30 +21,40 @@ def getsigmabnds(ifile):
         elif 'lev' in ifile.dimensions:
             nlays = len(ifile.dimensions['lev'])
         elif 'layer' in ifile.dimensions:
-            nlays = len(ifile.dimensions['laer'])
+            nlays = len(ifile.dimensions['layer'])
         else:
             nlays = 1
         return np.arange(nlays)
         
-def getpresmid(ifile):
-    presb = getpresbnds(ifile)
+def pres_from_sigma(sigma, pref, ptop, avg = False):
+    pres = sigma * (pref - ptop) + ptop
+    if avg:
+        pres = pres[:-1] + np.diff(pres) / 2.
+    return pres
+
+def getpresmid(ifile, pref = 101325., ptop = None):
+    presb = getpresbnds(ifile, pref = 101325., ptop = None)
     return presb[:-1] + np.diff(presb) / 2
 
 def getsigmamid(ifile):
     sigmab = getsigmabnds(ifile)
     return sigmab[:-1] + np.diff(sigmab) / 2
 
-def getpresbnds(ifile):
-    if 'layer_bounds' in ifile.variables:
+def getpresbnds(ifile, pref = 101325., ptop = None):
+    if 'etai_pressure' in ifile.variables:
+        return ifile.variables['etai_pressure'][:]
+    elif 'layer_bounds' in ifile.variables:
         return ifile.variables['layer_bounds'][:]
     else:
         sigma = getsigmabnds(ifile)
-        if hasattr(ifile, 'VGTOP'):
-            ptop = ifile.VGTOP
-        else:
-            warn("Assuming VGTOP = 100 hPa")
-            ptop = 10000
-        return pres_from_sigma(sigma, pref = 101325., ptop = ptop)
+        if ptop is None:
+            if hasattr(ifile, 'VGTOP'):
+                ptop = ifile.VGTOP
+            else:
+                warn("Assuming VGTOP = 10000 Pa")
+                ptop = 10000
+            
+        return pres_from_sigma(sigma, pref = pref, ptop = ptop)
 
 def getlatbnds(ifile):
     if 'latitude_bounds' in ifile.variables:

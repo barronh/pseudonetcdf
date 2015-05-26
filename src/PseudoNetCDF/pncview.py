@@ -422,12 +422,6 @@ def tileplot(ifile, varkey, options, before = '', after = ''):
     print 'Saved fig', figpath
     return figpath
 
-def pres_from_sigma(sigma, pref, ptop, avg = False):
-    pres = sigma * (pref - ptop) + ptop
-    if avg:
-        pres = pres[:-1] + np.diff(pres) / 2.
-    return pres
-
 def minmaxmean(ax, vals, vertcrd, **kwds):
     minval = vals.min(1)
     meanval = vals.mean(1)
@@ -565,8 +559,8 @@ def mapplot(ifile, varkey, options, before = '', after = ''):
             
 def main():
     import pylab as pl
-    from pncparse import pncparser
-    ifiles, options = pncparser(has_ofile = True, plot_options = True)
+    from pncparse import pncparse
+    ifiles, options = pncparse(has_ofile = True, plot_options = True, interactive = False)
     if len(ifiles) != 1:
         raise IOError('pncview can operate on only 1 file; user requested %d' % len(ifiles))
     ifile, = ifiles
