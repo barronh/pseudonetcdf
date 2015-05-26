@@ -362,7 +362,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
     _tracer_lookup: finds geos_chem tracer indices from names and returns
                     netcdf like variable
     """
-    def __init__(self, parent, datamap, tracerinfo, diaginfo, keys, noscale = False):
+    def __init__(self, parent, datamap, tracerinfo, diaginfo, keys, noscale = False, nogroup = False):
         """
         parent: NetCDF-like object to serve dimensions
         datamap: array of pre-dimensioned and datatyped values dim(tstep, i, j, k)
@@ -370,6 +370,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
         keys: list of keys to serve
         """
         self.noscale = noscale
+        self.nogroup = nogroup
         self._tracer_data = tracerinfo
         self._diag_data = diaginfo
         self._memmap = datamap
@@ -603,7 +604,7 @@ class bpch(PseudoNetCDFFile):
     
     """
 
-    def __init__(self, bpch_path, tracerinfo = None, diaginfo = None, mode = 'r', timeslice = slice(None), noscale = False, vertgrid = 'GEOS-5-REDUCED'):
+    def __init__(self, bpch_path, tracerinfo = None, diaginfo = None, mode = 'r', timeslice = slice(None), noscale = False, vertgrid = 'GEOS-5-REDUCED', nogroup = False):
         """
         bpch_path: path to binary punch file
         tracerinfo: path to ascii file with tracer definitions
@@ -633,6 +634,7 @@ class bpch(PseudoNetCDFFile):
         from _vertcoord import geos_hyai, geos_hybi, geos_eta_slp
         self._ncattrs = () 
         self.noscale = noscale
+        self.nogroup = nogroup
         # Read binary data for general header and first datablock header
         header_block = fromfile(bpch_path, dtype = 'bool', count = _first_header_size)
         
@@ -738,7 +740,10 @@ class bpch(PseudoNetCDFFile):
                     data_type = dtype('>i4, %s>f4, >i4' % str(tuple(dim[:])))
                     assert(data_type.itemsize == header[-2])
                     data_types.append(data_type)
-                    keys.append('%s_%s' % (group, tracername))
+                    if self.nogroup:
+                        keys.append('%s' % (tracername,))
+                    else:
+                        keys.append('%s_%s' % (group, tracername))
                 
                 break
             dim = header[13][::-1]
@@ -746,7 +751,10 @@ class bpch(PseudoNetCDFFile):
             data_type = dtype('>i4, %s>f4, >i4' % str(tuple(dim[:])))
             assert(data_type.itemsize == header[-2])
             data_types.append(data_type)
-            keys.append('%s_%s' % (group, tracername))
+            if self.nogroup:
+                keys.append('%s' % (tracername,))
+            else:
+                keys.append('%s_%s' % (group, tracername))
 
         # Repeating tracer indicates end of timestep
         time_type = dtype([(k, dtype([('header', _datablock_header_type), ('data', d)])) for k, d in zip(keys, data_types)])
@@ -831,7 +839,7 @@ class bpch(PseudoNetCDFFile):
         self.createDimension('layer', self.Ap.size - 1)
         self.createDimension('layer_bounds', self.Ap.size)
 
-        self.variables = _tracer_lookup(parent = self, datamap = datamap, tracerinfo = tracer_data, diaginfo = diag_data, keys = keys, noscale = self.noscale)
+        self.variables = _tracer_lookup(parent = self, datamap = datamap, tracerinfo = tracer_data, diaginfo = diag_data, keys = keys, noscale = self.noscale, nogroup = self.nogroup)
         del datamap
         tdim = self.createDimension('time', self.variables['tau0'].shape[0])
         tdim.setunlimited(True)
