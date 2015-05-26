@@ -8,9 +8,9 @@ PseudoNetCDF provides read, plot, and sometimes write capabilities for atmospher
 * GEOS-Chem Binary Punch/NetCDF files
 
 Try our:
-  * [Install Instructions](http://github.com/barronh/pseudonetcdf/wiki/Install-Instructions.md)
-  * [CAMx Tutorials](http://github.com/barronh/pseudonetcdf/wiki/CAMx-Tutorials.md)
-  * [GEOS-Chem Tutorials](http://github.com/barronh/pseudonetcdf/wiki/GC-Tutorials.md)
+  * [Install Instructions](http://github.com/barronh/pseudonetcdf/wiki/Install-Instructions)
+  * [CAMx Tutorials](http://github.com/barronh/pseudonetcdf/wiki/CAMx-Tutorials)
+  * [GEOS-Chem Tutorials](http://github.com/barronh/pseudonetcdf/wiki/GC-Tutorials)
   * [Recipes](Recipes)
 
 
