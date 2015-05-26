@@ -46,12 +46,69 @@ _time_hdr_fmt=np.dtype(dict(names=['SPAD','ibdate','btime','iedate','etime','EPA
 _spc_fmt=np.dtype("(10,4)>S1")
 
 def ncf2uamiv(ncffile, outpath):
+    """
+    ncf2uamiv converts a ncffile to a uamiv file
+    
+    Parameters
+    ----------
+    ncffile : PseudoNetCDF-like object
+            Must be open and have all properties of a uamiv
+            file as produced by PseudoNetCDF.camxfiles
+            1) IOAPI conventions
+            2) UAMIV specific properties: PLON PLAT IUTM CPROJ 
+                                            TLAT1 TLAT2 ISTAG
+    outpath : string
+            path to create a uamiv file output
+    
+    Returns
+    -------
+    outfile : file object
+            File object is in write binary mode and has the
+            uamiv file as its contents
+
+    Examples
+    --------
+        $ # test.uamiv must be a file in uamiv format
+        $ pncgen -f uamiv test.uamiv test.uamiv.nc
+        $ python -c "
+        ncpath = 'test.uamiv.nc'
+        uamivpath = 'test.uamiv.nc.uamiv'
+        from netCDF4 import Dataset
+        from PseudoNetCDF.camxfiles.uamiv.Write import ncf2uamiv
+        inncf = Dataset(ncpath)
+        ncf2uamiv(inncf, uamivpath)
+        "
+        # If uamivpath does not include EOD, the diff will be perfect
+        diff test.uamiv test.uamiv.nc.uamiv
+
+        # If uamivpath includes EOD, the diff may yield difference.
+        # The ONLY difference will be time flags for the end of a day.
+        # Most time software agrees that there is no such thing as 2002154T24:00.
+        # Some CAMx files, however, have a 2400 time. 
+        # PseudoNetCDF interprets this equivalently as 2002155T00:00
+        $ python -c "from PseudoNetCDF.camxfiles.Memmaps import uamiv
+        import numpy as np
+        old = uamiv('test.uamiv')
+        new = uamiv('test.uamiv.nc.uamiv')
+        for k in old.variables.keys():
+            check = (old.variables[k][...] == new.variables[k][...])
+            if not check.all():
+                print k
+                if k == 'ETFLAG':
+                    diffidx = np.where(~check)[:2]
+                else:
+                    diffidx = np.where(~check)
+                print old.variables[k][diffidx]
+                print new.variables[k][diffidx]
+
+    """
+    
     emiss_hdr = np.zeros(shape = (1,), dtype = _emiss_hdr_fmt)
     emiss_hdr[0]['name'][:, :] = ' '
     emiss_hdr[0]['name'][:, 0] = np.array(ncffile.NAME, dtype = '>c')
     emiss_hdr[0]['note'][:, :] = ' '
     emiss_hdr[0]['note'][:, 0] = np.array(ncffile.NOTE, dtype = '>c')
-    gdtype = getattr(ncffile, 'GDTYPE', -999)
+    gdtype = getattr(ncffile, 'GDTYP', -999)
     emiss_hdr['itzon'][0] = ncffile.ITZON
     nspec = len(ncffile.dimensions['VAR'])
     emiss_hdr['nspec'] = nspec
@@ -108,7 +165,7 @@ def ncf2uamiv(ncffile, outpath):
     spc_hdr = np.zeros(shape = (1,), dtype = dict(names = ['SPAD1', 'DATA', 'EPAD1'], formats = ['>i', np.dtype("(%d,10,4)>S1" % nspec), '>i']))
     spc_hdr['SPAD1'] = nspec * 40
     spc_hdr['EPAD1'] = nspec * 40
-    spc_names = np.array(getattr(ncffile, 'VAR-LIST'), dtype = '>c').reshape(-1, 16)[:-1, :10].copy()
+    spc_names = np.array(getattr(ncffile, 'VAR-LIST'), dtype = '>c').reshape(-1, 16)[:, :10].copy()
     spc_hdr[0]['DATA'][:] = ' '
     spc_hdr[0]['DATA'][:, :, 0] = spc_names
     spc_names = spc_names.view('>S10')

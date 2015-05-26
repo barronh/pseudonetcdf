@@ -95,7 +95,7 @@ class uamiv(PseudoNetCDFFile):
         ncols=self.NCOLS=len(self.dimensions['COL'])
         nvars=self.NVARS=len(self.dimensions['VAR'])
         nsteps=self.NSTEPS=len(self.dimensions['TSTEP'])
-        setattr(self,'VAR-LIST',"".join([i.ljust(16) for i in self.__var_names__]+['TFLAG'.ljust(16)]))
+        setattr(self,'VAR-LIST',"".join([i.ljust(16) for i in self.__var_names__]))
         self.NAME="".join(self.__emiss_hdr['name'][0,:,0])
         self.NOTE="".join(self.__emiss_hdr['note'][0,:,0])
         self.ITZON=self.__emiss_hdr['itzon'][0]
