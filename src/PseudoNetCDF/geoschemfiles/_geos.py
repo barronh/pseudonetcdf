@@ -112,7 +112,7 @@ class geos(PseudoNetCDFFile):
             #if dtype != '>c':
             #    data = data[2:].reshape(shape)
             epad = fromfile(infile, dtype = '>i', count = 1)
-            if lasttype == '>S8' and name[:2] != 'G5':
+            if lasttype == '>S8' and name[:2] not in ('G5', 'G4'):
                 datatypes.append((name, '>i4, >S8, >i4, >i4, >i4, >i4, %s>f, >i4' % str(tuple(shape))))
             else:
                 name = data[0].strip()
