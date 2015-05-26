@@ -8,14 +8,14 @@ PseudoNetCDF provides read, plot, and sometimes write capabilities for atmospher
 * GEOS-Chem Binary Punch/NetCDF files
 
 Try our:
-  * [Install Instructions](Install Instructions)
-  * [CAMx Tutorials](CAMxTutorials)
-  * [GEOS-Chem Tutorials](GC-Tutorials)
+  * [Install Instructions](http://github.com/barronh/pseudonetcdf/wiki/Install-Instructions.md)
+  * [CAMx Tutorials](http://github.com/barronh/pseudonetcdf/wiki/CAMx-Tutorials.md)
+  * [GEOS-Chem Tutorials](http://github.com/barronh/pseudonetcdf/wiki/GC-Tutorials.md)
   * [Recipes](Recipes)
 
 
 Quick tour:
- * [Install](InstallInstructions): `pip install git+git://github.com/barronh/pseudonetcdf.git`
+ * [Install](http://github.com/barronh/pseudonetcdf/wiki/Install-Instructions.md): `pip install git+git://github.com/barronh/pseudonetcdf.git`
  * Download example icartt file: e.g., [HOx from INTEX-NA](ftp://ftp-air.larc.nasa.gov/pub/INTEXA/DC8_AIRCRAFT/BRUNE.WILLIAM/HOX_DC8_20040626_R0.ict)
  * Dump an icartt file in CDL: `pncdump -f ffi1001 HOX_DC8_20040626_R0.ict`
  * Create a netcdf from an icartt file: `pncgen -f ffi1001 HOX_DC8_20040626_R0.ict HOX_DC8_20040626_R0.nc`
