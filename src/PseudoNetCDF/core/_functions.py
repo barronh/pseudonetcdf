@@ -7,6 +7,18 @@ from collections import defaultdict, OrderedDict
 from _files import PseudoNetCDFFile
 from _variables import PseudoNetCDFMaskedVariable, PseudoNetCDFVariable
 
+_translator = {'-': '_', '$': '', ' ': '', '+': '_add_', '(': '', ')': ''}
+def manglenames(f, translator = _translator):
+    outf = getvarpnc(f)
+    varkeys = outf.variables.iteritems()
+    for k, v in varkeys:
+        del outf.variables[k]
+        nk = k
+        for olds, news in _translator.iteritems():
+            nk = nk.replace(olds, news)
+        outf.variables[nk] = var
+    return outf
+
 def getvarpnc(f, varkeys, coordkeys = []):
     coordkeys = set(coordkeys)
     if varkeys is None:
@@ -179,13 +191,36 @@ def extract(f, lonlat, unique = False, gridded = None, method = 'nn', passthroug
         def extractfunc(v, thiscoords):
             newslice = tuple([{'latitude': latidxs, 'longitude': lonidxs, 'points': latidxs, 'PERIM': latidxs}.get(d, slice(None)) for d in thiscoords])
             return v[newslice]
-    elif method in ('linear', 'cubic', 'quintic'):
+    elif method in ('linear', 'cubic'):
+        from scipy.interpolate import LinearNDInterpolator, CloughTocher2DInterpolator
+        if method == 'cubic':
+            interpclass = CloughTocher2DInterpolator
+        else:
+            interpclass = LinearNDInterpolator
+        if latlon1d and gridded:
+            longitude, latitude = np.meshgrid(longitude, latitude)
+        points = np.array([longitude.ravel(), latitude.ravel()]).T
+        def extractfunc(v, thiscoords):
+            if not 'latitude' in thiscoords or not 'longitude' in thiscoords:
+                return v
+            newshape = [dl if d not in ('latitude', 'longitude') else -1 for di, (d, dl) in enumerate(zip(thiscoords, v.shape)) ]
+            i1 = newshape.index(-1)
+            if newshape.count(-1) > 1:
+                i2 = newshape.index(-1, i1 + 1)
+                assert(i1 == (i2 - 1))
+                newshape.pop(i2)
+            i2df = interpclass(points, np.rollaxis(v.reshape(*newshape), i1, 0))
+            out = np.rollaxis(np.ma.array([i2df(lon, lat) for lat, lon in zip(lats, lons)]), 0, len(newshape))
+            return out
+        latidxs = extractfunc(latitude, ('latitude', 'longitude'))
+    elif method in ('cubic', 'quintic'):
         from scipy.interpolate import interp2d
         if latlon1d and gridded:
             longitude, latitude = np.meshgrid(longitude, latitude)
         def extractfunc(v, thiscoords):
-            i2df = interp2d(latitude, longitude, v, method = method)
-            np.ma.array([i2df(lat, lon) for lat, lon in zip(lats, lons)])
+            i2df = interp2d(latitude, longitude, v, kind = method)
+            return np.ma.array([i2df(lat, lon) for lat, lon in zip(lats, lons)])
+        latidxs = extractfunc(latitude, '')
     else:
         raise ValueError('method must be: nn, KDTree')
     if unique:

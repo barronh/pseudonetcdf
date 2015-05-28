@@ -91,8 +91,8 @@ def createconsole(ifiles, options):
     return console
 
 def main():
-    from pncparse import pncparser
-    ifiles, options = pncparser(has_ofile = False)
+    from pncparse import pncparse
+    ifiles, options = pncparse(has_ofile = False, interactive = False)
     console = createconsole(ifiles, options)
     console.interact()
     

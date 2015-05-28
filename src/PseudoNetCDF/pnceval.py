@@ -353,11 +353,11 @@ def stat_timeseries(ifile0, ifile1, variables = ['O3'], counties = False):
 
 def main():
     from warnings import warn
-    from pncparse import pncparser
+    from pncparse import pncparse
     from PseudoNetCDF.core._functions import pncfunc, pncbfunc
     import numpy as np
     np.seterr(divide = 'ignore', invalid = 'ignore')
-    ifiles, options = pncparser(has_ofile = False)
+    ifiles, options = pncparse(has_ofile = False)
     console = createconsole(ifiles, options)
     warn("Assumes input order is obs model")
     ifile1, ifile2 = ifiles
