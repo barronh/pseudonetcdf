@@ -7,6 +7,8 @@ PseudoNetCDF provides read, plot, and sometimes write capabilities for atmospher
 * CMAQ Files
 * GEOS-Chem Binary Punch/NetCDF files
 
+for a full list of formats see `pncdump --help` and look in the --formats help section.
+
 Try our:
   * [Install Instructions](http://github.com/barronh/pseudonetcdf/wiki/Install-Instructions)
   * [CAMx Tutorials](http://github.com/barronh/pseudonetcdf/wiki/CAMx-Tutorials)
