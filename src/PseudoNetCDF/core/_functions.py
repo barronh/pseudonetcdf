@@ -123,7 +123,7 @@ def interpvars(f, weights, dimension, loginterp = []):
             outf.variables[vark] = oldvar
     return outf
 
-def extract(f, lonlat, unique = False, gridded = None, method = 'nn', passthrough = True):
+def extract_lonlat(f, lonlat, unique = False, gridded = None, method = 'nn', passthrough = True):
     from StringIO import StringIO
     import os
     outf = PseudoNetCDFFile()
@@ -133,6 +133,10 @@ def extract(f, lonlat, unique = False, gridded = None, method = 'nn', passthroug
         for grpk, grpv in f.groups.items():
             outf.groups[grpk] = extract(grpv, lonlat)
     
+    p2p = Pseudo2NetCDF()
+    p2p.verbose = False
+    p2p.addGlobalProperties(f, outf)
+
     longitude = f.variables['longitude'][:]
     latitude = f.variables['latitude'][:]
     if gridded is None:
@@ -232,27 +236,7 @@ def extract(f, lonlat, unique = False, gridded = None, method = 'nn', passthroug
         lonidxs, latidxs = np.array(tmpx.keys()).T
         outf.lonlatcoords_orig = outf.lonlatcoords
         outf.lonlatcoords = '/'.join([tmpx[k] for k in zip(lonidxs, latidxs)])
-#     longitude = f.variables['longitude'][:]
-#     latitude = f.variables['latitude'][:]
-#     latidxs = []
-#     lonidxs = []
-#     for lon, lat in zip(lons, lats):
-#         londist = lon - longitude
-#         latdist = lat - latitude
-#         totaldist = (latdist[:, None]**2 + londist[None, :]**2)**.5
-#         latidxa, lonidxa = np.where(totaldist.min() == totaldist)
-#         if len(latidxa) > 1:
-#             warn("Selecting first of equidistant points")
-#             
-#         latidx = latidxa[0]
-#         lonidx = lonidxa[0]
-#         #lonidx = abs(londist).argmin()
-#         #latidx = abs(latdist).argmin()
-#         #import pdb; pdb.set_trace()
-#         latidxs.append(latidx)
-#         lonidxs.append(lonidx)
-#     latidxs = array(latidxs)
-#     lonidxs = array(lonidxs)
+    
     for k, v in f.variables.items():
         try:
             coords = v.coordinates.split()
@@ -289,7 +273,9 @@ def extract(f, lonlat, unique = False, gridded = None, method = 'nn', passthroug
                 if dk not in outf.dimensions:
                     outf.createDimension(dk, nv.shape[di])
     return outf
-    
+
+extract = extract_lonlat
+
 def mask_vals(f, maskdef, metakeys = 'time layer level latitude longitude time_bounds latitude_bounds longitude_bounds ROW COL LAY TFLAG ETFLAG'.split()):
     for varkey, var in f.variables.iteritems():
         if varkey not in metakeys:
@@ -567,13 +553,10 @@ def pncexpr(expr, ifile, verbose = False):
     from PseudoNetCDF.sci_var import Pseudo2NetCDF
     
     # Copy file to temporary PseudoNetCDF file
-    p2p = Pseudo2NetCDF()
-    p2p.verbose = verbose
     co = compile(expr, 'none', 'exec')
     varkeys = [key for key in co.co_names if key in ifile.variables]
     varpnc = getvarpnc(ifile, varkeys)
-    tmpfile = PseudoNetCDFFile()
-    p2p.convert(ifile, tmpfile)
+    tmpfile = getvarpnc(ifile, None)
 
     # Get NetCDF variables as a dictionary with 
     # names mangled to allow special characters
@@ -680,6 +663,9 @@ def convolve_dim(f, convolve_def):
         if lconvolve:
             axisi = list(var.dimensions).index(dimkey)
             values = np.apply_along_axis(func1d = lambda x_: np.convolve(weights, x_, mode = mode), axis = axisi, arr = var[:])
+            if isinstance(var[:], np.ma.MaskedArray):
+                values = np.ma.masked_invalid(values)
+            
             outf.variables[vark][:] = values
     return outf
 
