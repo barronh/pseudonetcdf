@@ -1,9 +1,88 @@
 from warnings import warn
 import numpy as np
 
+def gettimes(ifile):
+    from datetime import datetime, timedelta
+    if 'TFLAG' in ifile.variables.keys():
+        dates = ifile.variables['TFLAG'][:][:, 0, 0]
+        times = ifile.variables['TFLAG'][:][:, 0, 0]
+        yyyy = dates // 1000
+        jjj = dates % 1000
+        hours = times // 10000
+        minutes = times % 10000 // 100
+        seconds = times % 100
+        days = jjj + (hours + minutes / 60. + seconds / 3600.) / 24.
+        out = np.array([datetime(yyyyi, 1, 1) + timedelta(days = day - 1) for day in days])
+        return out
+    elif 'tau0' in ifile.variables.keys():
+        out = datetime(1985, 1, 1, 0) + np.array([timedelta(hours =i) for i in ifile.variables['tau0'][:]])
+        return out
+    elif 'time' in ifile.variables.keys():
+        time = ifile.variables['time']
+        if 'since' in time.units:
+            unit, base = time.units.strip().split(' since ')
+            if 'UTC' in base:
+                sdate = datetime.strptime(base, '%Y-%m-%d %H:%M:%S UTC')
+            elif 'Z' in base:
+                sdate = datetime.strptime(base, '%Y-%m-%d %HZ')
+            elif ':' in base:
+                sdate = datetime.strptime(base, '%Y-%m-%d %H:%M:%S')
+            else:
+                sdate = datetime.strptime(base, '%Y-%m-%d')
+            out = sdate + np.array([timedelta(**{unit: i}) for i in time[:]])
+            return out
+        else:
+            return time
+    else:
+        raise ValueError('cannot understand time for file')
+
+def gettimebnds(ifile):
+    from datetime import datetime, timedelta
+    if 'TFLAG' in ifile.variables.keys():
+        dates = ifile.variables['TFLAG'][:][:, 0, 0]
+        times = ifile.variables['TFLAG'][:][:, 0, 0]
+        yyyy = dates // 1000
+        jjj = dates % 1000
+        hours = times // 10000
+        minutes = times % 10000 // 100
+        seconds = times % 100
+        days = jjj + (hours + minutes / 60. + seconds / 3600.) / 24.
+        out = np.array([datetime(yyyyi, 1, 1) + timedelta(days = day - 1) for day in days])
+        
+        hours = ifile.TSTEP // 10000
+        minutes = ifile.TSTEP % 10000 // 100
+        seconds = ifile.TSTEP % 100
+        hours = (hours + minutes / 60. + seconds / 3600.)
+        return np.array([out, out + timedelta(hours = hours)]).T
+    elif 'tau0' in ifile.variables.keys() and 'tau1' in ifile.variables.keys():
+        out1 = datetime(1985, 1, 1, 0) + np.array([timedelta(hours =i) for i in ifile.variables['tau0'][:]])
+        out2 = datetime(1985, 1, 1, 0) + np.array([timedelta(hours =i) for i in ifile.variables['tau1'][:]])
+        return np.array([out1, out2]).T
+    elif 'time' in ifile.variables.keys():
+        time = ifile.variables['time']
+        if 'since' in time.units:
+            unit, base = time.units.strip().split(' since ')
+            if 'UTC' in base:
+                sdate = datetime.strptime(base, '%Y-%m-%d %H:%M:%S UTC')
+            elif 'Z' in base:
+                sdate = datetime.strptime(base, '%Y-%m-%d %HZ')
+            elif ':' in base:
+                sdate = datetime.strptime(base, '%Y-%m-%d %H:%M:%S')
+            else:
+                sdate = datetime.strptime(base, '%Y-%m-%d')
+            out = sdate + np.array([timedelta(**{unit: i}) for i in time[:]])
+            return np.array([out, out + (out[1] - out[0])]).T
+        else:
+            return np.array([time, time + (time[1] - time[0])]).T
+    else:
+        raise ValueError('cannot understand time for file')
+
 def getsigmabnds(ifile):
     if hasattr(ifile, 'VGLVLS'):
         return ifile.VGLVLS[:]
+    elif 'etai_pressure' in ifile.variables:
+        etai_pressure = ifile.variables['etai_pressure']
+        return (etai_pressure - etai_pressure[-1]) / (etai_pressure[0] - etai_pressure[-1])
     elif 'layer_bounds' in ifile.variables:
         lay = ifile.variables['layer_bounds']
         if lay.units.strip() in ('Pa', 'hPa'):
