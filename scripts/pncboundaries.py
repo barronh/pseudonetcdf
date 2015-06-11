@@ -69,7 +69,8 @@ def plot(ifiles, args):
                     cmaqmap = getmap(f)
                     cmaqmap.drawcoastlines(ax = axmap)
                     cmaqmap.drawcountries(ax = axmap)
-                    cmaqmap.drawstates(ax = axmap)
+                    if args.states: cmaqmap.drawstates(ax = axmap)
+                    if args.counties: cmaqmap.drawcounties(ax = axmap)
                     cmaqmap.drawparallels(np.arange(-90, 100, 10), labels = [True, True, False, False], ax = axmap)
                     cmaqmap.drawmeridians(np.arange(-180, 190, 20), labels = [False, False, True, True], ax = axmap)
                 except Exception, e:
