@@ -147,9 +147,9 @@ parser : ArgumentParser with options that are processable with pncparse
 
         parser.add_argument("--countries", dest = "countries", type = bool, default = True, help = "Disable countries by setting equal to False")
 
-        parser.add_argument("--states", dest = "states", type = bool, default = True, help = "Disable states by setting equal to False")
+        parser.add_argument("--states", dest = "states", type = bool, default = False, help = "Enable states by setting equal to True")
 
-        parser.add_argument("--counties", dest = "counties", type = bool, default = True, help = "Disable counties by setting equal to False")
+        parser.add_argument("--counties", dest = "counties", type = bool, default = False, help = "Enable counties by setting equal to True")
 
         parser.add_argument("--overlay", dest = "overlay", type = bool, default = False, help = "Enable overlay by setting equal to True")
 
