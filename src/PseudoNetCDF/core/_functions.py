@@ -124,6 +124,7 @@ def interpvars(f, weights, dimension, loginterp = []):
     return outf
 
 def extract_lonlat(f, lonlat, unique = False, gridded = None, method = 'nn', passthrough = True):
+    from PseudoNetCDF.sci_var import Pseudo2NetCDF
     from StringIO import StringIO
     import os
     outf = PseudoNetCDFFile()
