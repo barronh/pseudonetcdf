@@ -81,7 +81,7 @@ setup(name = 'PseudoNetCDF',
       packages = packages,
       package_dir = {'': 'src'},
       package_data = {'PseudoNetCDF': data},
-      scripts = ['scripts/pncdump', 'scripts/pncgen', 'scripts/pncview', 'scripts/pncload'],
+      scripts = ['scripts/aqsraw4pnceval.py', 'scripts/aqsrest4pnceval.py', 'scripts/asos4pnceval.py', 'scripts/pncboundaries.py', 'scripts/pncdump', 'scripts/pnceval', 'scripts/pncgen', 'scripts/pncload', 'scripts/pncmap.py', 'scripts/pncvertprofile.py', 'scripts/pncview'],
       requires = netcdfpkg + ['numpy (>=1.2)', 'yaml'],
       url = 'https://code.google.com/p/pseudonetcdf'
       )
