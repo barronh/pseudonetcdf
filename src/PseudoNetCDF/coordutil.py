@@ -60,10 +60,10 @@ def getlatbnds(ifile):
     if 'latitude_bounds' in ifile.variables:
         latb = ifile.variables['latitude_bounds']
         unit = latb.units.strip()
-        if 'nv' in latb.dimensions and latb[:].ndim == 2:
-            if len(ifile.dimensions['nv']) == 2:
+        if 'nv' in latb.dimensions:
+            if latb[:].ndim == 2 and len(ifile.dimensions['nv']) == 2:
                 latb = np.append(latb[:][:, 0], latb[:][-1, 1])
-            elif len(ifile.dimensions['nv']) == 4:
+            elif latb[:].ndim == 2 and len(ifile.dimensions['nv']) == 4:
                 latb = np.append(latb[:][:, 0], latb[:][-1, 1])
             elif latb.ndim == 3:
                 latb = latb[:, :, 0]
@@ -118,19 +118,31 @@ def getxbnds(ifile):
         raise KeyError('x bounds not found')
     return lonb, unit
 
-def getmap(ifile):
+def getmap(ifile, resolution = 'i'):
     from mpl_toolkits.basemap import Basemap
     from conventions.ioapi import get_ioapi_sphere
-    if getattr(ifile, 'GDTYP', 0) != 1 and all([hasattr(ifile, k) for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()]):
+    if getattr(ifile, 'GDTYP', 0) in (2, 7) and all([hasattr(ifile, k) for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()]):
+        try:
+            NROWS = len(ifile.dimensions['ROW'])
+            NCOLS = len(ifile.dimensions['COL'])
+        except KeyError:
+            NROWS = ifile.NROWS
+            NCOLS = ifile.NCOLS
+            
         llcrnrx = ifile.XORIG
-        urcrnrx = ifile.XORIG + len(ifile.dimensions['COL']) * ifile.XCELL
+        urcrnrx = ifile.XORIG + NCOLS * ifile.XCELL
 
         llcrnry = ifile.YORIG
-        urcrnry = ifile.YORIG + len(ifile.dimensions['ROW']) * ifile.YCELL
+        urcrnry = ifile.YORIG + NROWS * ifile.YCELL
         semi_major_axis, semi_minor_axis = get_ioapi_sphere()
         if ifile.GDTYP == 2:
-            m = Basemap(projection = 'lcc', a = semi_major_axis, b = semi_major_axis, lon_0=ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT, llcrnrx = llcrnrx, llcrnry = llcrnry, urcrnry = urcrnry, urcrnrx = urcrnrx, resolution = 'i', suppress_ticks = False)
-        
+            m = Basemap(projection = 'lcc', rsphere = (semi_major_axis, semi_major_axis), lon_0=ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT, llcrnrx = llcrnrx, llcrnry = llcrnry, urcrnry = urcrnry, urcrnrx = urcrnrx, resolution = resolution, suppress_ticks = False)
+        elif ifile.GDTYP == 7:
+            from mpl_toolkits.basemap.pyproj import Proj
+            p = Proj(proj='merc',rsphere = (semi_major_axis, semi_major_axis), lat_ts = ifile.P_ALP, lat_0 = ifile.YCENT, lon_0 = ifile.XCENT)
+            llcrnrlon, llcrnrlat = p(llcrnrx, llcrnry, inverse = True)
+            urcrnrlon, urcrnrlat = p(urcrnrx, urcrnry, inverse = True)
+            m = Basemap(projection = 'merc', rsphere = (semi_major_axis, semi_major_axis), lon_0=ifile.P_GAM, lat_ts = ifile.P_ALP, lat_0 = ifile.YCENT, llcrnrlon = llcrnrlon, llcrnrlat = llcrnrlat, urcrnrlat = urcrnrlat, urcrnrlon = urcrnrlon, resolution = resolution, suppress_ticks = False)
         print 'Found IO/API Mapping parameters'
     else:
         kwds = dict(suppress_ticks = False)
@@ -142,6 +154,7 @@ def getmap(ifile):
             kwds['urcrnrlat'] = lat[:].max()
             kwds['llcrnrlon'] = lon[:].min()
             kwds['urcrnrlon'] = lon[:].max()
+            kwds['resolution'] = resolution
         except:
             pass
         m = Basemap(**kwds)
