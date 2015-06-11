@@ -1,7 +1,7 @@
 import os
 import sys
 from warnings import warn
-from argparse import ArgumentParser, Action
+from argparse import ArgumentParser, Action, RawDescriptionHelpFormatter
 from cmaqfiles import *
 from camxfiles.Memmaps import *
 from camxfiles.Readers import irr as irr_read, ipr as ipr_read
@@ -55,7 +55,7 @@ parser : ArgumentParser with options that are processable with pncparse
     parser = ArgumentParser(description = """PseudoNetCDF Argument Parsing
 
 
-""")
+""", formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('ifile', nargs='+', help='path to a file formatted as type -f')
     _readernames = [(k.count('.'), k) for k in getreaderdict().keys()]
     _readernames.sort()
@@ -120,7 +120,7 @@ parser : ArgumentParser with options that are processable with pncparse
     parser.add_argument("-e", "--extract", dest = "extract", action = "append", default = [],
                         help = "lon/lat coordinates to extract lon1,lat1/lon2,lat2/lon3,lat3/.../lonN,latN")
 
-    parser.add_argument("--extractmethod", dest = "extractmethod", type = str, default = 'nn', choices = ['nn', 'linear', 'cubic', 'quintic'],
+    parser.add_argument("--extractmethod", dest = "extractmethod", type = str, default = 'nn', choices = ['nn', 'linear', 'cubic', 'quintic', 'KDTree'],
                         help = "Method for extraction")
 
     parser.add_argument("-m", "--mask", dest = "masks", action = "append", default = [],
