@@ -44,7 +44,12 @@ def plot(ifiles, args):
         if args.itertime:
             vars = [('time%02d' % vi, v) for vi, v in enumerate(var)]
         else:
+            if var.shape[0] != 1:
+                parser.print_help()
+                sys.stderr.write('\n*****\n\nFile must have only one time or use the itertime options; to reduce file to one time, see the --slice and --reduce operators\n\n')
+                exit()
             vars = [('', var[0])]
+        
         for lstr, var in vars:
             bmap = None
             if maskzeros: var = np.ma.masked_values(var, 0)
@@ -188,7 +193,7 @@ def plot(ifiles, args):
             fig.suptitle(title.replace('O3', 'Ozone at Regional Boundaries'))
             fig.colorbar(patchesw, cax = cax, boundaries = bins)
             cax.set_xlabel('ppm')
-            fig.savefig('%s_%s%s_%s.%s' % (args.outpath, var_name, lstr, 'boundary', args.figformat))
+            fig.savefig('%s_%s%s.%s' % (args.outpath, var_name, lstr, args.figformat))
             pl.close(fig)
     
 if __name__ == '__main__':
@@ -215,7 +220,10 @@ if __name__ == '__main__':
 
     parser.add_argument("--minmaxq", dest = "minmaxq", type = str, default = '0,100',
                         help = "Defaults 0,100.")
-
+    parser.epilog = """
+Example:
+    $ pncboundaries.py outputs/ts20120301.bpch.BCON.nc -v O3 test_boundary -r TSTEP,mean --states True
+"""
     ifiles, args = pncparse(has_ofile = True, parser = parser)
     if args.variables is None:
         raise ValueError('User must specify variable(s) to plot:\n%s' % '\n\t'.join(ifiles[0].variables.keys()))

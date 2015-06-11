@@ -121,7 +121,7 @@ def makemap(ifile, options):
             if len(ifiles) > 1:
                 
                 outpath += ('_%%0%dd' % len(str(len(ifiles)))) % fi
-            figpath = os.path.join(outpath + '_map_' + varkey + '.' + fmt)
+            figpath = os.path.join(outpath + varkey + '.' + fmt)
             if options.interactive:
                 csl = PNCConsole(locals = globals())
                 csl.interact()

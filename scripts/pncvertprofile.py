@@ -128,7 +128,7 @@ def minmaxmean(ax, vals, vertcrd, **kwds):
     return line, range
 
 def plot(ifiles, args):
-    from PseudoNetCDF.coordutil import getsigmamid, getpresmid
+    from PseudoNetCDF.coordutil import getsigmamid, getpresmid, gettimes
     import pylab as pl
     from pylab import figure, NullFormatter, close, rcParams
     rcParams['text.usetex'] = False
@@ -241,8 +241,9 @@ def plot(ifiles, args):
                 sdate = datetime(1985, 1, 1, 0) + timedelta(hours = f.variables['tau0'][0])
                 edate = datetime(1985, 1, 1, 0) + timedelta(hours = f.variables['tau1'][-1])
             else:
-                sdate = datetime(1900, 1, 1, 0)
-                edate = datetime(1900, 1, 1, 0)
+                times = gettimes(f)
+                sdate = times[0]
+                edate = times[-1]
 
             if len(tespaths) > 0:
                 tesl, tesr = plot_tes(ax, lonbs, latbs, tespaths)
@@ -278,6 +279,7 @@ def plot(ifiles, args):
             axs[1].set_xlabel('East')
             axs[2].set_xlabel('North')
             axs[3].set_xlabel('West')
+            fig.text(.5, .90, '%s %s' % (var_name, outunit), horizontalalignment = 'center', fontsize = 16)
         nl = 0
         for ax in axs:
             if len(ax.get_lines()) > nl:
@@ -290,7 +292,7 @@ def plot(ifiles, args):
             fig.text(0.95, 0.975, title, horizontalalignment = 'right', verticalalignment = "top", fontsize = 16)
         else:
             fig.text(0.95, 0.025, title, horizontalalignment = 'right', verticalalignment = "bottom", fontsize = 16)
-        fig.savefig('%s_%s_%s.%s' % (args.outpath, var_name, 'profile', args.figformat))
+        fig.savefig('%s_%s.%s' % (args.outpath, var_name, args.figformat))
         pl.close(fig)
     return fig
 
@@ -299,23 +301,20 @@ if __name__ == '__main__':
     
     parser = getparser(has_ofile = True, plot_options = True, interactive = False)
 
-    parser.add_argument("-n", "--no-map", dest = "nomap", action = "store_true", default = False,
-                        help = "Try to plot with map")
-
     parser.add_argument("--sigma", dest = "sigma", action = "store_true", default = False,
                         help = "Plot on sigma coordinate instead of pressure")
 
     parser.add_argument("--scale", dest = "scale", type = str, default = 'log',
-                        help = "Defaults to deciles (i.e., 10 equal probability bins), but linear and log are also options.")
+                        help = "Defaults to log, but linear and semilog are also options.")
 
     parser.add_argument("--minmax", dest = "minmax", type = str, default = "None,None",
-                        help = "Defaults None, None.")
+                        help = "Use values to set range (xmin, xmax); defaults None,None.")
 
     parser.add_argument("--mask-zeros", dest = "maskzeros", action = "store_true", default = False,
                         help = "Defaults False.")
 
     parser.add_argument("--minmaxq", dest = "minmaxq", type = str, default = '0,100',
-                        help = "Defaults 0,100.")
+                        help = "Use quartiles to set range (xmin, xmax); defaults 0,100.")
 
     parser.add_argument("--out-unit", dest = "outunit", type = str, default = 'ppb',
                         help = "Defaults ppb.")
@@ -327,11 +326,15 @@ if __name__ == '__main__':
                         help = "Plot omi on top of boundary from paths; defaults to []")
 
     parser.add_argument("--itertime", dest = "itertime", default = False, action = 'store_true',
-                        help = "Iterate times")
+                        help = "Iterate over times and plot each one.")
                         
     parser.add_argument("--edges", dest = "edges", default = False, action = "store_true",
-                        help = "Plot S,E,N,W")
-
+                        help = "Plot S,E,N,W edges instead of a single plot.")
+    parser.epilog = """
+Example:
+    $ pncvertprofile.py outputs/ts20120301.bpch.BCON.nc test_profile -v O3  --edges --minmaxq .5,99.5 --tes-paths=~/Data/test/*
+"""
+    
     ifiles, args = pncparse(has_ofile = True, parser = parser)
     if args.variables is None:
         raise ValueError('User must specify variable(s) to plot:\n%s' % '\n\t'.join(ifiles[0].variables.keys()))
