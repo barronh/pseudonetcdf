@@ -11,7 +11,7 @@ __doc__ = r"""
 """
 
 __all__=['pncdump',]
-from numpy import float32, float64, int16, int32, int64, ndenumerate, nan, savetxt, isscalar, ndarray
+from numpy import float32, float64, int16, int32, int64, ndindex, ndenumerate, nan, savetxt, isscalar, ndarray, ma
 from warnings import warn
 from collections import defaultdict
 from PseudoNetCDF import PseudoNetCDFMaskedVariable
@@ -161,9 +161,14 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                     id_display = {'f': lambda idx: str(tuple([idx[i]+1 for i in range(len(idx)-1,-1,-1)])), \
                                   'c': lambda idx: str(idx)}[full_indices]
                                   
-                    for i, val in ndenumerate(var):
-                        fmt = startindent + 2*indent+formats[var.dtype.name]
-                        array_str = fmt % val
+                    #for i, val in ndenumerate(var):
+                    for i in ndindex(var.shape):
+                        val = var[i]
+                        if ma.is_masked(val):
+                            array_str = '_'
+                        else:
+                            fmt = startindent + 2*indent+formats[var.dtype.name]
+                            array_str = fmt % val
                         if i == tuple(map(lambda x_: x_ - 1, var.shape)):
                             array_str += ";"
                         else:
