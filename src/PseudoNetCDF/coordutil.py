@@ -1,4 +1,4 @@
-from warnings import warn
+from PseudoNetCDF import warn
 import numpy as np
 
 def gettimes(ifile):
@@ -151,9 +151,12 @@ def getlatbnds(ifile):
         latb = ifile.variables['latitude']
         unit = latb.units.strip()
         latdiff = np.diff(latb, axis = 0)
-        if (latdiff == latdiff[0]).all():
-            latb = latb - .5 * latdiff[0]
-            latb = np.append(latb, latb[-1] + latdiff[0])
+        if not (latdiff == latdiff[[0]]).all():
+            warn('Latitude bounds are approximate')
+        latb = np.concatenate([latb, latb[[-1]]], axis = 0) - .5 * np.concatenate([latdiff[:], latdiff[[-1]], -latdiff[[-1]]], axis = 0)
+        if latb.ndim == 2:
+            latb = np.append(latb, latb[:, [-1]], axis = 1)
+            
     elif 'ROW' in ifile.dimensions:
         unit = 'x (LCC m)'
         latb = np.arange(len(ifile.dimensions['ROW']) + 1) * getattr(ifile, 'YCELL', 1) / 1000.
@@ -181,10 +184,16 @@ def getlonbnds(ifile):
     elif 'longitude' in ifile.variables:
         lonb = ifile.variables['longitude']
         unit = lonb.units.strip()
-        londiff = np.diff(lonb, axis = 0)
-        if (londiff == londiff[0]).all():
-            lonb = lonb - .5 * londiff[0]
-            lonb = np.append(lonb, lonb[-1] + londiff[0])
+        if lonb.ndim == 2:
+            londiff = np.diff(lonb, axis = 1)
+            if not (londiff == londiff[:, [0]]).all():
+                warn('Longitude bounds are approximate')
+            lonb = np.concatenate([lonb, lonb[:, [-1]]], axis = 1) - .5 * np.concatenate([londiff[:, :], londiff[:, [-1]], -londiff[:, [-1]]], axis = 1)
+            lonb = np.append(lonb, lonb[[-1], :], axis = 0)
+        else:
+            londiff = np.diff(lonb, axis = 0)
+            lonb = np.concatenate([lonb, lonb[[-1]]], axis = 0) - .5 * np.concatenate([londiff[:], londiff[[-1]], -londiff[[-1]]], axis = 0)
+
     else:
         raise KeyError('longitude bounds not found')
     return lonb, unit
@@ -215,7 +224,11 @@ def getmap(ifile, resolution = 'i'):
         urcrnry = ifile.YORIG + NROWS * ifile.YCELL
         semi_major_axis, semi_minor_axis = get_ioapi_sphere()
         if ifile.GDTYP == 2:
-            m = Basemap(projection = 'lcc', rsphere = (semi_major_axis, semi_major_axis), lon_0=ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT, llcrnrx = llcrnrx, llcrnry = llcrnry, urcrnry = urcrnry, urcrnrx = urcrnrx, resolution = resolution, suppress_ticks = False)
+            from mpl_toolkits.basemap.pyproj import Proj
+            p = Proj(proj='lcc',rsphere = (semi_major_axis, semi_major_axis), lon_0 = ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT)
+            llcrnrlon, llcrnrlat = p(llcrnrx, llcrnry, inverse = True)
+            urcrnrlon, urcrnrlat = p(urcrnrx, urcrnry, inverse = True)
+            m = Basemap(projection = 'lcc', rsphere = (semi_major_axis, semi_major_axis), lon_0=ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT, llcrnrlon = llcrnrlon, llcrnrlat = llcrnrlat, urcrnrlat = urcrnrlat, urcrnrlon = urcrnrlon, resolution = resolution, suppress_ticks = False)
         elif ifile.GDTYP == 7:
             from mpl_toolkits.basemap.pyproj import Proj
             p = Proj(proj='merc',rsphere = (semi_major_axis, semi_major_axis), lat_ts = ifile.P_ALP, lat_0 = ifile.YCENT, lon_0 = ifile.XCENT)
