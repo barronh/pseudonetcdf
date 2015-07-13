@@ -215,7 +215,7 @@ class lateral_boundary(PseudoNetCDFFile):
         else:
             dimensions=('TSTEP', 'COL', 'LAY')
         outvals=self.__memmap__[spcname][edgename]['DATA']
-        units = get_uamiv_units(self.NAME, k)
+        units = get_uamiv_units(self.NAME, spcname)
         
         return PseudoIOAPIVariable(self,k,'f',dimensions,values=outvals, units = units)
 
