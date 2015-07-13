@@ -1,17 +1,23 @@
 #!/usr/bin/env python
 # Run this script with pnc options
+
+import sys
 import os
+
 from PseudoNetCDF.pncload import PNCConsole
 from PseudoNetCDF.pncparse import pncparse
 from PseudoNetCDF.coordutil import getmap, getlatbnds, getlonbnds, getybnds, getxbnds
-from warnings import warn
-
+import warnings
+warn=warnings.warn
 import numpy as np
 import pylab as pl
 Normalize = pl.matplotlib.colors.Normalize
 
 LogNorm = pl.matplotlib.colors.LogNorm
 BoundaryNorm = pl.matplotlib.colors.BoundaryNorm
+
+LogFormatter = pl.matplotlib.ticker.LogFormatter
+ScalarFormatter = pl.matplotlib.ticker.ScalarFormatter
 
 def prepmap(ifiles, options):
     ifile = ifiles[0]
@@ -21,6 +27,9 @@ def prepmap(ifiles, options):
     if options.countries: map.drawcountries(ax = ax)
     if options.states: map.drawstates(ax = ax)
     if options.counties: map.drawcounties(ax = ax)
+    for si, shapefile in enumerate(options.shapefiles):
+        shapename = os.path.basename(shapefile)[:-3] + str(si)
+        map.readshapefile(shapefile, shapename, ax = ax)
     options.map = map
 
 def makemap(ifile, options):
@@ -39,7 +48,7 @@ def makemap(ifile, options):
             lon = ifile.variables['longitude']
             latb, latunit = getlatbnds(ifile)[:]
             lonb, lonunit = getlonbnds(ifile)[:]
-    
+        
         if latb.ndim == lonb.ndim and lonb.ndim == 2:
             LON, LAT = lonb, latb
         else:
@@ -61,13 +70,26 @@ def makemap(ifile, options):
                 from scipy.stats import normaltest
                 vmin, vmax = vals.min(), vals.max()
                 if normaltest(vals.ravel())[1] < 0.05:
-                    boundaries = np.logspace(np.log10(vmin), np.log10(vmax), num = 10)
-                    warn('Selected LogScale for %s' % varkey)
+                    cvals = np.ma.compressed(vals)
+                    boundaries = np.percentile(cvals, np.arange(0, 110, 10))
+                    warn('Autoselect deciles colormap of %s; override width --norm' % varkey)
                 else:
-                    boundaries = np.linspace(vmin, vmax, num = 10)
+                    boundaries = np.linspace(vmin, vmax, num = 11)
+                    warn('Autoselect linear colormap of %s; override width --norm' % varkey)
+                if (boundaries.max() / np.ma.masked_values(boundaries, 0).min()) > 10000:
+                    formatter = LogFormatter(labelOnlyBase = False)
+                else:
+                    formatter = None
                 norm = BoundaryNorm(boundaries, ncolors = 256)
             else:
                 norm = eval(options.normalize)
+            if not options.colorbarformatter is None:
+                try:
+                    formatter = eval(options.colorbarformatter)
+                except:
+                    formatter = options.colorbarformatter
+
+                
             vmin, vmax = norm.vmin, norm.vmax
             varunit = getattr(var, 'units', 'unknown').strip()
             print varkey,
@@ -85,12 +107,13 @@ def makemap(ifile, options):
             ax.set_ylabel(latunit)
             height = LAT.max() - LAT.min()
             width = LON.max() - LON.min()
-            if width > height:
+            if width >= height:
                 orientation = 'horizontal'
             else:
                 orientation = 'vertical'
             try:
                 cax = cbar.ax
+                cax.cla()
             except:
                 cax = None
             if vals.max() > vmax and vals.min() < vmin:
@@ -101,20 +124,15 @@ def makemap(ifile, options):
                 extend = 'min'
             else:
                 extend = 'neither'
-            cbar = pl.gcf().colorbar(patches, orientation = orientation, cax = cax, extend = extend)
+            cbar = pl.gcf().colorbar(patches, orientation = orientation, cax = cax, extend = extend, format = formatter)
             del cbar.ax.texts[:]
-            cbar.set_label(varkey + ' (' + varunit + ')')
-            if orientation == 'vertical':
-                cbar.ax.text(.5, 1.05, '%.3g' % var[:].max(), horizontalalignment = 'center', verticalalignment = 'bottom')
-                cbar.ax.text(.5, -.06, '%.3g ' % var[:].min(), horizontalalignment = 'center', verticalalignment = 'top')
-            else:
-                cbar.ax.text(1.05, .5, ' %.3g' % var[:].max(), verticalalignment = 'center', horizontalalignment = 'left')
-                cbar.ax.text(-.06, .5, '%.3g ' % var[:].min(), verticalalignment = 'center', horizontalalignment = 'right')
-            try:
-                cbar.formatter.set_scientific(True)
-                cbar.formatter.set_powerlimits((-3, 3))
-            except:
-                pass
+            cbar.set_label(varkey + ' (' + varunit + '; min=%.3g; max=%.3g)' % (var[:].min(), var[:].max()))
+ #           if orientation == 'vertical':
+ #               cbar.ax.text(.5, 1.05, '%.3g' % var[:].max(), horizontalalignment = 'center', verticalalignment = 'bottom')
+#                cbar.ax.text(.5, -.06, '%.3g ' % var[:].min(), horizontalalignment = 'center', verticalalignment = 'top')
+#            else:
+#                cbar.ax.text(1.05, .5, ' %.3g' % var[:].max(), verticalalignment = 'center', horizontalalignment = 'left')
+#                cbar.ax.text(-.06, .5, '%.3g ' % var[:].min(), verticalalignment = 'center', horizontalalignment = 'right')
             cbar.update_ticks()
             fmt = 'png'
             outpath = options.outpath
