@@ -4,7 +4,11 @@ _coorddict = dict(west_east = 'longitude', south_north = 'latitude', Time = 'tim
 def add_cf_from_wrfioapi(ifile):
     try:
         for invark, outvark in [('XLONG', 'longitude'), ('XLAT', 'latitude')]:
-            invar = ifile.variables[invark]
+            try:
+                invar = ifile.variables[invark]
+            except KeyError:
+                invark += '_M'
+                invar = ifile.variables[invark]
             outvar = ifile.createVariable(outvark, invar.dtype.char, invar.dimensions[1:])
             for pk in invar.ncattrs():
                 setattr(outvar, pk, getattr(invar, pk))
