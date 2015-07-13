@@ -11,7 +11,7 @@ from PseudoNetCDF.coordutil import getmap
 def plot(ifiles, args):
     import pylab as pl
     from pylab import figure, NullFormatter, close, rcParams
-    from PseudoNetCDF.coordutil import getsigmamid, getpresmid
+    from PseudoNetCDF.coordutil import getsigmamid, getpresmid, getpresbnds, getsigmabnds
     rcParams['text.usetex'] = False
     from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm, LogNorm
     map = not args.nomap
@@ -26,9 +26,9 @@ def plot(ifiles, args):
         raise ValueError('curtain plot expects one file when done. Try stack time --stack=time to concatenate')
     
     if sigma:
-        vertcrd = getsigmamid(f)
+        vertcrd = getsigmabnds(f)
     else:
-        vertcrd = getpresmid(f, pref = 101325., ptop = getattr(f, 'VGTOP', 10000))
+        vertcrd = getpresbnds(f, pref = 101325., ptop = getattr(f, 'VGTOP', 10000))
         if vertcrd.max() > 2000:  vertcrd /= 100.
 
 
@@ -58,14 +58,21 @@ def plot(ifiles, args):
                 vmin = minmax[0]
             if minmax[1] is not None:
                 vmax = minmax[1]
-            if scale == 'log':
-                bins = np.logspace(np.log10(vmin), np.log10(vmax), 11)
-            elif scale == 'linear':
-                bins = np.linspace(vmin, vmax, 11)
-            elif scale == 'deciles':
-                bins = np.percentile(np.ma.compressed(np.ma.masked_greater(np.ma.masked_less(var, vmin), vmax)).ravel(), [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
-                bins[0] = vmin; bins[-1] = vmax
-            norm = BoundaryNorm(bins, ncolors = 256)
+            
+            if not args.normalize is None:
+                norm = eval(args.normalize)
+                if norm.scaled():
+                    vmin = norm.vmin; vmax = norm.vmax
+            else:
+                if scale == 'log':
+                    bins = np.logspace(np.log10(vmin), np.log10(vmax), 11)
+                elif scale == 'linear':
+                    bins = np.linspace(vmin, vmax, 11)
+                elif scale == 'deciles':
+                    bins = np.percentile(np.ma.compressed(np.ma.masked_greater(np.ma.masked_less(var, vmin), vmax)).ravel(), [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
+                    bins[0] = vmin; bins[-1] = vmax
+                norm = BoundaryNorm(bins, ncolors = 256)
+            
             if map:
                 fig = pl.figure(figsize = (8, 8))
                 fig.subplots_adjust(hspace = .3, wspace = .3)
@@ -125,7 +132,7 @@ def plot(ifiles, args):
             end_north = start_north + x
             start_west = end_north
             end_west = start_west + y
-            X, Y = np.meshgrid(np.arange(x) * f.XCELL * xyfactor, vertcrd)
+            X, Y = np.meshgrid(np.arange(x + 1) * f.XCELL * xyfactor, vertcrd)
             patchess = axs.pcolor(X, Y, var[:, start_south:end_south], cmap = bmap, vmin = vmin, vmax = vmax, norm = norm)
             if not map:
                 if reversevert: axs.set_ylim(*axs.get_ylim()[::-1])
@@ -133,7 +140,7 @@ def plot(ifiles, args):
                 axs.set_xlabel('E to W km')
                 axs.set_xlim(*axs.get_xlim()[::-1])
                 
-            X, Y = np.meshgrid(np.arange(-1, x - 1) * f.XCELL * xyfactor, vertcrd)
+            X, Y = np.meshgrid(np.arange(-1, x) * f.XCELL * xyfactor, vertcrd)
             patchesn = axn.pcolor(X, Y, var[:, start_north:end_north], cmap = bmap, vmin = vmin, vmax = vmax, norm = norm)
             if reversevert: axn.set_ylim(*axn.get_ylim()[::-1])
             if not map:
@@ -141,21 +148,21 @@ def plot(ifiles, args):
                 axn.set_xlabel('W to E km')
 
             if map:
-                X, Y = np.meshgrid(vertcrd, np.arange(y) * f.YCELL)
+                X, Y = np.meshgrid(vertcrd, np.arange(y + 1) * f.YCELL)
                 patchese = axe.pcolor(X, Y, var[:, start_east:end_east].swapaxes(0,1), cmap = bmap, vmin = vmin, vmax = vmax, norm = norm)
                 if reversevert: axe.set_xlim(*axe.get_xlim()[::-1])
             else:
-                X, Y = np.meshgrid(np.arange(y) * f.YCELL * xyfactor, vertcrd)
+                X, Y = np.meshgrid(np.arange(y + 1) * f.YCELL * xyfactor, vertcrd)
                 patchese = axe.pcolor(X, Y, var[:, start_east:end_east], cmap = bmap, vmin = vmin, vmax = vmax, norm = norm)
                 if reversevert: axe.set_ylim(*axe.get_ylim()[::-1])
                 axe.set_title('East')
                 axe.set_xlabel('N to S km')
                 axe.set_xlim(*axe.get_xlim()[::-1])
             if map:
-                X, Y = np.meshgrid(vertcrd, np.arange(-1, y - 1) * f.YCELL)
+                X, Y = np.meshgrid(vertcrd, np.arange(-1, y) * f.YCELL)
                 patchesw = axw.pcolor(X, Y, var[:, start_west:end_west].swapaxes(0,1), cmap = bmap, vmin = vmin, vmax = vmax, norm = norm)
             else:
-                X, Y = np.meshgrid(np.arange(-1, y - 1) * f.YCELL * xyfactor, vertcrd)
+                X, Y = np.meshgrid(np.arange(-1, y) * f.YCELL * xyfactor, vertcrd)
                 patchesw = axw.pcolor(X, Y, var[:, start_west:end_west], cmap = bmap, vmin = vmin, vmax = vmax, norm = norm)
                 if reversevert: axw.set_ylim(*axw.get_ylim()[::-1])
                 axw.set_title('West')
@@ -191,7 +198,15 @@ def plot(ifiles, args):
             except:
                 title = var_name
             fig.suptitle(title.replace('O3', 'Ozone at Regional Boundaries'))
-            fig.colorbar(patchesw, cax = cax, boundaries = bins)
+            if var.min() < vmin and var.max() > vmax:
+                extend = 'both'
+            elif var.min() < vmin:
+                extend = 'min'
+            elif var.max() > vmax:
+                extend = 'max'
+            else:
+                extend = 'neither'
+            fig.colorbar(patchesw, cax = cax, extend = extend)
             cax.set_xlabel('ppm')
             fig.savefig('%s_%s%s.%s' % (args.outpath, var_name, lstr, args.figformat))
             pl.close(fig)
