@@ -133,7 +133,7 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
                     dim = len(dim)
                 shape.append(dim)
 
-            result=np.ma.zeros(shape,typecode)
+            result=np.ma.zeros(shape, dtype = 'S1' if typecode == 'c' else typecode, fill_value = kwds.get('fill_value', None))
 
         result=result.view(type = subtype)
         result._ncattrs = ()
