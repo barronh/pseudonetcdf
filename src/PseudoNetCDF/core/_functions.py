@@ -59,6 +59,12 @@ def getvarpnc(f, varkeys, coordkeys = []):
                     newdimv.setunlimited(True)
     
         propd = dict([(k, getattr(var, k)) for k in var.ncattrs()])
+        if hasattr(var[...], 'fill_value') and 'fill_value' not in propd:
+            propd['fill_value'] = var[...].fill_value
+        
+        if 'values' in propd:
+            propd['pvalues'] = propd['values']
+            del propd['values']
         if 'name' in propd:
             if propd['name'] == varkey:
                 del propd['name']
@@ -278,10 +284,20 @@ def extract_lonlat(f, lonlat, unique = False, gridded = None, method = 'nn', pas
 extract = extract_lonlat
 
 def mask_vals(f, maskdef, metakeys = 'time layer level latitude longitude time_bounds latitude_bounds longitude_bounds ROW COL LAY TFLAG ETFLAG'.split()):
+    mtype = maskdef.split(',')[0]
+    mval = ','.join(maskdef.split(',')[1:])
+    if mtype == 'where':
+        maskexpr = 'np.ma.masked_where(mask, var[:])'
+        mask = eval(mval, None, f.variables)
+    else:
+        maskexpr = 'np.ma.masked_%s(var[:], %s)' % (mtype, mval)
     for varkey, var in f.variables.iteritems():
         if varkey not in metakeys:
-            vout = eval('np.ma.masked_%s(var[:], %s)' % tuple(maskdef.split(',')))
-            f.variables[varkey] = PseudoNetCDFMaskedVariable(f, varkey, var.dtype.char, var.dimensions, values = vout, **dict([(pk, getattr(var, pk)) for pk in var.ncattrs()]))
+            try:
+                vout = eval(maskexpr)
+                f.variables[varkey] = PseudoNetCDFMaskedVariable(f, varkey, var.dtype.char, var.dimensions, values = vout, **dict([(pk, getattr(var, pk)) for pk in var.ncattrs()]))
+            except Exception, e:
+                warn('Cannot mask %s: %s' % (varkey, str(e)))
     return f
     
 def slice_dim(f, slicedef, fuzzydim = True):
@@ -625,25 +641,26 @@ def mesh_dim(f, mesh_def):
     return f
 
 def add_attr(f, attr_def):
-    att_nm, var_nm, mode, att_typ, att_val = attr_def.split(',')
+    pieces = attr_def.split(',')
+    att_nm, var_nm, mode, att_typ = pieces[:4]
+    att_val = ','.join(pieces[4:])
     if var_nm == 'global':
         var = f
     else:
         var = f.variables[var_nm]
-    
+
     if not (att_typ == 'c' and isinstance(att_val, (str, unicode))):
-        att_val = np.array(att_val, dtype = att_typ)
-        
+        att_val = np.array(eval(att_val), dtype = att_typ)
+
     if mode in ('a',):
         att_val = np.append(getattr(var, att_nm, []), att_val)
-    
+
     if mode in ('a', 'c', 'm', 'o'):
         setattr(var, att_nm, att_val)
     elif mode in ('d',):
         delattr(var, att_nm)
     else:
         raise KeyError('mode must be either a c m o or d')
-        setattr(var, att_nm, np.dtype(att_typ)(att_val))
 
 def convolve_dim(f, convolve_def):
     convolve_parts = convolve_def.split(',')
