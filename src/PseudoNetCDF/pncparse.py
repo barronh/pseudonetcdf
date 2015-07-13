@@ -56,6 +56,26 @@ parser : ArgumentParser with options that are processable with pncparse
 
 
 """, formatter_class=RawDescriptionHelpFormatter)
+    parser.epilog = """
+Detailed Steps
+--------------
+
+PseudoNetCDF has many operations and the order often matters. The order is consistent with the order of options in the formatted help. The default order is summarized as:
+
+1. Open with specified reader (-f)
+2. Select subset of variables (-v)
+2. Add attributes (-a)
+4. Apply masks (--mask)
+5. Add conventions to support later operations (--to-convention, --from-convention)
+6. Combine files via stacking on dimensions (--stack)
+7. Slice dimensions (-s --slice)
+8. Reduce dimensions (-r --reduce)
+9. Convolve dimensions (-c)
+10. Extract specific coordinates (--extract)
+11. Apply expressions (--expr then --exprscripts)
+12. Apply binary operators (--op_typ)
+
+To impose your own order, use standard options (global options) and then use -- to force positional interpretation of remaining options. In remaining options, use --sep to separate groups of files and options to be evaluated before any global operations."""
     parser.add_argument('ifile', nargs='+', help='path to a file formatted as type -f')
     _readernames = [(k.count('.'), k) for k in getreaderdict().keys()]
     _readernames.sort()
@@ -63,21 +83,23 @@ parser : ArgumentParser with options that are processable with pncparse
     
     parser.add_argument("-f", "--format", dest = "format", default = 'netcdf', help = "File format (default netcdf); " + '; '.join(_readernames))
 
-    parser.add_argument("--inherit", dest="inherit", action = "store_true", default=False, help = "Allow subparsed sections (separated with --) to inherit from global options (-f, --format is always inherited).")
+    parser.add_argument("--sep", dest = "separator", default = None, help = "Used to separate groups of arguments for parsing (e.g., pncgen -- [options1] file(s)1 [--sep [options2] file(s)2 [... [--sep [optionsN] file(s)N]] ")
+
+    parser.add_argument("--inherit", dest="inherit", action = "store_true", default=False, help = "Allow subparsed sections (separated with -- and --sep) to inherit from global options (-f, --format is always inherited).")
 
     parser.add_argument("--mangle", dest = "mangle", action = "store_true", default = False, help = "Remove non-standard ascii from names")
     
     # Only has output file if pncgen is called.
     if has_ofile:
-        parser.add_argument('outpath', type = str, help='path to a output file formatted as --out-format')
-
         parser.add_argument("-O", "--clobber", dest = "clobber", action = 'store_true', default = False, help = "Overwrite existing file if necessary.")
 
         parser.add_argument("--out-format", dest = "outformat", default = "NETCDF3_CLASSIC", metavar = "OFMT", help = "File output format (e.g., NETCDF3_CLASSIC, NETCDF4_CLASSIC, NETCDF4;pncgen only)", type = str, choices = 'NETCDF3_CLASSIC NETCDF4_CLASSIC NETCDF4 height_pressure cloud_rain humidity landuse lateral_boundary temperature vertical_diffusivity wind uamiv point_source bpch ffi1001'.split())
 
+        parser.add_argument("--mode", dest = "mode", type = str, default = "w", help = "File mode for writing (w, a or r+ or with unbuffered writes ws, as, or r+s; pncgen only).", choices = 'w a r+ ws as r+s'.split())
+
         parser.add_argument("--verbose", dest="verbose", action = "store_true", default=False, help = "Provides verbosity with pncgen")
 
-        parser.add_argument("--mode", dest = "mode", type = str, default = "w", help = "File mode for writing (w, a or r+ or with unbuffered writes ws, as, or r+s; pncgen only).", choices = 'w a r+ ws as r+s'.split())
+        parser.add_argument('outpath', type = str, help='path to a output file formatted as --out-format')
 
     else:
         parser.add_argument("-H", "--header", dest="header", action = "store_true", default=False)
@@ -92,30 +114,33 @@ parser : ArgumentParser with options that are processable with pncparse
 
     parser.add_argument("--dump-name", dest = "cdlname", type = str, default = None, help = "Name for display in ncdump")
 
+    parser.add_argument("--coordkeys", dest = "coordkeys", type = str, action = AggCommaString, default = "time time_bounds TFLAG ETFLAG latitude latitude_bounds longitude longitude_bounds lat lat_bnds lon lon_bnds etam_pressure etai_pressure layer_bounds layer47 layer".split(), metavar = "key1,key2", 
+                        help = "Variables to be ignored in pncbo.")
+
     parser.add_argument("-v", "--variables", dest = "variables", default = None, action = AggCommaString,
                         metavar = 'varname1[,varname2[,...,varnameN]',
                         help = "Variable names or regular expressions (using match) separated by ','. If a group(s) has been specified, only variables in that (those) group(s) will be selected.")
 
+    parser.add_argument("-a", "--attribute", dest = "attribute", type = str, action = "append", default = [], metavar = "att_nm,var_nm,mode,att_typ,att_val", 
+                        help = "Variables have attributes that can be added following nco syntax (--attribute att_nm,var_nm,mode,att_typ,att_val); mode = a,c,d,m,o and att_typ = f,d,l,s,c,b; att_typ is any valid numpy type.")
+
+    parser.add_argument("-m", "--mask", dest = "masks", action = "append", default = [],
+                        help = "Masks to apply (e.g., greater,0 or less,0 or values,0, or where,(time[:]%%24<12)[:,None].repeat(10,1))")
+        
     parser.add_argument("--from-convention", dest = "fromconv", type = str, default = None, help = "From convention currently only support ioapi")
 
     parser.add_argument("--to-convention", dest = "toconv", type = str, default = "cf", help = "To convention currently only supports cf")
 
+    parser.add_argument("--stack", dest = "stack", type = str, help = "Concatentate (stack) files on the dimension.")
+    
     parser.add_argument("-s", "--slice", dest = "slice", type = str, action = "append", default = [], metavar = 'dim,start[,stop[,step]]',
                         help = "Variables have dimensions (time, layer, lat, lon), which can be subset using dim,start,stop,stride (e.g., --slice=layer,0,47,5 would sample every fifth layer starting at 0)")
 
     parser.add_argument("-r", "--reduce", dest = "reduce", type = str, action = "append", default = [], metavar = 'dim,function[,weight]', help = "Variable dimensions can be reduced using dim,function,weight syntax (e.g., --reduce=layer,mean,weight). Weighting is not fully functional.")
 
-    parser.add_argument("-c", "--convolve", dest = "convolve", type = str, action = "append", default = [], metavar = 'dim,mode,wgt1,wgt2,...wgtN', help = "Variable dimension is reduced by convolve function (dim,mode,wgt1,wgt2,...wgtN)")
+    parser.add_argument("--mesh", dest = "mesh", type = str, action = "append", default = [], metavar = 'dim,weight,function', help = "Variable dimensions can be meshed using dim,function,weight syntax (e.g., --mesh=time,0.5,mean).")
     
-    parser.add_argument("-a", "--attribute", dest = "attribute", type = str, action = "append", default = [], metavar = "att_nm,var_nm,mode,att_typ,att_val", 
-                        help = "Variables have attributes that can be added following nco syntax (--attribute att_nm,var_nm,mode,att_typ,att_val); mode = a,c,d,m,o and att_typ = f,d,l,s,c,b; att_typ is any valid numpy type.")
-
-    parser.add_argument("--coordkeys", dest = "coordkeys", type = lambda c_: str(c_).split(), action = "append", default = ["time time_bounds TFLAG ETFLAG latitude latitude_bounds longitude longitude_bounds lat lat_bnds lon lon_bnds etam_pressure etai_pressure layer_bounds layer47 layer".split()], metavar = "key1,key2", 
-                        help = "Variables to be ignored in pncbo.")
-
-
-    parser.add_argument("--mesh", dest = "mesh", type = str, action = "append", default = [], metavar = 'dim,weight,function', help = "Variable dimensions can be reduced using dim,function,weight syntax (e.g., --mesh=time,0.5,mean).")
-    
+    parser.add_argument("-c", "--convolve", dest = "convolve", type = str, action = "append", default = [], metavar = 'dim,mode,wgt1,wgt2,...wgtN', help = "Variable dimension is reduced by convolve function (dim,mode,wgt1,wgt2,...wgtN)")    
 
     parser.add_argument("-e", "--extract", dest = "extract", action = "append", default = [],
                         help = "lon/lat coordinates to extract lon1,lat1/lon2,lat2/lon3,lat3/.../lonN,latN")
@@ -123,14 +148,9 @@ parser : ArgumentParser with options that are processable with pncparse
     parser.add_argument("--extractmethod", dest = "extractmethod", type = str, default = 'nn', choices = ['nn', 'linear', 'cubic', 'quintic', 'KDTree'],
                         help = "Method for extraction")
 
-    parser.add_argument("-m", "--mask", dest = "masks", action = "append", default = [],
-                        help = "Masks to apply (e.g., greater,0 or less,0 or values,0)")
-        
     
     parser.add_argument("--op-typ", dest = "operators", type = str, action = 'append', default = [], help = "Operator for binary file operations. Binary file operations use the first two files, then the result and the next file, etc. Use " + " or ".join(['//', '<=', '%%', 'is not', '>>', '&', '==', '!=', '+', '*', '-', '/', '<', '>=', '**', '>', '<<', '|', 'is', '^']))
 
-    parser.add_argument("--stack", dest = "stack", type = str, help = "Concatentate (stack) files on the dimension.")
-    
     parser.add_argument("--expr", dest = "expressions", type = str, action = 'append', default = [], help = "Generic expressions to execute in the context of the file.")
 
     parser.add_argument("--exprscript", dest = "expressionscripts", type = str, action = 'append', default = [], help = "Generic expressions to execute in the context of the file.")
@@ -143,6 +163,8 @@ parser : ArgumentParser with options that are processable with pncparse
 
         parser.add_argument("--norm", dest = "normalize", type = str, default = None, help = "Typical examples Normalize(), LogNorm(), BoundaryNorm([0, 10, 20, 30, 40], ncolors = 256)")
 
+        parser.add_argument("--colorbar-formatter", dest = "colorbarformatter", type = str, default = None, help = "Typical examples LogFormatter(labelOnlyBase = False), ScalarFormatter(), '%%3g'")
+
         parser.add_argument("--coastlines", dest = "coastlines", type = bool, default = True, help = "Disable coastlines by setting equal to False")
 
         parser.add_argument("--countries", dest = "countries", type = bool, default = True, help = "Disable countries by setting equal to False")
@@ -150,6 +172,8 @@ parser : ArgumentParser with options that are processable with pncparse
         parser.add_argument("--states", dest = "states", type = bool, default = False, help = "Enable states by setting equal to True")
 
         parser.add_argument("--counties", dest = "counties", type = bool, default = False, help = "Enable counties by setting equal to True")
+
+        parser.add_argument("--shapefiles", dest = "shapefiles", type = str, action = 'append', default = [], help = "Enable custom shapefiles (must be lon, lat)")
 
         parser.add_argument("--overlay", dest = "overlay", type = bool, default = False, help = "Enable overlay by setting equal to True")
 
@@ -185,6 +209,7 @@ Returns
 
 ifiles : list of PseudoNetCDFFiles
 args : args as parsed
+
     """
     if parser is None:
         parser = getparser(has_ofile, plot_options = plot_options, interactive = interactive)
@@ -198,7 +223,6 @@ args : args as parsed
         ifiles.extend(pncprep(subarg)[0])
     args.ifile = ifiles
     args.ipath = ipaths
-    args.coordkeys = reduce(list.__add__, args.coordkeys)
     #if args.stack is not None:
     #    pass
     #elif len(args.ifile) == 0 or (len(args.ifile) - len(args.operators) - has_ofile) > 1:
@@ -225,11 +249,12 @@ def split_positionals(parser, args):
     outs = []
     last_split = 0
     for i in range(len(positionals)):
-        if positionals[i] == '--':
+        if positionals[i] in ('--', '--sep'):
             outs.append(positionals[last_split:i])
             last_split = i + 1
     outs.append(positionals[last_split:])        
     outs = map(parser.parse_args, outs)
+    
     for out in outs:
         if out.cdlname is None:
             out.cdlname = ', '.join(out.ifile)
@@ -277,9 +302,12 @@ def getfiles(ipaths, args):
             f = ipath
         elif isinstance(ipath, (str, unicode)) :
             try:
-                f = allreaders[file_format](ipath, **format_options)
-            except:
-                f = eval(file_format)(ipath, **format_options)
+                if file_format in allreaders:
+                    f = allreaders[file_format](ipath, **format_options)
+                else:
+                    f = eval(file_format)(ipath, **format_options)
+            except Exception, e:
+                raise IOError('Unable to open path with %s(path, **%s)\n\tpath="%s"' % (file_format, str(format_options), ipath))
         else:
             warn('File is type %s, which is unknown' % type(ipath))
             f = ipath
@@ -295,7 +323,7 @@ def getfiles(ipaths, args):
         for opts in args.attribute:
             add_attr(f, opts)
         for opts in args.masks:
-            f = mask_vals(f, opts)
+            f = mask_vals(f, opts, metakeys = args.coordkeys)
         if laddconv:
             try:
                 eval('add_%s_from_%s' % (args.toconv, args.fromconv))(f)
