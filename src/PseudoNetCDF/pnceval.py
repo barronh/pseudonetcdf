@@ -262,6 +262,10 @@ def E1(obs, mod, axis = None):
 
 def IOA(obs, mod, axis = None):
     """ Index of Agreement, IOA"""
+    obsmean = obs.mean(axis)
+    if not axis is None:
+        obsmean = np.expand_dims(obsmean, axis = axis)
+    
     return 1.0 - (np.ma.abs(obs-mod)**2).sum(axis = axis)/((np.ma.abs(mod-obs.mean(axis = axis))+np.ma.abs(obs-obs.mean(axis = axis)))**2).sum(axis = axis)
 
 def circlebias(b):
@@ -271,17 +275,22 @@ def circlebias(b):
 
 def WDIOA(obs, mod, axis = None):
     """ Wind Direction Index of Agreement, IOA"""
+    obsmean = obs.mean(axis)
+    if not axis is None:
+        obsmean = np.expand_dims(obsmean, axis = axis)
     b = circlebias(mod - obs)
 
-    bhat = circlebias(mod - obs.mean(axis = axis))
+    bhat = circlebias(mod - obsmean)
 
-    ohat = circlebias(obs - obs.mean(axis = axis))
+    ohat = circlebias(obs - obsmean)
 
     return 1.0 - (np.ma.abs(b)**2).sum(axis = axis)/((np.ma.abs(bhat)+np.ma.abs(ohat))**2).sum(axis = axis)
 
 def AC(obs, mod, axis = None):
     """ Anomaly Correlation """
     obs_bar = obs.mean(axis = axis)
+    if not axis is None:
+        obs_var = np.expand_dims(obs_var, axis = axis)
     p1 = ((mod - obs_bar) * (obs - obs_bar)).sum(axis = axis)
     p2 = (((mod - obs_bar)**2).sum(axis = axis) * ((obs - obs_bar)**2).sum(axis = axis))**0.5
     return p1 / p2
@@ -289,6 +298,8 @@ def AC(obs, mod, axis = None):
 def WDAC(obs, mod, axis = None):
     """ Wind Direction Anomaly Correlation """
     obs_bar = obs.mean(axis = axis)
+    if not axis is None:
+        obs_var = np.expand_dims(obs_var, axis = axis)
     p1 = (circlebias(mod - obs_bar) * circlebias(obs - obs_bar)).sum(axis = axis)
     p2 = ((circlebias(mod - obs_bar)**2).sum(axis = axis) * (circlebias(obs - obs_bar)**2).sum(axis = axis))**0.5
     return p1 / p2
