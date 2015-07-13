@@ -85,8 +85,12 @@ def createconsole(ifiles, options):
         print spath + ' = ' + npath + ' = ' + rpath
     for filei, (ipath, npath, spath, ifile) in enumerate(zip(ipaths, npathso, spathso, ifiles)):
         console.locals[npath] = ifile
-        exec(ipath + ' = ' + npath, None, console.locals)
-        exec(spath + ' = ' + npath, None, console.locals)
+        try:
+            exec(ipath + ' = ' + npath, None, console.locals)
+        except: pass
+        try:
+            exec(spath + ' = ' + npath, None, console.locals)
+        except: pass
         console.locals.update(dict([('%s_%d' % (k, filei), v) for k, v in ifile.variables.iteritems()]))
     return console
 
