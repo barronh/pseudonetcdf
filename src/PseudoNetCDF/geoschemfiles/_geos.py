@@ -70,7 +70,7 @@ TTO3 = 'DU')
 def lump(data, ap, levels):
     ldata = data[:, levels]
     lweights = -np.diff(ap)[levels][None, :, None, None]
-    return ldata * lweights / lweights.sum(1)[:, None]
+    return (ldata * lweights / lweights.sum(1)).sum(1)
     
 class geos(PseudoNetCDFFile):
     def __init__(self, path, mode = 'r', reduced = True):
@@ -128,20 +128,27 @@ class geos(PseudoNetCDFFile):
                         raise ValueError('Unknown type %s' % name)
                     self.gtype = etak
                     # Ap [hPa]
-                    self.Ap = geos_hyai[etak]
+                    self.Ap_REDUCED = geos_hyai[etak]
                     # Bp [unitless]
-                    self.Bp = geos_hybi[etak]
+                    self.Bp_REDUCED = geos_hybi[etak]
                     # Ap full [hPa]
                     self.Ap_NATIVE = geos_hyai[etafk]
                     # Bp full [unitless]
                     self.Bp_NATIVE = geos_hybi[etafk]
                     eta_m = geos_etam[etak]
                     eta_i = geos_etai[etak]
-                    nlay = self.Ap.size - 1
-                    nlay_stag = self.Ap.size
+                    
                     nlay_in = self.Ap_NATIVE.size - 1
                     nlay_in_stag = self.Ap_NATIVE.size
-
+                    if reduced:
+                        self.Ap = self.Ap_REDUCED
+                        self.Bp = self.Bp_REDUCED
+                    else:
+                        self.Ap = self.Ap_NATIVE
+                        self.Bp = self.Bp_NATIVE
+                    nlay = self.Ap.size - 1
+                    nlay_stag = self.Ap.size
+                    
                     if name[3:5] == '22':
                         longitude_bounds = np.arange(-181.25, 180, 2.5).repeat(2, 0)[1:-1].reshape(-1, 2)
                         latitude_bounds = np.append(np.append(-90., np.arange(-89., 90., 2.)), 90.).repeat(2, 0)[1:-1].reshape(-1, 2)
@@ -182,10 +189,12 @@ class geos(PseudoNetCDFFile):
             assert((thisblock['f3'] == thisblock['f7']).all())
             if len(thisdata.shape) == 3:
                 dims = ('time', 'latitude', 'longitude')
-            elif thisdata.shape[1] == nlay:
+            elif thisdata.shape[1] == nlay_in:
                 dims = ('time', 'layer', 'latitude', 'longitude')
-            else:
+            elif thisdata.shape[1] == nlay_in_stag:
                 dims = ('time', 'layer_stag', 'latitude', 'longitude')
+            else:
+                raise ValueError('Wrong layers got %d not %d or %d' % (thisdata.shape[1], nlay, nlay_stag))
             unit = _geos_units.get(key, '')
             if dims != ('time', 'latitude', 'longitude'):
                 thisdatain = thisdata
@@ -198,9 +207,9 @@ class geos(PseudoNetCDFFile):
                         #!--------------------------------------------------------------
                         #
                         #! Lump 2 levels together at a time
-                        lump_groups = [(0,), (1,), (2,), (3,), (4,), (5,), (6,), (7,), (8,), (9,), (10,), (11,), (12,), (13,), (14,), (15,), (16,), (17,), (18,)] + \
-                                 [(19, 20), (21, 22), (23, 24), (25, 26)] + \
-                                 [(27, 28, 29, 30), (31, 32, 33, 34), (35, 36, 37, 38), (39, 40, 41, 42), (43, 44, 45, 46), (47, 48, 49, 50), (51, 52, 53, 54)]
+                        lump_groups = [[0,], [1,], [2,], [3,], [4,], [5,], [6,], [7,], [8,], [9,], [10,], [11,], [12,], [13,], [14,], [15,], [16,], [17,], [18,]] + \
+                                 [[19, 20], [21, 22], [23, 24], [25, 26]] + \
+                                 [[27, 28, 29, 30], [31, 32, 33, 34], [35, 36, 37, 38], [39, 40, 41, 42], [43, 44, 45, 46], [47, 48, 49, 50], [51, 52, 53, 54]]
 
                     elif self.gtype == 'GEOS-5-REDUCED':
                         #!--------------------------------------------------------------
@@ -209,19 +218,28 @@ class geos(PseudoNetCDFFile):
                         #!--------------------------------------------------------------
                         #
                         #! Lump 2 levels together at a time
-                        lump_groups = [(0,), (1,), (2,), (3,), (4,), (5,), (6,), (7,), (8,), (9,), (10,), (11,), (12,), (13,), (14,), (15,), (16,), (17,), (18,), (19,), (20,), (21,), (22,), (23,), (24,), (25,), (26,), (27,), (28,), (29,), (30,), (31,), (32,), (33,), (34,), (35,)] + \
-                                [(36, 37), (38, 39), (40, 41), (42, 43)] + \
-                                [(44, 45, 46, 47), (48, 49, 50, 51), (52, 53, 54, 55), (56, 57, 58, 59), (60, 61, 62, 63), (64, 65, 66, 67), (68, 69, 70, 71)]
+                        lump_groups = [[0,], [1,], [2,], [3,], [4,], [5,], [6,], [7,], [8,], [9,], [10,], [11,], [12,], [13,], [14,], [15,], [16,], [17,], [18,], [19,], [20,], [21,], [22,], [23,], [24,], [25,], [26,], [27,], [28,], [29,], [30,], [31,], [32,], [33,], [34,], [35,]] + \
+                                [[36, 37], [38, 39], [40, 41], [42, 43]] + \
+                                [[44, 45, 46, 47], [48, 49, 50, 51], [52, 53, 54, 55], [56, 57, 58, 59], [60, 61, 62, 63], [64, 65, 66, 67], [68, 69, 70, 71]]
                     else:
                         raise ValueError('Cannot reduce %' % self.gtype)
                     assert(len(lump_groups) == nlay)
+                    
                     for li, lump_group in enumerate(lump_groups):
-                        if len(lump_group) == 1 or dims[1] == 'layer_stag':
+                        if len(lump_group) == 1 or dims[1] == 'layer_stag' or key == 'PLE':
                             thisdata[:, li] = thisdatain[:, lump_group[0]]
                         elif dims[1] == 'layer':
-                            thisdata[:, li] = lump(thisdatain, self.Ap, lump_group)
+                            # assumes lumping only happens above pure eta
+                            # true for (GEOS4 and GEOS5)
+                            thisdata[:, li] = lump(thisdatain, self.Ap_NATIVE, lump_group)
                         else:
                             raise ValueError('huh?')
+                    else:
+                        if dims[1] == 'layer_stag':
+                            thisdata[:, li + 1] = thisdatain[:, lump_group[-1]]
+                        
+                else:
+                    thisdata = thisdatain
             return PseudoNetCDFVariable(self, key, 'f', dims, values = thisdata, units = unit, long_name = key.ljust(16))
         self.variables = PseudoNetCDFVariables(keys = names[1:], func = getem)
         dates = data[0]['data'][names[1]]['f4']
