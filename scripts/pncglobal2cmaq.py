@@ -1959,6 +1959,15 @@ def makeregriddedcro(metcro, args, spcs):
         
     return out
 
+def getdefault(oldcon, vark, noutstep):
+    defval = np.ma.filled(oldcon.variables[vark][:], 0)
+    if defval.shape[0] == 1:
+        defval = defval.repeat(noutstep, 0)
+    elif defval.shape[0] > noutstep:
+        warn('Default (I,B)CON has time dimension that is greater than output (%d>%d); only first %d are used.' % (defval.shape[0], noutstep, noutstep))
+        defval = defval[0:noutstep]
+    return defval
+
 
 def makebcon(args):
     global messages
@@ -1978,14 +1987,10 @@ def makebcon(args):
         doicon = True
     
     if dobcon:
-        metbdy = getvarpnc(Dataset(args.METBDY3D), ['TA', 'PRES'])
+        metbdyfiles, metbdyargs = pncparse(has_ofile = False, plot_options = False, interactive = False, args = args.METBDY3D.split(' '), parser = None)
+        metbdy = getvarpnc(metbdyfiles[0], ['TA', 'PRES'])
         add_cf_from_ioapi(metbdy)
         regridded_nd49_bdy = makeregriddedbdy(metbdy, args, spcs)
-    
-        if doicon:
-            metcro = slice_dim(getvarpnc(Dataset(args.METCRO3D), ['TA', 'PRES']), 'TSTEP,0')
-            add_cf_from_ioapi(metcro)
-            regridded_nd49_cro = makeregriddedcro(metcro, args, spcs)
         
 
         metbdyprops = dict([(propk, getattr(metbdy, propk)) for propk in metbdy.ncattrs()])
@@ -2004,7 +2009,8 @@ def makebcon(args):
             for k, v in oldbcon.variables.iteritems():
                 v[0] = 1e-32      
         else:
-            oldbcon = Dataset(args.BCON, 'r+')
+            bconfiles, bconargs = pncparse(has_ofile = False, plot_options = False, interactive = False, args = args.BCON.split(' '), parser = None)
+            oldbcon = bconfiles[0]
         newbcon = Dataset(args.NEWBCON, mode = 'w', format = 'NETCDF3_CLASSIC')
         for propk in oldbcon.ncattrs():
             propv = getattr(oldbcon, propk)
@@ -2020,8 +2026,19 @@ def makebcon(args):
             for propk in oldv.ncattrs():
                 propv = getattr(oldv, propk)
                 setattr(newv, propk, propv)
+        nbconoutsteps = sum([len(tmpf.dimensions['time']) for tmpf in regridded_nd49_bdy])
+        if len(newbcon.dimensions['PERIM']) != metbdyprops['PERIM']:
+            raise ValueError('Default (I,B)CON has different perimeter dimension (%d) than the output file (%d).' % (len(newbcon.dimensions['PERIM']), metbdyprops['PERIM']))
+        obconsteps = len(oldbcon.dimensions['TSTEP'])
+        if obconsteps != 1 and obconsteps < nbconoutsteps:
+            raise ValueError('Default BCON has time dimension that is less than output (%d<%d) and not 1. Use time-independent file or file with same times.' % (obconsteps, nbconoutsteps))
+
     
     if doicon:
+        metcrofiles, metcroargs = pncparse(has_ofile = False, plot_options = False, interactive = False, args = args.METCRO3D.split(' '), parser = None)
+        metcro = slice_dim(getvarpnc(metcrofiles[0], ['TA', 'PRES']), 'TSTEP,0')
+        add_cf_from_ioapi(metcro)
+        regridded_nd49_cro = makeregriddedcro(metcro, args, spcs)
         metcroprops = metbdyprops.copy()
         metcroprops['GDTYP'] = metcro.GDTYP
         if args.ICON == 'dummyicon.nc':
@@ -2033,9 +2050,10 @@ def makebcon(args):
             oldicon = Dataset(args.ICON, 'r+')
             oldicon.variables['TFLAG'][0] = 0        
             for k, v in oldicon.variables.iteritems():
-                v[0] = 1e-32      
+                v[0] = 1e-32
         else:
-            oldicon = Dataset(args.ICON, 'r+')
+            iconfiles, iconargs = pncparse(has_ofile = False, plot_options = False, interactive = False, args = args.ICON.split(' '), parser = None)
+            oldicon = iconfiles[0]
         oldicon = Dataset(args.ICON, mode = 'r+', format = 'NETCDF3_CLASSIC')
         newicon = Dataset(args.NEWICON, mode = 'w', format = 'NETCDF3_CLASSIC')
         for propk in oldicon.ncattrs():
@@ -2051,6 +2069,10 @@ def makebcon(args):
             for propk in oldv.ncattrs():
                 propv = getattr(oldv, propk)
                 setattr(newv, propk, propv)
+        if len(newicon.dimensions['ROW']) != metcroprops['NROWS']:
+            raise ValueError('Default (I,B)CON has different ROW dimension (%d) than the output file (%d).' % (len(newicon.dimensions['ROW']), metcroprops['NROWS']))
+        if len(newicon.dimensions['COL']) != metcroprops['NCOLS']:
+            raise ValueError('Default (I,B)CON has different COL dimension (%d) than the output file (%d).' % (len(newicon.dimensions['COL']), metcroprops['NCOLS']))
         
 
     minval = 1e-32
@@ -2071,7 +2093,7 @@ def makebcon(args):
 
     infiles = []
     if dobcon:
-        infiles += [(metbdy, regridded_nd49_bdy, oldbcon, newbcon, sum([len(tmpf.dimensions['time']) for tmpf in regridded_nd49_bdy]))]
+        infiles += [(metbdy, regridded_nd49_bdy, oldbcon, newbcon, nbconoutsteps)]
     if doicon:
         infiles +=  [(metcro, regridded_nd49_cro, oldicon, newicon, 1)]
     general_messages = messages
@@ -2095,102 +2117,107 @@ def makebcon(args):
                 coexpr = compile(expr, 'expr', 'eval')
                 inunits = [nd49.variables[cn].units.strip() for cn in coexpr.co_names if cn in nd49.variables]
                 if len(inunits) == 0:
-                    warn("Cannot evaluate any parts of '%s' = '%s'" % (vark, expr))
-                    continue
-                inC = dict([(cn, nd49.variables[cn].carbon) for cn in coexpr.co_names if cn in nd49.variables])
-                inkgpermole = dict([(cn, nd49.variables[cn].kgpermole) for cn in coexpr.co_names if cn in nd49.variables])
-                def conv(matcho):
-                    found = {}
-                    found.update(matcho.groupdict())
-                    spc = found['spc']
-                    if spc not in nd49.variables:
-                        return spc
-                    found['carbon'] = inC[spc]
-                    found['kgpermole'] = inkgpermole[spc]
-                    if 'micrograms' in ounit:
-                        out =  '%(spc)s[:] / %(carbon)f * %(kgpermole)f' % found
-                    elif found['carbon'] == 1.:
-                        out =  '%(spc)s[:]' % found
-                    else:
-                        out =  '%(spc)s[:] / %(carbon)f' % found
-                    return out
-                for cn in coexpr.co_names:
-                    expr = re.compile(r'(?P<spc>\b' + cn + r'\b)').sub(conv, expr)
+                    warn("Cannot evaluate any parts of '%s' = '%s'; using default file" % (vark, expr))
+                    oldkeys.append(vark)
+                    minout = getdefault(oldcon, vark, noutstep)
+                else:
+                    inC = dict([(cn, nd49.variables[cn].carbon) for cn in coexpr.co_names if cn in nd49.variables])
+                    inkgpermole = dict([(cn, nd49.variables[cn].kgpermole) for cn in coexpr.co_names if cn in nd49.variables])
+                    def conv(matcho):
+                        found = {}
+                        found.update(matcho.groupdict())
+                        spc = found['spc']
+                        if spc not in nd49.variables:
+                            return spc
+                        found['carbon'] = inC[spc]
+                        found['kgpermole'] = inkgpermole[spc]
+                        if 'micrograms' in ounit:
+                            out =  '%(spc)s[:] / %(carbon)f * %(kgpermole)f' % found
+                        elif found['carbon'] == 1.:
+                            out =  '%(spc)s[:]' % found
+                        else:
+                            out =  '%(spc)s[:] / %(carbon)f' % found
+                        return out
+                    for cn in coexpr.co_names:
+                        expr = re.compile(r'(?P<spc>\b' + cn + r'\b)').sub(conv, expr)
             
-                inunit = inunits[0]
-                manual_unit = mappings[vark].get('manual_unit', False)
-                ounit = ounit.strip()
-                if args.verbose:
-                    sys.stdout.write('\n%s %s\n' % (expr, ounit))
-                    sys.stdout.flush()
-                out = np.zeros((noutstep,) + varo[:].shape[1:], dtype = 'f')
-                for ndi, nd49 in enumerate(regridded_nd49):
-                    if not (ounit == varo.units.strip()):
-                        sys.stdout.write('\n%s %s %s\n' % (vark, varo.units.strip(), ounit))
+                    inunit = inunits[0]
+                    manual_unit = mappings[vark].get('manual_unit', False)
+                    ounit = ounit.strip()
+                    if args.verbose:
+                        sys.stdout.write('\n%s %s\n' % (expr, ounit))
                         sys.stdout.flush()
-                    try:
-                        temp_val = eval(expr, None, nd49.variables)[:]
-                    except:
-                        warn("Cannot evaluate part of '%s' = '%s'" % (vark, expr))
-                        continue
-                    if manual_unit:
-                        pass
-                    else:
-                        assert((np.array(inunits) == inunit).all())
-                        if inunit == ounit:
+                    out = np.zeros((noutstep,) + varo[:].shape[1:], dtype = 'f')
+                    for ndi, nd49 in enumerate(regridded_nd49):
+                        if not (ounit == varo.units.strip()):
+                            sys.stdout.write('\n%s %s %s\n' % (vark, varo.units.strip(), ounit))
+                            sys.stdout.flush()
+                        try:
+                            temp_val = eval(expr, None, nd49.variables)[:]
+                        except:
+                            warn("Cannot evaluate part of '%s' = '%s'" % (vark, expr))
+                            oldkeys.append(vark)
+                            out = getdefault(oldcon, vark, noutstep)
+                            break
+                    
+                        if manual_unit:
                             pass
-                        elif ounit == 'ppmV' and inunit in ('ppbv', 'ppbC'):
-                            # ppbC has automatically been converted to ppbv
-                            temp_val *= 1e-3
-                        elif ounit == 'micrograms/m**3' and inunit == 'ppbv':
-                            airmolden = eval(mappings_file['AIRMOLDEN']['expression'], None, nd49.variables)
-                            temp_val *= airmolden
                         else:
-                            raise ValueError('Error: in unit/outunit combo unknown: "%s", "%s"' % (inunit, ounit))
-                    toff
-                    oldrm = 0
-                    for ti, temp_hour in enumerate(temp_val):
-                        if args.sigmaeta:
-                            rpress = ((nd49.variables['etam_pressure'] - newcon.VGTOP / 100) / (1013.25 - newcon.VGTOP / 100))
-                            while rpress.ndim < out[0].ndim:
-                                rpress = np.expand_dims(rpress, -1)
-                            rpress = rpress * np.ones((rpress.shape[0],) + out[0, 0].shape, dtype = 'f')
-                        else:
-                            cpress = cpressv[ti, :]
-                            cpress = cpress.reshape(cpress.shape[0], -1)
-                            assert((np.diff(cpress, axis = 0).mean(1) < 0).all())
-                            rpressv = eval(mappings_file['PRESS']['expression'], None, nd49.variables)
-                            if mappings_file['PRESS']['outunit'] == 'Pa':
-                                rpress = rpressv[ti,:]
-                            elif mappings_file['PRESS']['outunit'] == 'hPa':
-                                rpress = rpressv[ti,:] * 100
+                            assert((np.array(inunits) == inunit).all())
+                            if inunit == ounit:
+                                pass
+                            elif ounit == 'ppmV' and inunit in ('ppbv', 'ppbC'):
+                                # ppbC has automatically been converted to ppbv
+                                temp_val *= 1e-3
+                            elif ounit == 'micrograms/m**3' and inunit == 'ppbv':
+                                airmolden = eval(mappings_file['AIRMOLDEN']['expression'], None, nd49.variables)
+                                temp_val *= airmolden
                             else:
-                                warn("Assuming pressure is Pa, but got %s" % mappings_file['PSURF']['outunit'])
-                            rpress = rpress.reshape(rpress.shape[0], cpress.shape[1])
-                            assert((np.diff(rpress, axis = 0).mean(1) < 0).all())
+                                raise ValueError('Error: in unit/outunit combo unknown: "%s", "%s"' % (inunit, ounit))
+                        toff
+                        oldrm = 0
+                        for ti, temp_hour in enumerate(temp_val):
+                            if args.sigmaeta:
+                                rpress = ((nd49.variables['etam_pressure'] - newcon.VGTOP / 100) / (1013.25 - newcon.VGTOP / 100))
+                                while rpress.ndim < out[0].ndim:
+                                    rpress = np.expand_dims(rpress, -1)
+                                rpress = rpress * np.ones((rpress.shape[0],) + out[0, 0].shape, dtype = 'f')
+                            else:
+                                cpress = cpressv[ti, :]
+                                cpress = cpress.reshape(cpress.shape[0], -1)
+                                assert((np.diff(cpress, axis = 0).mean(1) < 0).all())
+                                rpressv = eval(mappings_file['PRESS']['expression'], None, nd49.variables)
+                                if mappings_file['PRESS']['outunit'] == 'Pa':
+                                    rpress = rpressv[ti,:]
+                                elif mappings_file['PRESS']['outunit'] == 'hPa':
+                                    rpress = rpressv[ti,:] * 100
+                                else:
+                                    warn("Assuming pressure is Pa, but got %s" % mappings_file['PSURF']['outunit'])
+                                rpress = rpress.reshape(rpress.shape[0], cpress.shape[1])
+                                assert((np.diff(rpress, axis = 0).mean(1) < 0).all())
                         
-                        if args.sigmaeta:
-                            while cpress.ndim < out[0].ndim:
-                                cpress = np.expand_dims(cpress, -1)
-                            cpress = cpress * np.ones_like(out[0])
+                            if args.sigmaeta:
+                                while cpress.ndim < out[0].ndim:
+                                    cpress = np.expand_dims(cpress, -1)
+                                cpress = cpress * np.ones_like(out[0])
                         
-                        outvals = np.zeros(cpress.shape, dtype = 'f')
-                        for pi, (cp, rp, column) in enumerate(zip(cpress.T, rpress.T, temp_hour.T)):
-                            outvals[:, pi] = np.interp(cp[::-1], rp[::-1], column[::-1])[::-1]
-                        out[toff + ti, :, :] = outvals.reshape(*out.shape[1:])
-                    toff = toff + ti + 1
-                if args.verbose:
-                    sys.stdout.write('\n%s %.5e %.5e %.5e %.5e %.5e\n' % tuple(['Raw'] + np.percentile(out, [0, 25, 50, 75, 100]).tolist()))
-                    sys.stdout.flush()
-                minout = np.maximum(out, minval)
-                if args.verbose:
-                    sys.stdout.write('\n%s %.5e %.5e %.5e %.5e %.5e\n' % tuple(['Min'] + np.percentile(minout, [0, 25, 50, 75, 100]).tolist()))
-                    sys.stdout.flush()
-
-                varo[0:minout.shape[0], :, :] = minout[:]
+                            outvals = np.zeros(cpress.shape, dtype = 'f')
+                            for pi, (cp, rp, column) in enumerate(zip(cpress.T, rpress.T, temp_hour.T)):
+                                outvals[:, pi] = np.interp(cp[::-1], rp[::-1], column[::-1])[::-1]
+                            out[toff + ti, :, :] = outvals.reshape(*out.shape[1:])
+                        toff = toff + ti + 1
+                    if args.verbose:
+                        sys.stdout.write('\n%s %.5e %.5e %.5e %.5e %.5e\n' % tuple(['Raw'] + np.percentile(out, [0, 25, 50, 75, 100]).tolist()))
+                        sys.stdout.flush()
+                    minout = np.maximum(out, minval)
+                    if args.verbose:
+                        sys.stdout.write('\n%s %.5e %.5e %.5e %.5e %.5e\n' % tuple(['Min'] + np.percentile(minout, [0, 25, 50, 75, 100]).tolist()))
+                        sys.stdout.flush()
             else:
-                varo[0:noutstep, :, :] = np.ma.filled(oldcon.variables[vark][:], 0).repeat(noutstep, 0)
                 oldkeys.append(vark)
+                minout = getdefault(oldcon, vark, noutstep)
+            varo[0:minout.shape[0], :, :] = minout[:]
+
         #varlist = getattr(newcon, 'VAR-LIST')
         #nvars = getattr(newcon, 'NVARS') + len(addedkeys)
         #setattr(newcon, 'VAR-LIST', varlist + ''.join([nk.ljust(16) for nk in addedkeys]))
@@ -2217,7 +2244,7 @@ def makebcon(args):
             if args.tstep is None:
                 try:
                     gtstep = gtime[1] - gtime[0]
-                    args.tstep = gtstep            
+                    args.tstep = gtstep * 10000
                 except IndexError:
                     raise ValueError('Unable to determine timestep from file; use --tstep option to assign manually')
             sdate = datetime.strptime(args.sdate, '%Y-%m-%d %H:%M:%S')
@@ -2245,10 +2272,10 @@ if __name__ == '__main__':
     from PseudoNetCDF.pncparse import getparser, pncparse
     
     parser = getparser(has_ofile = False, plot_options = False, interactive = False)
-    parser.add_argument('--METBDY3D', default = None, type = str, help='path to a MCIP METBDY3D file')
-    parser.add_argument('--METCRO3D', default = None, help='path to a MCIP METCRO3D file')
-    parser.add_argument('--BCON', default = "dummybcon.nc", type = str, help='path to an old BCON file (default dummybcon.nc - created on the fly)')
-    parser.add_argument('--ICON', default = "dummyicon.nc", help='path to an old ICON file')
+    parser.add_argument('--METBDY3D', default = None, type = str, help='path (or PseudoNetCDF commands) to a MCIP METBDY3D file')
+    parser.add_argument('--METCRO3D', default = None, help='path (or PseudoNetCDF commands) to a MCIP METCRO3D file')
+    parser.add_argument('--BCON', default = "dummybcon.nc", type = str, help='path (or PseudoNetCDF commands) to an old BCON file (default dummybcon.nc - created on the fly)')
+    parser.add_argument('--ICON', default = "dummyicon.nc", help='path (or PseudoNetCDF commands) to an old ICON file')
     parser.add_argument('--timeindependent', default = False, action = 'store_true', help = 'Start date/time is any start date time')
     parser.add_argument('-d', '--sdate', default = None, help = 'Start date in YYYY-MM-DD HH:MM:SS format')
     parser.add_argument('--sigmaeta', action = 'store_true', help = 'Use sigma from CMAQ and calculate sigma for GEOS-Chem from pure eta levels for interpolation')
