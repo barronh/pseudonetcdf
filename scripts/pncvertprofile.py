@@ -178,7 +178,10 @@ def plot(ifiles, args):
             var = f.variables[var_name][:]
         if maskzeros: var = np.ma.masked_values(var, 0)
         unit = f.variables[temp.keys()[0]].units.strip()
-        var = unitconvert.get((unit, outunit), lambda x: x)(var)
+        if unit in unitconvert:
+            var = unitconvert.get((unit, outunit), lambda x: x)(var)
+        else:
+            outunit = unit
         bmap = None
         vmin, vmax = np.percentile(np.ma.compressed(var).ravel(), list(minmaxq))
         if minmax[0] is not None:
