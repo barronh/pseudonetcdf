@@ -307,7 +307,7 @@ def getfiles(ipaths, args):
                 else:
                     f = eval(file_format)(ipath, **format_options)
             except Exception, e:
-                raise IOError('Unable to open path with %s(path, **%s)\n\tpath="%s"' % (file_format, str(format_options), ipath))
+                raise IOError('Unable to open path with %s(path, **%s)\n\tpath="%s"\n\terror="%s"' % (file_format, str(format_options), ipath, str(e)))
         else:
             warn('File is type %s, which is unknown' % type(ipath))
             f = ipath
