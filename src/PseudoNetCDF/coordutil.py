@@ -184,7 +184,15 @@ def getlonbnds(ifile):
     elif 'longitude' in ifile.variables:
         lonb = ifile.variables['longitude']
         unit = lonb.units.strip()
-        if lonb.ndim == 2:
+        if lonb.ndim > 1:
+            londiff = np.diff(lonb, axis = 1)
+            alldiffsame = (londiff == londiff[:, [0]]).all()
+        elif lonb.ndim == 1:
+            alldiffsame = True
+            londiff = np.diff(lonb)
+        else:
+            raise ValueError("Cannot infer longitude bounds when dimensions >2")
+        if not alldiffsame:
             londiff = np.diff(lonb, axis = 1)
             if not (londiff == londiff[:, [0]]).all():
                 warn('Longitude bounds are approximate')
