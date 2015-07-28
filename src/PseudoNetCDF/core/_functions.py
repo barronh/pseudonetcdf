@@ -19,6 +19,32 @@ def manglenames(f, translator = _translator):
         outf.variables[nk] = var
     return outf
 
+def removesingleton(f, coordkeys = []):
+    outf = PseudoNetCDFFile()
+    for propkey in f.ncattrs():
+        setattr(outf, propkey, getattr(f, propkey))
+    for dk, d in f.dimensions.iteritems():
+        unlim = d.isunlimited()
+        ni = len(d)
+        if ni != 1:
+            if unlim:
+                outf.createDimension(dk, None)
+            else:
+                outf.createDimension(dk, ni)
+    
+    for vk, v in f.variables.iteritems():
+        dims = tuple([dk for dk in v.dimensions if dk in outf.dimensions])
+        sdims = tuple([dk for dk in enumerate(v.dimensions) if dk[1] not in outf.dimensions])[::-1]
+        ov = outf.createVariable(vk, v.dtype.char, dims)    
+        for pk in v.ncattrs():
+            setattr(ov, pk, getattr(v, pk))
+        outvals = v[...]
+        for di, dk in sdims:
+            outvals = outvals.take(0, axis = di)
+        
+        ov[...] = outvals[...]
+    return outf
+    
 def getvarpnc(f, varkeys, coordkeys = []):
     coordkeys = set(coordkeys)
     if varkeys is None:
@@ -66,8 +92,10 @@ def getvarpnc(f, varkeys, coordkeys = []):
             propd['pvalues'] = propd['values']
             del propd['values']
         if 'name' in propd:
-            if propd['name'] == varkey:
-                del propd['name']
+            if not 'standard_name' in propd:
+                propd['standard_name'] = propd['name']
+            del propd['name']
+        
         outf.createVariable(varkey, var.dtype.char, var.dimensions, values = var[...], **propd)
     for coordkey in coordkeys:
         if coordkey in f.variables.keys():
@@ -687,7 +715,7 @@ def convolve_dim(f, convolve_def):
             outf.variables[vark][:] = values
     return outf
 
-def stack_files(fs, stackdim):
+def stack_files(fs, stackdim, coordkeys = []):
     """
     Create files with dimensions extended by stacking.
     
@@ -711,13 +739,18 @@ def stack_files(fs, stackdim):
     p2p.addDimensions(tmpf, f)
     f.createDimension(stackdim, sum([len(dims[stackdim]) for dims in dimensions]))
     p2p.addGlobalProperties(tmpf, f)
-    for varkey, var in tmpf.variables.iteritems():
-        if not stackdim in var.dimensions:
-            p2p.addVariable(tmpf, f, varkey, data = True)
-        else:
-            axisi = list(var.dimensions).index(stackdim)
-            values = np.ma.concatenate([f_.variables[varkey][:] for f_ in fs], axis = axisi)
-            p2p.addVariable(tmpf, f, varkey, data = False)
-            f.variables[varkey][:] = values
+    for tmpf in fs:
+        for varkey, var in tmpf.variables.iteritems():
+            if not stackdim in var.dimensions:
+                if varkey in f.variables:
+                    if not varkey in coordkeys:
+                        warn('Got duplicate variables for %s without stackable dimension; first value retained' % varkey)
+                else:
+                    p2p.addVariable(tmpf, f, varkey, data = True)
+            else:
+                axisi = list(var.dimensions).index(stackdim)
+                values = np.ma.concatenate([f_.variables[varkey][:] for f_ in fs], axis = axisi)
+                p2p.addVariable(tmpf, f, varkey, data = False)
+                f.variables[varkey][:] = values
         
     return f

@@ -23,7 +23,7 @@ try:
 except:
     pass
 
-from sci_var import reduce_dim, mesh_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr, stack_files, add_attr, convolve_dim, manglenames
+from sci_var import reduce_dim, mesh_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr, stack_files, add_attr, convolve_dim, manglenames, removesingleton
 
 class AggCommaString(Action):
     def __call__(self, parser, namespace, values, option_string=None):
@@ -72,8 +72,9 @@ PseudoNetCDF has many operations and the order often matters. The order is consi
 8. Reduce dimensions (-r --reduce)
 9. Convolve dimensions (-c)
 10. Extract specific coordinates (--extract)
-11. Apply expressions (--expr then --exprscripts)
-12. Apply binary operators (--op_typ)
+11. Remove singleton dimensions (--remove-singleton)
+12. Apply expressions (--expr then --exprscripts)
+13. Apply binary operators (--op_typ)
 
 To impose your own order, use standard options (global options) and then use -- to force positional interpretation of remaining options. In remaining options, use --sep to separate groups of files and options to be evaluated before any global operations."""
     parser.add_argument('ifile', nargs='+', help='path to a file formatted as type -f')
@@ -88,6 +89,8 @@ To impose your own order, use standard options (global options) and then use -- 
     parser.add_argument("--inherit", dest="inherit", action = "store_true", default=False, help = "Allow subparsed sections (separated with -- and --sep) to inherit from global options (-f, --format is always inherited).")
 
     parser.add_argument("--mangle", dest = "mangle", action = "store_true", default = False, help = "Remove non-standard ascii from names")
+    
+    parser.add_argument("--remove-singleton", dest = "removesingleton", type = lambda x: [k for k in x.split() if k != ''], default = False, help = "Remove singleton (length 1) dimensions")
     
     # Only has output file if pncgen is called.
     if has_ofile:
@@ -289,6 +292,8 @@ def subsetfiles(ifiles, args):
             f = convolve_dim(f, opts)
         if len(args.extract) > 0:
             f = extract(f, args.extract, method = args.extractmethod)
+        if args.removesingleton != False:
+            f = removesingleton(f)
         fs.append(f)
     return fs
 
@@ -339,5 +344,5 @@ def getfiles(ipaths, args):
             f = manglenames(f)
         fs.append(f)
     if args.stack is not None:
-        fs = [stack_files(fs, args.stack)]
+        fs = [stack_files(fs, args.stack, coordkeys = args.coordkeys)]
     return fs
