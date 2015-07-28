@@ -83,6 +83,7 @@ def makemap(ifile, options):
                 norm = BoundaryNorm(boundaries, ncolors = 256)
             else:
                 norm = eval(options.normalize)
+                formatter = None
             if not options.colorbarformatter is None:
                 try:
                     formatter = eval(options.colorbarformatter)

@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 Normalize = matplotlib.colors.Normalize
 
 LogNorm = matplotlib.colors.LogNorm
+SymLogNorm = matplotlib.colors.SymLogNorm
 BoundaryNorm = matplotlib.colors.BoundaryNorm
 
 LogFormatter = matplotlib.ticker.LogFormatter
@@ -49,6 +50,7 @@ def make2d(ifile, options):
                 norm = BoundaryNorm(boundaries, ncolors = 256)
             else:
                 norm = eval(options.normalize)
+                formatter = None
             if not options.colorbarformatter is None:
                 try:
                     formatter = eval(options.colorbarformatter)
@@ -59,9 +61,16 @@ def make2d(ifile, options):
             vmin, vmax = norm.vmin, norm.vmax
             varunit = getattr(var, 'units', 'unknown').strip()
             print varkey,
-            patches = ax.pcolor(vals, norm = norm)
-            ax.set_xlabel(var.dimensions[1])
-            ax.set_ylabel(var.dimensions[0])
+            del ax.collections[nborders:]
+            if options.swapaxes:
+                patches = ax.pcolor(vals.T, norm = norm)
+                ax.set_xlabel(var.dimensions[0])
+                ax.set_ylabel(var.dimensions[1]) 
+            else:
+                patches = ax.pcolor(vals, norm = norm)
+                ax.set_xlabel(var.dimensions[1])
+                ax.set_ylabel(var.dimensions[0])
+
             height = vals.shape[0]
             width = vals.shape[1]
             if width >= height:
@@ -90,7 +99,7 @@ def make2d(ifile, options):
 #            else:
 #                cbar.ax.text(1.05, .5, ' %.3g' % var[:].max(), verticalalignment = 'center', horizontalalignment = 'left')
 #                cbar.ax.text(-.06, .5, '%.3g ' % var[:].min(), verticalalignment = 'center', horizontalalignment = 'right')
-            cbar.update_ticks()
+            #cbar.update_ticks()
             fmt = 'png'
             outpath = options.outpath
             if len(ifiles) > 1:
@@ -105,5 +114,8 @@ def make2d(ifile, options):
             print 'Saved fig', figpath
         
 if __name__ == '__main__':
-    ifiles, options = pncparse(has_ofile = True, plot_options = True, interactive = True)
+    from PseudoNetCDF.pncparse import pncparse, getparser
+    parser = getparser(has_ofile = True, plot_options = True, interactive = True)
+    parser.add_argument('--swapaxes', action = 'store_true', help = 'Swap x-y axes')
+    ifiles, options = pncparse(has_ofile = True, plot_options = True, interactive = True, parser = parser)
     make2d(ifiles, options)
