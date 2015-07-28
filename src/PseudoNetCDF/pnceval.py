@@ -262,11 +262,10 @@ def E1(obs, mod, axis = None):
 
 def IOA(obs, mod, axis = None):
     """ Index of Agreement, IOA"""
-    obsmean = obs.mean(axis)
+    obsmean = obs.mean(axis = axis)
     if not axis is None:
         obsmean = np.expand_dims(obsmean, axis = axis)
-    
-    return 1.0 - (np.ma.abs(obs-mod)**2).sum(axis = axis)/((np.ma.abs(mod-obs.mean(axis = axis))+np.ma.abs(obs-obs.mean(axis = axis)))**2).sum(axis = axis)
+    return 1.0 - (np.ma.abs(obs-mod)**2).sum(axis = axis)/((np.ma.abs(mod-obsmean)+np.ma.abs(obs-obsmean))**2).sum(axis = axis)
 
 def circlebias(b):
     b = np.ma.where(b > 180, b - 360, b)
@@ -275,7 +274,7 @@ def circlebias(b):
 
 def WDIOA(obs, mod, axis = None):
     """ Wind Direction Index of Agreement, IOA"""
-    obsmean = obs.mean(axis)
+    obsmean = obs.mean(axis = axis)
     if not axis is None:
         obsmean = np.expand_dims(obsmean, axis = axis)
     b = circlebias(mod - obs)
@@ -290,7 +289,7 @@ def AC(obs, mod, axis = None):
     """ Anomaly Correlation """
     obs_bar = obs.mean(axis = axis)
     if not axis is None:
-        obs_var = np.expand_dims(obs_var, axis = axis)
+        obs_bar = np.expand_dims(obs_bar, axis = axis)
     p1 = ((mod - obs_bar) * (obs - obs_bar)).sum(axis = axis)
     p2 = (((mod - obs_bar)**2).sum(axis = axis) * ((obs - obs_bar)**2).sum(axis = axis))**0.5
     return p1 / p2
@@ -299,7 +298,7 @@ def WDAC(obs, mod, axis = None):
     """ Wind Direction Anomaly Correlation """
     obs_bar = obs.mean(axis = axis)
     if not axis is None:
-        obs_var = np.expand_dims(obs_var, axis = axis)
+        obs_bar = np.expand_dims(obs_bar, axis = axis)
     p1 = (circlebias(mod - obs_bar) * circlebias(obs - obs_bar)).sum(axis = axis)
     p2 = ((circlebias(mod - obs_bar)**2).sum(axis = axis) * (circlebias(obs - obs_bar)**2).sum(axis = axis))**0.5
     return p1 / p2
@@ -366,20 +365,27 @@ def main():
     from warnings import warn
     from pncparse import pncparse
     from PseudoNetCDF.core._functions import pncfunc, pncbfunc
+    from PseudoNetCDF.pncparse import getparser, pncparse
+
+    parser = getparser(has_ofile = False, plot_options = False, interactive = True)
+    parser.add_argument('--funcs', default = __all__, type = lambda x: x.split(','), help='Functions to evaluate split by , (default: %s)' % ','.join(__all__))
+
     import numpy as np
     np.seterr(divide = 'ignore', invalid = 'ignore')
-    ifiles, options = pncparse(has_ofile = False)
+    ifiles, options = pncparse(has_ofile = False, interactive = True, parser = parser)
+    if options.variables is None:
+        options.variables = set(ifiles[0].variables.keys()).difference(options.coordkeys)
     console = createconsole(ifiles, options)
     warn("Assumes input order is obs model")
     ifile1, ifile2 = ifiles
-    for k in __all__:
+    for k in options.funcs:
         console.locals[k] = func = eval(k)
         console.locals[k+'_f'] = ofile = pncbfunc(func, ifile1, ifile2)
         times = ifile1.variables['time']
         tstart = times[:].min()
         tstop = times[:].max()
         dt = tstop - tstart
-        for vk in ofile.variables.keys():
+        for vk in options.variables:
             if vk in ('time', 'TFLAG'): continue
             print '%.2f,%.2f,%.2f,%s,%s,%s,%f' % (tstart, tstop, dt, vk, func.__doc__.strip(), k, ofile.variables[vk].ravel()[0])
     np.seterr(divide = 'warn', invalid = 'warn')
