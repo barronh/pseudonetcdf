@@ -575,7 +575,7 @@ def pncbfunc(func, ifile1, ifile2, coordkeys = [], verbose = False):
             warn('%s not found in ifile2' % k)
             continue
         in2var = ifile2.variables[k]
-        outval = np.ma.filled(np.ma.masked_invalid(func(in1var[:], in2var[:])), -999)
+        outval = np.ma.filled(np.ma.masked_invalid(func(in1var[...], in2var[...])), -999)
         if outvar.ndim > 0:
             outvar[:] = outval
         else:
