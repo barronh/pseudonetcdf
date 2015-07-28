@@ -20,6 +20,77 @@ from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
 from PseudoNetCDF.pncgen import pncgen
 from PseudoNetCDF.geoschemfiles import bpch
 
+def makedefaulticon(metcroprops):
+    DI = Dataset('dummyicon.nc', 'w', format = 'NETCDF3_CLASSIC')
+    DI.createDimension('TSTEP', None)
+    DI.createDimension('DATE-TIME', 2) ;
+    DI.createDimension('VAR', 106) ;
+    DI.createDimension('LAY', metcroprops['NLAYS']) ;
+    DI.createDimension('ROW', metcroprops['NROWS']);
+    DI.createDimension('COL', metcroprops['NCOLS']) ;
+
+    TFLAG = DI.createVariable('TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME')) ;
+    TFLAG.units = "<YYYYDDD,HHMMSS>" ;
+    TFLAG.long_name = "TFLAG           " ;
+    TFLAG.var_desc = "Timestep-valid flags:  (1) YYYYDDD or (2) HHMMSS                                " ;
+    AIRDEN = DI.createVariable('AIRDEN', 'f', ('TSTEP', 'LAY', 'ROW', 'COL')) ;
+    AIRDEN.long_name = "AIRDEN          " ;
+    AIRDEN.units = "molec/cm3       " ;
+    AIRDEN.coordinates = "lon lat" ;
+    AIRDEN.var_desc = "AIRDEN          " ;
+
+    GCLIST = "NO2 NO O3 NO3 OH HO2 N2O5 HNO3 HONO PNA H2O2 NTR ROOH FORM ALD2 PAR CO MEPX FACD C2O3 PAN PACD AACD PANX OLE ETH IOLE TOL CRES OPEN MGLY XYL ISOP SO2 SULF ETHA BENZENE ISPD ALDX NH3 SV_XYL1 SV_XYL2 SV_TOL1 SV_TOL2 SV_BNZ1 SV_BNZ2 SV_TRP1 SV_TRP2 SV_ISO1 SV_ISO2 SV_SQT SV_ALK".split()
+    AELIST = "ASO4J ASO4I AALKJ AXYL1J AXYL2J AXYL3J ATOL1J ATOL2J ATOL3J ABNZ1J ABNZ2J ABNZ3J ATRP1J ATRP2J AISO1J AISO2J ASQTJ ACORS ASOIL AISO3J AOLGAJ AOLGBJ AMGJ ACAJ ANH4J AFEJ ACLK APNCOMI AMNJ APNCOMJ ANO3I ANO3J ANO3K ASIJ AECJ AOTHRJ ANH4I ATIJ AKJ ASEACAT ASO4K AALJ ANAJ APOCJ APOCI AECI ACLJ".split()
+    NMLIST  = "NUMATKN NUMACC NUMCOR".split()
+    SFLIST = "SRFATKN SRFACC SRFCOR".split()
+    varkey_unit = [(i, 'ppmV') for i in GCLIST] + [(i, 'micrograms/m**3') for i in AELIST] + [(i, '#/m**3') for i in NMLIST] + [(i, 'm**2/m**3') for i in SFLIST]
+    for varkey, unit in varkey_unit:
+        var = DI.createVariable(varkey, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'))
+        var.long_name = varkey.ljust(16);
+        var.units = unit.ljust(16);
+        var.coordinates = "lon lat" ;
+        var.var_desc = ("Variable %s" % varkey).ljust(80);
+    
+    for varkey, unit in varkey_unit:
+        DI.variables[varkey][0] = 1e-32;
+    
+    TFLAG[0] = 0
+    DI.IOAPI_VERSION = "$Id: @(#) ioapi library version 3.1 $".ljust(80);
+    DI.EXEC_ID = "BCON_V5g_Darwin13_x86_64gfortran ".ljust(80);
+    DI.FTYPE = 2 ;
+    DI.CDATE = 2014031 ;
+    DI.CTIME = 230334 ;
+    DI.WDATE = 2014031 ;
+    DI.WTIME = 230334 ;
+    DI.SDATE = np.int32(metcroprops['SDATE']) ;
+    DI.STIME = np.int32(metcroprops['STIME']) ;
+    DI.TSTEP = np.int32(metcroprops['TSTEP']) ;
+    DI.NTHIK = 1 ;
+    DI.NCOLS = np.int32(metcroprops['NCOLS']) ;
+    DI.NROWS = np.int32(metcroprops['NROWS']) ;
+    DI.NLAYS = np.int32(metcroprops['NLAYS']) ;
+    DI.NVARS = 106 ;
+    DI.GDTYP = np.int32(metcroprops['GDTYP']) ;
+    DI.P_ALP = np.float32(metcroprops['P_ALP']) ;
+    DI.P_BET = np.float32(metcroprops['P_BET']) ;
+    DI.P_GAM = np.float32(metcroprops['P_GAM']) ;
+    DI.XCENT = np.float32(metcroprops['XCENT']) ;
+    DI.YCENT = np.float32(metcroprops['YCENT']) ;
+    DI.XORIG = np.float32(metcroprops['XORIG']) ;
+    DI.YORIG = np.float32(metcroprops['YORIG']) ;
+    DI.XCELL = np.float32(metcroprops['XCELL']) ;
+    DI.YCELL = np.float32(metcroprops['YCELL']) ;
+    DI.VGTYP = 7 ;
+    DI.VGTOP = np.float32(metcroprops['VGTOP']) ;
+    DI.VGLVLS = np.asarray(metcroprops['VGLVLS'], dtype = np.float32) ;
+    DI.GDNAM = metcroprops['GDNAM'].ljust(16) ;
+    DI.UPNAM = metcroprops['UPNAM'].ljust(16) ;
+    setattr(DI, 'VAR-LIST', ''.join([i.ljust(16) for i in GCLIST + AELIST + SFLIST + NMLIST + ["AIRDEN"]]));
+    DI.FILEDESC = "ICON output file IC_CONC_1".ljust(80)
+    DI.HISTORY = "" ;
+    DI.sync()
+    return DI
+
 def geticoncdl():
     return """netcdf DEFAULT_ICON {
 dimensions:
@@ -593,14 +664,80 @@ variables:
 		:YCELL = %(YCELL)f ;
 		:VGTYP = 7 ;
 		:VGTOP = %(VGTOP)f ;
-		:VGLVLS = %(VGLVLS)s ;
+		:VGLVLS = %(VGLVLSCDL)s ;
 		:GDNAM = "%(GDNAM)16s" ;
 		:UPNAM = "%(UPNAM)16s" ;
 		:VAR-LIST = "NO2             NO              O3              NO3             OH              HO2             N2O5            HNO3            HONO            PNA             H2O2            NTR             ROOH            FORM            ALD2            PAR             CO              MEPX            FACD            C2O3            PAN             PACD            AACD            PANX            OLE             ETH             IOLE            TOL             CRES            OPEN            MGLY            XYL             ISOP            SO2             SULF            ETHA            BENZENE         ASO4J           ASO4I           AALKJ           AXYL1J          AXYL2J          AXYL3J          ATOL1J          ATOL2J          ATOL3J          ABNZ1J          ABNZ2J          ABNZ3J          ATRP1J          ATRP2J          AISO1J          AISO2J          ASQTJ           ACORS           ASOIL           NUMATKN         NUMACC          NUMCOR          SRFATKN         SRFACC          SRFCOR          AISO3J          AOLGAJ          AOLGBJ          NH3             SV_ALK          SV_XYL1         SV_XYL2         SV_TOL1         SV_TOL2         SV_BNZ1         SV_BNZ2         SV_TRP1         SV_TRP2         SV_ISO1         SV_ISO2         SV_SQT          AMGJ            ACAJ            ANH4J           AFEJ            ACLK            APNCOMI         AMNJ            APNCOMJ         AIRDEN          ANO3I           ANO3J           ANO3K           ASIJ            AECJ            AOTHRJ          ANH4I           ATIJ            AKJ             ASEACAT         ASO4K           ISPD            ALDX            AALJ            ANAJ            APOCJ           APOCI           AECI            ACLJ            " ;
-		:FILEDESC = "BCON output file BNDY_CONC_1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    " ;
+		:FILEDESC = "ICON output file IC_CONC_1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    " ;
 		:HISTORY = "" ;
 }
 """
+
+def makedefaultbcon(metbdyprops):
+    DB = Dataset('dummybcon.nc', 'w', format = 'NETCDF3_CLASSIC')
+    DB.createDimension('TSTEP', None)
+    DB.createDimension('DATE-TIME', 2) ;
+    DB.createDimension('VAR', 78) ;
+    DB.createDimension('LAY', metbdyprops['NLAYS']) ;
+    DB.createDimension('PERIM', metbdyprops['PERIM']) ;
+
+    TFLAG = DB.createVariable('TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME')) ;
+    TFLAG.units = "<YYYYDDD,HHMMSS>" ;
+    TFLAG.long_name = "TFLAG           " ;
+    TFLAG.var_desc = "Timestep-valid flags:  (1) YYYYDDD or (2) HHMMSS                                " ;
+    GCLIST = "NO2 NO O3 NO3 OH HO2 N2O5 HNO3 HONO PNA H2O2 NTR ROOH FORM ALD2 PAR CO MEPX FACD C2O3 PAN PACD AACD PANX OLE ETH IOLE TOL CRES OPEN MGLY XYL ISOP SO2 SULF ETHA BENZENE NH3 SV_ALK SV_XYL1 SV_XYL2 SV_TOL1 SV_TOL2 SV_BNZ1 SV_BNZ2 SV_TRP1 SV_TRP2 SV_ISO1 SV_ISO2 SV_SQT".split()
+
+    AELIST = "ASO4J ASO4I AALKJ AXYL1J AXYL2J AXYL3J ATOL1J ATOL2J ATOL3J ABNZ1J ABNZ2J ABNZ3J ATRP1J ATRP2J AISO1J AISO2J ASQTJ ACORS ASOIL AISO3J AOLGAJ          AOLGBJ".split()
+    NMLIST  = "NUMATKN NUMACC NUMCOR".split()
+    SFLIST = "SRFATKN SRFACC SRFCOR".split()
+    varkey_unit = [(i, 'ppmV') for i in GCLIST] + [(i, 'micrograms/m**3') for i in AELIST] + [(i, '#/m**3') for i in NMLIST] + [(i, 'm**2/m**3') for i in SFLIST]
+    for varkey, unit in varkey_unit:
+        var = DB.createVariable(varkey, 'f', ('TSTEP', 'LAY', 'PERIM'))
+        var.long_name = varkey.ljust(16);
+        var.units = unit.ljust(16);
+        var.coordinates = "lon lat" ;
+        var.var_desc = ("Variable %s" % varkey).ljust(80);
+    
+    for varkey, unit in varkey_unit:
+        DB.variables[varkey][0] = 1e-32;
+    
+    TFLAG[0] = 0
+    DB.IOAPI_VERSION = "$Id: @(#) ioapi library version 3.1 $".ljust(80);
+    DB.EXEC_ID = "BCON_V5g_Darwin13_x86_64gfortran ".ljust(80);
+    DB.FTYPE = 2 ;
+    DB.CDATE = 2014031 ;
+    DB.CTIME = 230334 ;
+    DB.WDATE = 2014031 ;
+    DB.WTIME = 230334 ;
+    DB.SDATE = np.int32(metbdyprops['SDATE']) ;
+    DB.STIME = np.int32(metbdyprops['STIME']) ;
+    DB.TSTEP = np.int32(metbdyprops['TSTEP']) ;
+    DB.NTHIK = 1 ;
+    DB.NCOLS = np.int32(metbdyprops['NCOLS']) ;
+    DB.NROWS = np.int32(metbdyprops['NROWS']) ;
+    DB.NLAYS = np.int32(metbdyprops['NLAYS']) ;
+    DB.NVARS = 78 ;
+    DB.GDTYP = np.int32(metbdyprops['GDTYP']) ;
+    DB.P_ALP = np.float32(metbdyprops['P_ALP']) ;
+    DB.P_BET = np.float32(metbdyprops['P_BET']) ;
+    DB.P_GAM = np.float32(metbdyprops['P_GAM']) ;
+    DB.XCENT = np.float32(metbdyprops['XCENT']) ;
+    DB.YCENT = np.float32(metbdyprops['YCENT']) ;
+    DB.XORIG = np.float32(metbdyprops['XORIG']) ;
+    DB.YORIG = np.float32(metbdyprops['YORIG']) ;
+    DB.XCELL = np.float32(metbdyprops['XCELL']) ;
+    DB.YCELL = np.float32(metbdyprops['YCELL']) ;
+    DB.VGTYP = 7 ;
+    DB.VGTOP = np.float32(metbdyprops['VGTOP']) ;
+    DB.VGLVLS = np.asarray(metbdyprops['VGLVLS'], dtype = np.float32) ;
+    DB.GDNAM = metbdyprops['GDNAM'].ljust(16) ;
+    DB.UPNAM = metbdyprops['UPNAM'].ljust(16) ;
+    setattr(DB, 'VAR-LIST', ''.join([i.ljust(16) for i in GCLIST + AELIST + SFLIST + NMLIST + ["AIRDEN"]]));
+    DB.FILEDESC = "BCON output file BNDY_CONC_1".ljust(80)
+    DB.HISTORY = "" ;
+    DB.sync()
+    return DB
+
 def getbconcdl():
     return """netcdf BCON_V5g_CMAQ-BENCHMARK_profile {
 dimensions:
@@ -955,7 +1092,7 @@ variables:
 		:YCELL = %(YCELL)f ;
 		:VGTYP = 7 ;
 		:VGTOP = %(VGTOP)f ;
-		:VGLVLS = %(VGLVLS)s ;
+		:VGLVLS = %(VGLVLSCDL)s ;
 		:GDNAM = "%(GDNAM)16s" ;
 		:UPNAM = "%(UPNAM)16s" ;
 		:VAR-LIST = "NO2             NO              O3              NO3             OH              HO2             N2O5            HNO3            HONO            PNA             H2O2            NTR             ROOH            FORM            ALD2            PAR             CO              MEPX            FACD            C2O3            PAN             PACD            AACD            PANX            OLE             ETH             IOLE            TOL             CRES            OPEN            MGLY            XYL             ISOP            SO2             SULF            ETHA            BENZENE         ASO4J           ASO4I           AALKJ           AXYL1J          AXYL2J          AXYL3J          ATOL1J          ATOL2J          ATOL3J          ABNZ1J          ABNZ2J          ABNZ3J          ATRP1J          ATRP2J          AISO1J          AISO2J          ASQTJ           ACORS           ASOIL           NUMATKN         NUMACC          NUMCOR          SRFATKN         SRFACC          SRFCOR          AISO3J          AOLGAJ          AOLGBJ          NH3             SV_ALK          SV_XYL1         SV_XYL2         SV_TOL1         SV_TOL2         SV_BNZ1         SV_BNZ2         SV_TRP1         SV_TRP2         SV_ISO1         SV_ISO2         SV_SQT          " ;
@@ -1969,7 +2106,7 @@ def getdefault(oldcon, vark, noutstep):
     return defval
 
 
-def makebcon(args):
+def makeibcon(args):
     global messages
     messages += ' '.join(sys.argv[:]) + '\n'
     mappings_file = json.load(file(args.mapping, mode = 'r'))
@@ -1994,20 +2131,23 @@ def makebcon(args):
         
 
         metbdyprops = dict([(propk, getattr(metbdy, propk)) for propk in metbdy.ncattrs()])
-        metbdyprops['VGLVLS'] = 'f, '.join(['%f' % vgl for vgl in metbdyprops['VGLVLS']]) + 'f'
+        metbdyprops['VGLVLSCDL'] = 'f, '.join(['%f' % vgl for vgl in metbdyprops['VGLVLS']]) + 'f'
         metbdyprops['PERIM'] = len(metbdy.dimensions['PERIM'])
         metbdyprops['GDTYP'] = metbdy.GDTYP
 
         if args.BCON == 'dummybcon.nc':
-            bcontmp = file('bcon.cdl.tmp', 'w')
-            bcontmp.write(getbconcdl() % metbdyprops)
-            bcontmp.close()
-            os.system("ncgen -o dummybcon.nc bcon.cdl.tmp")
-            args.BCON = 'dummybcon.nc'
-            oldbcon = Dataset(args.BCON, 'r+')
-            oldbcon.variables['TFLAG'][0] = 0  
-            for k, v in oldbcon.variables.iteritems():
-                v[0] = 1e-32      
+            if args.withnco:
+                bcontmp = file('bcon.cdl.tmp', 'w')
+                bcontmp.write(getbconcdl() % metbdyprops)
+                bcontmp.close()
+                os.system("ncgen -o dummybcon.nc bcon.cdl.tmp")
+                oldbcon = Dataset(args.BCON, 'r+')
+                oldbcon.variables['TFLAG'][0] = 0  
+                for k, v in oldbcon.variables.iteritems():
+                    v[0] = 1e-32      
+                oldbcon.sync()
+            else:
+                oldbcon = makedefaultbcon(metbdyprops)
         else:
             bconfiles, bconargs = pncparse(has_ofile = False, plot_options = False, interactive = False, args = args.BCON.split(' '), parser = None)
             oldbcon = bconfiles[0]
@@ -2041,16 +2181,21 @@ def makebcon(args):
         regridded_nd49_cro = makeregriddedcro(metcro, args, spcs)
         metcroprops = metbdyprops.copy()
         metcroprops['GDTYP'] = metcro.GDTYP
+
         if args.ICON == 'dummyicon.nc':
-            icontmp = file('icon.cdl.tmp', 'w')
-            icontmp.write(geticoncdl() % metcroprops)
-            icontmp.close()
-            os.system("ncgen -o dummyicon.nc icon.cdl.tmp")
-            args.ICON = 'dummyicon.nc'
-            oldicon = Dataset(args.ICON, 'r+')
-            oldicon.variables['TFLAG'][0] = 0        
-            for k, v in oldicon.variables.iteritems():
-                v[0] = 1e-32
+            if args.withnco:
+                icontmp = file('icon.cdl.tmp', 'w')
+                icontmp.write(geticoncdl() % metcroprops)
+                icontmp.close()
+                os.system("ncgen -o dummyicon.nc icon.cdl.tmp")
+                args.ICON = 'dummyicon.nc'
+                oldicon = Dataset(args.ICON, 'r+')
+                oldicon.variables['TFLAG'][0] = 0        
+                for k, v in oldicon.variables.iteritems():
+                    v[0] = 1e-32
+                oldicon.sync()
+            else:
+                oldicon = makedefaulticon(metcroprops)
         else:
             iconfiles, iconargs = pncparse(has_ofile = False, plot_options = False, interactive = False, args = args.ICON.split(' '), parser = None)
             oldicon = iconfiles[0]
@@ -2272,15 +2417,16 @@ if __name__ == '__main__':
     from PseudoNetCDF.pncparse import getparser, pncparse
     
     parser = getparser(has_ofile = False, plot_options = False, interactive = False)
-    parser.add_argument('--METBDY3D', default = None, type = str, help='path (or PseudoNetCDF commands) to a MCIP METBDY3D file')
-    parser.add_argument('--METCRO3D', default = None, help='path (or PseudoNetCDF commands) to a MCIP METCRO3D file')
+    parser.add_argument('--verbose', action = 'store_true', default = False, help = 'Add more printing details')
+    parser.add_argument('--withnco', action = 'store_true', dest = 'withnco', default = False, help = 'Use NCO to make dummy BCON/ICON.')
     parser.add_argument('--BCON', default = "dummybcon.nc", type = str, help='path (or PseudoNetCDF commands) to an old BCON file (default dummybcon.nc - created on the fly)')
     parser.add_argument('--ICON', default = "dummyicon.nc", help='path (or PseudoNetCDF commands) to an old ICON file')
+    parser.add_argument('--persist', dest = 'persistintermediate', action = 'store_true', default = False, help = 'Save interpolated files (may have speed benefits)')
+    parser.add_argument('--sigmaeta', action = 'store_true', help = 'Use sigma from CMAQ and calculate sigma for GEOS-Chem from pure eta levels for interpolation')
     parser.add_argument('--timeindependent', default = False, action = 'store_true', help = 'Start date/time is any start date time')
     parser.add_argument('-d', '--sdate', default = None, help = 'Start date in YYYY-MM-DD HH:MM:SS format')
-    parser.add_argument('--sigmaeta', action = 'store_true', help = 'Use sigma from CMAQ and calculate sigma for GEOS-Chem from pure eta levels for interpolation')
-    parser.add_argument('--verbose', action = 'store_true', default = False, help = 'Add more printing details')
-    parser.add_argument('--persist', dest = 'persistintermediate', action = 'store_true', default = False, help = 'Save interpolated files (may have speed benefits)')
+    parser.add_argument('--METBDY3D', default = None, type = str, help='path (or PseudoNetCDF commands) to a MCIP METBDY3D file')
+    parser.add_argument('--METCRO3D', default = None, help='path (or PseudoNetCDF commands) to a MCIP METCRO3D file')
     parser.add_argument('--tstep', default = None, help = 'Time increment between ND49 files')
     parser.add_argument('--mapping', default = 'mappings.json', help = 'Path to mappings file (i.e., json formatted dictionary); use --template to get a mapping')
     parser.add_argument('--outbfolder', default = ".", help = 'Path to output folder for BCON.')
@@ -2298,8 +2444,8 @@ Requirements:
         --METCRO3D - path to METCRO3D MCIP output file
 
 Example:
-    $ pncgeos2cmaq.py inputs/ts20120301.bpch --template=cb04tucl_ae6_aq > mappings.json
-    $ pncgeos2cmaq.py inputs/ts20120301.bpch --METBDY3D inputs/METBDY3D_20120301 --METCRO3D inputs/METCRO3D_20120301 --mapping=mappings.json  --outifolder=icon/ --outbfolder=bcon/
+    $ pncglobal2cmaq.py inputs/ts20120301.bpch --template=cb04tucl_ae6_aq > mappings.json
+    $ pncglobal2cmaq.py inputs/ts20120301.bpch --METBDY3D inputs/METBDY3D_20120301 --METCRO3D inputs/METCRO3D_20120301 --mapping=mappings.json  --outifolder=outputs/ --outbfolder=outputs/
 
 """
     
@@ -2320,4 +2466,4 @@ Example:
     args.ND49_REGRID_CRO = [os.path.join(args.outifolder, os.path.basename(p).replace('.nc', '') + '.CRO.nc') for p in args.ND49PATH]
     args.NEWBCON = os.path.join(args.outbfolder, os.path.basename(args.ND49PATH[0].replace('.nc', '') + '.BCON.nc'))
     args.NEWICON = os.path.join(args.outifolder, os.path.basename(args.ND49PATH[0].replace('.nc', '') + '.ICON.nc'))
-    makebcon(args)
+    makeibcon(args)
