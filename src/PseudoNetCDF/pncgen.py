@@ -144,11 +144,62 @@ class Pseudo2NetCDF:
 from PseudoNetCDF.camxfiles import Writers as CAMxWriters
 import PseudoNetCDF.geoschemfiles as geoschemwriters
 import PseudoNetCDF.icarttfiles.ffi1001 as icarttwriters
+
+from PseudoNetCDF.textfiles import ncf2csv
+def pywriter(ifile, outpath, data = True):
+    print """# Import Libraries and Functions
+from netCDF4 import Dataset
+from numpy import *
+from numpy.ma import masked_array
+
+# Open file for writing
+outpath = '%s'
+outfile = Dataset(outpath, 'w')
+
+""" % outpath
+    print "# Define Dimensions"
+    for dk, dv in ifile.dimensions.iteritems():
+        dl = len(dv)
+        if dv.isunlimited(): dl = None
+        print "dim_%s = outfile.createDimension('%s', %s); # %d" % (dk, dk, dl, len(dv))
+    
+    print "# Add global properties"
+    for pk in ifile.ncattrs():
+        pv = getattr(ifile, pk)
+        if isinstance(pv, bool): pv = int(pv)
+        print "setattr(outfile, '%s', %s)" % (pk, repr(pv))
+   
+    print "## Define Variables"
+    print "vars = {}"
+    for vk, v in ifile.variables.iteritems():
+        print "# Defining " + vk
+        print "var = vars['%s'] = outfile.createVariable('%s', '%s', %s)" % (vk, vk, v.dtype.char, v.dimensions)
+        for pk in v.ncattrs():
+            pv = getattr(v, pk)
+            print "setattr(var, '%s', %s)" % (pk, repr(pv))
+        print ""
+
+    if data:
+        print "## Populate Variables"
+        for vk, v in ifile.variables.iteritems():
+            print "# Populating " + vk
+            if isinstance(v, np.ma.MaskedArray):
+                vtype = np.ma.MaskedArray
+            else:
+                vtype = np.ndarray
+            print "var = vars['%s']" % vk
+            print "var[:] = %s" % (repr(v[:].view(type = vtype)))
+
+
 def pncgen(ifile,outpath, inmode = 'r', outmode = 'w', format = 'NETCDF4_CLASSIC', verbose = True):
     if format[:6] == 'NETCDF':
         p2n = Pseudo2NetCDF()
         p2n.verbose = verbose
         return p2n.convert(ifile, outpath, inmode = inmode, outmode = outmode, format = format)
+    elif format == 'python':
+        pywriter(ifile, outpath)
+    elif format == 'csv':
+        csvwriter(ifile, outpath)
     else:
         for writers in [CAMxWriters, geoschemwriters, icarttwriters]:
             writer = getattr(writers, 'ncf2%s' % format, None)
