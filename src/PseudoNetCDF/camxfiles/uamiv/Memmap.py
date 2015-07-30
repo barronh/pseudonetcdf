@@ -45,8 +45,7 @@ class uamiv(PseudoNetCDFFile):
     
     ex:
         >>> uamiv_path = 'camx_uamiv.bin'
-        >>> rows,cols = 65,83
-        >>> uamivfile = uamiv(uamiv_path,rows,cols)
+        >>> uamivfile = uamiv(uamiv_path)
         >>> uamivfile.variables.keys()
         ['TFLAG', 'O3', 'NO', 'NO2', ...]
         >>> tflag = uamivfile.variables['TFLAG']
@@ -75,7 +74,7 @@ class uamiv(PseudoNetCDFFile):
     __ione=1
     __idum=0
     __rdum=0.
-    def __init__(self,rf,mode='r', P_ALP = None, P_BET = None, P_GAM = None, XCENT = None, YCENT = None):
+    def __init__(self,rf,mode='r', P_ALP = None, P_BET = None, P_GAM = None, XCENT = None, YCENT = None, GDTYP = None):
         """
         Initialization included reading the header and learning
         about the format.
@@ -125,6 +124,8 @@ class uamiv(PseudoNetCDFFile):
             self.XCENT = XCENT
         if not YCENT is None:
             self.YCENT = YCENT
+        if not GDTYP is None:
+            self.GDTYP = GDTYP
         try:
             add_cf_from_ioapi(self)
         except Exception, e:
@@ -177,7 +178,10 @@ class uamiv(PseudoNetCDFFile):
         self.IUTM = iutm = self.__grid_hdr['iutm'][0]
         self.ISTAG = istag = self.__grid_hdr['istag'][0]        
         self.CPROJ = cproj = self.__grid_hdr['iproj'][0]
-        GDTYPE = self.GDTYP={0: 1, 1: 5, 2: 2, 3: 6}[cproj]
+        if hasattr(self, 'GDTYP'):
+            GDTYPE = self.GDTYP
+        else:
+            GDTYPE = self.GDTYP={0: 1, 1: 5, 2: 2, 3: 6}[cproj]
         if cproj == 0 or not all(map(lambda x: x == 0, [plon, plat, tlat1, tlat2, iutm, cproj])):
             # Map CAMx projection constants to IOAPI
             self.XCENT = plon
