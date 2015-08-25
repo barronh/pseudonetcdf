@@ -129,16 +129,16 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                             outfile.write(startindent + '  ' + str(row.filled().astype(ndarray)))
                             return
                         tmpstr = StringIO('')
-                        if row.mask.all():
+                        if ma.getmaskarray(row).all():
                             tmpstr.write(', '.join(['_'] * row.size) + ', ')
                         else:
-                            savetxt(tmpstr, row.filled(), fmt, delimiter = ', ', newline =', ')
+                            savetxt(tmpstr, ma.filled(row), fmt, delimiter = ', ', newline =', ')
                         if last:
                             tmpstr.seek(-2, 1)
                             tmpstr.write(';')
                         tmpstr.seek(0, 0)
                         tmpstr = tmpstr.read()
-                        tmpstr = tmpstr.replace(fmt % row.fill_value + ',', '_,')
+                        tmpstr = tmpstr.replace(fmt % getattr(row, 'fill_value', 0) + ',', '_,')
                         outfile.write(textwrap.fill(tmpstr, line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
                         outfile.write('\n')
                 else:
@@ -169,6 +169,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         else:
                             fmt = startindent + 2*indent+formats[var.dtype.name]
                             array_str = fmt % val
+
                         if i == tuple(map(lambda x_: x_ - 1, var.shape)):
                             array_str += ";"
                         else:
