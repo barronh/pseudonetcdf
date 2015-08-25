@@ -555,7 +555,11 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                 dims = ('time', 'layer%d' % tmp_data.dtype['f1'].shape[0], 'latitude', 'longitude')
             kwds = dict(scale = scale, kgpermole = molwt, carbon = carbon, units = units, base_units = base_units, standard_name = key, long_name = key, var_desc = key, coordinates = ' '.join(dims), grid_mapping = "crs", reserved = reserved, tracerid = tracerid, category = group)
                 
-            assert((tmp_data['f0'] == tmp_data['f2']).all())
+            try:
+                assert((tmp_data['f0'] == tmp_data['f2']).all())
+            except:
+                raise ValueError('Could not parse with bpch; try bpch2')
+            
             if self.noscale:
                 if scale != 1.:
                     warn("Not scaling variables; good for writing")
