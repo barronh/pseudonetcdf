@@ -10,15 +10,7 @@ from PseudoNetCDF.coordutil import getmap, getlatbnds, getlonbnds, getybnds, get
 import warnings
 warn=warnings.warn
 import numpy as np
-import pylab as pl
-Normalize = pl.matplotlib.colors.Normalize
-
-LogNorm = pl.matplotlib.colors.LogNorm
-BoundaryNorm = pl.matplotlib.colors.BoundaryNorm
-
-LogFormatter = pl.matplotlib.ticker.LogFormatter
-ScalarFormatter = pl.matplotlib.ticker.ScalarFormatter
-
+from PseudoNetCDF.plotutil import *
 def prepmap(ifiles, options):
     ifile = ifiles[0]
     ax = pl.gca()
@@ -29,7 +21,7 @@ def prepmap(ifiles, options):
     if options.counties: map.drawcounties(ax = ax)
     for si, shapefile in enumerate(options.shapefiles):
         shapename = os.path.basename(shapefile)[:-3] + str(si)
-        map.readshapefile(shapefile, shapename, ax = ax)
+        map.readshapefile(shapefile, shapename, ax = ax, linewidth = pl.rcParams['lines.linewidth'])
     options.map = map
 
 def makemap(ifile, options):
@@ -66,9 +58,9 @@ def makemap(ifile, options):
                 del ax.collections[nborders:]
             var = ifile.variables[varkey]
             vals = var[:].squeeze()
+            vmin, vmax = vals.min(), vals.max()
             if options.normalize is None:
                 from scipy.stats import normaltest
-                vmin, vmax = vals.min(), vals.max()
                 if normaltest(vals.ravel())[1] < 0.05:
                     cvals = np.ma.compressed(vals)
                     boundaries = np.percentile(cvals, np.arange(0, 110, 10))
