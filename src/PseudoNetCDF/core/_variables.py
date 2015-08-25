@@ -154,6 +154,7 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
         self._fill_value = getattr(obj, '_fill_value', getattr(self, '_fill_value', -999))
         if hasattr(obj, '_ncattrs'):
             for k in obj._ncattrs:
+                if k in ('fill_value',): continue
                 setattr(self, k, getattr(obj, k))
         np.ma.MaskedArray._update_from(self, obj)
                 
