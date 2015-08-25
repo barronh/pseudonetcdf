@@ -13,7 +13,6 @@ __doc__ = r"""
 __all__=['pncload',]
 
 import code
-import readline
 import atexit
 import os
 
@@ -36,6 +35,7 @@ class PNCConsole(code.InteractiveConsole):
         """
         Prepare history for use from histfile (typically last session)
         """
+        import readline
         readline.parse_and_bind("tab: complete")
         if hasattr(readline, "read_history_file"):
             try:
@@ -49,6 +49,7 @@ class PNCConsole(code.InteractiveConsole):
         """
         Write history from session to disk
         """
+        import readline
         readline.write_history_file(histfile)
 
 _torem = ['(', ')', '[', ']', '{', '}', '@', ',', ':', '.', '`', '=', ';', '+=', '-=', '*=', '/=', '//=', '%=', '&=', '|=', '^=', '>>=', '<<=', '**=', '+', '-', '*', '**', '/', '//', '%', '<<', '>>', '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!=', '<>']
