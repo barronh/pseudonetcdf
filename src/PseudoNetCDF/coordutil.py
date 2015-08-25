@@ -158,7 +158,7 @@ def getlatbnds(ifile):
             latb = np.append(latb, latb[:, [-1]], axis = 1)
             
     elif 'ROW' in ifile.dimensions:
-        unit = 'x (LCC m)'
+        unit = 'x (m)'
         latb = np.arange(len(ifile.dimensions['ROW']) + 1) * getattr(ifile, 'YCELL', 1) / 1000.
     else:
         raise KeyError('latitude bounds not found')
@@ -166,7 +166,7 @@ def getlatbnds(ifile):
 
 def getybnds(ifile):
     if 'ROW' in ifile.dimensions:
-        unit = 'y (LCC m)'
+        unit = 'y (m)'
         latb = np.arange(len(ifile.dimensions['ROW']) + 1) * getattr(ifile, 'YCELL', 1)
     else:
         raise KeyError('latitude bounds not found')
@@ -208,7 +208,7 @@ def getlonbnds(ifile):
 
 def getxbnds(ifile):
     if 'COL' in ifile.dimensions:
-        unit = 'x (LCC m)'
+        unit = 'x (m)'
         lonb = np.arange(len(ifile.dimensions['COL']) + 1) * getattr(ifile, 'XCELL', 1)
     else:
         raise KeyError('x bounds not found')
@@ -239,10 +239,12 @@ def getmap(ifile, resolution = 'i'):
             m = Basemap(projection = 'lcc', rsphere = (semi_major_axis, semi_major_axis), lon_0=ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT, llcrnrlon = llcrnrlon, llcrnrlat = llcrnrlat, urcrnrlat = urcrnrlat, urcrnrlon = urcrnrlon, resolution = resolution, suppress_ticks = False)
         elif ifile.GDTYP == 7:
             from mpl_toolkits.basemap.pyproj import Proj
-            p = Proj(proj='merc',rsphere = (semi_major_axis, semi_major_axis), lat_ts = ifile.P_ALP, lat_0 = ifile.YCENT, lon_0 = ifile.XCENT)
+            mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (semi_major_axis, semi_major_axis, ifile.XCENT)
+            p = Proj(mapstr)
+            #p = Proj(proj='merc',rsphere = (semi_major_axis, semi_major_axis), lat_ts = ifile.P_ALP, lat_0 = ifile.YCENT, lon_0 = ifile.XCENT)
             llcrnrlon, llcrnrlat = p(llcrnrx, llcrnry, inverse = True)
             urcrnrlon, urcrnrlat = p(urcrnrx, urcrnry, inverse = True)
-            m = Basemap(projection = 'merc', rsphere = (semi_major_axis, semi_major_axis), lon_0=ifile.P_GAM, lat_ts = ifile.P_ALP, lat_0 = ifile.YCENT, llcrnrlon = llcrnrlon, llcrnrlat = llcrnrlat, urcrnrlat = urcrnrlat, urcrnrlon = urcrnrlon, resolution = resolution, suppress_ticks = False)
+            m = Basemap(projection = 'merc', rsphere = (semi_major_axis, semi_major_axis), lon_0=ifile.XCENT, lat_ts = 0, llcrnrlon = llcrnrlon, llcrnrlat = llcrnrlat, urcrnrlat = urcrnrlat, urcrnrlon = urcrnrlon, resolution = resolution, suppress_ticks = False)
         print 'Found IO/API Mapping parameters'
     else:
         kwds = dict(suppress_ticks = False)
