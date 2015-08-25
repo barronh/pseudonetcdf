@@ -24,7 +24,7 @@ __version__ = RevisionNum
 from core._files import PseudoNetCDFFile, PseudoNetCDFFileMemmap, PseudoNetCDFVariables, OrderedDict
 from core._dimensions import PseudoNetCDFDimension
 from core._variables import PseudoNetCDFVariable, PseudoNetCDFMaskedVariable, PseudoIOAPIVariable
-from core._functions import interpvars, extract, mask_vals, slice_dim, reduce_dim, mesh_dim, pncbo, pncexpr, seqpncbo, getvarpnc, add_attr, stack_files, convolve_dim, manglenames, removesingleton
+from core._functions import interpvars, extract, mask_vals, slice_dim, reduce_dim, mesh_dim, pncbo, pncexpr, seqpncbo, getvarpnc, add_attr, stack_files, convolve_dim, manglenames, removesingleton, merge
 from core._util import get_ncf_object, get_dimension_length
 from core._transforms import PseudoNetCDFVariableConvertUnit
 from PseudoNetCDF.pncgen import Pseudo2NetCDF

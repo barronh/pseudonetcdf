@@ -26,7 +26,7 @@ try:
 except:
     pass
 
-from sci_var import reduce_dim, mesh_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr, stack_files, add_attr, convolve_dim, manglenames, removesingleton
+from sci_var import reduce_dim, mesh_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr, stack_files, add_attr, convolve_dim, manglenames, removesingleton, merge
 
 class AggCommaString(Action):
     def __call__(self, parser, namespace, values, option_string=None):
@@ -138,6 +138,8 @@ To impose your own order, use standard options (global options) and then use -- 
 
     parser.add_argument("--stack", dest = "stack", type = str, help = "Concatentate (stack) files on the dimension.")
     
+    parser.add_argument("--merge", dest = "merge", action = 'store_true', help = "Combine variables into one file")
+    
     parser.add_argument("-s", "--slice", dest = "slice", type = str, action = "append", default = [], metavar = 'dim,start[,stop[,step]]',
                         help = "Variables have dimensions (time, layer, lat, lon), which can be subset using dim,start,stop,stride (e.g., --slice=layer,0,47,5 would sample every fifth layer starting at 0)")
 
@@ -219,7 +221,8 @@ args : args as parsed
     
     if parser is None:
         parser = getparser(has_ofile, plot_options = plot_options, interactive = interactive)
-    helpparser = ArgumentParser()
+    helpparser = ArgumentParser(add_help = False)
+    helpparser.add_argument("--help", dest = "help", action = 'store_true')
     helpparser.add_argument("--help-format", dest = "helpformat", default = None, help = "Show help for file format (must be one of" + '; '.join(_readernames))
     helpargs, dum = helpparser.parse_known_args(args = args)
     if not helpargs.helpformat is None:
@@ -384,4 +387,6 @@ def getfiles(ipaths, args):
         fs.append(f)
     if args.stack is not None:
         fs = [stack_files(fs, args.stack, coordkeys = args.coordkeys)]
+    if args.merge:
+        fs = [merge(fs)]
     return fs
