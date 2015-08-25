@@ -1164,7 +1164,7 @@ def getdefault(oldcon, vark, noutstep):
 def makeibcon(args):
     global messages
     messages += ' '.join(sys.argv[:]) + '\n'
-    mappings_file = json.load(file(args.mapping, mode = 'r'))
+    mappings_file = json.load(open(args.mapping, mode = 'r'))
     mappings = mappings_file['CMAQSPECIES']
     spcs = ','.join(reduce(tuple.__add__, [compile(mapping['expression'], 'mapping', 'eval').co_names for mapping in mappings.values() + [mappings_file['AIRMOLDEN']]]))
 

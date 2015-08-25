@@ -11,7 +11,7 @@ latre = compile(' Latitudes\s:\s+(?P<latbins>\d+)\s+bins centered on\s+(?P<blat>
 
 def cdtoms(path):
     outfile = PseudoNetCDFFile()
-    inlines = file(path, 'rU').readlines()
+    inlines = open(path, 'rU').readlines()
     dayline = dayre.match(inlines[0]).groupdict()
     date = datetime.strptime(dayline['daystring'], '%b %d, %Y')
     lonline = lonre.match(inlines[1]).groupdict()

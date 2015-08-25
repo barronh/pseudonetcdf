@@ -9,7 +9,7 @@ from PseudoNetCDF import PseudoNetCDFFile
 
 #  20 lines reads hourly irr
 def MorphoIRRt(irrpath):
-    mrglines = file(irrpath).readlines()
+    mrglines = open(irrpath).readlines()
     try:
         jday = int(datetime.strptime([l for l in mrglines if 'Environment Tables for' in l][0].split('Environment Tables for')[-1].strip(), '%d-%b-%y').strftime('%Y%j'))
     except:
@@ -48,7 +48,7 @@ def MorphoIRRt(irrpath):
     return mrgfile
 
 def MorphoConc(concpath):
-    conclines = file(concpath).readlines()
+    conclines = open(concpath).readlines()
     conclines = [line for line in conclines if line[:2] not in ('//', '**') and line not in ('', '\n')]
     name_line = conclines.pop(0)
     name_line = ['N', 'T']+[name.replace('n[', '').replace(']', '') for name in conclabel.findall(name_line)]

@@ -47,7 +47,7 @@ _nstk_hdr_fmt=np.dtype(dict(names=['SPAD','ione','nstk','EPAD'],formats=['>i','>
     
     
 def ncf2point_source(ncffile, outpath):
-    outfile = file(outpath, 'wb')
+    outfile = open(outpath, 'wb')
     emiss_hdr = np.zeros((1,), dtype = _emiss_hdr_fmt)
     emiss_hdr['SPAD'] = emiss_hdr['EPAD'] = emiss_hdr.dtype.itemsize - 8
     emiss_hdr[0]['name'][:, :] = ' '

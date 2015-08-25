@@ -75,7 +75,7 @@ def lump(data, ap, levels):
 class geos(PseudoNetCDFFile):
     def __init__(self, path, mode = 'r', reduced = True):
         from _vertcoord import geos_hyai, geos_hybi, geos_etam, geos_etai
-        infile = file(path, 'r')
+        infile = open(path, 'r')
         infile.seek(0,0)
         fsize = os.path.getsize(path)
         lasttype = ''

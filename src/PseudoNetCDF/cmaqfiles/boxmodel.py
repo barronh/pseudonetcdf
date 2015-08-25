@@ -3,7 +3,7 @@ from numpy import array, dtype, fromstring, newaxis, vectorize
 from datetime import timedelta, datetime
 
 def box_model_conc(conc_path, start_datetime):
-    lines = file(conc_path,'r').readlines()[8:]
+    lines = open(conc_path,'r').readlines()[8:]
     
     spc_names = [spc_name.strip() for spc_name in lines[0][:-1].split('\t')]
     data_block = ''.join(lines[1:])
@@ -36,10 +36,10 @@ def box_model_conc(conc_path, start_datetime):
     return result
  
 def box_model_mrg(conc_path, irr_path, start_datetime):
-    irr_values = file(irr_path,'r').readlines()
+    irr_values = open(irr_path,'r').readlines()
     irr_values = [[float(f) for f in l.split()] for l in irr_values]
     irr_values = array(irr_values)
-    lines = file(conc_path,'r').readlines()[8:]
+    lines = open(conc_path,'r').readlines()[8:]
     
     spc_names = [spc_name.strip() for spc_name in lines[0][:-1].split('\t')]
     data_block = ''.join(lines[1:])

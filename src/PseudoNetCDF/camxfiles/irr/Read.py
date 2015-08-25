@@ -77,7 +77,7 @@ class irr(PseudoNetCDFFile):
         
         see __readheader and __gettimestep() for more info
         """
-        rffile = self._rffile = file(rf)
+        rffile = self._rffile = open(rf)
         rffile.seek(0,2)
         if rffile.tell()<2147483648L:
             warn("For greater speed on files <2GB use ipr_memmap")

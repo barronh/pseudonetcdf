@@ -6,7 +6,7 @@ class jtable(PseudoNetCDFFile):
     def __init__(self, path):
         self.dimensions = {}
         self.variables = {}
-        fobj = file(path)
+        fobj = open(path)
         jdate = int(fobj.readline().split()[0])
         nlevels = int(fobj.readline().split()[0])
         levels = [float(x) for x in fobj.readline().split()]

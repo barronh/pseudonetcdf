@@ -29,7 +29,7 @@ MISSING_LINE = 12
 class ffi1001(PseudoNetCDFFile):
     def __init__(self,path):
         PseudoNetCDFFile.__init__(self)
-        f = file(path, 'r')
+        f = open(path, 'r')
         missing = []
         units = []
         l = f.readline()
@@ -174,7 +174,7 @@ class ffi1001(PseudoNetCDFFile):
         self._date_objs = self._SDATE + vectorize(lambda s: timedelta(seconds = int(s), microseconds = (s - int(s)) * 1.E6 ))(self.variables[self.TFLAG]).view(type = ndarray)
 
 def ncf2ffi1001(f, outpath, mode = 'w'):
-    outfile = file(outpath, mode)
+    outfile = open(outpath, mode)
     header_keys = "PI_CONTACT_INFO PLATFORM LOCATION ASSOCIATED_DATA INSTRUMENT_INFO DATA_INFO UNCERTAINTY ULOD_FLAG ULOD_VALUE LLOD_FLAG LLOD_VALUE DM_CONTACT_INFO PROJECT_INFO STIPULATIONS_ON_USE OTHER_COMMENTS REVISION".split()
     print >> outfile, '%d, %d' % (len(f.ncattrs()) + len(f.variables), 1001)
     print >> outfile, getattr(f, 'PI_NAME', 'Unknown')

@@ -135,7 +135,7 @@ class uamiv(PseudoNetCDFFile):
 
         
     def __checkfilelen(self):
-        f=file(self.__rffile,'rb')
+        f=open(self.__rffile,'rb')
         f.seek(0,2)
         flen=f.tell()
         f.close()
@@ -229,7 +229,7 @@ class uamiv(PseudoNetCDFFile):
         data_block_fmt=dtype(dict(names=['DATE']+self.__var_names__,formats=[date_time_fmt]+[spc_3d_fmt]*nspec))
         
         data_block_size=date_time_block_size+nspec*nz*spc_1_lay_block_size
-        f=file(self.__rffile)
+        f=open(self.__rffile)
         f.seek(0,2)
         size=f.tell()
         f.close()

@@ -28,7 +28,7 @@ class sum_reader(pncf):
         return False
     def __init__(self,sumfile):
         if type(sumfile)==str:
-          self.sumfile=file(sumfile,'r')
+          self.sumfile=open(sumfile,'r')
         else:
           self.sumfile = sumfile
         if not 'Sum'.lower() in self.sumfile.readline().lower():
@@ -128,7 +128,7 @@ class net_reader(pncf):
 
         netdict={}
         if type(infile)==str:
-            infile=file(infile)
+            infile=open(infile)
         lines=infile.readlines()
         self.parse(lines,False)
         self.createDimension('NET_RXN',len(self.nrxns))
@@ -304,10 +304,10 @@ class TestReaders(unittest.TestCase):
         self.mrgfile=net_balance_paths['mrg_file']
         
     def testNet(self):
-        netfile=net_reader(file(self.netfile))
+        netfile=net_reader(open(self.netfile))
         
     def testMrg(self):
-        mrgfile=mrgaloft(file(self.mrgfile))
+        mrgfile=mrgaloft(open(self.mrgfile))
         irr=mrgfile.variables['IRR']
         ipr=mrgfile.variables['IPR']
         self.assertEqual(irr[0,60],array(2.34061E-02,'f')[...])

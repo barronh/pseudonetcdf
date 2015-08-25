@@ -199,7 +199,7 @@ def extract_lonlat(f, lonlat, unique = False, gridded = None, method = 'nn', pas
     for ll in lonlat:
         if isinstance(ll, (str, unicode)):
             if os.path.exists(ll):
-                ll = file(ll, 'r').read().strip()
+                ll = open(ll, 'r').read().strip()
             lonlatout.append(ll)
     lonlat = ('/'.join(lonlatout))
     try:

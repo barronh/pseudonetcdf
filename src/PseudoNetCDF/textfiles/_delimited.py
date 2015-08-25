@@ -42,9 +42,9 @@ def ncf2csv(ifile, outpath, delimiter = ',', coordkeys = "time time_bounds TFLAG
     dimsets = {}
     for di, dim in enumerate(dims):
         if len(dims) > 1:
-            outfile = file(outpath + str(di), 'w')
+            outfile = open(outpath + str(di), 'w')
         else:
-            outfile = file(outpath, 'w')
+            outfile = open(outpath, 'w')
         
         dimdict = [(di, k) for di, k in enumerate(dim) if k in ifile.variables]
         dimheader = [k for k in dim if k in ifile.variables]

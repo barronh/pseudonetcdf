@@ -15,7 +15,7 @@ __doc__ = """
 from numpy import array
 
 def ncf2one3d(ncffile,outpath,key = None,tflag='TFLAG'):
-    outfile=file(outpath,'wb')
+    outfile=open(outpath,'wb')
     keys = ncffile.variables.keys()
     if key is None:
         key, = [k for k in keys if k != 'TFLAG']

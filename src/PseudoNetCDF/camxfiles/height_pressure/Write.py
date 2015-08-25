@@ -35,7 +35,7 @@ from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile,read_into,writ
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
 
 def ncf2height_pressure(ncffile,outpath,hght='HGHT',pres='PRES',tflag='TFLAG'):
-    outfile=file(outpath,'wb')
+    outfile=open(outpath,'wb')
     for (d,t),h3d,p3d in zip(ncffile.variables[tflag][:,0,:],ncffile.variables[hght],ncffile.variables[pres]):
         t=array(t.astype('>f')/100,ndmin=1).astype('>f')
         d=array(d,ndmin=1).astype('>i')

@@ -6,7 +6,7 @@ from datetime import datetime
 import numpy as np
 class icon_profile(PseudoNetCDFFile):
     def __init__(self, path):
-        lines = file(path).read().split('\n')
+        lines = open(path).read().split('\n')
         header = lines[3].split()
         nlay, nspc = map(int, header[:2])
         sigmas = map(float, header[2:])
@@ -43,7 +43,7 @@ class icon_profile(PseudoNetCDFFile):
 
 class bcon_profile(PseudoNetCDFFile):
     def __init__(self, path):
-        lines = file(path).read().split('\n')
+        lines = open(path).read().split('\n')
         header = lines[3].split()
         nlay, nspc = map(int, header[:2])
         sigmas = map(float, header[2:])

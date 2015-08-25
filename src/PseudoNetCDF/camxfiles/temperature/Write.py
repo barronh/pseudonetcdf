@@ -6,7 +6,7 @@ Loop from 1 to nlay layers:
 """
 
 def ncf2temperature(ncffile, outpath):
-    outfile = file(outpath, 'wb')
+    outfile = open(outpath, 'wb')
     sfc = ncffile.variables['SURFTEMP']
     air = ncffile.variables['AIRTEMP']
     nz, nr, nc = air.shape[-3:]

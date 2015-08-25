@@ -1,6 +1,6 @@
 import numpy as np
 def ncf2cloud_rain(ncffile, outpath, tflag = 'TFLAG'):
-    outfile=file(outpath,'wb')
+    outfile=open(outpath,'wb')
     varkeys = [vk for vk in ['CLOUD', 'PRECIP', 'RAIN', 'SNOW', 'GRAUPEL', 'COD'] if vk in ncffile.variables.keys()]
     buf = np.array(len(ncffile.FILEDESC) + 12, dtype = '>i').tostring()
     outfile.write(buf)

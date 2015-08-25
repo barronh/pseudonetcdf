@@ -669,7 +669,7 @@ class bpch(PseudoNetCDFFile):
             if os.path.exists(tracerinfo):
                 if os.path.isdir(tracerinfo): tracerinfo = os.path.join(tracerinfo, 'tracerinfo.dat')
             
-            tracerinfo = file(tracerinfo)
+            tracerinfo = open(tracerinfo)
         self._tracerinfofile = tracerinfo
         if isinstance(tracerinfo, (file, StringIO)):
             tracer_data = dict([(int(l[52:61].strip()), dict(NAME = l[:8].strip(), FULLNAME = l[9:39].strip(), MOLWT = float(l[39:49]), C = int(l[49:52]), TRACER = int(l[52:61]), SCALE = float(l[61:71]), UNIT = l[72:].strip())) for l in tracerinfo.readlines() if l[0] not in ('#', ' ')])
@@ -685,7 +685,7 @@ class bpch(PseudoNetCDFFile):
                 diaginfo = 'diaginfo.dat'
             if os.path.exists(diaginfo):
                 if os.path.isdir(diaginfo): diaginfo = os.path.join(diaginfo, 'diaginfo.dat')
-            diaginfo = file(diaginfo)
+            diaginfo = open(diaginfo)
 
         self._diaginfofile = diaginfo
         if isinstance(diaginfo, (file, StringIO)):
@@ -804,8 +804,8 @@ class bpch(PseudoNetCDFFile):
                     warn('Requested %d items; only returning %d items due to 2GB limitation' % (nt, items))
                     times = times[:items]
 
-                outfile = file(outpath, 'w')
-                infile = file(bpch_path, 'r')
+                outfile = open(outpath, 'w')
+                infile = open(bpch_path, 'r')
                 hdr = infile.read(hdrsize)
                 outfile.write(hdr)
                 for t in all_times:
@@ -859,7 +859,7 @@ class bpch(PseudoNetCDFFile):
         return PseudoNetCDFFile.__repr__(self) + str(self.variables)
 
 def ncf2bpch(ncffile, outpath):
-    outfile = file(outpath, 'wb')
+    outfile = open(outpath, 'wb')
     _general_header_type = np.dtype(dict(names = ['SPAD1', 'ftype', 'EPAD1', 'SPAD2', 'toptitle', 'EPAD2'], formats = '>i4, S40, >i4, >i4, S80, >i4'.split()))
     _datablock_header_type = np.dtype(dict(names = ['SPAD1', 'modelname', 'modelres', 'halfpolar', 'center180', 'EPAD1', 'SPAD2', 'category', 'tracerid', 'unit', 'tau0', 'tau1', 'reserved', 'dim', 'skip', 'EPAD2'], formats = '>i4, S20, 2>f4, >i4, >i4, >i4, >i4, S40, >i4, S40, >f8, >f8, S40, 6>i4, >i4, >i4'.split(', ')))
     varkeys = [k for k in ncffile.variables.keys() if k not in ['tau0', 'tau1', 'time', 'time_bounds', 'latitude', 'longitude', 'latitude_bounds', 'longitude_bounds', 'AREA', 'crs', 'layer', 'layer_edges', 'layer_bounds'] + ['layer%d' % i for i in range(200)]]
@@ -914,13 +914,13 @@ def ncf2bpch(ncffile, outpath):
         if not os.path.exists(tracerpath):
             ncffile._tracerinfofile.seek(0, 0)
             ncffile._tracerinfofile.seek(0, 0)
-            outtrace = file(tracerpath, 'w')
+            outtrace = open(tracerpath, 'w')
             outtrace.write(ncffile._tracerinfofile.read())
             outtrace.flush()
     if hasattr(ncffile, '_diaginfofile'):
         if not os.path.exists(diagpath):
             ncffile._diaginfofile.seek(0, 0)
-            outdiag = file(diagpath, 'w')
+            outdiag = open(diagpath, 'w')
             outdiag.write(ncffile._diaginfofile.read())
             outdiag.flush()
     return outfile

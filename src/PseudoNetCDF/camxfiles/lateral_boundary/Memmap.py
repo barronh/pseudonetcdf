@@ -108,7 +108,7 @@ class lateral_boundary(PseudoNetCDFFile):
         self.SDATE,self.STIME=self.variables['TFLAG'][0,0,:]
         
     def __checkfilelen(self):
-        f=file(self.__rffile,'rb')
+        f=open(self.__rffile,'rb')
         f.seek(0,2)
         flen=f.tell()
         f.close()
@@ -189,7 +189,7 @@ class lateral_boundary(PseudoNetCDFFile):
         data_block_fmt=dtype(dict(names=['DATE']+self.__spc_names__,formats=[date_time_fmt]+[spc_lat_fmt]*nspec))
         
         data_block_size=date_time_block_size+nspec*spc_lat_block_size
-        f=file(self.__rffile)
+        f=open(self.__rffile)
         f.seek(0,2)
         size=f.tell()
         f.close()

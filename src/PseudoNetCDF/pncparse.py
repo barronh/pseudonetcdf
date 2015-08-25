@@ -317,7 +317,7 @@ def pncprep(args):
     for expr in args.expressions:
         fs = [pncexpr(expr, f) for f in fs]
     for script in args.expressionscripts:
-        expr = file(script).read()
+        expr = open(script).read()
         fs = [pncexpr(expr, f) for f in fs]
     return fs, args
 

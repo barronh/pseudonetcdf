@@ -170,7 +170,7 @@ def ncf2uamiv(ncffile, outpath):
     spc_hdr[0]['DATA'][:, :, 0] = spc_names
     spc_names = spc_names.view('>S10')
     nz = len(ncffile.dimensions['LAY'])
-    outfile = file(outpath, 'wb')
+    outfile = open(outpath, 'wb')
     emiss_hdr.tofile(outfile)
     grid_hdr.tofile(outfile)
     cell_hdr.tofile(outfile)

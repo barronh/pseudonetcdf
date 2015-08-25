@@ -106,7 +106,7 @@ class ipr(PseudoNetCDFFile):
             self.proc_dict=proc_dict
         else:
             self.proc_dict=None
-        self.__rffile=file(rf, 'rb')
+        self.__rffile=open(rf, 'rb')
         self.__rffile.seek(0,2)
         if self.__rffile.tell()<2147483648L:
             warn("For greater speed on files <2GB use ipr_memmap")

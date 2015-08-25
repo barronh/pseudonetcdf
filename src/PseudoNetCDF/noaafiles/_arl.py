@@ -59,7 +59,7 @@ class arlpackedbit(PseudoNetCDFFile):
         
 
     def __init__(self, path):
-        self._f = f = file(path, 'r') 
+        self._f = f = open(path, 'r') 
         f.seek(0, 2) 
         fsize = f.tell()
         f.seek(0, 0) 

@@ -10,7 +10,7 @@ def box_model_irr(irr_path, start_datetime):
 
     return retval
 def box_model_conc(conc_path, start_datetime):
-    lines = file(conc_path,'r').readlines()[3:]
+    lines = open(conc_path,'r').readlines()[3:]
     
     spc_names = [spc_name.strip() for spc_name in lines[0][:-1].split('\t')]
     data_block = ''.join(lines[1:])

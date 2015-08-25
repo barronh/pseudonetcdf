@@ -42,7 +42,7 @@ Loop from 1 to nlay layers:
 """
 import numpy as np
 def ncf2wind(ncffile, outpath, tflag = 'TFLAG'):
-    outfile=file(outpath,'wb')
+    outfile=open(outpath,'wb')
     varkeys = [vk for vk in ['U', 'V'] if vk in ncffile.variables.keys()]
     nzcl = len(ncffile.dimensions['LAY'])
     for di, (d,t) in enumerate(ncffile.variables[tflag][:,0,:]):

@@ -67,16 +67,16 @@ class cloud_rain(PseudoNetCDFFile):
     """
     
     def __init__(self, rf, rows = None,cols = None):
-        f = file(rf, 'rb')
+        f = open(rf, 'rb')
         f.seek(0, 2)
         flen = f.tell()
-        offset = struct.unpack('>i', file(rf, 'r').read(4))[0] + 8
+        offset = struct.unpack('>i', open(rf, 'r').read(4))[0] + 8
         self.__memmap = memmap(rf, '>f', 'r', offset = offset)
-        ncols, nrows, nlays = struct.unpack({35:'>i15ciiii', 40:'>i20ciiii'}[offset], file(rf, 'r').read(offset))[-4:-1]
+        ncols, nrows, nlays = struct.unpack({35:'>i15ciiii', 40:'>i20ciiii'}[offset], open(rf, 'r').read(offset))[-4:-1]
         self.createDimension('COL', ncols)
         self.createDimension('ROW', nrows)
         self.createDimension('LAY', nlays)
-        header = struct.unpack({35:'>i15ciiiiifi', 40:'>i20ciiiiifi'}[offset], file(rf, 'r').read(offset + 12))
+        header = struct.unpack({35:'>i15ciiiiifi', 40:'>i20ciiiiifi'}[offset], open(rf, 'r').read(offset + 12))
         self.FILEDESC = ''.join(header[1:1+{35: 15, 40: 20}[offset]])
         self.STIME, self.SDATE = header[-2:]
         if self.SDATE < 10000:

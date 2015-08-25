@@ -109,7 +109,7 @@ class finst(PseudoNetCDFFile):
         
 
     def __checkfilelen(self):
-        f=file(self.__rffile,'rb')
+        f=open(self.__rffile,'rb')
         f.seek(0,2)
         flen=f.tell()
         f.close()
@@ -121,7 +121,7 @@ class finst(PseudoNetCDFFile):
         #start+=self.__buffersize
         #end=self.__messagefmt.itemsize/4
         #self.MESSAGE=self.__memmap__[start:end].view(self.__messagefmt)
-        f=file(self.__rffile)
+        f=open(self.__rffile)
         f.seek(92)
         self.NNEST,self.NSPEC=fromfile(f,'>i',2)
         f.seek(8,1)

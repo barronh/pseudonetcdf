@@ -315,7 +315,7 @@ class uamiv(PseudoNetCDFFile):
 
 class uamiv_new(PseudoNetCDFFile):
     def __init__(self,path):
-        self.__file=file(path,'r')
+        self.__file=open(path,'r')
         self.__readheader()
         self.__setglobalprops()
         self.__setprivateprops()
