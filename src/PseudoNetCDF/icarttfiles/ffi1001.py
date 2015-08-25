@@ -111,7 +111,7 @@ class ffi1001(PseudoNetCDFFile):
                 elif li == self.n_header_lines:
                     variables = l.replace(',','').split()
                     self.TFLAG = variables[0]
-        except Exception, e:
+        except Exception as e:
             raise SyntaxError, "Error parsing icartt file %s: %s" % (path, repr(e))
 
         missing = missing[:1]+missing

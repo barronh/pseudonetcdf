@@ -15,7 +15,7 @@ for pkg, reader, variable in netcdf_pkgs:
         define_variable = "from %s import %s as NetCDFVariable" % (pkg, variable)
         netcdfpkg = [pkg]
         break
-    except ImportError, e:
+    except ImportError as e:
         warn(e.message)
 else:
     warn("Did not find a 'true' NetCDFFile reader; 'true' NetCDF functionality will be disabled")

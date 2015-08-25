@@ -252,7 +252,7 @@ args : args as parsed
                 print ''
                 print '* Any keyword with a non "<VAL>" default can be omitted.'
             print 
-        except Exception, e:
+        except Exception as e:
             pass
             
         if 'y' == raw_input('Hit Y/y to see detailed help\n').lower():
@@ -353,7 +353,7 @@ def getfiles(ipaths, args):
                     f = allreaders[file_format](ipath, **format_options)
                 else:
                     f = eval(file_format)(ipath, **format_options)
-            except Exception, e:
+            except Exception as e:
                 raise IOError('Unable to open path with %s(path, **%s)\n\tpath="%s"\n\terror="%s"' % (file_format, str(format_options), ipath, str(e)))
         else:
             warn('File is type %s, which is unknown' % type(ipath))
@@ -374,7 +374,7 @@ def getfiles(ipaths, args):
         if laddconv:
             try:
                 eval('add_%s_from_%s' % (args.toconv, args.fromconv))(f)
-            except Exception, e:
+            except Exception as e:
                 warn('Cannot add %s from %s; %s' % (args.toconv, args.fromconv, str(e)))
         if args.cdlname is None:
             args.cdlname = ipath

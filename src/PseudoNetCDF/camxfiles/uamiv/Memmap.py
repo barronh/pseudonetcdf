@@ -128,7 +128,7 @@ class uamiv(PseudoNetCDFFile):
             self.GDTYP = GDTYP
         try:
             add_cf_from_ioapi(self)
-        except Exception, e:
+        except Exception as e:
             warn(repr(e))
             pass
         

@@ -61,12 +61,12 @@ class Pseudo2NetCDF:
             if not isinstance(value, MethodType):
                 try:
                     setattr(nfile,k,value)
-                except TypeError, e:
+                except TypeError as e:
                     if isinstance(value, bool):
                         setattr(nfile, k, np.int8(value))
                     else:
                         raise e
-                except Exception, e:
+                except Exception as e:
                     warn("Could not add %s to file; %s: %s" % (k, type(e), e))
 
     def addVariableProperties(self,pvar,nvar):
@@ -77,12 +77,12 @@ class Pseudo2NetCDF:
             if not isinstance(value, MethodType):
                 try:
                     setattr(nvar,a,value)
-                except TypeError, e:
+                except TypeError as e:
                     if isinstance(value, bool):
                         setattr(nvar, a, np.int8(value))
                     else:
                         raise e
-                except Exception, e:
+                except Exception as e:
                     if 'long_name' in pvar.ncattrs():
                         warn("Could not add %s=%s to variable %s; %s" % (a,str(value),str(pvar.long_name), e))
                     else:

@@ -85,7 +85,7 @@ def plot(ifiles, args):
                     if args.counties: cmaqmap.drawcounties(ax = axmap)
                     cmaqmap.drawparallels(np.arange(-90, 100, 10), labels = [True, True, False, False], ax = axmap)
                     cmaqmap.drawmeridians(np.arange(-180, 190, 20), labels = [False, False, True, True], ax = axmap)
-                except Exception, e:
+                except Exception as e:
                     warn('An error occurred and no map will be shown:\n%s' % str(e))
                 axn = fig.add_subplot(3,3,2, sharex = axmap)
                 axw = fig.add_subplot(3,3,4, sharey = axmap)

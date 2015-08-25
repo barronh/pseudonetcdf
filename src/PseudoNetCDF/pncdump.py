@@ -197,7 +197,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         try:
                             writer(row, rowi == lastrow)
                                 
-                        except IOError, e:
+                        except IOError as e:
                             warn(repr(e) + "; Typically from CTRL+C or exiting less")
                             exit()
                                             

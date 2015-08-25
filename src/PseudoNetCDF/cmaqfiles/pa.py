@@ -70,7 +70,7 @@ def mrgidx(ipr_paths, irr_paths, idx):
         for spc, spcvar in zip(spcs,prcvar):
             try:
                 spcvar[:] = iprf.variables['_'.join([prc,spc])][:][idx]
-            except KeyError, es:
+            except KeyError as es:
                 warn(str(es))
 
     return outf

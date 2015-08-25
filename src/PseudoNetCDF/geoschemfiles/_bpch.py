@@ -349,7 +349,7 @@ class _diag_group(PseudoNetCDFFile):
     def __getattr__(self, key):
         try:
             return object.__getattr__(self, key)
-        except AttributeError, e:
+        except AttributeError as e:
             if key != 'groups':
                 return getattr(self._parent, key)
             else:
@@ -948,7 +948,7 @@ def tileplot(f, toplot, vmin = None, vmax = None, xmin = None, xmax = None, ymin
                     resolution='c')
             has_map = True
             x, y = np.meshgrid(*m(lon, lat))
-        except Exception, e:
+        except Exception as e:
             warn(str(e))
             x, y = np.meshgrid(lon, lat)
     
@@ -1610,7 +1610,7 @@ Examples:
                 try:
                     animo = FuncAnimation(fig, getframe, frames = np.arange(toplot.shape[anim_idx]), interval = 1, blit = True)
                     animo.save(fig_path, codec = 'libmpeg', fps = .25)
-                except IOError, e:
+                except IOError as e:
                     print str(e)
                     print 
                     print "-----------------------------"
@@ -1625,7 +1625,7 @@ Examples:
                 
             f.close()
             print("Successfully created %s" % fig_path)
-        except IOError, e:
+        except IOError as e:
             print("Unable to produce test figure (maybe you don't have matplotlib or basemap); " + str(e))
     
 import unittest

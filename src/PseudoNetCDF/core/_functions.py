@@ -90,7 +90,7 @@ def getvarpnc(f, varkeys, coordkeys = []):
                     tempv = f.variables[dimk]
                     if hasattr(tempv, 'bounds'):
                         coordkeys.add(tempv.bounds.strip())
-                except (ValueError, KeyError, AttributeError), e:
+                except (ValueError, KeyError, AttributeError) as e:
                     pass
         for coordk in coordkeys:
             if coordk in f.dimensions and coordk not in outf.dimensions:
@@ -204,7 +204,7 @@ def extract_lonlat(f, lonlat, unique = False, gridded = None, method = 'nn', pas
     lonlat = ('/'.join(lonlatout))
     try:
         lons, lats = np.genfromtxt(StringIO(lonlat.replace('/', '\n')), delimiter = ',').T
-    except Exception, e:
+    except Exception as e:
         print str(e)
         raise e
     outf.lonlatcoords = lonlat
@@ -338,7 +338,7 @@ def mask_vals(f, maskdef, metakeys = 'time layer level latitude longitude time_b
             try:
                 vout = eval(maskexpr)
                 f.variables[varkey] = PseudoNetCDFMaskedVariable(f, varkey, var.dtype.char, var.dimensions, values = vout, **dict([(pk, getattr(var, pk)) for pk in var.ncattrs()]))
-            except Exception, e:
+            except Exception as e:
                 warn('Cannot mask %s: %s' % (varkey, str(e)))
     return f
     
