@@ -7,16 +7,30 @@ from collections import defaultdict, OrderedDict
 from _files import PseudoNetCDFFile
 from _variables import PseudoNetCDFMaskedVariable, PseudoNetCDFVariable
 
+def pncrename(ifile, type_old_new):
+    outf = getvarpnc(ifile, None)
+    t,o,n = type_old_new.split(',')
+    if t == 'd':
+        outf.dimensions[n] = outf.dimensions[o]
+        del outf.dimensions[o]
+        for k, v in outf.variables.iteritems():
+            if o in v.dimensions:
+                v.dimensions = tuple([n if d == o else d for d in v.dimensions])
+    if t == 'v':
+        outf.variables[n] = outf.variables[o]
+        del outf.variables[o]
+    
 _translator = {'-': '_', '$': '', ' ': '', '+': '_add_', '(': '', ')': ''}
 def manglenames(f, translator = _translator):
-    outf = getvarpnc(f)
+    outf = getvarpnc(f, None)
     varkeys = outf.variables.iteritems()
-    for k, v in varkeys:
-        del outf.variables[k]
+    for k, var in varkeys:
         nk = k
         for olds, news in _translator.iteritems():
             nk = nk.replace(olds, news)
-        outf.variables[nk] = var
+        if nk != k:
+            outf.variables[nk] = outf.variables[k]
+            del outf.variables[k]
     return outf
 
 def removesingleton(f, coordkeys = []):
@@ -146,7 +160,7 @@ def interpvars(f, weights, dimension, loginterp = []):
             weightsv = weights[weightslice]
             oldvarv = oldvar[varslice]
             if not (weightsv.ndim - 1) == oldvar.ndim:
-                warn('Wrong number of dimensiosn for %s' % (vark,))
+                warn('Wrong number of dimensions for %s' % (vark,))
             elif vark in loginterp:
                 logv = np.ma.exp((weightsv * np.ma.log(oldvarv)).sum(dimidx + 1))
                 newvar[:] = logv
@@ -341,7 +355,11 @@ def slice_dim(f, slicedef, fuzzydim = True):
     if len(slicedef) == 2:
         slicedef.append(slicedef[-1] + 1)
     slicedef = (slicedef + [None,])[:4]
-    dimkey, dmin, dmax, dstride = slicedef    
+    dimkey, dmin, dmax, dstride = slicedef
+    if dimkey not in f.dimensions:
+        warn('%s not in file' % dimkey)
+        return f
+
     unlimited = f.dimensions[dimkey].isunlimited()
     if fuzzydim:
         partial_check = [key for key in f.dimensions if dimkey == key[:len(dimkey)] and key[len(dimkey):].isdigit()]
@@ -714,6 +732,24 @@ def convolve_dim(f, convolve_def):
             
             outf.variables[vark][:] = values
     return outf
+
+def merge(fs):
+    outf = getvarpnc(fs[0], None)
+    for f in fs[1:]:
+        for p in f.ncattrs():
+            if not p in outf.ncattrs():
+                setattr(outf, p, getattr(f, p))
+        for d, v in f.dimensions.items():
+            if not d in outf.dimensions:
+                nv = outf.createDimension(d, len(v))
+                nv.isunlimited(v.isunlimited())
+        for k, v in f.variables.iteritems():
+            if k in outf.variables:
+                warn('%s already in output')
+            else:
+                var = outf.createVariable(k, v.dtype.char, v.dimensions, values = v)
+                for p in v.ncattrs():
+                    setattr(var, p, getattr(v, p))
 
 def stack_files(fs, stackdim, coordkeys = []):
     """
