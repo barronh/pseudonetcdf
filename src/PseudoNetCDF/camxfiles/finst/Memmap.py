@@ -27,6 +27,7 @@ from numpy import zeros,array,where,memmap,newaxis,dtype,nan,fromfile
 
 #This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timediff,timeadd
+from PseudoNetCDF.camxfiles.units import get_uamiv_units
 from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile,Int2Asc
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
@@ -179,8 +180,8 @@ class finst(PseudoNetCDFFile):
         nz=len(self.dimensions['LAY'])
         
         outvals=self.__memmap__[self.CURRENT_GRID][k]['DATA'][:,:,:,:]
-
-        return PseudoNetCDFVariable(self,k,'f',dimensions,values=outvals,units='ppm')
+        unit = get_uamiv_units('INSTANT   ', k)
+        return PseudoNetCDFVariable(self,k,'f',dimensions,values=outvals,units=unit)
 
 class TestMemmap(unittest.TestCase):
     def runTest(self):
