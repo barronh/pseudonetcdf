@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import numpy as np
 _emiss_hdr_fmt=np.dtype(dict(names=['SPAD','name','note','itzon','nspec','ibdate','btime','iedate','etime','EPAD'],formats=['>i','(10,4)>S1','(60,4)>S1','>i','>i','>i','>f','>i','>f','>i']))
 
@@ -61,7 +62,7 @@ def ncf2lateral_boundary(ncffile, outpath):
     time_hdr['EPAD'] = 16
     date, time = ncffile.variables['TFLAG'][:, 0].T
     time = time.astype('>f') / 10000.
-    date = date%(date/100000*100000)
+    date = date%(date//100000*100000)
     time_hdr['ibdate'] = date
     time_hdr['btime'] = time
     time_hdr['iedate'] = date
@@ -102,7 +103,7 @@ def ncf2lateral_boundary(ncffile, outpath):
         time_hdr[di].tofile(outfile)
         for spc_key, spc_name in zip(spc_names, spc_hdr[0]['DATA']):
             for ename, ei in [('WEST', 1), ('EAST', 2), ('SOUTH', 3), ('NORTH', 4)]:
-                var = ncffile.variables[ename + '_' + str(np.char.strip(spc_key[0]))]
+                var = ncffile.variables[ename + '_' + spc_key[0].decode().strip()]
                 data = var[di].astype('>f')
                 buf = np.array(4+40+4+data.size*4).astype('>i')
                 buf.tofile(outfile)
@@ -114,3 +115,8 @@ def ncf2lateral_boundary(ncffile, outpath):
     
     outfile.flush()
     return outfile
+
+from PseudoNetCDF._getwriter import registerwriter
+registerwriter('camxfiles.lateral_boundary', ncf2lateral_boundary)
+registerwriter('lateral_boundary', ncf2lateral_boundary)
+

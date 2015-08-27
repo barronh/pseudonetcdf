@@ -3,21 +3,23 @@ test_suite = TestSuite()
 def addTestCasesFromModule(module):
     test_suite.addTests(findTestCases(module))
 
-import sci_var
+from . import sci_var
 addTestCasesFromModule(sci_var)
 
-import ArrayTransforms
+from . import ArrayTransforms
 addTestCasesFromModule(ArrayTransforms)
 
-import camxfiles
+from . import camxfiles
 addTestCasesFromModule(camxfiles.wind.Memmap)
 addTestCasesFromModule(camxfiles.humidity.Memmap)
 addTestCasesFromModule(camxfiles.temperature.Memmap)
 addTestCasesFromModule(camxfiles.vertical_diffusivity.Memmap)
+addTestCasesFromModule(camxfiles.one3d.Memmap)
 addTestCasesFromModule(camxfiles.height_pressure.Memmap)
 addTestCasesFromModule(camxfiles.landuse.Memmap)
 addTestCasesFromModule(camxfiles.cloud_rain.Memmap)
 addTestCasesFromModule(camxfiles.uamiv.Memmap)
+addTestCasesFromModule(camxfiles.uamiv.Write)
 addTestCasesFromModule(camxfiles.point_source.Memmap)
 addTestCasesFromModule(camxfiles.lateral_boundary.Memmap)
 addTestCasesFromModule(camxfiles.ipr.Memmap)
@@ -25,13 +27,16 @@ addTestCasesFromModule(camxfiles.irr.Memmap)
 addTestCasesFromModule(camxfiles.FortranFileUtil)
 addTestCasesFromModule(camxfiles.timetuple)
 
-import net_balance
+from . import net_balance
 addTestCasesFromModule(net_balance)
 
-import geoschemfiles
+from . import geoschemfiles
 addTestCasesFromModule(geoschemfiles._bpch)
+addTestCasesFromModule(geoschemfiles._newbpch)
 addTestCasesFromModule(geoschemfiles._geos)
 
+from . import textfiles
+addTestCasesFromModule(textfiles._delimited)
 
 def test():
 	TextTestRunner(verbosity=2).run(test_suite)

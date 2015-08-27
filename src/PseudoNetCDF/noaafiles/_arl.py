@@ -1,3 +1,4 @@
+from __future__ import print_function
 from numpy import *
 from numpy import testing
 from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
@@ -18,9 +19,9 @@ def timeit(key):
     from time import time
     if key in timeit.starts:
         started = timeit.starts.pop(key)
-        print key, (time() - started) / 60., 'min'
+        print(key, (time() - started) / 60., 'min')
     else:
-        print key, time(), 'seconds since epoch'
+        print(key, time(), 'seconds since epoch')
         timeit.starts[key] = time()
 timeit.starts = {}
 
@@ -103,7 +104,7 @@ class arlpackedbit(PseudoNetCDFFile):
 #                     invscale = 1./scale
 #                         
 # 
-#                     #print vheader['YYMMDDHH'], vheader['LEVEL'], key
+#                     #print(vheader['YYMMDDHH'], vheader['LEVEL'], key)
 #                     assert(li == int(vheader['LEVEL']))
 #                     data = fromfile(f, count = 1, dtype = '(%d,%d)>1S' % (ny, nx))[0]
 #                     vdatat = ((_vordv(data) - 127.) * invscale).astype('f')
@@ -171,5 +172,5 @@ class arlpackedbit(PseudoNetCDFFile):
 if __name__ == '__main__':
     import sys
     out = arlpackedbit(sys.argv[1])
-    print out.XCENT, out.XCENT_COL
-    print out.YCENT, out.YCENT_ROW
+    print(out.XCENT, out.XCENT_COL)
+    print(out.YCENT, out.YCENT_ROW)

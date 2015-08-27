@@ -35,7 +35,7 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoN
 
 
 #for use in identifying uncaught nan
-listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
+listnan=struct.unpack('>f',b'\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
@@ -92,7 +92,7 @@ class height_pressure(PseudoNetCDFFile):
             cols=self.cell_count/rows
         else:
             if cols*rows!=self.cell_count:
-                raise ValueError, "The product of cols (%d) and rows (%d) must equal cells (%d)" %  (cols,rows,self.cell_count)
+                raise ValueError("The product of cols (%d) and rows (%d) must equal cells (%d)" %  (cols,rows,self.cell_count))
 
         self.createDimension('TSTEP', self.time_step_count)
         self.createDimension('ROW', rows)
@@ -106,7 +106,7 @@ class height_pressure(PseudoNetCDFFile):
         values=constr(key)
         var=self.createVariable(key,'f',('TSTEP','LAY','ROW','COL'))
         var[:] = values
-        for k,v in decor(key).iteritems():
+        for k,v in decor(key).items():
             setattr(var,k,v)
         return var
 
@@ -150,11 +150,12 @@ class height_pressure(PseudoNetCDFFile):
         self.end_date,self.end_time=timeadd((d,t),(0,-self.time_step))
         self.time_step_count=int(timediff((self.start_date,self.start_time),(self.end_date,self.end_time))/self.time_step)+1
         
-    def __timerecords(self,(d,t)):
+    def __timerecords(self,dt):
         """
         routine returns the number of records to increment from the
         data start byte to find the first time
         """
+        d, t = dt
         nsteps=int(timediff((self.start_date,self.start_time),(d,t))/self.time_step)
         nk=self.__layerrecords(self.nlayers+1)
         return nsteps*nk
@@ -190,11 +191,11 @@ class height_pressure(PseudoNetCDFFile):
             time=self.start_time
             
         if chkvar and timediff((self.end_date,self.end_time),(date,time))>0 or timediff((self.start_date,self.start_time),(date,time))<0:
-            raise KeyError, "Vertical Diffusivity file includes (%i,%6.1f) thru (%i,%6.1f); you requested (%i,%6.1f)" % (self.start_date,self.start_time,self.end_date,self.end_time,date,time)
+            raise KeyError("Vertical Diffusivity file includes (%i,%6.1f) thru (%i,%6.1f); you requested (%i,%6.1f)" % (self.start_date,self.start_time,self.end_date,self.end_time,date,time))
         if chkvar and k<1 or k>self.nlayers:
-            raise KeyError, "Vertical Diffusivity file include layers 1 thru %i; you requested %i" % (self.nlayers,k)
+            raise KeyError("Vertical Diffusivity file include layers 1 thru %i; you requested %i" % (self.nlayers,k))
         if chkvar and hp<0 or hp >1:
-            raise KeyError, "Height pressure or indexed 0 and 1; you requested %i" % (hp)
+            raise KeyError("Height pressure or indexed 0 and 1; you requested %i" % (hp))
             
         self.rffile._newrecord(self.__recordposition(date,time,k,hp))
         
@@ -224,20 +225,20 @@ class height_pressure(PseudoNetCDFFile):
         """
         self.seek(date,time,k,hp)
         return self.read()
-    def itervalues(self):
+    def values(self):
         for d,t,k in self.__iter__():
             yield self.seekandread(d,t,k,0),self.seekandread(d,t,k,1)
             
-    def iteritems(self):
+    def items(self):
         for d,t,k in self.__iter__():
             yield d,t,k,self.seekandread(d,t,k,0),self.seekandread(d,t,k,1)
         
-    def iterkeys(self):
+    def keys(self):
         for d,t in self.timerange():
             for k in range(1,self.nlayers+1):
                 yield d,t,k
     
-    __iter__=iterkeys
+    __iter__=keys
     
     def getArray(self,hp):
         a=zeros((self.time_step_count,len(self.dimensions['LAY']),len(self.dimensions['ROW']),len(self.dimensions['COL'])),'f')

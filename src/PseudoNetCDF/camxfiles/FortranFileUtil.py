@@ -1,3 +1,4 @@
+from __future__ import print_function, unicode_literals
 __all__ = ['platform_is_bigendian', 'freadnumpy', 'freadstruct', 'fread', 'needs_byteswap', 'check_read', 'RecordFile', 'unpack_from_file', 'seek_to_record', 'read_into', 'writeline', 'OpenRecordFile', 'Int2Asc', 'Asc2Int']
 
 __doc__ = """
@@ -32,6 +33,7 @@ from operator import mul
 #use numpy if available
 #otherwise use numeric
 from numpy import array,zeros,reshape,product,shape,transpose,fromfile
+import numpy as np
 
 platform_is_bigendian = (sys.byteorder != 'little')
 
@@ -112,12 +114,13 @@ class RecordFile(object):
         
         ***Assumes single 4 byte integer pad on either end
         """
-        if type(infile)==str or type(infile)==unicode:
-            self.infile = open(infile,'rb')
-        elif type(infile)==file:
+        if hasattr(infile, 'seek') and hasattr(infile, 'tell') and hasattr(infile, 'read'):
             self.infile = infile
         else:
-            raise TypeError, "infile is of " + str(type(infile)) + ": and can only be string or file"
+            try:
+                self.infile = open(infile,'rb')
+            except Exception as e:
+                raise TypeError("infile is of " + str(type(infile)) + ": and can only be string or file; " + str(e))
         
         # Is this platform a different byteorder than the file?
         self.byteswap =  needs_byteswap(bigendian)
@@ -139,7 +142,7 @@ class RecordFile(object):
             relmov = offset - posnow
             self.infile.seek(relmov,1)
         else:
-            raise ValueError, "File length = %i; record start requested %f" % (self.length,offset)
+            raise ValueError("File length = %i; record start requested %f" % (self.length,offset))
             
     def _newrecord(self, offset):
         """Move to a new record starting at the given offset
@@ -152,7 +155,9 @@ class RecordFile(object):
     def unpack(self, fmt):
         """Unpack a set of values, like the struct module
         """
-        return unpack_from_file(self.format_prefix + fmt, self.infile)
+        data = unpack_from_file(self.format_prefix + fmt, self.infile)
+        data = tuple([d.decode() if isinstance(d, bytes) else d for d in data])
+        return data
 
     def read(self, fmt):
         """Unpack a set of values, like the struct module
@@ -217,9 +222,11 @@ class RecordFile(object):
                                          self.record_start)
             count = remain/struct.calcsize(type)
 
-        return fread(self.infile, count,
+        data = fread(self.infile, count,
                      type, type,
                      self.byteswap)
+        data = np.array([d.decode() if hasattr(d, 'decode') else d for d in data])
+        return data
 
 
     def eof(self):
@@ -238,7 +245,9 @@ def unpack_from_file(fmt, filein):
     fmtsize = struct.calcsize(fmt)
     data = filein.read(fmtsize)
     check_read(fmtsize, data)
-    return struct.unpack(fmt, data)
+    data = struct.unpack(fmt, data)
+    data = tuple([d.decode() if hasattr(d, 'decode') else d for d in data])
+    return data
 
 def seek_to_record(rf,rid, fmt):
     """Searches for a record beginning with rid by unpacking
@@ -252,7 +261,7 @@ def seek_to_record(rf,rid, fmt):
             break
         else:
             if not rf.next():
-                raise ValueError, "Time %s not found" % str(rid)
+                raise ValueError("Time %s not found" % str(rid))
 
 def read_into(rf, dest, id_fmt, data_fmt='f'):
     """Read an array from a RecordFile into a Numeric array.
@@ -266,7 +275,7 @@ def read_into(rf, dest, id_fmt, data_fmt='f'):
     left in the current record
     
     """
-
+    from functools import reduce
     if rf.eof(): raise EOFError()
     
     id = rf.unpack(id_fmt)
@@ -288,7 +297,7 @@ def writeline(d,fmt,ForceBig=True):
     try:
         return struct.pack(rfmt,*d)
     except:
-        print d
+        print(d)
         raise
 
 def OpenRecordFile(rf):
@@ -334,9 +343,9 @@ class TestFileUtils(unittest.TestCase):
         #1st line is 0-19 as floats
         #2nd line is 0-19 as ints
         #3rd line is 0-19 as strings
-        self.tmpfile.write('\x00\x00\x00P'+'\x00\x00\x00\x00?\x80\x00\x00@\x00\x00\x00@@\x00\x00@\x80\x00\x00@\xa0\x00\x00@\xc0\x00\x00@\xe0\x00\x00A\x00\x00\x00A\x10\x00\x00A \x00\x00A0\x00\x00A@\x00\x00AP\x00\x00A`\x00\x00Ap\x00\x00A\x80\x00\x00A\x88\x00\x00A\x90\x00\x00A\x98\x00\x00'+'\x00\x00\x00P')
-        self.tmpfile.write('\x00\x00\x00P'+'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00\t\x00\x00\x00\n\x00\x00\x00\x0b\x00\x00\x00\x0c\x00\x00\x00\r\x00\x00\x00\x0e\x00\x00\x00\x0f\x00\x00\x00\x10\x00\x00\x00\x11\x00\x00\x00\x12\x00\x00\x00\x13'+'\x00\x00\x00P')
-        self.tmpfile.write('\x00\x00\x00\x14'+'The quick brown fox '+'\x00\x00\x00\x14')
+        self.tmpfile.write(b'\x00\x00\x00P'+b'\x00\x00\x00\x00?\x80\x00\x00@\x00\x00\x00@@\x00\x00@\x80\x00\x00@\xa0\x00\x00@\xc0\x00\x00@\xe0\x00\x00A\x00\x00\x00A\x10\x00\x00A \x00\x00A0\x00\x00A@\x00\x00AP\x00\x00A`\x00\x00Ap\x00\x00A\x80\x00\x00A\x88\x00\x00A\x90\x00\x00A\x98\x00\x00'+b'\x00\x00\x00P')
+        self.tmpfile.write(b'\x00\x00\x00P'+b'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00\t\x00\x00\x00\n\x00\x00\x00\x0b\x00\x00\x00\x0c\x00\x00\x00\r\x00\x00\x00\x0e\x00\x00\x00\x0f\x00\x00\x00\x10\x00\x00\x00\x11\x00\x00\x00\x12\x00\x00\x00\x13'+b'\x00\x00\x00P')
+        self.tmpfile.write(b'\x00\x00\x00\x14'+b'The quick brown fox '+b'\x00\x00\x00\x14')
         self.tmprf=RecordFile(self.tmpfile)
         
     def testAdvance(self):
@@ -396,7 +405,7 @@ class TestFileUtils(unittest.TestCase):
         self.tmprf._newrecord(0)
         self.tmprf.next()
         self.tmprf.next()
-        self.assert_((array("The quick brown fox ")==self.tmprf.aread('S20',1)).any())
+        self.assert_(np.any(array(["The quick brown fox "])==self.tmprf.aread('S20',1)))
     
     def runTest(self):
         pass

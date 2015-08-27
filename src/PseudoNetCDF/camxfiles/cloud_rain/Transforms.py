@@ -17,7 +17,7 @@ from numpy import array
 
 from PseudoNetCDF.MetaNetCDF import add_derived, time_avg_new_unit
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoNetCDFVariable
-from Memmap import cloud_rain as reg_cloud_rain
+from .Memmap import cloud_rain as reg_cloud_rain
 
 class cloud_rain_center_time(time_avg_new_unit):
     __reader__=reg_cloud_rain

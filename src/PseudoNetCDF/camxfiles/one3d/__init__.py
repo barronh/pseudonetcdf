@@ -11,6 +11,6 @@ __doc__ = """
 """
 __all__=['Memmap','Read','Write']
 
-import Memmap
-import Read
-import Write
+from . import Memmap
+from . import Read
+from . import Write

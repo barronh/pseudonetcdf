@@ -11,7 +11,7 @@ __doc__ = """
 """
 __all__=['Memmap','Read','Write','Transforms']
 
-import Memmap
+from . import Memmap
 
 # _camx_units is based on file name and an aerosol flag (True = aerosol)
 if __name__ == '__main__':

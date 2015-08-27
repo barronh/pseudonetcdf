@@ -11,7 +11,7 @@ __doc__ = """
 """
 __all__=['Memmap']
 
-import Memmap
+from . import Memmap
 
 
 if __name__ == '__main__':

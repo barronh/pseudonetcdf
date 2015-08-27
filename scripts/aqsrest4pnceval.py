@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import time
 from datetime import datetime
 import os
@@ -32,8 +34,8 @@ args.minlon = llcrnrlon = lon[:, 0].max()
 args.maxlon = urcrnrlon = lon[:, -1].min()
 args.minlat = llcrnrlat = lat[0, :].max()
 args.maxlat = urcrnrlat = lat[-1, :].min()
-print args.minlon, args.maxlon
-print args.minlat, args.maxlat
+print(args.minlon, args.maxlon)
+print(args.minlat, args.maxlat)
 timezone = lon.mean() // 15.
 if os.path.exists(args.outpath) and not args.overwrite:
     raise IOError('Path already exists: %s' % args.outpath)
@@ -44,12 +46,12 @@ def getrest():
 
 
     import urllib2
-    print urlrequest
+    print(urlrequest)
     dataid = urllib2.urlopen(urlrequest).read()
     urlstatus = 'https://ofmext.epa.gov/AQDMRS/ws/status?id=' + dataid
     while True:
         status = urllib2.urlopen(urlstatus).read().strip()
-        print status, dataid
+        print(status, dataid)
         if status in ('Submitted', 'Processing'):
             time.sleep(3)
         elif status == 'Error':
@@ -123,5 +125,5 @@ for idx, row in hourly.iterrows():
     
     tmpvar[tidx, 0, sidx] = val
 
-for varkey, tempvals in temp.iteritems():
+for varkey, tempvals in temp.items():
     outf.variables[varkey][:] = tempvals

@@ -1,2 +1,2 @@
-from _grids import griddes
+from ._grids import griddes
 

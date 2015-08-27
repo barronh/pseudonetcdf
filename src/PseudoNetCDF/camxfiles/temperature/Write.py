@@ -14,7 +14,7 @@ def ncf2temperature(ncffile, outpath):
     for di,(d,t) in enumerate(ncffile.variables['TFLAG'][:, 0]):
         t=np.array(t/100,ndmin=1, dtype = '>f')
         d=np.array(d,ndmin=1).astype('>i')
-        d=(d%(d/100000*100000)).astype('>i')
+        d=(d%(d//100000*100000)).astype('>i')
         buf = np.array(nelem, dtype = '>i').tostring()
         outfile.write(buf)
         t.tofile(outfile)
@@ -30,3 +30,7 @@ def ncf2temperature(ncffile, outpath):
     
     outfile.flush()
     return outfile
+
+from PseudoNetCDF._getwriter import registerwriter
+registerwriter('camxfiles.temperature', ncf2temperature)
+registerwriter('temperature', ncf2temperature)

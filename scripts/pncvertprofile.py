@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import numpy as np
 from warnings import warn
@@ -24,7 +25,7 @@ def plot_omi(ax, lon_bnds, lat_bnds, omipaths, key = 'O3Profile', airden = None,
     omipaths = reduce(list.__add__, [glob(i) for i in omipaths])
     omipaths.sort()
     for path in omipaths:
-        print path
+        print(path)
         f = h5py.File(path, mode = 'r')
         swaths = f['HDFEOS']['SWATHS'][key]
         latsv = swaths['Geolocation Fields']['Latitude']
@@ -33,7 +34,7 @@ def plot_omi(ax, lon_bnds, lat_bnds, omipaths, key = 'O3Profile', airden = None,
         lons = maskfilled(lonsv).reshape(-1, 1)
         inboth = matchspace(lons, lats, lon_bnds, lat_bnds)
         if inboth.filled(False).sum(0) > 0:            
-            print '******** FOUND ******', path
+            print('******** FOUND ******', path)
             pressurev = swaths['Geolocation Fields']['Pressure']
             altitudev = swaths['Geolocation Fields']['Altitude']
             nk = pressurev.shape[-1]
@@ -54,7 +55,7 @@ def plot_omi(ax, lon_bnds, lat_bnds, omipaths, key = 'O3Profile', airden = None,
             warn('No data found for %s: lons (%s, %s) and lats (%s, %s); lonbs (%s, %s) and latbs (%s, %s);' % (path, lons.min(), lons.max(), lats.min(), lats.max(), lon_bnds.min(), lon_bnds.max(), lat_bnds.min(), lat_bnds.max()))
     
     if len(allx) == 0:
-        print '*' * 80 + '\n\nNo OMI DATA FOUND AT ALL\n\n' + '*'*80
+        print('*' * 80 + '\n\nNo OMI DATA FOUND AT ALL\n\n' + '*'*80)
         return None, None
     
     var = np.ma.masked_values(np.ma.concatenate(ally, axis = 0), -999.) * 1e9
@@ -89,7 +90,7 @@ def plot_tes(ax, lon_bnds, lat_bnds, tespaths):
         species = f.variables['species']
         inboth = matchspace(lons, lats, lon_bnds, lat_bnds)
         if inboth.sum(0) > 0:            
-            print '******** FOUND ******', path
+            print('******** FOUND ******', path)
             x = pressure[inboth]
             y = species[inboth]
             allx.append(x)

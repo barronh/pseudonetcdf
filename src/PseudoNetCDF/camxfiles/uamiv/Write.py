@@ -1,3 +1,4 @@
+from __future__ import print_function, unicode_literals
 __all__ = ['ncf2uamiv', 'write_emissions_ncf', 'write_emissions']
 __doc__ = """
 .. _Write
@@ -93,13 +94,13 @@ def ncf2uamiv(ncffile, outpath):
         for k in old.variables.keys():
             check = (old.variables[k][...] == new.variables[k][...])
             if not check.all():
-                print k
+                print(k)
                 if k == 'ETFLAG':
                     diffidx = np.where(~check)[:2]
                 else:
                     diffidx = np.where(~check)
-                print old.variables[k][diffidx]
-                print new.variables[k][diffidx]
+                print(old.variables[k][diffidx])
+                print(new.variables[k][diffidx])
 
     """
     
@@ -148,7 +149,7 @@ def ncf2uamiv(ncffile, outpath):
     time_hdr['EPAD'] = 16
     date, time = ncffile.variables['TFLAG'][:, 0].T
     time = time.astype('>f') / 10000.
-    date = date%(date/100000*100000)
+    date = date%(date//100000*100000)
     time_hdr['ibdate'] = date
     time_hdr['btime'] = time
     time_hdr['iedate'] = date
@@ -168,7 +169,7 @@ def ncf2uamiv(ncffile, outpath):
     spc_names = np.array(getattr(ncffile, 'VAR-LIST'), dtype = '>c').reshape(-1, 16)[:, :10].copy()
     spc_hdr[0]['DATA'][:] = ' '
     spc_hdr[0]['DATA'][:, :, 0] = spc_names
-    spc_names = spc_names.view('>S10')
+    spc_names = [s.decode() if hasattr(s, 'decode') else s for s in spc_names.view('>S10')[:, 0]]
     nz = len(ncffile.dimensions['LAY'])
     outfile = open(outpath, 'wb')
     emiss_hdr.tofile(outfile)
@@ -179,16 +180,21 @@ def ncf2uamiv(ncffile, outpath):
         time_hdr[di].tofile(outfile)
         for spc_key, spc_name in zip(spc_names, spc_hdr[0]['DATA']):
             for zi in range(nz):
-                var = ncffile.variables[str(np.char.strip(spc_key[0]))]
+                var = ncffile.variables[str(np.char.strip(spc_key))]
                 data = var[di, zi].astype('>f')
                 buf = np.array(4+40+data.size*4).astype('>i')
                 buf.tofile(outfile)
                 np.array(1).astype('>i').tofile(outfile)
                 spc_name.tofile(outfile)
-                data.tofile(outfile)
+                np.ma.filled(data).tofile(outfile)
                 buf.tofile(outfile)
     outfile.flush()
     return outfile
+
+from PseudoNetCDF._getwriter import registerwriter
+registerwriter('camxfiles.uamiv', ncf2uamiv)
+registerwriter('uamiv', ncf2uamiv)
+
 
 def write_emissions_ncf(infile,outfile):
     from operator import concat
@@ -226,7 +232,7 @@ def write_emissions(start_date,start_time,time_step,hdr,vals):
     
     #Check start_date and start_time
     if tuple(hdr[0][4:6])!=(start_date,start_time):
-        print >>sys.stderr,"Header doesn't match start date/time"
+        print("Header doesn't match start date/time", file = sys.stderr)
        
     #Change name and note
     hdr[0]=list(hdr[0][0])+list(hdr[0][1])+list(hdr[0][2:])
@@ -246,7 +252,7 @@ def write_emissions(start_date,start_time,time_step,hdr,vals):
     (end_date,end_time)=timeadd((start_date,start_time),(0,time_step*vals.shape[0]))
     
     if tuple(hdr[0][6:])!=(end_date,end_time):
-        print >>sys.stderr,"Header doesn't match end date/time"
+        print("Header doesn't match end date/time", file = sys.stderr)
     
     #Write out values
     for ti,(d,t) in enumerate(timerange((start_date,start_time),(end_date,end_time),time_step)):
@@ -264,3 +270,23 @@ def write_emissions(start_date,start_time,time_step,hdr,vals):
     
     return emis_string        
 
+
+import unittest
+class TestMemmaps(unittest.TestCase):
+    def setUp(self):
+        from PseudoNetCDF.testcase import camxfiles_paths
+        self.uamivpath=camxfiles_paths['uamiv']
+    
+    def testNCF2UAMIV(self):
+        from PseudoNetCDF.camxfiles.Memmaps import uamiv
+        uamivfile=uamiv(self.uamivpath)
+        from PseudoNetCDF.pncgen import pncgen
+        pncgen(uamivfile,self.uamivpath + '.check', inmode = 'r', outmode = 'w', format = 'uamiv', verbose = False)
+        check = True
+        uamivfile2=uamiv(self.uamivpath + '.check')
+        for k, v in uamivfile.variables.items():
+            nv = uamivfile2.variables[k]
+            check = check & bool((nv[...] == v[...]).all())
+        assert(check)
+        os.remove(self.uamivpath+'.check')
+         

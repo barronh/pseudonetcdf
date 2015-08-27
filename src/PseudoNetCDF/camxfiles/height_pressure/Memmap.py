@@ -30,7 +30,7 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoN
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 #for use in identifying uncaught nan
-listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
+listnan=struct.unpack('>f',b'\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
@@ -89,7 +89,7 @@ class height_pressure(PseudoNetCDFFile):
             cols=rowsXcols/rows
         else:
             if cols*rows!=rowsXcols:
-                raise ValueError, "The product of cols (%d) and rows (%d) must equal cells (%d)" %  (cols,rows,rowsXcols)
+                raise ValueError("The product of cols (%d) and rows (%d) must equal cells (%d)" %  (cols,rows,rowsXcols))
         
         self.createDimension('ROW',rows)
         self.createDimension('COL',cols)
@@ -123,7 +123,7 @@ class height_pressure(PseudoNetCDFFile):
         out_idx=out_idx.ravel()
         buf=self.__memmap[out_idx==0].reshape(lays*2*times,2)
         if not (buf[:,0]==buf[:,1]).all():
-            raise ValueError,"Buffer"
+            raise ValueError("Buffer")
         v=self.variables['HGHT']=PseudoNetCDFVariable(self,'HGHT','f',('TSTEP','LAY','ROW','COL'),values=self.__memmap[out_idx==1].reshape(times,lays,rows,cols))
         v.units='m'
         v.long_name='HGHT'.ljust(16)
@@ -148,6 +148,18 @@ class TestMemmap(unittest.TestCase):
         hpfile.variables['TFLAG']
         self.assert_((hpfile.variables['HGHT']==array([  3.38721924e+01, 3.40657959e+01, 3.41392822e+01, 3.42358398e+01, 3.42543945e+01, 3.38868408e+01, 3.40622559e+01, 3.42358398e+01, 3.44768066e+01, 3.46112061e+01, 3.37558594e+01, 3.39323730e+01, 3.42663574e+01, 3.46854248e+01, 3.48144531e+01, 3.39472656e+01, 3.41900635e+01, 3.46160889e+01, 3.48209229e+01, 3.47874756e+01, 6.78652344e+01, 6.82532959e+01, 6.84020996e+01, 6.85950928e+01, 6.86304932e+01, 6.78945312e+01, 6.82465820e+01, 6.85941162e+01, 6.90783691e+01, 6.93474121e+01, 6.76313477e+01, 6.79859619e+01, 6.86558838e+01, 6.94960938e+01, 6.97552490e+01, 6.80159912e+01, 6.85028076e+01, 6.93570557e+01, 6.97674561e+01, 6.97009277e+01, 1.01980713e+02, 1.02563843e+02, 1.02787109e+02, 1.03077759e+02, 1.03131104e+02, 1.02022949e+02, 1.02553101e+02, 1.03076904e+02, 1.03804565e+02, 1.04208984e+02, 1.01628662e+02, 1.02162842e+02, 1.03169922e+02, 1.04433838e+02, 1.04823120e+02, 1.02206909e+02, 1.02940186e+02, 1.04224609e+02, 1.04841797e+02, 1.04740723e+02, 3.38721924e+01, 3.40657959e+01, 3.41392822e+01, 3.42358398e+01, 3.42543945e+01, 3.38868408e+01, 3.40622559e+01, 3.42358398e+01, 3.44768066e+01, 3.46112061e+01, 3.37558594e+01, 3.39323730e+01, 3.42663574e+01, 3.46854248e+01, 3.48144531e+01, 3.39472656e+01, 3.41900635e+01, 3.46160889e+01, 3.48209229e+01, 3.47874756e+01, 6.78652344e+01, 6.82532959e+01, 6.84020996e+01, 6.85950928e+01, 6.86304932e+01, 6.78945312e+01, 6.82465820e+01, 6.85941162e+01, 6.90783691e+01, 6.93474121e+01, 6.76313477e+01, 6.79859619e+01, 6.86558838e+01, 6.94960938e+01, 6.97552490e+01, 6.80159912e+01, 6.85028076e+01, 6.93570557e+01, 6.97674561e+01, 6.97009277e+01, 1.01980713e+02, 1.02563843e+02, 1.02787109e+02, 1.03077759e+02, 1.03131104e+02, 1.02022949e+02, 1.02553101e+02, 1.03076904e+02, 1.03804565e+02, 1.04208984e+02, 1.01628662e+02, 1.02162842e+02, 1.03169922e+02, 1.04433838e+02, 1.04823120e+02, 1.02206909e+02, 1.02940186e+02, 1.04224609e+02, 1.04841797e+02, 1.04740723e+02],dtype='f').reshape(2, 3, 4, 5)).all())
 
+    def testNCF2HP(self):
+        import PseudoNetCDF.testcase
+        from PseudoNetCDF.pncgen import pncgen
+        import os
+        inpath = PseudoNetCDF.testcase.camxfiles_paths['height_pressure']
+        outpath=PseudoNetCDF.testcase.camxfiles_paths['height_pressure'] + '.check'
+        infile=height_pressure(inpath, 4, 5)
+        pncgen(infile, outpath, format = 'camxfiles.height_pressure')
+        orig = open(inpath, 'rb').read()
+        new = open(outpath, 'rb').read()
+        assert(orig == new)
+        os.remove(outpath)  
                
 if __name__ == '__main__':
     unittest.main()

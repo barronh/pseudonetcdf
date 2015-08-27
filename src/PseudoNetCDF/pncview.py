@@ -1,7 +1,12 @@
+from __future__ import print_function
+
 __all__ = ['mapplot', 'profile', 'tileplot', 'presslon', 'presslat', 'timeseries', 'OptionDict']
 
 from warnings import warn
-from Tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar, Text, DISABLED, PhotoImage, LEFT, E, W
+try:
+    from Tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar, Text, DISABLED, PhotoImage, LEFT, E, W
+except:
+    from tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar, Text, DISABLED, PhotoImage, LEFT, E, W
 import os
 from types import MethodType
 import pylab as pl
@@ -128,7 +133,7 @@ class TkApp:
         for method in method_labels:
             self.method_list.insert(END, method)
             
-        var_keys = [k for k, v in self.ncffile.variables.iteritems() if k not in ('time', 'latitude', 'longitude', 'latitude_bounds', 'longitude_bounds', 'time_bounds', 'tau0', 'tau1', 'TFLAG')]
+        var_keys = [k for k, v in self.ncffile.variables.items() if k not in ('time', 'latitude', 'longitude', 'latitude_bounds', 'longitude_bounds', 'time_bounds', 'tau0', 'tau1', 'TFLAG')]
         var_keys.sort()
         self.vars = []
         for spc in var_keys:
@@ -142,7 +147,10 @@ class TkApp:
         self.meta = Text(metaframe, height=10, width=118, bg='white', relief='flat', yscrollcommand = meta_scrollbar.set)
         self.meta.grid(column = 0, row = 1, sticky = 'W')
         from PseudoNetCDF.pncdump import pncdump
-        from StringIO import StringIO
+        try:
+            from StringIO import StringIO
+        except ImportError:
+            from io import StringIO
         pdump = StringIO("")
         try:
             name = ', '.join(options.ifile)
@@ -159,7 +167,7 @@ class TkApp:
         master.mainloop()
    
     def help(self):
-        print "pl is pylab: details at matplotlib;"
+        print("pl is pylab: details at matplotlib;")
         
     def quit(self):
         self.root.destroy()
@@ -249,7 +257,7 @@ def timeseries(ifile, varkey, options, before = '', after = ''):
         raise ValueError('Time series can have 1 non-unity dimensions; got %d - %s' % (len(dims), str(dims)))
     exec(before)
     ax = pl.gca()
-    print varkey,
+    print(varkey, end = '')
     if options.logscale:
         ax.set_yscale('log')
         
@@ -260,7 +268,7 @@ def timeseries(ifile, varkey, options, before = '', after = ''):
     figpath = os.path.join(outpath + '_ts_' + varkey + '.' + fmt)
     exec(after)
     pl.savefig(figpath)
-    print 'Saved fig', figpath
+    print('Saved fig', figpath)
     return figpath
 
 def plot(ifile, varkey, options, before = '', after = ''):
@@ -272,7 +280,7 @@ def plot(ifile, varkey, options, before = '', after = ''):
         raise ValueError('Plots can have only 1 non-unity dimensions; got %d - %s' % (len(dims), str(dims)))
     exec(before)
     ax = pl.gca()
-    print varkey,
+    print(varkey, end = '')
     if options.logscale:
         ax.set_yscale('log')
         
@@ -283,7 +291,7 @@ def plot(ifile, varkey, options, before = '', after = ''):
     figpath = os.path.join(outpath + '_1d_' + varkey + '.' + fmt)
     exec(after)
     pl.savefig(figpath)
-    print 'Saved fig', figpath
+    print('Saved fig', figpath)
     return figpath
 
 def pressx(ifile, varkey, options, before = '', after = ''):
@@ -301,7 +309,7 @@ def pressx(ifile, varkey, options, before = '', after = ''):
         norm = Normalize()
     exec(before)
     ax = pl.gca()
-    print varkey,
+    print(varkey, end = '')
     vals = var[:].squeeze()
     x = np.arange(vals.shape[1])
     patches = ax.pcolor(x, vert, vals, norm = norm)
@@ -314,7 +322,7 @@ def pressx(ifile, varkey, options, before = '', after = ''):
     figpath = os.path.join(outpath + '_PRESX_' + varkey + '.' + fmt)
     exec(after)
     pl.savefig(figpath)
-    print 'Saved fig', figpath
+    print('Saved fig', figpath)
     return figpath
 
 def presslat(ifile, varkey, options, before = '', after = ''):
@@ -334,7 +342,7 @@ def presslat(ifile, varkey, options, before = '', after = ''):
         norm = Normalize()
     exec(before)
     ax = pl.gca()
-    print varkey,
+    print(varkey, end = '')
     patches = ax.pcolor(lat, vert, var[:].squeeze(), norm = norm)
     #ax.set_xlabel(X.units.strip())
     #ax.set_ylabel(Y.units.strip())
@@ -349,7 +357,7 @@ def presslat(ifile, varkey, options, before = '', after = ''):
     figpath = os.path.join(outpath + '_PRESSLAT_' + varkey + '.' + fmt)
     exec(after)
     pl.savefig(figpath)
-    print 'Saved fig', figpath
+    print('Saved fig', figpath)
     return figpath
 
 def presslon(ifile, varkey, options, before = '', after = ''):
@@ -369,7 +377,7 @@ def presslon(ifile, varkey, options, before = '', after = ''):
         norm = Normalize()
     exec(before)
     ax = pl.gca()
-    print varkey,
+    print(varkey, end = '')
     patches = ax.pcolor(lon, vert, var[:].squeeze(), norm = norm)
     #ax.set_xlabel(X.units.strip())
     #ax.set_ylabel(Y.units.strip())
@@ -385,7 +393,7 @@ def presslon(ifile, varkey, options, before = '', after = ''):
     figpath = os.path.join(outpath + '_PRESLON_' + varkey + '.' + fmt)
     exec(after)
     pl.savefig(figpath)
-    print 'Saved fig', figpath
+    print('Saved fig', figpath)
     return figpath
 
 def tileplot(ifile, varkey, options, before = '', after = ''):
@@ -399,7 +407,7 @@ def tileplot(ifile, varkey, options, before = '', after = ''):
         norm = Normalize()
     exec(before)
     ax = pl.gca()
-    print varkey,
+    print(varkey, end = '')
     dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
     if len(dims) > 2:
         raise ValueError('Tile plots can have 2 non-unity dimensions; got %d - %s' % (len(dims), str(dims)))
@@ -419,7 +427,7 @@ def tileplot(ifile, varkey, options, before = '', after = ''):
     figpath = os.path.join(outpath + '_2D_' + varkey + '.' + fmt)
     exec(after)
     pl.savefig(figpath)
-    print 'Saved fig', figpath
+    print('Saved fig', figpath)
     return figpath
 
 def minmaxmean(ax, vals, vertcrd, **kwds):
@@ -449,7 +457,7 @@ def minmaxmean(ax, vals, vertcrd, **kwds):
 
 def profile(ifile, varkey, options, before = '', after = ''):
     import pylab as pl
-    print varkey,
+    print(varkey, end = '')
     outpath = getattr(options, 'outpath', '.')
     try:
         vert = getpresmid(ifile)
@@ -479,7 +487,7 @@ def profile(ifile, varkey, options, before = '', after = ''):
     figpath = os.path.join(outpath + '_profile_' + varkey + '.' + fmt)
     exec(after)
     pl.savefig(figpath)
-    print 'Saved fig', figpath
+    print('Saved fig', figpath)
     return figpath
     
 def mapplot(ifile, varkey, options, before = '', after = ''):
@@ -512,14 +520,14 @@ def mapplot(ifile, varkey, options, before = '', after = ''):
     exec(before)
     ax = pl.gca()
     vunit = getattr(var, 'units', 'unknown').strip()
-    print varkey,
+    print(varkey, end = '')
     try:
         if options.coastlines: map.drawcoastlines(ax = ax)
         if options.countries: map.drawcountries(ax = ax)
         if options.states: map.drawstates(ax = ax)
         if options.counties: map.drawcounties(ax = ax)
     except:
-        print 'nomap'
+        print('nomap')
         pass
     patches = map.pcolor(LON, LAT, var[:].squeeze(), norm = norm, ax = ax)
     if lonunit == 'x (LCC m)':
@@ -554,12 +562,12 @@ def mapplot(ifile, varkey, options, before = '', after = ''):
     figpath = os.path.join(outpath + '_map_' + varkey + '.' + fmt)
     exec(after)
     pl.savefig(figpath)
-    print 'Saved fig', figpath
+    print('Saved fig', figpath)
     return figpath
             
 def main():
     import pylab as pl
-    from pncparse import pncparse
+    from .pncparse import pncparse
     ifiles, options = pncparse(has_ofile = True, plot_options = True, interactive = False)
     if len(ifiles) != 1:
         raise IOError('pncview can operate on only 1 file; user requested %d' % len(ifiles))
@@ -572,7 +580,7 @@ def main():
         method, = plotargs[:1]
         vars = plotargs[1:]
         plotoptions = eval('OptionDict(outpath="%s",%s)' % (options.outpath, ','.join(plotkwds)))
-        print plotoptions.logscale
+        print(plotoptions.logscale)
         plotwithopts(ifile, method, vars, plotoptions)
     pl.interactive(False)
     if len(options.plotcommands) == 0:

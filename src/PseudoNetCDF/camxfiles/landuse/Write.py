@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import numpy as np
 
 
@@ -14,9 +15,9 @@ def ncf2landuse(ncffile, outpath):
         _other_dtype = np.dtype(dict(names = ['SPAD2', 'DATA', 'EPAD2'], formats = ['>i', '(%d, %d)>f' % (nrows, ncols), '>i']))
 
     outfile=open(outpath,'wb')
-    keys = [key for key in ['FLAND', 'VAR1', 'LAI', 'TOPO'] if key in
- ncffile.variables.keys()]
-    keyandvar = [(key, np.empty(shape = (1,), dtype = {'FLAND': _fland_dtype}.get(key, _other_dtype))) for key in keys]
+    keys = [key for key in ['FLAND', 'VAR1', 'LAI', 'TOPO', 'LUCAT11', 'LUCAT26'] if key in ncffile.variables.keys()]
+    
+    keyandvar = [(key, np.empty(shape = (1,), dtype = {'FLAND': _fland_dtype, 'LUCAT11': _fland_dtype, 'LUCAT26': _fland_dtype}.get(key, _other_dtype))) for key in keys]
     for key, var in keyandvar:
         invar = ncffile.variables[key]
         if newstyle:
@@ -27,11 +28,14 @@ def ncf2landuse(ncffile, outpath):
             var['KEY'] = key.ljust(8)
             var['EPAD1'] = 8
 
-        var['SPAD2'] = invar.size * 4
-        var['DATA'][:] = invar[:]
-        var['EPAD2'] = invar.size * 4
+        var['SPAD2'][...] = invar.size * 4
+        var['DATA'][...] = invar[:]
+        var['EPAD2'][...] = invar.size * 4
         var.tofile(outfile)
 
     outfile.flush()
     return outfile
 
+from PseudoNetCDF._getwriter import registerwriter
+registerwriter('camxfiles.landuse', ncf2landuse)
+registerwriter('landuse', ncf2landuse)

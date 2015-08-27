@@ -66,7 +66,7 @@ class PseudoNetCDFVariable(np.ndarray):
         result.typecode = lambda: typecode
         result.dimensions = tuple(dimensions)
         result._ncattrs = ()
-        for k,v in kwds.iteritems():
+        for k,v in kwds.items():
             setattr(result,k,v)
         return result
 
@@ -139,7 +139,7 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
         result._ncattrs = ()
         result.typecode = lambda: typecode
         result.dimensions = tuple(dimensions)
-        for k,v in kwds.iteritems():
+        for k,v in kwds.items():
             setattr(result,k,v)
         return result
 
@@ -233,14 +233,14 @@ def PseudoIOAPIVariable(parent,name,typecode,dimensions,**kwds):
 
     retval = PseudoNetCDFVariable(parent, name, typecode, dimensions, **kwds)
 
-    if not kwds.has_key('units'):
+    if not 'units' in kwds:
         warn('IOAPI variables must have units; %s has been initialized with "None" units')
         retval.units = 'None'
         
-    if not kwds.has_key('long_name'):
+    if not 'long_name' in kwds:
         retval.long_name = name.ljust(16)
 
-    if not kwds.has_key('var_desc'):
+    if not 'var_desc' in kwds:
         retval.var_desc = name.ljust(80)
 
     return retval

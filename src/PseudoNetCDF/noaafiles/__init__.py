@@ -1,3 +1,3 @@
 __all__ = ['arlpackedbit']
 
-from _arl import arlpackedbit
+from ._arl import arlpackedbit

@@ -1,6 +1,9 @@
 import os
 import re
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 import numpy as np
 from PseudoNetCDF.geoschemfiles import bpch
 
@@ -29,7 +32,10 @@ def get_info_for_cspec(all):
     for si, spc in enumerate(all):
         out += "%-8s %-8s cspec                 0.000E-00  1 %-8d 1.000E+00 molec/cm3\n" % (spc, spc, si + 1)
     
-    from StringIO import StringIO
+    try:
+        from StringIO import StringIO
+    except ImportError:
+        from io import StringIO
     
     diag = StringIO("#\n       0 IJ-CHK-$                                 Tracer concentration                    \n")
     return diag, StringIO(out)

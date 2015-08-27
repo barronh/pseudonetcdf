@@ -1,5 +1,5 @@
-from _files import PseudoNetCDFFile
-from _variables import PseudoNetCDFVariable
+from ._files import PseudoNetCDFFile
+from ._variables import PseudoNetCDFVariable
 from PseudoNetCDF.units import convert
 
 

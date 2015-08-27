@@ -13,7 +13,7 @@ camxfiles_paths = dict(wind = 'camxfiles/wind/test.wind',
                  point_source = 'camxfiles/point_source/test.point_source',
                  lateral_boundary = 'camxfiles/lateral_boundary/test.lateral_boundary')
 
-for key, val in camxfiles_paths.iteritems():
+for key, val in camxfiles_paths.items():
     camxfiles_paths[key] = join(*__path__ + val.split('/'))
 
 net_balance_paths = dict(
@@ -21,10 +21,10 @@ net_balance_paths = dict(
                  net_file = 'net_balance/test.net_file',
                  )
 
-for key, val in net_balance_paths.iteritems():
+for key, val in net_balance_paths.items():
     net_balance_paths[key] = join(*__path__ + val.split('/'))
 
 geoschemfiles_paths = dict(bpch = 'geoschemfiles/test.bpch')
 
-for key, val in geoschemfiles_paths.iteritems():
+for key, val in geoschemfiles_paths.items():
     geoschemfiles_paths[key] = join(*__path__ + val.split('/'))

@@ -25,17 +25,17 @@ __all__ = ['cloud_rain',
     'wind',
     'lateral_boundary']
     
-from uamiv.Memmap import uamiv
-from cloud_rain.Memmap import cloud_rain
-from height_pressure.Memmap import height_pressure
-from humidity.Memmap import humidity
-from finst.Memmap import finst
-from ipr.Memmap import ipr
-from irr.Memmap import irr
-from landuse.Memmap import landuse
-from lateral_boundary.Memmap import lateral_boundary
-from point_source.Memmap import point_source
-from temperature.Memmap import temperature
-from wind.Memmap import wind
-from vertical_diffusivity.Memmap import vertical_diffusivity
-from one3d.Memmap import one3d
+from .uamiv.Memmap import uamiv
+from .cloud_rain.Memmap import cloud_rain
+from .height_pressure.Memmap import height_pressure
+from .humidity.Memmap import humidity
+from .finst.Memmap import finst
+from .ipr.Memmap import ipr
+from .irr.Memmap import irr
+from .landuse.Memmap import landuse
+from .lateral_boundary.Memmap import lateral_boundary
+from .point_source.Memmap import point_source
+from .temperature.Memmap import temperature
+from .wind.Memmap import wind
+from .vertical_diffusivity.Memmap import vertical_diffusivity
+from .one3d.Memmap import one3d

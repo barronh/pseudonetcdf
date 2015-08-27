@@ -30,7 +30,7 @@ geos_hyai = {'GEOS-5-NATIVE': geos5_native_a,
              'MERRA-NATIVE': geos5_native_a,
              'MERRA-REDUCED': geos5_reduced_a
             }
-geos_hyam = dict([(k, np.convolve(v, [.5, .5], 'valid')) for k, v in geos_hyai.iteritems()])
+geos_hyam = dict([(k, np.convolve(v, [.5, .5], 'valid')) for k, v in geos_hyai.items()])
 
 geos_hybi = {'GEOS-5-NATIVE': geos5_native_b,
              'GEOS-5-REDUCED': geos5_reduced_b,
@@ -40,7 +40,7 @@ geos_hybi = {'GEOS-5-NATIVE': geos5_native_b,
              'MERRA-REDUCED': geos5_reduced_b
             }
 h0 = 7.6 # km
-geos_hybm = dict([(k, np.convolve(v, [.5, .5], 'valid')) for k, v in geos_hybi.iteritems()])
+geos_hybm = dict([(k, np.convolve(v, [.5, .5], 'valid')) for k, v in geos_hybi.items()])
 
 geos_etai = {}
 geos_etai_pressure = {}
@@ -49,7 +49,7 @@ geos_etam = {}
 geos_etam_pressure = {}
 geos_etam_height = {}
 geos_eta_slp = 1013.25
-for k, ai in geos_hyai.iteritems():
+for k, ai in geos_hyai.items():
     bi = geos_hybi[k]
     am = geos_hyam[k]
     bm = geos_hybm[k]

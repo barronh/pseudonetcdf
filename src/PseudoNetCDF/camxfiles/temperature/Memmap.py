@@ -31,7 +31,7 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoN
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 #for use in identifying uncaught nan
-listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
+listnan=struct.unpack('>f',b'\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
@@ -97,7 +97,7 @@ class temperature(PseudoNetCDFFile):
             cols=rowsXcols/rows
         else:
             if cols*rows!=rowsXcols:
-                raise ValueError, "The product of cols (%d) and rows (%d) must equal cells (%d)" %  (cols,rows,rowsXcols)
+                raise ValueError("The product of cols (%d) and rows (%d) must equal cells (%d)" %  (cols,rows,rowsXcols))
         
         self.createDimension('ROW',rows)
         self.createDimension('COL',cols)
@@ -128,7 +128,7 @@ class temperature(PseudoNetCDFFile):
         out_idx=out_idx.ravel()
         buf=self.__memmap[out_idx==0].reshape((lays+1)*times,2)
         if not (buf[:,0]==buf[:,1]).all():
-            raise ValueError,"Buffer"
+            raise ValueError("Buffer")
         v=self.variables['SURFTEMP']=PseudoNetCDFVariable(self,'SURFTEMP','f',('TSTEP','ROW','COL'),values=self.__memmap[out_idx==1].reshape(times,rows,cols))
         v.units='K'
         v.long_name='SURFTEMP'
@@ -155,6 +155,19 @@ class TestMemmap(unittest.TestCase):
         tempfile=temperature(PseudoNetCDF.testcase.camxfiles_paths['temperature'],4,5)
         tempfile.variables['TFLAG']
         self.assert_((tempfile.variables['AIRTEMP']==array([2.97762360e+02, 2.97261993e+02, 3.00761200e+02, 3.03811005e+02, 3.04561218e+02, 2.96350311e+02, 2.96676544e+02, 3.00992096e+02, 3.05474762e+02, 3.07840637e+02, 2.99522430e+02, 3.00271698e+02, 3.03738403e+02, 3.07201843e+02, 3.08288422e+02, 3.02957214e+02, 3.04927643e+02, 3.06630157e+02, 3.07726074e+02, 3.07380707e+02, 2.97516449e+02, 2.96920105e+02, 3.00340576e+02, 3.03413177e+02, 3.04202728e+02, 2.96074036e+02, 2.96250641e+02, 3.00632294e+02, 3.05113647e+02, 3.07390533e+02, 2.99310059e+02, 2.99901031e+02, 3.03344666e+02, 3.06782135e+02, 3.07819946e+02, 3.02657013e+02, 3.04522675e+02, 3.06167206e+02, 3.07235107e+02, 3.06883484e+02, 2.97677338e+02, 2.96919098e+02, 3.00031250e+02, 3.03082672e+02, 3.03850861e+02, 2.96460999e+02, 2.95947815e+02, 3.00303680e+02, 3.04781982e+02, 3.07048492e+02, 2.99246979e+02, 2.99508667e+02, 3.02997650e+02, 3.06450500e+02, 3.07478485e+02, 3.02246765e+02, 3.04192139e+02, 3.05832489e+02, 3.06897644e+02, 3.06546173e+02, 2.97428253e+02, 2.97174896e+02, 3.00208191e+02, 3.03096893e+02, 3.04174133e+02, 2.96558685e+02, 2.96706177e+02, 3.00862610e+02, 3.04807037e+02, 3.06937347e+02, 2.98850220e+02, 2.99482727e+02, 3.03085022e+02, 3.06456787e+02, 3.07406586e+02, 3.01888580e+02, 3.03996735e+02, 3.05916962e+02, 3.07113647e+02, 3.06539337e+02, 2.97645966e+02, 2.97326630e+02, 3.00117950e+02, 3.02804077e+02, 3.03801544e+02, 2.96783661e+02, 2.96694946e+02, 3.00722931e+02, 3.04501587e+02, 3.06560150e+02, 2.98854828e+02, 2.99314972e+02, 3.02861023e+02, 3.06150177e+02, 3.07073944e+02, 3.01700745e+02, 3.03746124e+02, 3.05626617e+02, 3.06770447e+02, 3.06172394e+02, 2.97927094e+02, 2.97691681e+02, 3.00104675e+02, 3.02464874e+02, 3.03398926e+02, 2.97336578e+02, 2.97074127e+02, 3.00716736e+02, 3.04132446e+02, 3.06129700e+02, 2.98817017e+02, 2.99221039e+02, 3.02649536e+02, 3.05787415e+02, 3.06698334e+02, 3.01333618e+02, 3.03411346e+02, 3.05317505e+02, 3.06446869e+02, 3.05815948e+02],dtype='f').reshape(2,3,4,5)).all())
-               
+    def testNCF2TEMP(self):
+        import PseudoNetCDF.testcase
+        from PseudoNetCDF.pncgen import pncgen
+        import os
+        inpath = PseudoNetCDF.testcase.camxfiles_paths['temperature']
+        outpath=PseudoNetCDF.testcase.camxfiles_paths['temperature'] + '.check'
+        infile=temperature(inpath,4,5)
+        pncgen(infile, outpath, format = 'camxfiles.temperature')
+        orig = open(inpath, 'rb').read()
+        new = open(outpath, 'rb').read()
+        assert(orig == new)
+        os.remove(outpath)
+
+
 if __name__ == '__main__':
     unittest.main()

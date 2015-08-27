@@ -1,5 +1,6 @@
+from __future__ import print_function
 import numpy as np
-from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariable
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
 from glob import glob
 from csv import DictReader, Sniffer, QUOTE_NONNUMERIC
 import re
@@ -55,8 +56,8 @@ if __name__ == '__main__':
         bvar = eval(key, None, bfile1.variables)
         b2var = eval(key, None, bfile1.variables)
         assert((bvar == b2var).all())
-        print >> sys.stdout, '\n%s (BASE: %6.2f)' % (label, bvar.mean())
-        print >> sys.stdout, '\n      BASE:',
+        print('\n%s (BASE: %6.2f)' % (label, bvar.mean()), file = sys.stdout)
+        print('\n      BASE:', sep = '', file = sys.stdout)
         prctile(bvar, np.ma.arange(.1, 1., .1)* 100).tofile(sys.stdout, sep = ', ', format = '%6.2f')
-    print >> sys.stdout, ''
+    print('', file = sys.stdout)
     

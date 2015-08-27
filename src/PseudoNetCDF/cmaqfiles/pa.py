@@ -1,3 +1,4 @@
+from __future__ import print_function
 from PseudoNetCDF.netcdf import NetCDFFile
 from PseudoNetCDF.sci_var import PseudoNetCDFFile
 from PseudoNetCDF.MetaNetCDF import file_master
@@ -84,4 +85,4 @@ if __name__ == '__main__':
     try:
         pncdump(eval('mrgidx(%s)' % (x,)), name = mrgidx)
     except:
-        print >> sys.stderr, "\nUsage: python -m PseudoNetCDF.cmaqfiles.pa \"ipr_paths, irr_paths, idx\"\n  ipr_paths - a single string or list of strings\n  irr_paths - a single string or list of strings\n  idx - 4D numpy slice indexes a time series\n\n\nExample:\n  $ python -m PseudoNetCDF.cmaqfiles.pa \"['CMAQ_IPR1.nc','CMAQ_IPR2.nc'], 'CMAQ_IRR.nc', (slice(None),0,1,1)\""
+        print("\nUsage: python -m PseudoNetCDF.cmaqfiles.pa \"ipr_paths, irr_paths, idx\"\n  ipr_paths - a single string or list of strings\n  irr_paths - a single string or list of strings\n  idx - 4D numpy slice indexes a time series\n\n\nExample:\n  $ python -m PseudoNetCDF.cmaqfiles.pa \"['CMAQ_IPR1.nc','CMAQ_IPR2.nc'], 'CMAQ_IRR.nc', (slice(None),0,1,1)\"", file = sys.stderr)

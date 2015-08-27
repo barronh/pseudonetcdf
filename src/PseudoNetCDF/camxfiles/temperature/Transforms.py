@@ -16,7 +16,7 @@ from numpy import array
 
 from PseudoNetCDF.MetaNetCDF import add_derived, time_avg_new_unit
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoNetCDFVariable
-from Memmap import temperature as reg_temperature
+from .Memmap import temperature as reg_temperature
 
 class temperature_center_time(time_avg_new_unit):
     __reader__=reg_temperature

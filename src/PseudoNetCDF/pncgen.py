@@ -1,10 +1,12 @@
+from __future__ import print_function
 import sys
 from warnings import warn
 from types import MethodType
 from PseudoNetCDF.netcdf import NetCDFFile, NetCDFVariable
-from sci_var import PseudoNetCDFFile
-from sci_var import get_ncf_object
+from .sci_var import PseudoNetCDFFile
+from .sci_var import get_ncf_object
 import numpy as np
+
 
 class Pseudo2NetCDF:
     """
@@ -29,17 +31,17 @@ class Pseudo2NetCDF:
     def convert(self,pfile,npath=None, inmode = 'r', outmode = 'w', format = 'NETCDF4'):
         pfile = get_ncf_object(pfile, inmode)
         nfile = get_ncf_object(npath, outmode, format = format)
-        if self.verbose: print >> sys.stdout, "Adding dimensions"
+        if self.verbose: print("Adding dimensions", file = sys.stdout)
         self.addDimensions(pfile,nfile)
-        if self.verbose: print >> sys.stdout, "Adding globals"
+        if self.verbose: print("Adding globals", file = sys.stdout)
         self.addGlobalProperties(pfile,nfile)
-        if self.verbose: print >> sys.stdout, "Adding variables"
+        if self.verbose: print("Adding variables", file = sys.stdout)
         self.addVariables(pfile,nfile)
         nfile.sync()
         return nfile
         
     def addDimensions(self,pfile,nfile):
-        for d,v in pfile.dimensions.iteritems():
+        for d,v in pfile.dimensions.items():
             unlim = (d in self.unlimited_dimensions or v.isunlimited())
             if not isinstance(v, (int, long)) and v is not None:
                 v = len(v)
@@ -132,12 +134,12 @@ class Pseudo2NetCDF:
 
     def addVariables(self,pfile,nfile):
         for k in pfile.variables.keys():
-            if self.verbose: print >> sys.stdout, "Defining", k
+            if self.verbose: print("Defining", k, file = sys.stdout)
             self.addVariable(pfile,nfile,k, data = self.datafirst)
         nfile.sync()
         if not self.datafirst:
             for k in pfile.variables.keys():
-                if self.verbose: print >> sys.stdout, "Populating", k
+                if self.verbose: print("Populating", k, file = sys.stdout)
                 self.addVariableData(pfile,nfile,k)
             nfile.sync()
 
@@ -147,7 +149,7 @@ import PseudoNetCDF.icarttfiles.ffi1001 as icarttwriters
 
 from PseudoNetCDF.textfiles import ncf2csv
 def pywriter(ifile, outpath, data = True):
-    print """# Import Libraries and Functions
+    print("""# Import Libraries and Functions
 from netCDF4 import Dataset
 from numpy import *
 from numpy.ma import masked_array
@@ -156,39 +158,39 @@ from numpy.ma import masked_array
 outpath = '%s'
 outfile = Dataset(outpath, 'w')
 
-""" % outpath
-    print "# Define Dimensions"
-    for dk, dv in ifile.dimensions.iteritems():
+""" % outpath)
+    print("# Define Dimensions")
+    for dk, dv in ifile.dimensions.items():
         dl = len(dv)
         if dv.isunlimited(): dl = None
-        print "dim_%s = outfile.createDimension('%s', %s); # %d" % (dk, dk, dl, len(dv))
+        print("dim_%s = outfile.createDimension('%s', %s); # %d" % (dk, dk, dl, len(dv)))
     
-    print "# Add global properties"
+    print("# Add global properties")
     for pk in ifile.ncattrs():
         pv = getattr(ifile, pk)
         if isinstance(pv, bool): pv = int(pv)
-        print "setattr(outfile, '%s', %s)" % (pk, repr(pv))
+        print("setattr(outfile, '%s', %s)" % (pk, repr(pv)))
    
-    print "## Define Variables"
-    print "vars = {}"
-    for vk, v in ifile.variables.iteritems():
-        print "# Defining " + vk
-        print "var = vars['%s'] = outfile.createVariable('%s', '%s', %s)" % (vk, vk, v.dtype.char, v.dimensions)
+    print("## Define Variables")
+    print("vars = {}")
+    for vk, v in ifile.variables.items():
+        print("# Defining " + vk)
+        print("var = vars['%s'] = outfile.createVariable('%s', '%s', %s)" % (vk, vk, v.dtype.char, v.dimensions))
         for pk in v.ncattrs():
             pv = getattr(v, pk)
-            print "setattr(var, '%s', %s)" % (pk, repr(pv))
-        print ""
+            print("setattr(var, '%s', %s)" % (pk, repr(pv)))
+        print("")
 
     if data:
-        print "## Populate Variables"
-        for vk, v in ifile.variables.iteritems():
-            print "# Populating " + vk
+        print("## Populate Variables")
+        for vk, v in ifile.variables.items():
+            print("# Populating " + vk)
             if isinstance(v, np.ma.MaskedArray):
                 vtype = np.ma.MaskedArray
             else:
                 vtype = np.ndarray
-            print "var = vars['%s']" % vk
-            print "var[:] = %s" % (repr(v[:].view(type = vtype)))
+            print("var = vars['%s']" % vk)
+            print("var[:] = %s" % (repr(v[:].view(type = vtype))))
 
 
 def pncgen(ifile,outpath, inmode = 'r', outmode = 'w', format = 'NETCDF4_CLASSIC', verbose = True):
@@ -196,10 +198,17 @@ def pncgen(ifile,outpath, inmode = 'r', outmode = 'w', format = 'NETCDF4_CLASSIC
         p2n = Pseudo2NetCDF()
         p2n.verbose = verbose
         return p2n.convert(ifile, outpath, inmode = inmode, outmode = outmode, format = format)
-    elif format == 'python':
+
+    from ._getwriter import getwriterdict
+    writerdict = getwriterdict()
+    if format == 'python':
         pywriter(ifile, outpath)
     elif format == 'csv':
-        csvwriter(ifile, outpath)
+        from .textfiles._delimited import ncf2csv
+        ncf2csv(ifile, outpath)
+    elif format in writerdict:
+        writer = writerdict[format]
+        return writer(ifile, outpath)
     else:
         for writers in [CAMxWriters, geoschemwriters, icarttwriters]:
             writer = getattr(writers, 'ncf2%s' % format, None)
@@ -213,7 +222,7 @@ def pncgen(ifile,outpath, inmode = 'r', outmode = 'w', format = 'NETCDF4_CLASSIC
         
     
 def main():
-    from pncparse import pncparse
+    from .pncparse import pncparse
     ifiles, options = pncparse(has_ofile = True, interactive = False)
     if len(ifiles) != 1:
         raise IOError('pncgen can output only 1 file; user requested %d' % len(ifiles))

@@ -1,3 +1,4 @@
+from __future__ import print_function
 __all__ = ['NO', 'NP', 'NOP', 'MO', 'MP', 'MdnO', 'MdnP', 'STDO', 'STDP', 'RM', 'RMdn', 'MB', 'MdnB', 'WDMB', 'WDMdnB', 'FB', 'MNB', 'MdnNB', 'NMB', 'NMdnB', 'USUTPB', 'PSUTMNPB', 'PSUTMdnNPB', 'PSUTNMPB', 'PSUTNMdnPB', 'ME', 'MdnE', 'WDME', 'WDMdnE', 'FE', 'MNE', 'MdnNE', 'NME', 'NMdnE', 'USUTPE',  'PSUTMNPE', 'PSUTMdnNPE', 'PSUTNMPE', 'PSUTNMdnPE', 'R2', 'RMSE', 'RMSEs', 'RMSEu', 'E1', 'IOA', 'd1', 'AC', 'WDIOA', 'WDRMSE', 'WDAC']
 from pncload import createconsole
 import numpy as np
@@ -363,7 +364,7 @@ def stat_timeseries(ifile0, ifile1, variables = ['O3'], counties = False):
 
 def main():
     from warnings import warn
-    from pncparse import pncparse
+    from .pncparse import pncparse
     from PseudoNetCDF.core._functions import pncfunc, pncbfunc
     from PseudoNetCDF.pncparse import getparser, pncparse
 
@@ -387,7 +388,7 @@ def main():
         dt = tstop - tstart
         for vk in options.variables:
             if vk in ('time', 'TFLAG'): continue
-            print '%.2f,%.2f,%.2f,%s,%s,%s,%f' % (tstart, tstop, dt, vk, func.__doc__.strip(), k, ofile.variables[vk].ravel()[0])
+            print('%.2f,%.2f,%.2f,%s,%s,%s,%f' % (tstart, tstop, dt, vk, func.__doc__.strip(), k, ofile.variables[vk].ravel()[0]))
     np.seterr(divide = 'warn', invalid = 'warn')
     if options.interactive:
         console.interact()

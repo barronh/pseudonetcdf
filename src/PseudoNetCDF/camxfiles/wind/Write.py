@@ -46,9 +46,9 @@ def ncf2wind(ncffile, outpath, tflag = 'TFLAG'):
     varkeys = [vk for vk in ['U', 'V'] if vk in ncffile.variables.keys()]
     nzcl = len(ncffile.dimensions['LAY'])
     for di, (d,t) in enumerate(ncffile.variables[tflag][:,0,:]):
-        t=np.array(t.astype('>f')/100,ndmin=1).astype('>f')
+        t=np.array(t.astype('>f')//100,ndmin=1).astype('>f')
         d=np.array(d,ndmin=1).astype('>i')
-        d=(d%(d/100000*100000)).astype('>i')
+        d=(d%(d//100000*100000)).astype('>i')
         lstag = ncffile.LSTAGGER
         buf = np.array([12], dtype = '>i').tostring()
         outfile.write(buf+t.tostring()+d.tostring()+lstag.tostring()+buf)
@@ -66,7 +66,11 @@ def ncf2wind(ncffile, outpath, tflag = 'TFLAG'):
         outfile.write(buf)
     outfile.flush()
     return outfile
-    
+
+from PseudoNetCDF._getwriter import registerwriter
+registerwriter('camxfiles.wind', ncf2wind)    
+registerwriter('wind', ncf2wind)    
+
 def write_wind(sdate,stime,time_step,vals,lstagger=None):
     """
     Takes an iterable and some defining information

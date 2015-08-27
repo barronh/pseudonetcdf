@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 __all__=['point_source']
 __doc__ = """
 .. _Memmap
@@ -31,7 +32,7 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoN
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 #for use in identifying uncaught nan
-listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
+listnan=struct.unpack('>f',b'\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
@@ -118,8 +119,8 @@ class point_source(PseudoNetCDFFile):
 
         self.__grid_hdr=self.__memmap[offset:offset+self.__grid_hdr_fmt.itemsize/4].view(self.__grid_hdr_fmt)
         offset+=self.__grid_hdr.nbytes/4
-        self.NAME = self.__emiss_hdr['name'][0, :, 0].copy().view('S10')[0]
-        self.NOTE = self.__emiss_hdr['note'][0, :, 0].copy().view('S60')[0]
+        self.NAME = self.__emiss_hdr['name'][0, :, 0].copy().view('S10')[0].decode()
+        self.NOTE = self.__emiss_hdr['note'][0, :, 0].copy().view('S60')[0].decode()
         self.XORIG=self.__grid_hdr['xorg'][0]
         self.YORIG=self.__grid_hdr['yorg'][0]
         self.XCELL=self.__grid_hdr['delx'][0]
@@ -144,7 +145,9 @@ class point_source(PseudoNetCDFFile):
         self.__spc_hdr=self.__memmap[offset:offset+self.__spc_hdr_fmt.itemsize/4*nspec].view('>S1').reshape(nspec, 10, 4)
         offset+=self.__spc_hdr.nbytes/4+1
 
-        self.__spc_names=[str(np.char.strip(spc[:,0].copy().view('S10')[0])) for spc in self.__spc_hdr]
+        spc_names=[np.char.strip(spc[:,0].copy().view('S10'))[0] for spc in self.__spc_hdr]
+        spc_names=[spc.decode() if hasattr(spc, 'decode') else spc for spc in spc_names]
+        self.__spc_names = spc_names
         self.__nstk_hdr=self.__memmap[offset:offset+self.__nstk_hdr_fmt.itemsize/4].view(self.__nstk_hdr_fmt)
         offset+=self.__nstk_hdr.nbytes/4+1
 
@@ -189,7 +192,7 @@ class point_source(PseudoNetCDFFile):
         end=start+stk_block_size
         nstk_hdr=data[:,start:end]
         if not (nstks==nstk_hdr[:,2:3].view('>i')).all():
-            raise ValueError, "Number of stacks varies with time"
+            raise ValueError("Number of stacks varies with time")
         start=end
         end=start+stk_props_size
         self.__hourly_stk_props=data[:,start:end][:,1:-1].reshape(ntimes,nstks,5)
@@ -197,7 +200,7 @@ class point_source(PseudoNetCDFFile):
         start=end
         end=start+emiss_block_size
         if not end==data.shape[1]:
-            raise ValueError, "Incorrect shape"
+            raise ValueError("Incorrect shape")
         self.__emiss_data=data[:,start:].reshape(ntimes,nspcs,13+nstks)[:,:,12:-1]
         bdates=dates[:,0]
         btimes=times[:,0]
@@ -239,7 +242,7 @@ class point_source(PseudoNetCDFFile):
             v.var_desc=k.ljust(16)
             return v
         else:
-            raise KeyError, "Unknown key %s" % k
+            raise KeyError("Unknown key %s" % k)
 
 class TestMemmap(unittest.TestCase):
     def runTest(self):
@@ -252,6 +255,23 @@ class TestMemmap(unittest.TestCase):
         emissfile=point_source(PseudoNetCDF.testcase.camxfiles_paths['point_source'])
         v = emissfile.variables['NO2']
         self.assert_((v[:] == np.array([  0.00000000e+00, 3.12931000e+02, 1.23599997e+01, 0.00000000e+00, 5.27999992e+01, 0.00000000e+00, 3.12931000e+02, 1.23599997e+01, 0.00000000e+00, 5.27999992e+01], dtype = 'f').reshape(2,5)).all())
+
+    def testNCF2PT(self):
+        import PseudoNetCDF.testcase
+        from PseudoNetCDF.pncgen import pncgen
+        import os
+        inpath = PseudoNetCDF.testcase.camxfiles_paths['point_source']
+        outpath=PseudoNetCDF.testcase.camxfiles_paths['point_source'] + '.check'
+        infile=point_source(inpath)
+        pncgen(infile, outpath, format = 'camxfiles.point_source')
+        orig = open(inpath, 'rb').read()
+        new = open(outpath, 'rb').read()
+        #outfile=point_source(outpath)
+        #for k, v0 in infile.variables.items():
+        #    v1 = outfile.variables[k]
+        #    print(k, (v0[:] == v1[:]).all())
+        assert(orig == new)
+        os.remove(outpath)
 
 if __name__ == '__main__':
     unittest.main()

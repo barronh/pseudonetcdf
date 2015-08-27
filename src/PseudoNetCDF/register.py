@@ -1,3 +1,4 @@
+from __future__ import print_function
 readers = []
 def register(name, reader):
     global readers
@@ -8,7 +9,7 @@ def getreader(path):
     Tests readers on path
     """
     for name, reader in readers:
-        print name
+        print(name)
         if hasattr(reader, 'isMine'):
             if reader.isMine(path):
                 return reader
@@ -28,15 +29,15 @@ def getfile(path):
     reader = getreader(path)
     return reader(path)
 
-from camxfiles.Memmaps import __all__ as camxmemmaps
-from camxfiles.Memmaps import *
+from .camxfiles.Memmaps import __all__ as camxmemmaps
+from .camxfiles.Memmaps import *
 for reader in camxmemmaps:
     register(reader, eval(reader))
 
-from geoschemfiles import __all__ as geoschem
-from geoschemfiles import *
+from .geoschemfiles import __all__ as geoschem
+from .geoschemfiles import *
 for reader in geoschem:
     register(reader, eval(reader))
 
-from icarttfiles.ffi1001 import ffi1001
+from .icarttfiles.ffi1001 import ffi1001
 register('ffi1001', ffi1001)

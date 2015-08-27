@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import sys
 import os
 import re
@@ -1085,7 +1087,7 @@ def repair_ae(f, myioo):
         if not spc.found:
             not_found[spc.version].append(spc.name)
     version_check = []
-    for k, v in not_found.iteritems():
+    for k, v in not_found.items():
         if k != 0:
             version_check.append(k)
         warn('Some variables from %d were not found: %s' % (k, v))
@@ -1102,7 +1104,7 @@ def repair_ae(f, myioo):
         v = 1.0e-9*6.0/( pi*spc.density ) * bcval[:]
         moment3[spc.mode] += v
     
-    for modek, modv in moment3.iteritems():
+    for modek, modv in moment3.items():
         numkey = 'NUM' + modek
         srfkey = 'SRF' + modek
         if numkey in f.variables.keys():
@@ -1204,7 +1206,7 @@ def makeibcon(args):
         newbcon.createDimension('DATE-TIME', 2)
         for dimk in ('LAY', 'PERIM'):
             newbcon.createDimension(dimk, len(oldbcon.dimensions[dimk]))
-        for vark, oldv in oldbcon.variables.iteritems():
+        for vark, oldv in oldbcon.variables.items():
             if vark == 'TFLAG': continue
             newv = newbcon.createVariable(vark, oldv.dtype.char, oldv.dimensions)
             for propk in oldv.ncattrs():
@@ -1240,7 +1242,7 @@ def makeibcon(args):
         newicon.createDimension('TSTEP', None)
         for dimk in ('DATE-TIME', 'LAY', 'ROW', 'COL'):
             newicon.createDimension(dimk, len(oldicon.dimensions[dimk]))
-        for vark, oldv in oldicon.variables.iteritems():
+        for vark, oldv in oldicon.variables.items():
             if vark == 'TFLAG': continue
             newv = newicon.createVariable(vark, oldv.dtype.char, oldv.dimensions)
             for propk in oldv.ncattrs():
@@ -1260,7 +1262,7 @@ def makeibcon(args):
     if doicon:
         infiles += [(newicon, ('TSTEP', 'LAY', 'ROW', 'COL'))]
 
-    for vark, varo in mappings.iteritems():
+    for vark, varo in mappings.items():
         for newcon, dims in infiles:
             if vark not in newcon.variables.keys():
                 newv = newcon.createVariable(vark, 'f', dims)
@@ -1282,7 +1284,7 @@ def makeibcon(args):
             cpressv = metfile.variables['PRES']
             assert(cpressv.units.strip() == 'Pa')
         oldkeys = []
-        for vark, varo in newcon.variables.iteritems():
+        for vark, varo in newcon.variables.items():
             toff = 0
             if vark in ('TFLAG',): continue
             if vark in mappings:
@@ -1483,7 +1485,7 @@ Example:
     
     args = parser.parse_args()
     if not args.template is None:
-        print get_template(args.template, args.gcversion)
+        print(get_template(args.template, args.gcversion))
         exit()
     if not os.path.exists(args.mapping):
         parser.print_help()

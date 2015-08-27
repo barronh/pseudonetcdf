@@ -1,3 +1,4 @@
+from __future__ import print_function
 from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariable
 import re
 import numpy as np
@@ -74,11 +75,11 @@ if __name__ == '__main__':
     j = jtable(path = '/Volumes/LaCie/JTABLE_1985172')
     v = j.variables['HCHO_M_SAPRC99']
     np.set_printoptions(precision = 5)
-    print v[:2,:2,:2]
-    print j.interpj('HCHO_M_SAPRC99', 0,10,0)
-    print j.interpj('HCHO_M_SAPRC99', 0,10,1)
-    print j.interpj('HCHO_M_SAPRC99', 0,20,1)
-    print j.interpj('HCHO_M_SAPRC99', 1000,20,1)
-    print j.interpj('HCHO_M_SAPRC99', 0,10,.5)
-    print j.interpj('HCHO_M_SAPRC99', 0,15,.5)
-    print j.interpj('HCHO_M_SAPRC99', 500,15,.5)
+    print(v[:2,:2,:2])
+    print(j.interpj('HCHO_M_SAPRC99', 0,10,0))
+    print(j.interpj('HCHO_M_SAPRC99', 0,10,1))
+    print(j.interpj('HCHO_M_SAPRC99', 0,20,1))
+    print(j.interpj('HCHO_M_SAPRC99', 1000,20,1))
+    print(j.interpj('HCHO_M_SAPRC99', 0,10,.5))
+    print(j.interpj('HCHO_M_SAPRC99', 0,15,.5))
+    print(j.interpj('HCHO_M_SAPRC99', 500,15,.5))

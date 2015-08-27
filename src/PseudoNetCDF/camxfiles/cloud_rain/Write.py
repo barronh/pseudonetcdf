@@ -14,7 +14,7 @@ def ncf2cloud_rain(ncffile, outpath, tflag = 'TFLAG'):
     for di, (d,t) in enumerate(ncffile.variables[tflag][:,0,:]):
         t=np.array(t.astype('>f')/100,ndmin=1).astype('>f')
         d=np.array(d,ndmin=1).astype('>i')
-        d=(d%(d/100000*100000)).astype('>i')
+        d=(d%(d//100000*100000)).astype('>i')
         buf = np.array(8, dtype = '>i').tostring()
         outfile.write(buf+t.tostring()+d.tostring()+buf)
         for zi in range(nzcl):
@@ -27,3 +27,8 @@ def ncf2cloud_rain(ncffile, outpath, tflag = 'TFLAG'):
     
     outfile.flush()
     return outfile
+
+from PseudoNetCDF._getwriter import registerwriter
+registerwriter('camxfiles.cloud_rain', ncf2cloud_rain)
+registerwriter('cloud_rain', ncf2cloud_rain)
+

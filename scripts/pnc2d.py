@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # Run this script with pnc options
+from __future__ import print_function
 
 import sys
 import os
@@ -27,7 +28,7 @@ def make2d(ifile, options):
     for fi, ifile in enumerate(ifiles):
         variables = options.variables
         if variables is None:
-            variables = [key for key, var in ifile.variables.iteritems() if var.ndim == 2]
+            variables = [key for key, var in ifile.variables.items() if var.ndim == 2]
         if len(variables) == 0:
             raise ValueError('Unable to heuristically determin plottable variables; use -v to specify variables for plotting')
         for varkey in variables:
@@ -60,7 +61,7 @@ def make2d(ifile, options):
                 
             vmin, vmax = norm.vmin, norm.vmax
             varunit = getattr(var, 'units', 'unknown').strip()
-            print varkey,
+            print(varkey, sep = '')
             del ax.collections[nborders:]
             if options.swapaxes:
                 patches = ax.pcolor(vals.T, norm = norm)
@@ -111,7 +112,7 @@ def make2d(ifile, options):
                 csl.interact()
             
             fig.savefig(figpath)
-            print 'Saved fig', figpath
+            print('Saved fig', figpath)
         
 if __name__ == '__main__':
     from PseudoNetCDF.pncparse import pncparse, getparser

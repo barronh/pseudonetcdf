@@ -14,8 +14,8 @@ __doc__ = """
 """
 __all__=['boxmodel', 'pa', 'box_model_mrg', 'box_model_conc', 'bcon_profile', 'icon_profile']
 
-import boxmodel
-import pa
-from _jtable import jtable
-from boxmodel import *
-from profile import *
+from . import boxmodel
+from . import pa
+from ._jtable import jtable
+from .boxmodel import *
+from .profile import *

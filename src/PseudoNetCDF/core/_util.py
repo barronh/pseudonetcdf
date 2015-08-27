@@ -1,6 +1,7 @@
+from __future__ import unicode_literals
 from tempfile import NamedTemporaryFile as tnf
 
-from _files import PseudoNetCDFFile
+from ._files import PseudoNetCDFFile
 from PseudoNetCDF.netcdf import NetCDFFile
 
 def get_ncf_object(path_or_object, mode, format = 'NETCDF4_CLASSIC'):
@@ -10,7 +11,7 @@ def get_ncf_object(path_or_object, mode, format = 'NETCDF4_CLASSIC'):
     from os.path import exists, isfile, isdir
     from PseudoNetCDF.netcdf import NetCDFFile
     read_only = ('r', 'r+', 'rs', 'rs+', 'r+s')
-    if isinstance(path_or_object, (str, unicode)):
+    if isinstance(path_or_object, (str, )):
         if exists(path_or_object):
             if isfile(path_or_object):
                 ncf_object = NetCDFFile(path_or_object, mode, format = format)

@@ -102,7 +102,7 @@ class time_avg_new_unit(PseudoNetCDFFile):
         return PseudoNetCDFVariableConvertUnit(self.__decorator(var, PseudoNetCDFVariable(self, k, var.typecode(), var.dimensions, values = CenterTime(var))), outunit)
     
     def __decorator(self, ovar, nvar):
-        for a, v in ovar.__dict__.iteritems():
+        for a, v in ovar.__dict__.items():
             setattr(nvar, a, v)
         return nvar
 
@@ -176,7 +176,7 @@ class newresolution(PseudoNetCDFFile):
         self.__nthick = nthick
             
         if not logical_or((self.__mesh % 1) == 0, (1. / self.__mesh) % 1 ==0).any():
-            raise ValueError, "One resolution must be a factor of the other."
+            raise ValueError("One resolution must be a factor of the other.")
 
         Pseudo2NetCDF().addDimensions(self.__file, self)
         any_non_time_key = [k for k in self.__file.variables.keys() if 'TFLAG' not in k][0]
@@ -207,7 +207,7 @@ class newresolution(PseudoNetCDFFile):
 
     def __variables(self, k):
         if 'TFLAG' in k and (self.__axis != 0).any():
-            raise KeyError, "Tflag is off limits"
+            raise KeyError("Tflag is off limits")
         else:
             ov = self.__file.variables[k]
             v = self.__method(ov)
@@ -239,7 +239,7 @@ class MetaNetCDF(PseudoNetCDFFile):
         self.__files = files
         keys = []
         for f in self.__files:
-            for k, d in f.dimensions.iteritems():
+            for k, d in f.dimensions.items():
                 if len(d)==1 and k=='LAY':
                     k = 'SURFLAY'
                 if k not in self.dimensions.keys():
@@ -261,7 +261,7 @@ class MetaNetCDF(PseudoNetCDFFile):
                     return getattr(f, k)
                 except:
                     pass
-            raise AttributeError, "%s not found" % k
+            raise AttributeError("%s not found" % k)
 
     def childvariables(self, k):
         for f in self.__files:
@@ -285,7 +285,7 @@ class MetaNetCDF(PseudoNetCDFFile):
             return self.__metavars__[k](self)
         else:
             return self.childvariables(k)
-        raise KeyError, '%s not in any files' % k
+        raise KeyError('%s not in any files' % k)
 file_master = MetaNetCDF
 
 def WindowFromFile(WindowThis, WindowFrom):

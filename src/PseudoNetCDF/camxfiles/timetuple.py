@@ -22,32 +22,38 @@ RevisionNum= "$LastChangedRevision$"
 ChangedBy  = "$LastChangedBy$"
 __version__ = RevisionNum
 
-def timerange((date1,time1),(date2,time2), step=100, eod=2400.0):
+def timerange(datetime1, datetime2, step=100, eod=2400.0):
     """Iterater of time tuples between start and end (not end inclusive)
     
     Should probably remove the != and use < if step + and > if step -
     """
+    (date1,time1) = datetime1
+    (date2,time2) = datetime2
     date1,time1=timeadd((date1,time1),(0,0),eod)
     date2,time2=timeadd((date2,time2),(0,0),eod)
     while (date1,time1)!=(date2,time2):
         yield date1,time1
         date1,time1 = timeadd((date1,time1),(0,step),eod)
 
-def timediff((date1,time1),(date2,time2),  eod=2400.0):
+def timediff(datetime1,datetime2,  eod=2400.0):
     """Compares date tuples and returns difference in
     a time tuple
     """
+    (date1,time1) = datetime1
+    (date2,time2) = datetime2
     date3=date2-date1
     time3=time2-time1
     return date3*eod + time3
 
-def timeadd((date1,time1),(date2,time2),eod=2400.0):
+def timeadd(datetime1,datetime2,eod=2400.0):
     """Adds time tuple 1 to time tuple 2.
     Time values greater than eod (dflt 2400)
     are converted to days
     
     Big question is hr 24 day 1
     """
+    (date1,time1) = datetime1
+    (date2,time2) = datetime2
     
     time1 = time1 + time2
     date1 = date1 + date2

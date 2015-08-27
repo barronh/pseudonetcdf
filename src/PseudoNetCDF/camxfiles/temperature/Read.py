@@ -35,7 +35,7 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoN
 
 
 #for use in identifying uncaught nan
-listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
+listnan=struct.unpack('>f',b'\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
@@ -89,7 +89,7 @@ class temperature(PseudoNetCDFFile):
             cols=self.cell_count/rows
         else:
             if cols*rows!=self.cell_count:
-                raise ValueError, "The product of cols (%d) and rows (%d) must equal cells (%d)" %  (cols,rows,self.cell_count)
+                raise ValueError("The product of cols (%d) and rows (%d) must equal cells (%d)" %  (cols,rows,self.cell_count))
 
         self.createDimension('TSTEP', self.time_step_count)
         self.createDimension('COL', cols)
@@ -105,7 +105,7 @@ class temperature(PseudoNetCDFFile):
         dims={'AIRTEMP':('TSTEP','LAY','ROW','COL'),'SURFTEMP':('TSTEP','SURF','ROW','COL')}[key]
         var=self.createVariable(key,'f',dims)
         var[:] = values
-        for k,v in decor(key).iteritems():
+        for k,v in decor(key).items():
             setattr(var,k,v)
         return var
 

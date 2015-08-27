@@ -1,10 +1,14 @@
+from __future__ import print_function
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFMaskedVariable as PseudoNetCDFVariable
 from numpy import fromstring, vectorize, ndarray, array, genfromtxt
 from numpy.ma import MaskedArray, filled
 from datetime import datetime, timedelta
 import re
 import yaml
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import BytesIO as StringIO
 from warnings import warn
 
 def get_lodval(v):
@@ -37,10 +41,10 @@ class ffi1001(PseudoNetCDFFile):
             delim = ','
         else:
             delim = None
-        split = lambda s: map(str.strip, s.split(delim))
+        split = lambda s: list(map(str.strip, s.split(delim)))
 
         if split(l)[-1] != '1001':
-            raise TypeError, "File is the wrong format.  Expected 1001; got %s" % (split(l)[-1],)
+            raise TypeError("File is the wrong format.  Expected 1001; got %s" % (split(l)[-1],))
         
         n, self.fmt = split(l)
         n_user_comments = 0
@@ -80,7 +84,7 @@ class ffi1001(PseudoNetCDFFile):
                 elif li == SCALE_LINE:
                     scales = [eval(i) for i in split(l)]
                     if set([float(s) for s in scales]) != set([1.]):
-                        raise ValueError, "Unsupported: scaling is unsupported.  data is scaled by %s" % (str(scales),)
+                        raise ValueError("Unsupported: scaling is unsupported.  data is scaled by %s" % (str(scales),))
                 elif li == MISSING_LINE:
                     missing = [eval(i) for i in split(l)]
                 elif li > MISSING_LINE and li <= LAST_VAR_DESC_LINE:
@@ -112,7 +116,7 @@ class ffi1001(PseudoNetCDFFile):
                     variables = l.replace(',','').split()
                     self.TFLAG = variables[0]
         except Exception as e:
-            raise SyntaxError, "Error parsing icartt file %s: %s" % (path, repr(e))
+            raise SyntaxError("Error parsing icartt file %s: %s" % (path, repr(e)))
 
         missing = missing[:1]+missing
         scales = [1.]+scales
@@ -149,7 +153,7 @@ class ffi1001(PseudoNetCDFFile):
         while datalines[-1] in ('', ' ', '\r'):
             ndatalines -=1
             datalines.pop(-1)
-        data = genfromtxt(StringIO('\n'.join(datalines)), delimiter = delim, dtype = 'd')
+        data = genfromtxt(StringIO(bytes('\n'.join(datalines), 'utf-8')), delimiter = delim, dtype = 'd')
         data = data.reshape(ndatalines,len(variables))
         data = data.swapaxes(0,1)
         self.createDimension('POINTS', ndatalines)
@@ -176,30 +180,33 @@ class ffi1001(PseudoNetCDFFile):
 def ncf2ffi1001(f, outpath, mode = 'w'):
     outfile = open(outpath, mode)
     header_keys = "PI_CONTACT_INFO PLATFORM LOCATION ASSOCIATED_DATA INSTRUMENT_INFO DATA_INFO UNCERTAINTY ULOD_FLAG ULOD_VALUE LLOD_FLAG LLOD_VALUE DM_CONTACT_INFO PROJECT_INFO STIPULATIONS_ON_USE OTHER_COMMENTS REVISION".split()
-    print >> outfile, '%d, %d' % (len(f.ncattrs()) + len(f.variables), 1001)
-    print >> outfile, getattr(f, 'PI_NAME', 'Unknown')
-    print >> outfile, getattr(f, 'ORGANIZATION_NAME', 'Unknown')
-    print >> outfile, getattr(f, 'SOURCE_DESCRIPTION', 'Unknown')
-    print >> outfile, getattr(f, 'VOLUME_INFO', 'Unknown')
-    print >> outfile, f.SDATE, f.WDATE
-    print >> outfile, f.TIME_INTERVAL
-    print >> outfile, f.INDEPENDENT_VARIABLE
-    print >> outfile, '%d' % len(f.variables)
-    for key, var in f.variables.iteritems():
-        print >> outfile, '%s, %s' % (key, getattr(var, 'units', 'unknown'))
+    print('%d, %d' % (len(f.ncattrs()) + len(f.variables), 1001), file = outfile)
+    print(getattr(f, 'PI_NAME', 'Unknown'), file = outfile)
+    print(getattr(f, 'ORGANIZATION_NAME', 'Unknown'), file = outfile)
+    print(getattr(f, 'SOURCE_DESCRIPTION', 'Unknown'), file = outfile)
+    print(getattr(f, 'VOLUME_INFO', 'Unknown'), file = outfile)
+    print(f.SDATE, f.WDATE, file = outfile)
+    print(f.TIME_INTERVAL, file = outfile)
+    print(f.INDEPENDENT_VARIABLE, file = outfile)
+    print('%d' % len(f.variables), file = outfile)
+    for key, var in f.variables.items():
+        print('%s, %s' % (key, getattr(var, 'units', 'unknown')), file = outfile)
     
-    print >> outfile, len(f.ncattrs())
+    print(len(f.ncattrs()), file = outfile)
     for key in f.ncattrs():
-        print >> outfile, '%s: %s' % (key, getattr(f, key, ''))
+        print('%s: %s' % (key, getattr(f, key, '')), file = outfile)
     
     vals = [filled(f.variables[f.INDEPENDENT_VARIABLE][:]).ravel()]
     keys = [f.INDEPENDENT_VARIABLE]
-    for key, var in f.variables.iteritems():
+    for key, var in f.variables.items():
         if key == f.INDEPENDENT_VARIABLE: continue
         keys.append(key)
         vals.append(filled(var[:]).ravel())
         
-    print >> outfile, ', '.join(keys)
+    print(', '.join(keys), file = outfile)
     for row in array(vals).T:
         row.tofile(outfile, format = '%.6e', sep = ', ')
-        print >> outfile, ''
+        print('', file = outfile)
+
+from PseudoNetCDF._getwriter import registerwriter
+registerwriter('ffi1001', ncf2ffi1001)    

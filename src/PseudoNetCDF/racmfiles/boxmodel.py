@@ -4,7 +4,7 @@ from datetime import timedelta, datetime
 
 def box_model_irr(irr_path, start_datetime):
     retval = box_model_conc(irr_path, start_datetime)
-    for spc, var in retval.variables.iteritems():
+    for spc, var in retval.variables.items():
         if spc not in ('TFLAG',):
             var.units = '%s/h' % (var.units.strip(),)
 

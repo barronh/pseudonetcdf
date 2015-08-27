@@ -36,7 +36,7 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoN
 
 
 #for use in identifying uncaught nan
-listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
+listnan=struct.unpack('>f',b'\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
@@ -79,7 +79,7 @@ class irr(PseudoNetCDFFile):
         """
         rffile = self._rffile = open(rf)
         rffile.seek(0,2)
-        if rffile.tell()<2147483648L:
+        if rffile.tell()<2147483648:
             warn("For greater speed on files <2GB use ipr_memmap")
         rffile.seek(0,0)
         self.__readheader()
@@ -89,7 +89,7 @@ class irr(PseudoNetCDFFile):
         #if units is not ppm/hr, conv must be provided
         self.__conv=conva
         if self.units!='ppm/hr' and self.__conv==None:
-            raise ValueError, "When units are provided, a conversion array dim(t,z,x,y) must also be provided"
+            raise ValueError("When units are provided, a conversion array dim(t,z,x,y) must also be provided")
         varkeys=['RXN_%02d' % i for i in range(1,self.NRXNS+1)]
 
         domain=self.padomains[0]
@@ -187,11 +187,12 @@ class irr(PseudoNetCDFFile):
         ntime=self.__timerecords(pagrid,(self.EDATE,int(self.ETIME+self.TSTEP)))
         return ntime
         
-    def __timerecords(self,pagrid,(d,t)):
+    def __timerecords(self,pagrid,dt):
         """
         routine returns the number of records to increment from the
         data start byte to find the first time
         """
+        d,t = dt
         nsteps=self.timerange().index((d,t))
         nj=self.__jrecords(pagrid,self.padomains[pagrid]['jend']+1)
         return nsteps*nj

@@ -33,7 +33,7 @@ from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 from PseudoNetCDF.camxfiles.units import get_uamiv_units
 from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
 #for use in identifying uncaught nan
-listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
+listnan=struct.unpack('>f',b'\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
@@ -95,8 +95,8 @@ class uamiv(PseudoNetCDFFile):
         nvars=self.NVARS=len(self.dimensions['VAR'])
         nsteps=self.NSTEPS=len(self.dimensions['TSTEP'])
         setattr(self,'VAR-LIST',"".join([i.ljust(16) for i in self.__var_names__]))
-        self.NAME="".join(self.__emiss_hdr['name'][0,:,0])
-        self.NOTE="".join(self.__emiss_hdr['note'][0,:,0])
+        self.NAME=self.__emiss_hdr['name'][0,:,0].copy().view('S10')[0].decode()
+        self.NOTE=self.__emiss_hdr['note'][0,:,0].copy().view('S60')[0].decode()
         self.ITZON=self.__emiss_hdr['itzon'][0]
         self.FTYPE = 1 ;
         self.VGTYP = 2 ;
@@ -182,7 +182,7 @@ class uamiv(PseudoNetCDFFile):
             GDTYPE = self.GDTYP
         else:
             GDTYPE = self.GDTYP={0: 1, 1: 5, 2: 2, 3: 6}[cproj]
-        if cproj == 0 or not all(map(lambda x: x == 0, [plon, plat, tlat1, tlat2, iutm, cproj])):
+        if cproj == 0 or not all(list(map(lambda x: x == 0, [plon, plat, tlat1, tlat2, iutm, cproj]))):
             # Map CAMx projection constants to IOAPI
             self.XCENT = plon
             self.YCENT = plat
@@ -224,7 +224,9 @@ class uamiv(PseudoNetCDFFile):
         spc_3d_block_size=spc_1_lay_block_size*nz
         
         # Get species names from spc_hdr
-        self.__var_names__=[''.join(spc[:,0]).strip() for spc in self.__spc_hdr]
+        var_names=[spc[:,0].copy().view('S10')[0] for spc in self.__spc_hdr]
+        var_names = [v.decode() if hasattr(v, 'decode') else v for v in var_names]
+        self.__var_names__ = [''.join(v).strip() for v in var_names]
 
         data_block_fmt=dtype(dict(names=['DATE']+self.__var_names__,formats=[date_time_fmt]+[spc_3d_fmt]*nspec))
         
@@ -236,7 +238,7 @@ class uamiv(PseudoNetCDFFile):
         del f
         ntimes=float(size-offset)/4./data_block_size
         if int(ntimes)!=ntimes:
-            raise ValueError, "Not an even number of times %f" % ntimes
+            raise ValueError("Not an even number of times %f" % ntimes)
         ntimes=int(ntimes)
         
         self.createDimension('LAY',nz)

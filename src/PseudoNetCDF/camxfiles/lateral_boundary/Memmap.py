@@ -32,7 +32,7 @@ from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 from PseudoNetCDF.camxfiles.units import get_uamiv_units
 
 #for use in identifying uncaught nan
-listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
+listnan=struct.unpack('>f',b'\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
@@ -96,8 +96,14 @@ class lateral_boundary(PseudoNetCDFFile):
         nsteps=self.NSTEPS=len(self.dimensions['TSTEP'])
         setattr(self,'VAR-LIST',"".join([i.ljust(16) for i in self.__var_names__]+['TFLAG'.ljust(16)]))
         self.GDTYP=2
-        self.NAME="".join(self.__emiss_hdr['name'][0,:,0])
-        self.NOTE="".join(self.__emiss_hdr['note'][0,:,0])
+        name = self.__emiss_hdr['name'][0,:,0].copy().view('S10')[0]
+        note = self.__emiss_hdr['note'][0,:,0].copy().view('S60')[0]
+        if hasattr(name, 'decode'):
+            name = name.decode()
+        if hasattr(note, 'decode'):
+            note = note.decode()
+        self.NAME=name
+        self.NOTE=note
         self.ITZON=self.__emiss_hdr['itzon'][0]
 
         # Create variables
@@ -180,12 +186,14 @@ class lateral_boundary(PseudoNetCDFFile):
         spc_lat_fmt = dtype(dict(names = ['WEST', 'EAST', 'SOUTH', 'NORTH'], formats = [spc_we_fmt, spc_we_fmt, spc_sn_fmt, spc_sn_fmt,])) 
         # Get species names from spc_hdr
         self.__var_names__=[]
-        self.__spc_names__=[''.join(spc[:,0]).strip() for spc in self.__spc_hdr]
+        spc_names=[spc[:,0].copy().view('S10')[0] for spc in self.__spc_hdr]
+        spc_names = [spc.decode() if hasattr(spc, 'decode') else spc for spc in spc_names]
+        self.__spc_names__ = [spc.strip() for spc in spc_names]
         for spc in self.__spc_names__:
             for bkey in ['WEST_', 'EAST_', 'SOUTH_', 'NORTH_']:
                 self.__var_names__.append(bkey+spc)
-
-        spc_lat_block_size = spc_lat_fmt.itemsize / 4
+        
+        spc_lat_block_size = spc_lat_fmt.itemsize // 4
         data_block_fmt=dtype(dict(names=['DATE']+self.__spc_names__,formats=[date_time_fmt]+[spc_lat_fmt]*nspec))
         
         data_block_size=date_time_block_size+nspec*spc_lat_block_size
@@ -194,9 +202,9 @@ class lateral_boundary(PseudoNetCDFFile):
         size=f.tell()
         f.close()
         del f
-        ntimes=float(size-offset)/4./data_block_size
+        ntimes=float(size-offset)//4.//data_block_size
         if int(ntimes)!=ntimes:
-            raise ValueError, "Not an even number of times %f" % ntimes
+            raise ValueError("Not an even number of times %f" % ntimes)
         ntimes=int(ntimes)
         self.createDimension('LAY',nz)
         self.createDimension('COL',nx)
@@ -241,6 +249,21 @@ class TestMemmap(unittest.TestCase):
         aassert(latfile.variables['EAST_O3'], array([4.32289392e-02, 4.32576202e-02, 4.32824045e-02, 4.28533703e-02, 4.29217815e-02, 4.29747701e-02, 4.20787595e-02, 4.21368703e-02, 4.21847440e-02, 4.20016758e-02, 4.20646742e-02, 4.21276242e-02, 4.45125513e-02, 4.45423163e-02, 4.45689932e-02, 4.34477255e-02, 4.35189568e-02, 4.35763896e-02, 4.23655175e-02, 4.24236283e-02, 4.24756072e-02, 4.21473905e-02, 4.22183946e-02, 4.22968678e-02],dtype='f').reshape(2,4,3))
         aassert(latfile.variables['SOUTH_O3'], array([5.00756986e-02, 5.07836118e-02, 5.12398519e-02, 4.53975834e-02, 4.85784635e-02, 5.06106876e-02, 4.88935970e-02, 5.18746264e-02, 5.34388497e-02, 5.52802160e-02, 5.66427484e-02, 5.73641062e-02, 5.76447174e-02, 5.91668785e-02, 5.98937273e-02, 4.64089997e-02, 4.85925563e-02, 4.98120859e-02, 4.31438088e-02, 4.85876575e-02, 5.05158082e-02, 4.63983566e-02, 5.09891734e-02, 5.34970984e-02, 5.16217351e-02, 5.49310222e-02, 5.70215993e-02, 5.37858233e-02, 5.71687669e-02, 5.90757653e-02],dtype='f').reshape(2, 5, 3))
         aassert(latfile.variables['NORTH_O3'], array([4.67120931e-02, 4.72769439e-02, 4.75757420e-02, 4.63561714e-02, 4.69456315e-02, 4.72794324e-02, 4.45141681e-02, 4.53266129e-02, 4.58004810e-02, 4.20911871e-02, 4.29873653e-02, 4.35210876e-02, 3.29810269e-02, 3.38455141e-02, 3.43711227e-02, 4.65101935e-02, 4.71580848e-02, 4.75305654e-02, 4.55248095e-02, 4.63739596e-02, 4.68796641e-02, 4.44590077e-02, 4.58386838e-02, 4.66508269e-02, 4.33906466e-02, 4.47074845e-02, 4.51488644e-02, 3.23279053e-02, 3.31198536e-02, 3.36514898e-02],dtype='f').reshape(2, 5, 3))
+
+    def testNCF2LB(self):
+        import PseudoNetCDF.testcase
+        from PseudoNetCDF.camxfiles.Writers import ncf2lateral_boundary
+        from PseudoNetCDF.pncgen import pncgen
+        import os
+        inpath = PseudoNetCDF.testcase.camxfiles_paths['lateral_boundary']
+        outpath=PseudoNetCDF.testcase.camxfiles_paths['lateral_boundary'] + '.check'
+        infile=lateral_boundary(inpath)
+        pncgen(infile, outpath, format = 'camxfiles.lateral_boundary')
+        orig = open(inpath, 'rb').read()
+        new = open(outpath, 'rb').read()
+        assert(orig == new)
+        os.remove(outpath)    
+       
        
 if __name__ == '__main__':
     lb = lateral_boundary('../../testcase/utils/CAMx/lateral_boundary/BC.vistas_2002gt2a_STL_36_68X68_16L.2002154')

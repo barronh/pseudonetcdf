@@ -39,7 +39,7 @@ def ncf2height_pressure(ncffile,outpath,hght='HGHT',pres='PRES',tflag='TFLAG'):
     for (d,t),h3d,p3d in zip(ncffile.variables[tflag][:,0,:],ncffile.variables[hght],ncffile.variables[pres]):
         t=array(t.astype('>f')/100,ndmin=1).astype('>f')
         d=array(d,ndmin=1).astype('>i')
-        d=(d%(d/100000*100000)).astype('>i')
+        d=(d%(d//100000*100000)).astype('>i')
         for i,(h2d,p2d) in enumerate(zip(h3d,p3d)):
             h2d=h2d.astype('>f')
             p2d=p2d.astype('>f')
@@ -52,6 +52,11 @@ def ncf2height_pressure(ncffile,outpath,hght='HGHT',pres='PRES',tflag='TFLAG'):
             outfile.write(buf)
     outfile.flush()
     return outfile
+
+from PseudoNetCDF._getwriter import registerwriter
+registerwriter('camxfiles.height_pressure', ncf2height_pressure)
+registerwriter('height_pressure', ncf2height_pressure)
+
 
 def write_hgtprss(sdate,stime,time_step,vals):
     """

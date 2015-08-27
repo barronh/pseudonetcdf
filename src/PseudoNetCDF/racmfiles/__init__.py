@@ -12,4 +12,4 @@ __doc__ = """
 """
 __all__=['boxmodel']
 
-import boxmodel
+from . import boxmodel

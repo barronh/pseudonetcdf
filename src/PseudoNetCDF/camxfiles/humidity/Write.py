@@ -14,3 +14,6 @@ __doc__ = """
 
 from PseudoNetCDF.camxfiles.one3d.Write import ncf2one3d as ncf2humidity
 
+from PseudoNetCDF._getwriter import registerwriter
+registerwriter('camxfiles.humidity', ncf2humidity)
+registerwriter('humidity', ncf2humidity)

@@ -56,7 +56,7 @@ def ncf2point_source(ncffile, outpath):
     emiss_hdr[0]['note'][:, 0] = np.array([c for c in ncffile.NOTE], dtype = '>S1')
     gdtype = getattr(ncffile, 'GDTYPE', -999)
     emiss_hdr['itzon'][0] = ncffile.ITZON
-    SPC_NAMES = [str(s) for s in np.array([c for c in ncffile.SPC_NAMES]).reshape(-1, 16)[:, :10].copy().view('>S10')[:,0]]
+    SPC_NAMES = [s.decode() for s in np.array([c for c in ncffile.SPC_NAMES], dtype = 'S1').reshape(-1, 16)[:, :10].copy().view('>S10')[:,0]]
     nspec = len(SPC_NAMES)
     emiss_hdr['nspec'] = nspec
 
@@ -89,9 +89,9 @@ def ncf2point_source(ncffile, outpath):
     date, time = ncffile.variables['TFLAG'][:, 0].T
     edate, etime = ncffile.variables['ETFLAG'][:, 0].T
     time = time.astype('>f') / 10000.
-    date = date%(date/100000*100000)
+    date = date%(date//100000*100000)
     etime = etime.astype('>f') / 10000.
-    edate = edate%(edate/100000*100000)
+    edate = edate%(edate//100000*100000)
     time_hdr['ibdate'] = date
     time_hdr['btime'] = time
     time_hdr['iedate'] = edate
@@ -135,7 +135,7 @@ def ncf2point_source(ncffile, outpath):
     cell_hdr.tofile(outfile)
     spc_hdr.tofile(outfile)
     nstk_hdr.tofile(outfile)
-    spc_names = [str(np.char.strip(spc[:, 0].copy().view('>S10')[0])) for spc in spc_hdr[0]['NAME']]
+    spc_names = [spc[:, 0].copy().view('>S10')[0].decode().strip() for spc in spc_hdr[0]['NAME']]
     stk_prop.tofile(outfile)
     for di, (d, t) in enumerate(ncffile.variables['TFLAG'][:, 0]):
         time_hdr[di].tofile(outfile)
@@ -161,6 +161,10 @@ def ncf2point_source(ncffile, outpath):
             buf.tofile(outfile)
     outfile.flush()
     return outfile
+
+from PseudoNetCDF._getwriter import registerwriter
+registerwriter('camxfiles.point_source', ncf2point_source)
+registerwriter('point_source', ncf2point_source)
 
 def write_point(start_date,start_time,time_step,hdr,vals):
     #Internalize header

@@ -1,3 +1,4 @@
+from __future__ import print_function
 __all__=['osat']
 __doc__ = """
 .. _Write
@@ -12,12 +13,11 @@ __doc__ = """
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
 
-
 from numpy import array,zeros
 from warnings import warn
 import unittest
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoIOAPIVariable
-from Memmap import uamiv
+from .Memmap import uamiv
 
 class osat(PseudoNetCDFFile):
     """
@@ -51,10 +51,10 @@ class osat(PseudoNetCDFFile):
         self.__sourcesbyNm['']=tuple(self.__sourcesbyNm.keys())
         self.__regionsbyNm['']=tuple(self.__regionsbyNm.keys())
         
-        for k,v in sources.iteritems():
+        for k,v in sources.items():
             if type(v)==str:
                 sources[k]=(v,)
-        for k,v in regions.iteritems():
+        for k,v in regions.items():
             if type(v)==str:
                 regions[k]=(v,)
         
@@ -124,9 +124,9 @@ class TestMemmap(unittest.TestCase):
         k='NOX__'
         
         v=o.variables[k]
-        print k,v.VAR_NAMES
-        print v.sum(),v.min(),v.mean(),v.max()
+        print(k,v.VAR_NAMES)
+        print(v.sum(),v.min(),v.mean(),v.max())
         keys=[k for k in o._osat__child.variables.keys() if k[:3]=='NOX']
         for k in keys:
             v=o.variables[k]
-            print k,v.sum(),v.min(),v.mean(),v.max()
+            print(k,v.sum(),v.min(),v.mean(),v.max())

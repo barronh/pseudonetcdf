@@ -48,7 +48,7 @@ ppt2ppm = lambda a: ppt2ppb(ppb2ppm(a))
 
 class converters_dict(defaultdict):
     def __init__(self,dct):
-        for k,v in dct.iteritems():
+        for k,v in dct.items():
             self[k]=v
     def __missing__(self,key):
         if type(key)==tuple and key[0]==key[1]:

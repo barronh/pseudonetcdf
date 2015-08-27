@@ -22,13 +22,13 @@ __all__ = ['height_pressure',
     'vertical_diffusivity',
     'wind']
     
-from height_pressure.Read import height_pressure
-from humidity.Read import humidity
-from ipr.Read import ipr
-from irr.Read import irr
-from one3d.Read import one3d
-from point_source.Read import point_source
-from temperature.Read import temperature
-from uamiv.Read import uamiv
-from vertical_diffusivity.Read import vertical_diffusivity
-from wind.Read import wind
+from .height_pressure.Read import height_pressure
+from .humidity.Read import humidity
+from .ipr.Read import ipr
+from .irr.Read import irr
+from .one3d.Read import one3d
+from .point_source.Read import point_source
+from .temperature.Read import temperature
+from .uamiv.Read import uamiv
+from .vertical_diffusivity.Read import vertical_diffusivity
+from .wind.Read import wind

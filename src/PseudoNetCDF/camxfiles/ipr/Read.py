@@ -38,7 +38,7 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoN
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 #for use in identifying uncaught nan
-listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
+listnan=struct.unpack('>f',b'\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
@@ -108,7 +108,7 @@ class ipr(PseudoNetCDFFile):
             self.proc_dict=None
         self.__rffile=open(rf, 'rb')
         self.__rffile.seek(0,2)
-        if self.__rffile.tell()<2147483648L:
+        if self.__rffile.tell()<2147483648:
             warn("For greater speed on files <2GB use ipr_memmap")
         self.__rffile.seek(0,0)
         self.units=units
@@ -121,7 +121,7 @@ class ipr(PseudoNetCDFFile):
         self.createDimension('VAR',self.NSPCS*self.NPROCESS)
         varkeys=["_".join([j[1],j[0]]) for j in [i for i in cartesian([i.strip() for i in self.spcnames['SPECIES'].tolist()],self.proc_dict.keys())]]+['TFLAG']
         self.variables=PseudoNetCDFVariables(self.__variables,varkeys)
-        for k, v in props.iteritems():
+        for k, v in props.items():
             setattr(self, k, v)
         add_cf_from_ioapi(self)
         
@@ -140,7 +140,7 @@ class ipr(PseudoNetCDFFile):
             spc=proc_spc[len(k)+1:]
             if proc==k and spc.ljust(10) in self.spcnames['SPECIES'].tolist():
                 spcprocs=self.__readalltime(spc)
-                for p,plong in self.proc_dict.iteritems():
+                for p,plong in self.proc_dict.items():
                     var_name=p+'_'+spc
                     # IPR units are consistent with 'IPR'
                     if p == 'UCNV':
@@ -156,7 +156,7 @@ class ipr(PseudoNetCDFFile):
                                               long_name=(var_name).ljust(16))
                 del spcprocs
                 return self.variables[proc_spc]
-        raise KeyError, "Bad!"
+        raise KeyError("Bad!")
 
     def __readonetime(self,ntime,spc):
         newpos = self.__start(ntime,spc)

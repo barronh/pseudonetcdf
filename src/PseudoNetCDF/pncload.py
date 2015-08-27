@@ -1,3 +1,4 @@
+from __future__ import print_function
 __doc__ = r"""
 .. _dumper
 :mod:`dumper` -- PseudoNetCDF dump module
@@ -83,7 +84,7 @@ def createconsole(ifiles, options):
         spathsoc[spath] += 1
         npathso.append('ifile%d' % filei)
     for rpath, npath, spath in zip(options.ipath, npathso, spathso):
-        print spath + ' = ' + npath + ' = ' + rpath
+        print(spath + ' = ' + npath + ' = ' + rpath)
     for filei, (ipath, npath, spath, ifile) in enumerate(zip(ipaths, npathso, spathso, ifiles)):
         console.locals[npath] = ifile
         try:
@@ -92,11 +93,11 @@ def createconsole(ifiles, options):
         try:
             exec(spath + ' = ' + npath, None, console.locals)
         except: pass
-        console.locals.update(dict([('%s_%d' % (k, filei), v) for k, v in ifile.variables.iteritems()]))
+        console.locals.update(dict([('%s_%d' % (k, filei), v) for k, v in ifile.variables.items()]))
     return console
 
 def main():
-    from pncparse import pncparse
+    from .pncparse import pncparse
     ifiles, options = pncparse(has_ofile = False, interactive = False)
     console = createconsole(ifiles, options)
     console.interact()

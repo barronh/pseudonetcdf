@@ -1,4 +1,6 @@
+from __future__ import print_function
 __all__ = ['cdtoms']
+
 
 from PseudoNetCDF import PseudoNetCDFFile
 from re import compile
@@ -17,7 +19,7 @@ def cdtoms(path):
     lonline = lonre.match(inlines[1]).groupdict()
     latline = latre.match(inlines[2]).groupdict()
     for propdict in [dayline, lonline, latline]:
-        for k,v in propdict.iteritems():
+        for k,v in propdict.items():
             try:
                 v = eval(v)
             except:
@@ -69,5 +71,5 @@ if __name__ == '__main__':
     from PseudoNetCDF.pncdump import pncdump
     pfile = cdtoms('test.txt')
     pncdump(pfile)
-    print pfile.variables['ozone'][2,3]
+    print(pfile.variables['ozone'][2,3])
     

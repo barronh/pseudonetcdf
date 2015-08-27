@@ -10,8 +10,8 @@
 """
 __all__=['Memmap','Transforms']
 
-import Memmap
-import Transforms
+from . import Memmap
+from . import Transforms
 
 if __name__ == '__main__':
     from PseudoNetCDF.camxfiles.cloud_rain.Memmap import cloud_rain

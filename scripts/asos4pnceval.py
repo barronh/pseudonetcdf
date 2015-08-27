@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 from scipy.constants import F2K
 import os
 import json
@@ -56,15 +58,15 @@ for network in args.network.split(','):
 
     nsites = [f['properties']['sid'] for f in jdict['features'] if bounds.intersects(Point(f['geometry']['coordinates']))]
     nlocs = dict([(f['properties']['sid'], f['geometry']['coordinates']) for f in jdict['features'] if bounds.intersects(Point(f['geometry']['coordinates']))])
-    print nsites
+    print(nsites)
     for site in nsites:
         sitelocs[site] = nlocs[site]
         uri = '%s&station=%s' % (SERVICE, site)
-        print 'Network: %s Downloading: %s' % (network, site)
+        print('Network: %s Downloading: %s' % (network, site))
         outfn = '%s_%s_%s.txt' % (site, startts.strftime("%Y%m%d%H%M"),
                                   endts.strftime("%Y%m%d%H%M"))
         if os.path.exists(outfn):
-            print 'Using cached'
+            print('Using cached')
             continue
         data = urllib2.urlopen(uri)
         out = open(outfn, 'w')

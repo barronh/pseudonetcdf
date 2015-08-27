@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 import unittest
 
@@ -20,7 +21,7 @@ sum_num_sep='\s+'
 def print_net_rxns(net_rxns,time='Daily'):
     nrxns=net_rxns.NET_RXN
     for nrxn in nrxns:
-        print "%s: %s" % (nrxn,net_reaction(net_rxns,nrxn,time))
+        print("%s: %s" % (nrxn,net_reaction(net_rxns,nrxn,time)))
 
 class sum_reader(pncf):
     @classmethod
@@ -151,7 +152,7 @@ class net_reader(pncf):
                   self.spc.append(spcn)
               if fill:
                   slc=self.variables['NET'][:,self.nrxns.index(netrxn),self.spc.index(spcn)]
-                  slc[:]=map(float,net_num_re.findall(l))
+                  slc[:]=list(map(float,net_num_re.findall(l)))
                   
 class mrgaloft(pncf):
     import re
@@ -167,12 +168,13 @@ class mrgaloft(pncf):
         return False
 
     def __init__(self,mrgfile):
-        if isinstance(mrgfile,str):
-            mrgfile=open(mrgfile,'rb')
-        elif isinstance(mrgfile,file):
+        if hasattr(mrgfile,'seek') and hasattr(mrgfile, 'readline'):
             pass
         else:
-            raise TypeError, "mrgfile must be a path or a file"
+            try:
+                mrgfile=open(mrgfile,'rb')
+            except Exception as e:
+                raise TypeError("mrgfile must be a path or a file; " + str(e))
 
         self.mrgfile=mrgfile
         self.__initfile()
@@ -235,7 +237,7 @@ class mrgaloft(pncf):
         # next line is first Time =
         ir_time=self.time_re.match(line).groups()[0]
         if ir_time == None:
-            raise ValueError, "ERROR:: in get_data read, did not find a time."
+            raise ValueError("ERROR:: in get_data read, did not find a time.")
         return int(ir_time)
     
     def read_irr(self):
@@ -252,7 +254,7 @@ class mrgaloft(pncf):
         while line[0] != ';' :
             ir_value= self.irr_re.match(line).groups()[1]
             if ir_value == None:    # if this is a { n} n.nnnn line ...
-                raise ValueError, "Expecting irr formatted line (i.e. { n} n.nnnn line ...)"
+                raise ValueError("Expecting irr formatted line (i.e. { n} n.nnnn line ...)")
             else:
                 ir_rates.append(float(ir_value))
             line = f.readline()
@@ -262,7 +264,7 @@ class mrgaloft(pncf):
         f=self.mrgfile
         # read in the ! Species      Initial conc. ... header
         line = f.readline()[15:]
-        r=range(len(line)/17)
+        r=range(len(line)//17)
         ip_prc=[line[i*17:i*17+17].strip() for i in r]
     
         # 

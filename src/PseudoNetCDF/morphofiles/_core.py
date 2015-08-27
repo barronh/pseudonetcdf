@@ -1,4 +1,5 @@
 #!/usr/bin/env python -i
+from __future__ import print_function
 
 import sys
 import re    
@@ -73,7 +74,7 @@ def MorphoConc(concpath):
 def MorphoPERMM(concpath, irrtpath):
     mrgf = MorphoIRRt(irrtpath)
     concf = MorphoConc(concpath)
-    for key, var in concf.variables.iteritems():
+    for key, var in concf.variables.items():
         initvar = mrgf.createVariable('INIT_%s' % key, 'f', ('TSTEP',))
         initvar.long_name, initvar.var_desc, initvar.units = var.long_name, var.var_desc, var.units
         initvar[:] = var[:-1]
@@ -92,7 +93,7 @@ if __name__ == '__main__':
     concpath = sys.argv[1]
     mrgpath = sys.argv[2]
     irrtpath = sys.argv[3]
-    print sys.argv[1:]
+    print(sys.argv[1:])
     if os.path.exists('mech.yaml'):
         cb05 = Mechanism('mech.yaml')
     else:

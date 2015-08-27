@@ -11,8 +11,8 @@ __doc__ = """
 """
 __all__=['Memmap','Read']
 
-import Memmap
-import Read
+from . import Memmap
+from . import Read
 
 if __name__ == '__main__':
     from PseudoNetCDF.camxfiles.irr.Memmap import irr

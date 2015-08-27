@@ -1,3 +1,4 @@
+from __future__ import print_function
 __all__=['uamiv']
 __doc__ = """
 .. _Read
@@ -37,7 +38,7 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoIOAPIVariable, PseudoNe
 
 
 #for use in identifying uncaught nan
-listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
+listnan=struct.unpack('>f',b'\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
@@ -117,7 +118,7 @@ class uamiv(PseudoNetCDFFile):
         values=constr(key)
         var=self.createVariable(key,'f',('TSTEP','LAY','ROW','COL'))
         var[:] = values
-        for k,v in decor(key).iteritems():
+        for k,v in decor(key).items():
             setattr(var,k,v)
         return var
 
@@ -153,7 +154,7 @@ class uamiv(PseudoNetCDFFile):
             self.nlayers=self.nz
         self.ione,ione,nx,ny=self.rffile.read(self.cell_hdr_fmt)
         if not (self.nx,self.ny)==(nx,ny):
-            raise ValueError, "nx, ny defined first as %i, %i and then as %i, %i" % (self.nx,self.ny,nx,ny)
+            raise ValueError("nx, ny defined first as %i, %i and then as %i, %i" % (self.nx,self.ny,nx,ny))
         species_temp=self.rffile.read(self.nspec*self.spc_fmt)
         self.spcnames=[]
         for i in range(0,self.nspec*10,10):
@@ -179,10 +180,11 @@ class uamiv(PseudoNetCDFFile):
         """
         pass
     
-    def __timerecords(self,(d,t)):
+    def __timerecords(self,dt):
         """
         Calculate the number of records to increment to reach time (d,t)
         """
+        dt = d, t
         nsteps=int(timediff((self.start_date,self.start_time),(d,t))/self.time_step)
         nspec=self.__spcrecords(self.nspec+1)
         return nsteps*nspec
@@ -228,9 +230,9 @@ class uamiv(PseudoNetCDFFile):
             time=self.start_time
             
         if chkvar and timediff((self.end_date,self.end_time),(date,time),24)>0 or timediff((self.start_date,self.start_time),(date,time),24)<0:
-            raise KeyError, "Gridded emission file includes (%i,%6.1f) thru (%i,%6.1f); you requested (%i,%6.1f)" % (self.start_date,self.start_time,self.end_date,self.end_time,date,time)
+            raise KeyError("Gridded emission file includes (%i,%6.1f) thru (%i,%6.1f); you requested (%i,%6.1f)" % (self.start_date,self.start_time,self.end_date,self.end_time,date,time))
         if chkvar and spc<1 or spc>self.nspec:
-            raise KeyError, "Gridded emission file include species 1 thru %i; you requested %i" % (self.nspec,spc)
+            raise KeyError("Gridded emission file include species 1 thru %i; you requested %i" % (self.nspec,spc))
         
         #self.rffile._newrecord(self.__recordposition(date,time,1,0))
         #start_date,start_time,end_date,end_time=self.rffile.read("ifif")
@@ -263,20 +265,20 @@ class uamiv(PseudoNetCDFFile):
         self.seek(date,time,spc,k)
         return self.read()
 
-    def itervalues(self):
+    def values(self):
         for d,t,spc,k in self.__iter__():
             yield self.seekandread(d,t,spc,k)
             
-    def iteritems(self):
+    def items(self):
         for d,t,spc,k in self.__iter__():
             yield d,t,spc,k,self.seekandread(d,t,spc,k)
         
-    def iterkeys(self):
+    def keys(self):
         for d,t in self.timerange():
             for spc in range(len(self.spcnames)):
                 for k in range(1,self.nlayers+1):
                     yield d,t,spc,k
-    __iter__=iterkeys
+    __iter__=keys
     def close(self):
         self.rffile.infile.close()
         
@@ -411,9 +413,9 @@ class uamiv_new(PseudoNetCDFFile):
     
     def __readonespc(self,spc):
         self.__file.seek(0,2)
-        print self.__file.tell()
+        #print(self.__file.tell())
         self.__seektospc(spc)
-        print self.__file.tell()
+        #print(self.__file.tell())
         vals=zeros((self.NSTEPS,self.__time_spc_slice),'>f')
         for hri in range(self.NSTEPS):
             vals[hri,:]=fromfile(self.__file,'>f',self.__time_spc_slice)

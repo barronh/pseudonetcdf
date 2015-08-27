@@ -1,6 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
 # Run this script with pnc options
-
 import sys
 import os
 
@@ -48,7 +48,7 @@ def makemap(ifile, options):
     
         variables = options.variables
         if variables is None:
-            variables = [key for key, var in ifile.variables.iteritems() if len(set(['latitude', 'longitude']).intersection(getattr(var, 'coordinates', '').split())) == 2]
+            variables = [key for key, var in ifile.variables.items() if len(set(['latitude', 'longitude']).intersection(getattr(var, 'coordinates', '').split())) == 2]
         if len(variables) == 0:
             raise ValueError('Unable to heuristically determin plottable variables; use -v to specify variables for plotting')
         for varkey in variables:
@@ -85,7 +85,7 @@ def makemap(ifile, options):
                 
             vmin, vmax = norm.vmin, norm.vmax
             varunit = getattr(var, 'units', 'unknown').strip()
-            print varkey,
+            print(varkey, sep = '')
             if vals.ndim == 1:
                 patches = map.scatter(lon[:], lat[:], c = vals, s = 24, norm = norm, ax = ax)
             else:
@@ -138,7 +138,7 @@ def makemap(ifile, options):
                 csl.interact()
             
             pl.savefig(figpath)
-            print 'Saved fig', figpath
+            print('Saved fig', figpath)
         
 if __name__ == '__main__':
     ifiles, options = pncparse(has_ofile = True, plot_options = True, interactive = True)

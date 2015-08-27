@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 __doc__ = r"""
 .. _dumper
 :mod:`dumper` -- PseudoNetCDF dump module
@@ -16,7 +17,10 @@ from warnings import warn
 from collections import defaultdict
 from PseudoNetCDF import PseudoNetCDFMaskedVariable
 
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import BytesIO as StringIO
 import textwrap
 import sys
 import operator
@@ -63,7 +67,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
     # CDL Section 1: dimensions
     ###########################
     outfile.write(startindent + "dimensions:\n")
-    for dim_name, dim in f.dimensions.iteritems():
+    for dim_name, dim in f.dimensions.items():
         if dim.isunlimited():
             outfile.write(startindent + 1*indent+("%s = UNLIMITED // (%s currently) \n" % (dim_name,len(dim))))
         else:
@@ -74,7 +78,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
     ###################################
     if len(f.variables.keys()) > 0:
         outfile.write("\n" + startindent + "variables:\n")
-    for var_name, var in f.variables.iteritems():
+    for var_name, var in f.variables.items():
         var_type = dict(float32='float', \
                         float64='double', \
                         int32='integer', \
@@ -97,7 +101,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
         outfile.write(startindent + 2*indent+(":%s = %s ;\n" % (prop_name, repr(prop).replace("'",'"'))))
 
     if hasattr(f, 'groups'):
-        for group_name, group in f.groups.iteritems():
+        for group_name, group in f.groups.items():
             outfile.write(startindent + 'group %s:\n' % group_name)
             pncdump(group, name = name, header = header, variables = variables, line_length = line_length, full_indices = full_indices, float_precision = float_precision, double_precision = double_precision, isgroup = True)
     if not header:
@@ -128,18 +132,18 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         if isscalar(row) or row.ndim == 0:
                             outfile.write(startindent + '  ' + str(row.filled().astype(ndarray)))
                             return
-                        tmpstr = StringIO('')
+                        tmpstr = StringIO(bytes('', 'utf-8'))
                         if ma.getmaskarray(row).all():
                             tmpstr.write(', '.join(['_'] * row.size) + ', ')
                         else:
                             savetxt(tmpstr, ma.filled(row), fmt, delimiter = ', ', newline =', ')
                         if last:
                             tmpstr.seek(-2, 1)
-                            tmpstr.write(';')
+                            tmpstr.write(b';')
                         tmpstr.seek(0, 0)
                         tmpstr = tmpstr.read()
-                        tmpstr = tmpstr.replace(fmt % getattr(row, 'fill_value', 0) + ',', '_,')
-                        outfile.write(textwrap.fill(tmpstr, line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
+                        tmpstr = tmpstr.replace(bytes(fmt % getattr(row, 'fill_value', 0) + ',', 'utf-8'), bytes('_,', 'utf-8'))
+                        outfile.write(textwrap.fill(tmpstr.decode('utf-8'), line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
                         outfile.write('\n')
                 else:
                     def writer(row, last):
@@ -152,7 +156,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                             tmpstr.seek(-2, 1)
                             tmpstr.write(';')
                         tmpstr.seek(0, 0)
-                        outfile.write(textwrap.fill(tmpstr.read(), line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
+                        outfile.write(textwrap.fill(tmpstr.read().decode('utf-8'), line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
                         outfile.write('\n')
                         
                         
@@ -209,7 +213,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
     return outfile
 
 def main():
-    from pncparse import pncparse
+    from .pncparse import pncparse
     ifiles, options = pncparse(has_ofile = False)
     for ifile in ifiles:
         pncdump(ifile, header = options.header, full_indices = options.full_indices, line_length = options.line_length, float_precision = options.float_precision, name = options.cdlname)

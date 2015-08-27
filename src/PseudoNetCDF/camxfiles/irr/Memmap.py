@@ -32,7 +32,7 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoN
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 #for use in identifying uncaught nan
-listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
+listnan=struct.unpack('>f',b'\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
@@ -109,7 +109,7 @@ class irr(PseudoNetCDFFile):
             prefix = dk + '_'
             pavarkeys.extend([prefix + k for k in varkeys])
             grp = self.groups[dk]
-            for propk, propv in domain.iteritems():
+            for propk, propv in domain.items():
                 setattr(grp, propk, propv)
             grp.createDimension('TSTEP', self.time_step_count)
             grp.createDimension('VAR',  len(varkeys)-1)
@@ -122,7 +122,7 @@ class irr(PseudoNetCDFFile):
                 self.createDimension('COL', domain['iend']-domain['istart']+1)
                 self.createDimension('ROW', domain['jend']-domain['jstart']+1)
                 self.createDimension('LAY', domain['tlay']-domain['blay']+1)
-                for propk, propv in domain.iteritems():
+                for propk, propv in domain.items():
                     setattr(grp, propk, propv)
             exec("""def varget(k):
                 return self._irr__variables('%s', k)""" % dk, dict(self = self), locals())
@@ -142,7 +142,7 @@ class irr(PseudoNetCDFFile):
     
     def __decorator(self,name,pncfv):
         decor=lambda k: dict(units='ppm/hr', var_desc=k.ljust(16), long_name=k.ljust(16))
-        for k,v in decor(name).iteritems():
+        for k,v in decor(name).items():
             setattr(pncfv,k,v)        
         return pncfv
         

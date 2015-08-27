@@ -11,10 +11,10 @@ __doc__ = """
 """
 __all__=['Memmap','Read','Transforms','Write']
 
-import Memmap
-import Read
-import Write
-import Transforms
+from . import Memmap
+from . import Read
+from . import Write
+from . import Transforms
 
 if __name__ == '__main__':
     from PseudoNetCDF.camxfiles.vertical_diffusivity.Memmap import vertical_diffusivity

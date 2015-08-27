@@ -1,3 +1,4 @@
+from __future__ import print_function
 from PseudoNetCDF import warn
 import numpy as np
 
@@ -216,7 +217,7 @@ def getxbnds(ifile):
 
 def getmap(ifile, resolution = 'i'):
     from mpl_toolkits.basemap import Basemap
-    from conventions.ioapi import get_ioapi_sphere
+    from .conventions.ioapi import get_ioapi_sphere
     if getattr(ifile, 'GDTYP', 0) in (2, 7) and all([hasattr(ifile, k) for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()]):
         try:
             NROWS = len(ifile.dimensions['ROW'])
@@ -245,7 +246,7 @@ def getmap(ifile, resolution = 'i'):
             llcrnrlon, llcrnrlat = p(llcrnrx, llcrnry, inverse = True)
             urcrnrlon, urcrnrlat = p(urcrnrx, urcrnry, inverse = True)
             m = Basemap(projection = 'merc', rsphere = (semi_major_axis, semi_major_axis), lon_0=ifile.XCENT, lat_ts = 0, llcrnrlon = llcrnrlon, llcrnrlat = llcrnrlat, urcrnrlat = urcrnrlat, urcrnrlon = urcrnrlon, resolution = resolution, suppress_ticks = False)
-        print 'Found IO/API Mapping parameters'
+        print('Found IO/API Mapping parameters')
     else:
         kwds = dict(suppress_ticks = False)
         try:

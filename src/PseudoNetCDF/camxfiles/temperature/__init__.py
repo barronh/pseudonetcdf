@@ -11,9 +11,9 @@ __doc__ = """
 """
 __all__=['Memmap','Read','Transforms']
 
-import Memmap
-import Read
-import Transforms
+from . import Memmap
+from . import Read
+from . import Transforms
 
 if __name__ == '__main__':
     from PseudoNetCDF.camxfiles.temperature.Memmap import temperature

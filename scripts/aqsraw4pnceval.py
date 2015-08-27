@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import os
 
 from dateutil.parser import parse
@@ -53,8 +55,8 @@ args.maxlat = urcrnrlat = lat[-1, :].min()
 ntimes = int((args.edate - args.bdate).total_seconds() / 3600) + 1
 alltimes = [timedelta(hours = i) + args.bdate for i in range(ntimes)]
 
-print args.minlon, args.maxlon
-print args.minlat, args.maxlat
+print(args.minlon, args.maxlon)
+print(args.minlat, args.maxlat)
 
 # http://aqsdr1.epa.gov/aqsweb/aqstmp/airdata/download_files.html#Raw
 
@@ -68,12 +70,12 @@ years = np.arange(args.bdate.year, args.edate.year + 1)
 hourlys = []
 for year in years:
     yearpath = 'hourly_%s_%s.csv' % (args.param, year)
-    print 'Downloading', yearpath
+    print('Downloading', yearpath)
     if not os.path.exists(yearpath):
         getcmd = 'wget --continue http://aqsdr1.epa.gov/aqsweb/aqstmp/airdata/hourly_%s_%s.zip' % (args.param, year)
         os.system(getcmd)
         os.system('unzip hourly_%s_%s.zip' % (args.param, year))
-    print 'Reading', yearpath
+    print('Reading', yearpath)
     data = pandas.read_csv(yearpath, index_col = False, converters = {'State Code': str, 'County Code': str, 'Site Num': str}, parse_dates = [[11, 12]], date_parser = hourly_parser)
 
     mask = (data['Latitude'].values >= args.minlat) & (data['Latitude'].values <= args.maxlat) & \
@@ -86,7 +88,7 @@ for year in years:
     
     hourlys.append(hourly)
 
-print 'Concatenating files'
+print('Concatenating files')
 if len(hourlys) > 1:
     hourly = pandas.concat(hourlys)
 else:
@@ -97,7 +99,7 @@ else:
 sites = hourly.groupby(['State Code', 'County Code', 'Site Num'], as_index = False).aggregate(np.mean)
 nsites = len(sites)
 
-print 'Creating output file'
+print('Creating output file')
 outf = Dataset(args.outpath, 'w')
 outf.createDimension('time', None)
 outf.createDimension('LAY', 1)
@@ -118,7 +120,7 @@ lon.units = 'degrees_east'
 lon.standard_name = 'longitude'
 lon[:] = sites['Longitude'].values
 
-print 'Processing data rows'
+print('Processing data rows')
 
 for idx, row in hourly.iterrows():
     this_time = row['Date GMT_Time GMT']
@@ -139,14 +141,14 @@ for idx, row in hourly.iterrows():
     if last_time != this_time:
         last_time = this_time
         tidx = alltimes.index(this_time.to_datetime())
-        print '\b\b\b\b\b\b %3d%%' % int(tidx / float(ntimes) * 100),
+        print('\b\b\b\b\b\b %3d%%' % int(tidx / float(ntimes) * 100),)
     if tidx > ntimes:
         raise ValueError('Times (%d) exceed expected (%d)' % (tidx, ntimes))
     
     tmpvar[tidx, 0, sidx] = val
-print
-print 'Writing to disk'
-for varkey, tempvals in temp.iteritems():
+print('')
+print('Writing to disk')
+for varkey, tempvals in temp.items():
     outf.variables[varkey][:] = tempvals
 
 time = outf.createVariable('time', 'f', ('time',))

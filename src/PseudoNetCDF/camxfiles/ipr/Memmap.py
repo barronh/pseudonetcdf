@@ -36,7 +36,7 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoN
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 #for use in identifying uncaught nan
-listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
+listnan=struct.unpack('>f',b'\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
@@ -154,7 +154,7 @@ class ipr(PseudoNetCDFFile):
                 grp.variables = PseudoNetCDFVariables(varget,varkeys)
         
         self.__memmaps=memmap(self.__rffile.infile.name,dtype(padatatype),'r',self.data_start_byte).reshape(NSTEPS, len(self.spcnames))
-        for k, v in props.iteritems():
+        for k, v in props.items():
             setattr(self, k, v)
         try:
             add_cf_from_ioapi(self)
@@ -179,7 +179,7 @@ class ipr(PseudoNetCDFFile):
         else:
             units = get_uamiv_units('IPR', spc)
         decor=lambda k: dict(units=units, var_desc=k.ljust(16), long_name=k.ljust(16))
-        for k,v in decor(name).iteritems():
+        for k,v in decor(name).items():
             setattr(pncfv,k,v)        
         return pncfv
         
@@ -199,7 +199,7 @@ class ipr(PseudoNetCDFFile):
                 spc=self.spcnames.index(spc)
                 dvals = self.__memmaps[pk][:,spc][proc].swapaxes(1, 3).swapaxes(2, 3)
                 return self.__decorator(proc_spc,PseudoNetCDFVariable(self,proc_spc,'f',('TSTEP','LAY','ROW','COL'),values=dvals))
-        raise KeyError, "Bad!"
+        raise KeyError("Bad!")
                 
                 
     def __readheader(self):

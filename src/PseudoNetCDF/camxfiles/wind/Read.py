@@ -35,7 +35,7 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoN
 
 
 #for use in identifying uncaught nan
-listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
+listnan=struct.unpack('>f',b'\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
@@ -93,7 +93,7 @@ class wind(PseudoNetCDFFile):
             cols=self.cell_count/rows
         else:
             if cols*rows!=self.cell_count:
-                raise ValueError, "The product of cols (%d) and rows (%d) must equal cells (%d)" %  (cols,rows,self.cell_count)
+                raise ValueError("The product of cols (%d) and rows (%d) must equal cells (%d)" %  (cols,rows,self.cell_count))
         self.createDimension('TSTEP', self.time_step_count)
         self.createDimension('COL', cols)
         self.createDimension('ROW', rows)
@@ -108,7 +108,7 @@ class wind(PseudoNetCDFFile):
         
         var=self.createVariable(key,'f',('TSTEP','LAY','ROW','COL'))
         var[:] = values
-        for k,v in decor(key).iteritems():
+        for k,v in decor(key).items():
             setattr(var,k,v)
         return var
 
@@ -125,7 +125,7 @@ class wind(PseudoNetCDFFile):
             self.start_time,self.start_date=self.rffile.read(self.time_hdr_fmt)
             self.lstagger=None
         else:
-            raise NotImplementedError, "Header format is unknown"
+            raise NotImplementedError("Header format is unknown")
             
         self.record_size=self.rffile.record_size
         self.padded_size=self.record_size+8
@@ -176,11 +176,12 @@ class wind(PseudoNetCDFFile):
     def __layerrecords(self,k):
         return k-1
         
-    def __timerecords(self,(d,t)):
+    def __timerecords(self,dt):
         """
         routine returns the number of records to increment from the
         data start byte to find the first time
         """
+        d, t = dt
         nsteps=int(timediff((self.start_date,self.start_time),(d,t))/self.time_step)
         nlays=self.__layerrecords(self.nlayers+1)
         return nsteps*nlays
@@ -219,9 +220,9 @@ class wind(PseudoNetCDFFile):
             time=self.start_time
         chkvar=True
         if chkvar and timediff((self.end_date,self.end_time),(date,time))>0 or timediff((self.start_date,self.start_time),(date,time))<0:
-            raise KeyError, "Wind file includes (%i,%6.1f) thru (%i,%6.1f); you requested (%i,%6.1f)" % (self.start_date,self.start_time,self.end_date,self.end_time,date,time)
+            raise KeyError("Wind file includes (%i,%6.1f) thru (%i,%6.1f); you requested (%i,%6.1f)" % (self.start_date,self.start_time,self.end_date,self.end_time,date,time))
         if chkvar and uv<0 or uv >2:
-            raise KeyError, "Wind file includes Date (uv: 0), u velocity (uv: 1) and v velocity (uv: 2); you requested %i" % (uv)
+            raise KeyError("Wind file includes Date (uv: 0), u velocity (uv: 1) and v velocity (uv: 2); you requested %i" % (uv))
         
         self.rffile._newrecord(self.__recordposition(date,time,k,uv))
         
@@ -253,20 +254,20 @@ class wind(PseudoNetCDFFile):
         self.seek(date,time,k,duv)
         return self.read()
         
-    def iterkeys(self):
+    def keys(self):
         for d,t in timerange((self.start_date,self.start_time),timeadd((self.end_date,self.end_time),(0,self.time_step)),self.time_step):
             for k in range(1,self.nlayers+1):
                 yield d,t,k
                 
-    def itervalues(self):
-        for d,t,k in self.iterkeys():
+    def values(self):
+        for d,t,k in self.keys():
             yield self.seekandread(d,t,k,1),self.seekandread(d,t,k,2)
     
-    def iteritems(self):
-        for d,t,k in self.iterkeys():
+    def items(self):
+        for d,t,k in self.keys():
             yield d,t,k,self.seekandread(d,t,k,1),self.seekandread(d,t,k,2)
     
-    __iter__=iterkeys
+    __iter__=keys
     
     def getArray(self,krange=slice(1,None)):
         if type(krange) != slice :

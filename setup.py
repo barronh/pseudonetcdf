@@ -1,3 +1,4 @@
+from __future__ import print_function
 try:
     from setuptools import setup
 except:
@@ -26,7 +27,8 @@ class NetCDFFile(object):
         raise ImportError('System has no valid netCDF reader; install netcdf4-python or pupynere')
 """
 
-print >> open(os.path.join('src', 'PseudoNetCDF', 'netcdf.py'),'wb'), """
+outfile = open(os.path.join('src', 'PseudoNetCDF', 'netcdf.py'),'w')
+outfile.write("""
 __all__ = ['NetCDFFile']
 __doc__ = \"\"\"
 .. _netcdf
@@ -42,8 +44,8 @@ __doc__ = \"\"\"
 \"\"\"
 %s
 %s
-""" % (define_function, define_variable)
-
+""" % (define_function, define_variable))
+outfile.close()
 def find_packages():
     import os
     packages = []
@@ -73,7 +75,7 @@ data = find_data()
 
 
 setup(name = 'PseudoNetCDF',
-      version = '2.0',
+      version = '3.0',
       author = 'Barron Henderson',
       author_email = 'barronh@gmail.com',
       maintainer = 'Barron Henderson',
@@ -81,7 +83,7 @@ setup(name = 'PseudoNetCDF',
       packages = packages,
       package_dir = {'': 'src'},
       package_data = {'PseudoNetCDF': data},
-      scripts = ['scripts/aqsraw4pnceval.py', 'scripts/aqsrest4pnceval.py', 'scripts/asos4pnceval.py', 'scripts/pncboundaries.py', 'scripts/pncdump', 'scripts/pnceval', 'scripts/pncgen', 'scripts/pncload', 'scripts/pncmap.py', 'scripts/pncvertprofile.py', 'scripts/pncview'],
+      scripts = ['scripts/aqsraw4pnceval.py', 'scripts/aqsrest4pnceval.py', 'scripts/asos4pnceval.py', 'scripts/pnc2d.py', 'scripts/pncboundaries.py', 'scripts/pncdump', 'scripts/pnceval', 'scripts/pncgen', 'scripts/pncglobal2cmaq.py', 'scripts/pncload', 'scripts/pncmap.py', 'scripts/pncvertprofile.py', 'scripts/pncview', 'scripts/pncwindrose.py'],
       requires = netcdfpkg + ['numpy (>=1.2)', 'yaml'],
       url = 'https://code.google.com/p/pseudonetcdf'
       )

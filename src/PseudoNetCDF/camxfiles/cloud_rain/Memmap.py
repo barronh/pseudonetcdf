@@ -25,6 +25,7 @@ from warnings import warn
 
 #Site-Packages
 from numpy import zeros, array, where,memmap, newaxis, dtype,nan
+import numpy as np
 
 #This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd
@@ -33,7 +34,7 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoN
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 #for use in identifying uncaught nan
-listnan = struct.unpack('>f', '\xff\xc0\x00\x00')[0]
+listnan = struct.unpack('>f', b'\xff\xc0\x00\x00')[0]
 checkarray = zeros((1, ), 'f')
 checkarray[0] = listnan
 array_nan = checkarray[0]
@@ -70,15 +71,15 @@ class cloud_rain(PseudoNetCDFFile):
         f = open(rf, 'rb')
         f.seek(0, 2)
         flen = f.tell()
-        offset = struct.unpack('>i', open(rf, 'r').read(4))[0] + 8
-        self.__memmap = memmap(rf, '>f', 'r', offset = offset)
-        ncols, nrows, nlays = struct.unpack({35:'>i15ciiii', 40:'>i20ciiii'}[offset], open(rf, 'r').read(offset))[-4:-1]
+        offset = struct.unpack('>i', open(rf, 'rb').read(4))[0] + 8
+        self.__memmap = memmap(rf, dtype = '>f', mode = 'r', offset = offset)
+        ncols, nrows, nlays = struct.unpack({35:'>i15ciiii', 40:'>i20ciiii'}[offset], open(rf, 'rb').read(offset))[-4:-1]
         self.createDimension('COL', ncols)
         self.createDimension('ROW', nrows)
         self.createDimension('LAY', nlays)
-        header = struct.unpack({35:'>i15ciiiiifi', 40:'>i20ciiiiifi'}[offset], open(rf, 'r').read(offset + 12))
-        self.FILEDESC = ''.join(header[1:1+{35: 15, 40: 20}[offset]])
-        self.STIME, self.SDATE = header[-2:]
+        header = np.fromfile(rf, dtype = {35:'>i4,S15,>i4,>i4,>i4,>i4,>i4,>f4,>i4', 40:'>i4,S20,>i4,>i4,>i4,>i4,>i4,>f4,>i4'}[offset], count = 1)[0]
+        self.FILEDESC = ''.join(header[1].decode())
+        self.STIME, self.SDATE = header.tolist()[-2:]
         if self.SDATE < 10000:
             self.SDATE+=2000000
         if (ncols!=cols and cols!=None) or (rows!=rows and rows!=None):
@@ -86,7 +87,7 @@ class cloud_rain(PseudoNetCDFFile):
             
         self.createDimension('DATE-TIME', 2)
         self.VERSION, varkeys = {35:('<4.3', ['CLOUD', 'PRECIP', 'COD', 'TFLAG']), 40:('4.3', ['CLOUD', 'RAIN', 'SNOW', 'GRAUPEL', 'COD', 'TFLAG'])}[offset]
-        self.createDimension('TSTEP', int((flen - offset) / ((len(varkeys) - 1) * nlays * (nrows * ncols + 2) * 4 + 16)))
+        self.createDimension('TSTEP', (flen - offset) // ((len(varkeys) - 1) * nlays * (nrows * ncols + 2) * 4 + 16))
         self.createDimension('VAR', len(varkeys) - 1)
         
         self.NVARS = len(self.dimensions['VAR'])
@@ -115,7 +116,7 @@ class cloud_rain(PseudoNetCDFFile):
         rows = len(self.dimensions['ROW'])
         cols = len(self.dimensions['COL'])
         lays = len(self.dimensions['LAY'])
-        vars = len(self.variables.keys()) - 1
+        vars = len(list(self.variables.keys())) - 1
         hour = 1
         date = 2
         cloud = 3
@@ -152,7 +153,7 @@ class cloud_rain(PseudoNetCDFFile):
         
         buf = self.__memmap[out_idx==0].reshape(vars * times * lays + times, 2)
         if not (buf[:,0]==buf[:,1]).all():
-            raise ValueError, "Buffer"
+            raise ValueError("Buffer")
         
         return self.variables[key]
 
@@ -167,6 +168,18 @@ class TestMemmap(unittest.TestCase):
         crfile = cloud_rain(PseudoNetCDF.testcase.camxfiles_paths['cloud_rain'], 4, 5)
         crfile.variables['TFLAG']
         self.assert_((crfile.variables['COD']==array([  1.25412483e+01, 1.77024829e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.38041372e+01, 1.94885385e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.41415815e+01, 1.67501605e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.34467077e+01, 1.99459922e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.25412483e+01, 1.77024829e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.38041372e+01, 1.94885385e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.41415815e+01, 1.67501605e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.34467077e+01, 1.99459922e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.25412483e+01, 1.77024829e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.38041372e+01, 1.94885385e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.41415815e+01, 1.67501605e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.34467077e+01, 1.99459922e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.96655331e+01, 2.05677104e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.14273071e+01, 2.09934115e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.21391239e+01, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.26519203e+01, 4.96763992e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.96655331e+01, 2.05677104e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.14273071e+01, 2.09934115e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.21391239e+01, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.26519203e+01, 4.96763992e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.96655331e+01, 2.05677104e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.14273071e+01, 2.09934115e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.21391239e+01, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.26519203e+01, 4.96763992e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00],dtype = 'f').reshape(2, 3, 4, 5)).all())
-       
+    def testNCF2CR(self):
+        import PseudoNetCDF.testcase
+        from PseudoNetCDF.pncgen import pncgen
+        import os
+        inpath = PseudoNetCDF.testcase.camxfiles_paths['cloud_rain']
+        outpath=PseudoNetCDF.testcase.camxfiles_paths['cloud_rain'] + '.check'
+        infile=cloud_rain(inpath, 4, 5)
+        pncgen(infile, outpath, format = 'camxfiles.cloud_rain')
+        orig = open(inpath, 'rb').read()
+        new = open(outpath, 'rb').read()
+        assert(orig == new)
+        os.remove(outpath)
+
 if __name__ == '__main__':
     unittest.main()

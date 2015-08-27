@@ -35,7 +35,7 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoN
 
 
 #for use in identifying uncaught nan
-listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
+listnan=struct.unpack('>f',b'\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
@@ -116,7 +116,7 @@ class point_source(PseudoNetCDFFile):
         else:
             var=self.createVariable(key,'f',('TSTEP','STK'))
         var[:] = values
-        for k,v in decor(key).iteritems():
+        for k,v in decor(key).items():
             setattr(var,k,v)
         return var
 
@@ -159,7 +159,7 @@ class point_source(PseudoNetCDFFile):
             self.nlayers=self.nz
         ione,ione,nx,ny=self.rffile.read(self.cell_hdr_fmt)
         if not (self.nx,self.ny)==(nx,ny):
-            raise ValueError, "nx, ny defined first as %i, %i and then as %i, %i" % (self.nx,self.ny,nx,ny)
+            raise ValueError("nx, ny defined first as %i, %i and then as %i, %i" % (self.nx,self.ny,nx,ny))
         species_temp=self.rffile.read(self.nspec*self.spc_fmt)
         self.spcnames=[]
         for i in range(0,self.nspec*10,10):
@@ -212,10 +212,11 @@ class point_source(PseudoNetCDFFile):
 
             self.stk_time_props.append(tmpprop.tolist())
             
-    def __timerecords(self,(d,t)):
+    def __timerecords(self,dt):
         """
         Calculate the number of records to increment to reach time (d,t)
         """
+        d, t = dt
         nsteps=timediff((self.start_date,self.start_time),(d,t),(2400,24)[int(self.time_step % 2)])
         nspec=self.__spcrecords(self.nspec+1)
         return nsteps*(nspec)
@@ -253,9 +254,9 @@ class point_source(PseudoNetCDFFile):
         """
         #chkvar=True
         #if chkvar and timediff((self.end_date,self.end_time),(date,time),24)>0 or timediff((self.start_date,self.start_time),(date,time),24)<0:
-        #    raise KeyError, "Point emission file includes (%i,%6.1f) thru (%i,%6.1f); you requested (%i,%6.1f)" % (self.start_date,self.start_time,self.end_date,self.end_time,date,time)
+        #    raise KeyError("Point emission file includes (%i,%6.1f) thru (%i,%6.1f); you requested (%i,%6.1f)" % (self.start_date,self.start_time,self.end_date,self.end_time,date,time))
         #if chkvar and spc<1 or spc>self.nspec:
-        #    raise KeyError, "Point emission file include species 1 thru %i; you requested %i" % (self.nspec,spc)
+        #    raise KeyError("Point emission file include species 1 thru %i; you requested %i" % (self.nspec,spc))
 
         self.rffile._newrecord(self.__recordposition(date,time,spc,offset))
     
@@ -290,20 +291,20 @@ class point_source(PseudoNetCDFFile):
         self.seek(date,time,spc,offset)
         return self.read(fmt)
 
-    def itervalues(self):
+    def values(self):
         for d,t,spc in self.__iter__():
             yield self.seekandread(d,t,spc)
             
-    def iteritems(self):
+    def items(self):
         for d,t,spc in self.__iter__():
             yield d,t,spc,self.seekandread(d,t,spc)
             
-    def iterkeys(self):
+    def keys(self):
         for ti,(d,t) in enumerate(self.timerange()):
             for spc in range(1,len(self.spcnames)+1):
                 yield d,t,spc
 
-    __iter__=iterkeys
+    __iter__=keys
     
     def getArray(self):
         a=zeros((self.time_step_count,self.nspec,self.nstk),'f')

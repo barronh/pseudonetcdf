@@ -1,3 +1,4 @@
+from __future__ import print_function
 __all__=['finst']
 __doc__ = """
 .. _Memmap
@@ -33,7 +34,7 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoN
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 #for use in identifying uncaught nan
-listnan=struct.unpack('>f','\xff\xc0\x00\x00')[0]
+listnan=struct.unpack('>f',b'\xff\xc0\x00\x00')[0]
 checkarray=zeros((1,),'f')
 checkarray[0]=listnan
 array_nan=checkarray[0]
@@ -151,7 +152,7 @@ class finst(PseudoNetCDFFile):
         
         ntimes=self.__memmap__.shape[0]
         if int(ntimes)!=ntimes:
-            raise ValueError, "Not an even number of times"
+            raise ValueError("Not an even number of times")
 
         self.createDimension('TSTEP',ntimes)
         self.createDimension('VAR',self.NSPEC)
@@ -203,6 +204,6 @@ class TestMemmap(unittest.TestCase):
             meanv=v.mean(1).mean(1).mean(1)
             maxv=v.max(1).max(1).max(1)
             for i,(d,t) in enumerate(datetime[:,0,:]):
-                print var,d,t,minv[i],meanv[i],maxv[i]
+                print(var,d,t,minv[i],meanv[i],maxv[i])
 if __name__ == '__main__':
     unittest.main()

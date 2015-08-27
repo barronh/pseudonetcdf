@@ -1,32 +1,38 @@
+from __future__ import print_function, unicode_literals
 import os
 import sys
 from warnings import warn
 from argparse import ArgumentParser, Action, RawDescriptionHelpFormatter
-from cmaqfiles import *
-from camxfiles.Memmaps import *
-from camxfiles.Readers import irr as irr_read, ipr as ipr_read
-from net_balance import mrgaloft, sum_reader, net_reader, ctb_reader
-from _getreader import anyfile
-from icarttfiles.ffi1001 import ffi1001, ncf2ffi1001
-from geoschemfiles import *
-from noaafiles import *
-from conventions.ioapi import add_cf_from_ioapi, add_cf_from_wrfioapi
-from aermodfiles import *
+from .cmaqfiles import *
+from .camxfiles.Memmaps import *
+from .camxfiles.Readers import irr as irr_read, ipr as ipr_read
+from .net_balance import mrgaloft, sum_reader, net_reader, ctb_reader
+from ._getreader import anyfile, getreaderdict
+from ._getwriter import getwriterdict
+from .icarttfiles.ffi1001 import ffi1001, ncf2ffi1001
+from .geoschemfiles import *
+from .noaafiles import *
+from .conventions.ioapi import add_cf_from_ioapi, add_cf_from_wrfioapi
+from .aermodfiles import *
 from PseudoNetCDF import PseudoNetCDFFile
 from PseudoNetCDF.netcdf import NetCDFFile
-from _getreader import getreaderdict
+
 allreaders = getreaderdict()
+allwriters = getwriterdict()
 globals().update(allreaders)
-_readernames = [(k.count('.'), k) for k in getreaderdict().keys()]
+_readernames = [(k.count('.') if k[:1] != '_' else 9999, k) for k in getreaderdict().keys()]
 _readernames.sort()
 _readernames = [k for c, k in _readernames]
+_writernames = [(k.count('.'), k) for k in getwriterdict().keys()]
+_writernames.sort()
+_writernames = [k for c, k in _writernames]
 
 try:
     from netCDF4 import Dataset as netcdf, MFDataset
 except:
     pass
 
-from sci_var import reduce_dim, mesh_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr, stack_files, add_attr, convolve_dim, manglenames, removesingleton, merge
+from .sci_var import reduce_dim, mesh_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr, stack_files, add_attr, convolve_dim, manglenames, removesingleton, merge
 
 class AggCommaString(Action):
     def __call__(self, parser, namespace, values, option_string=None):
@@ -82,9 +88,9 @@ PseudoNetCDF has many operations and the order often matters. The order is consi
 To impose your own order, use standard options (global options) and then use -- to force positional interpretation of remaining options. In remaining options, use --sep to separate groups of files and options to be evaluated before any global operations."""
     parser.add_argument('ifile', nargs='+', help='path to a file formatted as type -f')
     
-    parser.add_argument("-f", "--format", dest = "format", default = 'netcdf', help = "File format (default netcdf); " + '; '.join(_readernames))
+    parser.add_argument("-f", "--format", dest = "format", default = 'netcdf', metavar = '{' + ', '.join(_readernames) + '}', help = "File format (default netcdf), can be one of the choices listed, or an expression that evaluates to a reader. Keyword arguments are passed via ,kwd=value.")
 
-    parser.add_argument("--help-format", dest = "helpformat", default = None, help = "Show help for file format (must be one of" + '; '.join(_readernames))
+    parser.add_argument("--help-format", dest = "helpformat", default = None, help = "Show help for file format (must be one of the options for -f)")
     
     parser.add_argument("--sep", dest = "separator", default = None, help = "Used to separate groups of arguments for parsing (e.g., pncgen -- [options1] file(s)1 [--sep [options2] file(s)2 [... [--sep [optionsN] file(s)N]] ")
 
@@ -98,7 +104,7 @@ To impose your own order, use standard options (global options) and then use -- 
     if has_ofile:
         parser.add_argument("-O", "--clobber", dest = "clobber", action = 'store_true', default = False, help = "Overwrite existing file if necessary.")
 
-        parser.add_argument("--out-format", dest = "outformat", default = "NETCDF3_CLASSIC", metavar = "OFMT", help = "File output format (e.g., NETCDF3_CLASSIC, NETCDF4_CLASSIC, NETCDF4;pncgen only)", type = str, choices = 'NETCDF3_CLASSIC NETCDF4_CLASSIC NETCDF4 csv python height_pressure cloud_rain humidity landuse lateral_boundary temperature vertical_diffusivity wind uamiv point_source bpch ffi1001'.split())
+        parser.add_argument("--out-format", dest = "outformat", default = "NETCDF3_CLASSIC", help = "File output format (e.g., NETCDF3_CLASSIC, NETCDF4_CLASSIC, NETCDF4;pncgen only)", type = str, choices = 'NETCDF3_CLASSIC NETCDF4_CLASSIC NETCDF4'.split() + _writernames)
 
         parser.add_argument("--mode", dest = "mode", type = str, default = "w", help = "File mode for writing (w, a or r+ or with unbuffered writes ws, as, or r+s; pncgen only).", choices = 'w a r+ ws as r+s'.split())
 
@@ -227,15 +233,15 @@ args : args as parsed
     helpargs, dum = helpparser.parse_known_args(args = args)
     if not helpargs.helpformat is None:
         file_format = helpargs.helpformat.split(',')[0]
-        print 'All formats require a "path". Some formats also '
-        print 'take extra arguments. All arguments other than '
-        print 'the input path must be specified using keyword'
-        print 'arguments.'
-        print 
+        print('All formats require a "path". Some formats also ')
+        print('take extra arguments. All arguments other than ')
+        print('the input path must be specified using keyword')
+        print('arguments.')
+        print('')
         helpformat = allreaders[file_format]
         try:
             import inspect
-            print 'Example:'
+            print('Example:')
             idef = inspect.getargspec(helpformat.__init__)
             args = idef.args[2:]
             if idef.defaults is None:
@@ -244,14 +250,14 @@ args : args as parsed
                 defs = (len(args) - len(idef.defaults)) * ['<VAL>'] + list(idef.defaults)
             longform = 'pncdump -f ' + ','.join([file_format] + [karg + "=%s" % kdef for karg, kdef in zip(args, defs)]) + ' path'
             shortform = 'pncdump -f ' + ','.join([file_format] + [karg + "=%s" % kdef for karg, kdef in zip(args, defs) if kdef == '<VAL>']) + ' path'
-            print shortform
+            print(shortform)
             if longform != shortform:
-                print ''
-                print 'Extended example with keywords:'
-                print longform
-                print ''
-                print '* Any keyword with a non "<VAL>" default can be omitted.'
-            print 
+                print('')
+                print('Extended example with keywords:')
+                print(longform)
+                print('')
+                print('* Any keyword with a non "<VAL>" default can be omitted.')
+            print('')
         except Exception as e:
             pass
             
@@ -271,7 +277,7 @@ args : args as parsed
     #if args.stack is not None:
     #    pass
     #elif len(args.ifile) == 0 or (len(args.ifile) - len(args.operators) - has_ofile) > 1:
-    #    print 'Too many arguments', len(args.ifile), len(args.operators), has_ofile
+    #    print('Too many arguments', len(args.ifile), len(args.operators), has_ofile)
     #    parser.print_help()
     #    exit()
     if has_ofile:
@@ -298,7 +304,7 @@ def split_positionals(parser, args):
             outs.append(positionals[last_split:i])
             last_split = i + 1
     outs.append(positionals[last_split:])        
-    outs = map(parser.parse_args, outs)
+    outs = list(map(parser.parse_args, outs))
     
     for out in outs:
         if out.cdlname is None:
@@ -347,7 +353,7 @@ def getfiles(ipaths, args):
         format_options = eval('dict(' + ', '.join(format_options) + ')')
         if isinstance(ipath, (PseudoNetCDFFile, NetCDFFile)):
             f = ipath
-        elif isinstance(ipath, (str, unicode)) :
+        elif isinstance(ipath, (str,)) :
             try:
                 if file_format in allreaders:
                     f = allreaders[file_format](ipath, **format_options)

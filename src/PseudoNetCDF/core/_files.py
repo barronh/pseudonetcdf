@@ -2,8 +2,8 @@ import unittest
 from PseudoNetCDF._getreader import registerreader
 from PseudoNetCDF.netcdf import NetCDFFile
 from collections import OrderedDict
-from _dimensions import PseudoNetCDFDimension
-from _variables import PseudoNetCDFVariable, PseudoNetCDFMaskedVariable
+from ._dimensions import PseudoNetCDFDimension
+from ._variables import PseudoNetCDFVariable, PseudoNetCDFMaskedVariable
 
 class OrderedDefaultDict(OrderedDict):
     def __init__(self, *args, **kwargs):
@@ -22,7 +22,7 @@ class OrderedDefaultDict(OrderedDict):
         self[key] = default = self.default_factory()
         return default
 
-class classreg(type):
+class fileclassreg(type):
     def __init__(cls, name, bases, clsdict):
         pieces = str(cls).split('\'')[1].split('.')
         longname = '.'.join([p for p in pieces[1:-1]  if '_' != p[0] and p not in ('core',)] + [pieces[-1]])
@@ -30,7 +30,7 @@ class classreg(type):
             if name != 'PseudoNetCDFFileMemmap':
                 registerreader(name, cls)
                 registerreader(longname, cls)
-        super(classreg, cls).__init__(name, bases, clsdict)
+        super(fileclassreg, cls).__init__(name, bases, clsdict)
 
 class PseudoNetCDFFile(object):
     """
@@ -38,7 +38,7 @@ class PseudoNetCDFFile(object):
     methods that a file should present to act like a netCDF file
     using the Scientific.IO.NetCDF.NetCDFFile interface.
     """
-    __metaclass__ = classreg
+    __metaclass__ = fileclassreg
     @classmethod
     def isMine(cls, *args, **kwds):
         try:
@@ -47,8 +47,8 @@ class PseudoNetCDFFile(object):
         except:
             return False
             
-    def __new__(cls, *args, **kwds):
-        new = object.__new__(cls, *args, **kwds)
+    def __new__(mcl, *args, **kwds):
+        new = super(PseudoNetCDFFile, mcl).__new__(mcl)
         new.variables = OrderedDict()
         new.dimensions = OrderedDict()
         new._ncattrs = ()
@@ -56,7 +56,7 @@ class PseudoNetCDFFile(object):
         return new
     
     def __init__(self, *args, **properties):
-        for k, v in properties.iteritems():
+        for k, v in properties.items():
             setattr(self, k, v)
 
     def __setattr__(self, k, v):
@@ -211,7 +211,7 @@ class PseudoNetCDFVariables(OrderedDefaultDict):
         if k in self.keys():
             return self.__func(k)
         else:
-            raise KeyError, 'missing "%s"' % (k, )
+            raise KeyError('missing "%s"' % (k, ))
 
     def addkey(self, k):
         """
@@ -221,18 +221,13 @@ class PseudoNetCDFVariables(OrderedDefaultDict):
         self.__keys.append(k)
 
     def keys(self):
-        return tuple(set(dict.keys(self) + self.__keys))
+        for k in tuple(set(list(dict.keys(self)) + self.__keys)):
+            yield k
     
-    def has_key(self, k):
-        return k in self.keys()
-    
-    def iteritems(self):
+    def items(self):
         for k in self.keys():
             yield k, self[k]
     
-    def iterkeys(self):
-        for k in self.keys():
-            yield k
 
 class PseudoNetCDFTest(unittest.TestCase):
     def setUp(self):
@@ -276,7 +271,7 @@ class PseudoNetCDFTest(unittest.TestCase):
         from PseudoNetCDF.pncgen import Pseudo2NetCDF
         n = Pseudo2NetCDF().convert(tncf)
         self.assertEqual(n.variables.keys(), ['O3'])
-        self.assertEqual(dict([(k, len(v)) for k, v in n.dimensions.iteritems()]), {'TIME': 24, 'LAY': 4, 'ROW': 5, 'COL': 6})
+        self.assertEqual(dict([(k, len(v)) for k, v in n.dimensions.items()]), {'TIME': 24, 'LAY': 4, 'ROW': 5, 'COL': 6})
         self.assert_((n.variables['O3'][...] == tncf.variables['O3'][...]).all())
         self.assert_(n.variables['O3'].units == 'ppbv')
         self.assertEqual(n.fish, 2)

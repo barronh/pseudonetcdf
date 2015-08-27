@@ -1,7 +1,11 @@
+from __future__ import print_function
 __all__ = ['bcon_profile', 'icon_profile']
 from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariables
 from matplotlib.mlab import csv2rec
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 from datetime import datetime
 import numpy as np
 class icon_profile(PseudoNetCDFFile):
@@ -83,5 +87,5 @@ if __name__ == '__main__':
     po = profile('testdata/profile.dat')
     from PseudoNetCDF.pncdump import pncdump
     pncdump(po)
-    print po.variables['ATOL1J'].shape
-    print po.variables['ATOL1J'].dimensions
+    print(po.variables['ATOL1J'].shape)
+    print(po.variables['ATOL1J'].dimensions)

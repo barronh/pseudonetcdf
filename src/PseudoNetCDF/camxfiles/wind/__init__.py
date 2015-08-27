@@ -11,10 +11,10 @@ __doc__ = """
 """
 __all__=['Memmap','Read','Write','Transforms']
 
-import Memmap
-import Read
-import Write
-import Transforms
+from . import Memmap
+from . import Read
+from . import Write
+from . import Transforms
 
 if __name__ == '__main__':
     from PseudoNetCDF.camxfiles.wind.Memmap import wind

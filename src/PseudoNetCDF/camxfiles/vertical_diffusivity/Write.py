@@ -13,3 +13,8 @@ __doc__ = """
 """
 
 from PseudoNetCDF.camxfiles.one3d.Write import ncf2one3d as ncf2vertical_diffusivity
+
+from PseudoNetCDF._getwriter import registerwriter
+registerwriter('camxfiles.vertical_diffusivity', ncf2vertical_diffusivity)    
+registerwriter('vertical_diffusivity', ncf2vertical_diffusivity)    
+
