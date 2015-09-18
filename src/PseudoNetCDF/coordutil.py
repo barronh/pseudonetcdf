@@ -155,6 +155,8 @@ def getlatbnds(ifile):
         if not (latdiff == latdiff[[0]]).all():
             warn('Latitude bounds are approximate')
         latb = np.concatenate([latb, latb[[-1]]], axis = 0) - .5 * np.concatenate([latdiff[:], latdiff[[-1]], -latdiff[[-1]]], axis = 0)
+        latb = np.minimum(90, latb)
+        latb = np.maximum(-90, latb)
         if latb.ndim == 2:
             latb = np.append(latb, latb[:, [-1]], axis = 1)
             
