@@ -1,4 +1,8 @@
 from __future__ import unicode_literals
+import sys
+if sys.version_info.major == 2:
+    bytes = lambda s, f: str(s)
+
 __doc__ = r"""
 .. _dumper
 :mod:`dumper` -- PseudoNetCDF dump module
@@ -12,7 +16,7 @@ __doc__ = r"""
 """
 
 __all__=['pncdump',]
-from numpy import float32, float64, int16, int32, int64, ndindex, ndenumerate, nan, savetxt, isscalar, ndarray, ma
+from numpy import float32, float64, int16, int32, int64, ndindex, ndenumerate, nan, savetxt, isscalar, ndarray, ma, prod
 from warnings import warn
 from collections import defaultdict
 from PseudoNetCDF import PseudoNetCDFMaskedVariable
@@ -25,7 +29,7 @@ import textwrap
 import sys
 import operator
 
-def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 80, full_indices = None, float_precision = 8, double_precision = 16, isgroup = False, outfile = sys.stdout):
+def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 80, full_indices = None, float_precision = 8, double_precision = 16, isgroup = False, timestring = False, outfile = sys.stdout):
     """
     pncdump is designed to implement basic functionality
     of the NetCDF ncdump binary.
@@ -123,7 +127,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                 if len(variables) < len(display_variables):
                     warn("Not all specified variables were available")
             
-            # For each variable outptu data 
+            # For each variable output data 
             # currently assumes 3-D data
             for var_name in display_variables:
                 var = f.variables[var_name]
@@ -150,7 +154,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         if isscalar(row) or row.ndim == 0:
                             outfile.write(startindent + '  ' + str(row.astype(ndarray)))
                             return
-                        tmpstr = StringIO('')
+                        tmpstr = StringIO(bytes('', 'utf-8'))
                         savetxt(tmpstr, row, fmt, delimiter = ', ', newline =', ')
                         if last:
                             tmpstr.seek(-2, 1)
@@ -161,7 +165,32 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         
                         
                 outfile.write(startindent + 1*indent+("%s =\n" % var_name))
-                if full_indices is not None:
+                if var_name in ('time', 'time_bounds') and timestring:
+                    from PseudoNetCDF.coordutil import gettimes, gettimebnds
+                    if var_name == 'time':
+                        times = gettimes(f)
+                    elif var_name == 'time_bounds':
+                        times = gettimebnds(f)
+                    
+                    for i in ndindex(var.shape):
+                        val = var[i]
+                        if ma.is_masked(val):
+                            array_str = '_'
+                        else:
+                            array_str = startindent + 2*indent + str(val)
+
+                        if i == tuple(map(lambda x_: x_ - 1, var.shape)):
+                            array_str += ";"
+                        else:
+                            array_str += ","
+
+                        array_str += " // %s%s %s \n" % (var_name, i, str(times[i]))
+                        try:
+                            outfile.write(array_str)
+                        except IOError:
+                            outfile.close()
+                            exit()
+                elif full_indices is not None:
                     id_display = {'f': lambda idx: str(tuple([idx[i]+1 for i in range(len(idx)-1,-1,-1)])), \
                                   'c': lambda idx: str(idx)}[full_indices]
                                   
@@ -188,7 +217,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                 else:
                     dimensions = [len(f.dimensions[d]) for d in var.dimensions]
                     if len(dimensions) > 1:
-                        first_dim = reduce(operator.mul,dimensions[:-1])
+                        first_dim = prod(dimensions[:-1])
                         second_dim = dimensions[-1]
                         shape = [first_dim, second_dim]
                     else:
@@ -216,7 +245,7 @@ def main():
     from .pncparse import pncparse
     ifiles, options = pncparse(has_ofile = False)
     for ifile in ifiles:
-        pncdump(ifile, header = options.header, full_indices = options.full_indices, line_length = options.line_length, float_precision = options.float_precision, name = options.cdlname)
+        pncdump(ifile, header = options.header, full_indices = options.full_indices, line_length = options.line_length, float_precision = options.float_precision, timestring = options.timestring, name = options.cdlname)
 
 if __name__ == '__main__':
     main()
