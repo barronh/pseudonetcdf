@@ -221,12 +221,11 @@ class PseudoNetCDFVariables(OrderedDefaultDict):
         self.__keys.append(k)
 
     def keys(self):
-        for k in tuple(set(list(dict.keys(self)) + self.__keys)):
-            yield k
+        return tuple(set(list(dict.keys(self)) + self.__keys))
+
     
     def items(self):
-        for k in self.keys():
-            yield k, self[k]
+        return [(k, self[k]) for k in self.keys()]
     
 
 class PseudoNetCDFTest(unittest.TestCase):
