@@ -23,6 +23,12 @@ from PseudoNetCDF.pncgen import pncgen
 from PseudoNetCDF.geoschemfiles import bpch
 
 def makedefaulticon(metcroprops):
+    """
+    Create an empty bcon file whose dimensions
+    are consistent with metcroprops
+    
+    metcroprops - dictionary of properties from IOAPI metadata
+    """
     DI = Dataset('dummyicon.nc', 'w', format = 'NETCDF3_CLASSIC')
     DI.createDimension('TSTEP', None)
     DI.createDimension('DATE-TIME', 2) ;
@@ -94,6 +100,12 @@ def makedefaulticon(metcroprops):
     return DI
 
 def makedefaultbcon(metbdyprops):
+    """
+    Create an empty bcon file whose dimensions
+    are consistent with metbdyprops
+    
+    metbdyprops - dictionary of properties from IOAPI metadata
+    """
     DB = Dataset('dummybcon.nc', 'w', format = 'NETCDF3_CLASSIC')
     DB.createDimension('TSTEP', None)
     DB.createDimension('DATE-TIME', 2) ;
@@ -160,6 +172,9 @@ def makedefaultbcon(metbdyprops):
 
 messages = ""
 def formatwarning(message, category, filename, lineno, line = 0):
+    """
+    Warning formatter function
+    """
     global messages
     strout = "\n***********\n%s:%s: %s:\n\t%s\n***********\n" % (filename, lineno, category.__name__, message)
     messages += strout
@@ -170,6 +185,13 @@ warnings.formatwarning = formatwarning
 warn = warnings.warn
 
 def get_template(option, gcversion):
+    """
+    Returns json template for pncglobal2cmaq
+    
+    Requries:
+        option - string with mechanism name (only supports cb05) and CMAQ aerosol option (AE5 or AE6)
+        gcversion - GEOS-Chem version (8, 9, 10, etc)
+    """
     # First add the preamble
     out =r"""{
     "comment1": "comments are added like this",
@@ -189,7 +211,7 @@ def get_template(option, gcversion):
             
         }, 
     "AIRMASSDEN": {
-            "expression": "0.0289645 * PSURF[:] * 100 / 8.3144621 / TMPU[:]",
+            "expression": "0.0289645 * (hyam[:].reshape(1, -1).T + hybm[:].reshape(1, -1).T * PSURF[:][:, [0]].T).T * 100 / 8.3144621 / TMPU[:]",
             "outunit": "kg/m**3",
             "for_stdatm_use_as_expr": "(0.0289645 * ((hyam[:, None] + hybm[:, None] * 1013.25) * 100 / 8.3144621 / np.array([287.7,286.9,286.0,285.2,284.3,283.4,282.6,281.7,280.7,279.8,278.9,277.9,276.8,275.3,273.6,271.8,270.0,268.2,265.8,262.8,259.7,256.4,252.9,249.2,245.2,241.0,236.4,230.5,223.6,216.8,216.6,216.6,216.6,216.6,216.6,216.6,216.6,217.5,219.8,222.0,225.3,233.6,250.5,269.2,260.0,237.7,214.3])[:NLAYS, None] * np.ones_like(O3).T).T"
         }, """
@@ -198,7 +220,7 @@ def get_template(option, gcversion):
         out += r"""
     "CMAQSPECIES": {
         "AIRDEN": {
-            "expression": "PSURF[:] * 100 / 8.3144621 / TMPU[:] * 6.022e23 / 1e6",
+            "expression": "(hyam[:].reshape(1, -1).T + hybm[:].reshape(1, -1).T * PSURF[:][:, [0]].T).T * 100 / 8.3144621 / TMPU[:] * 6.022e23 / 1e6",
             "outunit": "molec/cm3",
             "manual_unit": true,
             "comment": "Full calculated unit",
@@ -978,6 +1000,10 @@ class speciesstruct(object):
         self.found = found
 
 def repair_ae(f, myioo):
+    """
+    Create metavariables that are consistent with 
+    mass from true variables.
+    """
     if myioo is None:
         status = warn = error = warnings.warn
     else:
@@ -1131,6 +1157,14 @@ def repair_ae(f, myioo):
     f.sync()
 
 def makeregriddedbdy(metbdy, args, spcs):
+    """
+    Requires:
+        metbdy - METBDY3D output from MCIP with longitude and latitude variables
+        args - args from script argparse
+        spcs - list of species
+    Outputs:
+        list netcdf-like files with ND49 data regridded to metbdy domain
+    """
     lonlatcoords = '/'.join(['%f,%f' % (lon, lat) for lon, lat in zip(metbdy.variables['longitude'][:].ravel(), metbdy.variables['latitude'][:].ravel())])
     out = []
     for ND49, ND49_REGRID_BDY in zip(args.ND49, args.ND49_REGRID_BDY):
@@ -1142,6 +1176,14 @@ def makeregriddedbdy(metbdy, args, spcs):
     return out
 
 def makeregriddedcro(metcro, args, spcs):
+    """
+    Requires:
+        metcro - METCRO3D output from MCIP with longitude and latitude variables
+        args - args from script argparse
+        spcs - list of species
+    Outputs:
+        otu - list netcdf-like files with ND49 data regridded to metcro domain
+    """
     lonlatcoords = '/'.join(['%f,%f' % (lon, lat) for lon, lat in zip(metcro.variables['longitude'][:].ravel(), metcro.variables['latitude'][:].ravel())])
     out = []
     for ND49, ND49_REGRID_CRO in zip(args.ND49, args.ND49_REGRID_CRO):
@@ -1154,6 +1196,14 @@ def makeregriddedcro(metcro, args, spcs):
     return out
 
 def getdefault(oldcon, vark, noutstep):
+    """
+    Requires:
+        oldcon - netcdf-like file with default values for [IB]CON file
+        vark - variable name (must be in oldcon.variables)
+        noutstep - number of output steps
+    Output:
+        defval - array of default values for vark
+    """
     defval = np.ma.filled(oldcon.variables[vark][:], 0)
     if defval.shape[0] == 1:
         defval = defval.repeat(noutstep, 0)
@@ -1164,6 +1214,9 @@ def getdefault(oldcon, vark, noutstep):
 
 
 def makeibcon(args):
+    """
+    Main logic to make [IB]CON files
+    """
     global messages
     messages += ' '.join(sys.argv[:]) + '\n'
     mappings_file = json.load(open(args.mapping, mode = 'r'))
@@ -1278,8 +1331,8 @@ def makeibcon(args):
     general_messages = messages
     messages = ""
     for metfile, regridded_nd49, oldcon, newcon, noutstep in infiles:
-        if args.sigmaeta:
-            cpress = np.convolve([0.5, 0.5], metfile.VGLVLS, mode = 'valid')
+        if args.sigmaeta or args.sigma:
+            cpressv = np.convolve([0.5, 0.5], metfile.VGLVLS, mode = 'valid')
         else:
             cpressv = metfile.variables['PRES']
             assert(cpressv.units.strip() == 'Pa')
@@ -1300,8 +1353,8 @@ def makeibcon(args):
                     oldkeys.append(vark)
                     minout = getdefault(oldcon, vark, noutstep)
                 else:
-                    inC = dict([(cn, nd49.variables[cn].carbon) for cn in coexpr.co_names if cn in nd49.variables])
-                    inkgpermole = dict([(cn, nd49.variables[cn].kgpermole) for cn in coexpr.co_names if cn in nd49.variables])
+                    inC = dict([(cn, getattr(nd49.variables[cn], 'carbon', 1.)) for cn in coexpr.co_names if cn in nd49.variables])
+                    inkgpermole = dict([(cn, getattr(nd49.variables[cn], 'kgpermole', np.nan)) for cn in coexpr.co_names if cn in nd49.variables])
                     def conv(matcho):
                         found = {}
                         found.update(matcho.groupdict())
@@ -1328,9 +1381,13 @@ def makeibcon(args):
                         sys.stdout.flush()
                     out = np.zeros((noutstep,) + varo[:].shape[1:], dtype = 'f')
                     for ndi, nd49 in enumerate(regridded_nd49):
+                        if not args.sigmaeta:
+                            rpressv = eval(mappings_file['PRESS']['expression'], None, nd49.variables)
+                        
                         if not (ounit == varo.units.strip()):
                             sys.stdout.write('\n%s %s %s\n' % (vark, varo.units.strip(), ounit))
                             sys.stdout.flush()
+                        
                         try:
                             temp_val = eval(expr, None, nd49.variables)[:]
                         except:
@@ -1356,30 +1413,26 @@ def makeibcon(args):
                         toff
                         oldrm = 0
                         for ti, temp_hour in enumerate(temp_val):
-                            if args.sigmaeta:
-                                rpress = ((nd49.variables['etam_pressure'] - newcon.VGTOP / 100) / (1013.25 - newcon.VGTOP / 100))
-                                while rpress.ndim < out[0].ndim:
-                                    rpress = np.expand_dims(rpress, -1)
-                                rpress = rpress * np.ones((rpress.shape[0],) + out[0, 0].shape, dtype = 'f')
+                            if args.sigmaeta or args.sigma:
+                                cpress = cpressv[:, None].repeat(out[0,0].size, 1)
                             else:
                                 cpress = cpressv[ti, :]
                                 cpress = cpress.reshape(cpress.shape[0], -1)
                                 assert((np.diff(cpress, axis = 0).mean(1) < 0).all())
-                                rpressv = eval(mappings_file['PRESS']['expression'], None, nd49.variables)
+                            if args.sigmaeta:
+                                rpress = ((nd49.variables['etam_pressure'] - newcon.VGTOP / 100) / (1013.25 - newcon.VGTOP / 100))[:, None].repeat(out[0,0].size, 1)
+                            else:
                                 if mappings_file['PRESS']['outunit'] == 'Pa':
                                     rpress = rpressv[ti,:]
                                 elif mappings_file['PRESS']['outunit'] == 'hPa':
                                     rpress = rpressv[ti,:] * 100
                                 else:
                                     warn("Assuming pressure is Pa, but got %s" % mappings_file['PSURF']['outunit'])
-                                rpress = rpress.reshape(rpress.shape[0], cpress.shape[1])
-                                assert((np.diff(rpress, axis = 0).mean(1) < 0).all())
-                        
-                            if args.sigmaeta:
-                                while cpress.ndim < out[0].ndim:
-                                    cpress = np.expand_dims(cpress, -1)
-                                cpress = cpress * np.ones_like(out[0])
-                        
+                                if args.sigma:
+                                    rpress = (rpress - newcon.VGTOP) / (100 * nd49.variables['PSURF'][ti,0][None].reshape(1, -1) - newcon.VGTOP)
+                            rpress = rpress.reshape(rpress.shape[0], cpress.shape[1])
+                            assert((np.diff(rpress, axis = 0).mean(1) < 0).all())
+                                                
                             outvals = np.zeros(cpress.shape, dtype = 'f')
                             for pi, (cp, rp, column) in enumerate(zip(cpress.T, rpress.T, temp_hour.T)):
                                 outvals[:, pi] = np.interp(cp[::-1], rp[::-1], column[::-1])[::-1]
@@ -1431,7 +1484,7 @@ def makeibcon(args):
             newcon.STIME = np.int32(sdate.strftime('%H%M%S'))
             newcon.TSTEP = np.int32(args.tstep)
             sdate = datetime.strptime(str(newcon.SDATE) + ' ' + '%06d' % newcon.STIME, '%Y%j %H%M%S')
-            dt = datetime.strptime('%06d' % newcon.TSTEP, '%H%M%S') - datetime(1900, 1, 1)
+            dt = timedelta(hours = newcon.TSTEP // 10000.) + (datetime.strptime('%06d' % (newcon.TSTEP % 10000.), '%H%M%S') - datetime(1900, 1, 1))
             tnow = sdate
             for ti in range(varo.shape[0]):
                 jdate = int(tnow.strftime('%Y%j'))
@@ -1447,6 +1500,37 @@ def makeibcon(args):
         setattr(newcon, 'HISTORY', getattr(newcon, 'HISTORY', '') + general_messages + messages)
         newcon.sync()
 
+from PseudoNetCDF.sci_var import stack_files, getvarpnc, PseudoNetCDFFile
+class benchmark(PseudoNetCDFFile):
+    def __init__(self, bpath, vertgrid = 'GEOS-5-NATIVE'):
+        from PseudoNetCDF.geoschemfiles import bpch
+        inf = bpch(bpath, vertgrid = vertgrid)
+        group_varkeys = [('', 'time'), ('', 'latitude'), ('', 'longitude'), ('', 'hyam'), ('', 'hybm'), ('', 'etam_pressure'), ('PEDGE-$', 'PSURF'), ('DAO-3D-$', 'TMPU')]
+        group_varkeys += [('IJ-AVG-$', k.replace('IJ-AVG-$_', '')) for k in inf.variables.keys() if 'IJ-AVG-$' in k]
+        getvarpnc_str = [((group + '_' + varkey) if group != '' else varkey) for group, varkey in group_varkeys]
+        inf = getvarpnc(inf, getvarpnc_str)
+        outf = self
+        outf.createDimension('time', len(inf.dimensions['time']))
+        nlay = len(inf.dimensions['layer'])
+        outf.createDimension('layer', nlay)
+        outf.createDimension('layer%d' % nlay, nlay)
+        outf.createDimension('layer%d' % (nlay + 1), nlay + 1)
+        outf.createDimension('latitude', len(inf.dimensions['latitude']))
+        outf.createDimension('longitude', len(inf.dimensions['longitude']))
+        outf.createDimension('nv', 2)
+        outf.createDimension('tnv', 2)
+        
+        for group, varkey in group_varkeys:
+            inkey = ('' if group == '' else (group + '_')) + varkey
+            invar = inf.variables[inkey]
+            outvar = outf.createVariable(varkey, invar.dtype.char, invar.dimensions)
+            for pk in invar.ncattrs():
+                setattr(outvar, pk, getattr(invar, pk))
+            outvar[:] = invar[:]
+        
+        outf.sync()
+
+    
 if __name__ == '__main__':
     from PseudoNetCDF.pncparse import getparser, pncparse
     
@@ -1457,6 +1541,7 @@ if __name__ == '__main__':
     parser.add_argument('--ICON', default = "dummyicon.nc", help='path (or PseudoNetCDF commands) to an old ICON file')
     parser.add_argument('--persist', dest = 'persistintermediate', action = 'store_true', default = False, help = 'Save interpolated files (may have speed benefits)')
     parser.add_argument('--sigmaeta', action = 'store_true', help = 'Use sigma from CMAQ and calculate sigma for GEOS-Chem from pure eta levels for interpolation')
+    parser.add_argument('--sigma', action = 'store_true', help = 'Use sigma from CMAQ and calculate sigma for GEOS-Chem from pressure levels for interpolation')
     parser.add_argument('--timeindependent', default = False, action = 'store_true', help = 'Start date/time is any start date time')
     parser.add_argument('-d', '--sdate', default = None, help = 'Start date in YYYY-MM-DD HH:MM:SS format')
     parser.add_argument('--METBDY3D', default = None, type = str, help='path (or PseudoNetCDF commands) to a MCIP METBDY3D file')
