@@ -115,6 +115,8 @@ To impose your own order, use standard options (global options) and then use -- 
     else:
         parser.add_argument("-H", "--header", dest="header", action = "store_true", default=False)
         
+        parser.add_argument("-t", "--timestring", dest="timestring", action = "store_true", default=False)
+        
         parser.add_argument("--full-indices", dest="full_indices",default=None, metavar = "[c|f]", choices = ['c', 'f'])
 
         parser.add_argument("-l", "--length", dest="line_length", type = int, default=80, metavar = "LEN", help = "CDL line length (pncdump only)")
