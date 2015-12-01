@@ -836,17 +836,19 @@ class bpch(PseudoNetCDFFile):
           assert((gn[0] == gn).all())
         # Create variables and dimensions
         self.vertgrid = vertgrid
-        layerns = set([datamap[0][k]['header']['f13'][-1] for k in datamap.dtype.names])
-        layerkeys = ['layer_bounds'] + ['layer%d' % l for l in layerns]
-        keys.extend(layerkeys)
-        keys.extend(['hyai', 'hyam', 'hybi', 'hybm', 'etai_pressure', 'etam_pressure'])
-        
         # Ap [hPa]
         self.Ap = geos_hyai[self.vertgrid]
 
         # Bp [unitless]
         self.Bp = geos_hybi[self.vertgrid]
 
+        layerns = set([datamap[0][k]['header']['f13'][-1] for k in datamap.dtype.names])
+        if max(layerns) > self.Ap.size:
+            warn('vertgrid selected (%s) and output layers are not consistent' % vertgrid)
+        layerkeys = ['layer_bounds'] + ['layer%d' % l for l in layerns]
+        keys.extend(layerkeys)
+        keys.extend(['hyai', 'hyam', 'hybi', 'hybm', 'etai_pressure', 'etam_pressure'])
+        
         self.createDimension('layer', self.Ap.size - 1)
         self.createDimension('layer_bounds', self.Ap.size)
 
