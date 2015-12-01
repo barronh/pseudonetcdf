@@ -55,7 +55,7 @@ def add_time_variable(ifileo, key):
         stmp = tmp[4:]
         tmpseconds = 3600 * int(htmp) + 60 * int(mtmp) + int(stmp)
 
-    time_unit = "seconds since %s UTC" % (sdate.strftime('%Y-%m-%d %H:%M:%S'),)
+    time_unit = "seconds since %s" % (sdate.strftime('%Y-%m-%d %H:%M:%S'),)
     if 'TFLAG' in ifileo.variables:
         tflag = ifileo.variables['TFLAG'][:, 0]
         jdays = tflag[:, 0]
