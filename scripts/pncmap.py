@@ -24,7 +24,7 @@ def prepmap(ifiles, options):
         map.readshapefile(shapefile, shapename, ax = ax, linewidth = pl.rcParams['lines.linewidth'])
     options.map = map
 
-def makemap(ifile, options):
+def makemap(ifiles, options):
     fig = pl.gcf()
     ax = pl.gca()
     map = options.map
@@ -141,6 +141,13 @@ def makemap(ifile, options):
             print('Saved fig', figpath)
         
 if __name__ == '__main__':
-    ifiles, options = pncparse(has_ofile = True, plot_options = True, interactive = True)
+    parser = getparser(has_ofile = True, plot_options = True, interactive = True)
+    parser.add_argument("--iter", dest = "iter", action = 'append', default = [], help = "Create plots for each element of specified dimension (e.g., --iter=time).")
+    ifiles, options = pncparse(has_ofile = True, plot_options = True, interactive = True, parser = parser)
     prepmap(ifiles, options)
+    ifile, = ifiles
+    if options.iter != []:
+        ifiles = []
+        for dimk in options.iter:
+            ifiles += [slice_dim(getvarpnc(ifile, None), '%s,%d' % (dimk,i)) for i in range(len(ifile.dimensions[dimk]))]
     makemap(ifiles, options)
