@@ -311,7 +311,7 @@ def stat_spatial(ifile0, ifile1, funcs = __all__, variables = ['O3'], counties =
     variables - list of variables to plot
     """
     from mpl_toolkits.basemap import Basemap
-    from pylab import figure, show, colorbar
+    from matplotlib.pyplot import figure, show
     lonlatcoords = getattr(ifile0, 'lonlatcoords', getattr(ifile1, 'lonlatcoords', ''))
     lon, lat = np.array(map(lambda x: map(float, x.split(',')), lonlatcoords.split('/'))).T
     latmin, latmax = lat.min(), lat.max()
@@ -344,7 +344,7 @@ def stat_spatial(ifile0, ifile1, funcs = __all__, variables = ['O3'], counties =
             show()
 
 def stat_timeseries(ifile0, ifile1, variables = ['O3'], counties = False):
-    from pylab import figure, show, colorbar
+    from pylab import figure, show
     for vark in variables:
         for statname in __all__:
             statfunc = eval(statname)
