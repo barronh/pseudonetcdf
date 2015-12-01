@@ -480,7 +480,7 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
                 vout = _getfunc(vreshape, func)(axis = axis)
                 vmin = _getfunc(vreshape, 'min')(axis = axis)
                 vmax = _getfunc(vreshape, 'max')(axis = axis)
-                if 'lon' in varkey:
+                if 'lon' in varkey or 'time' in varkey:
                     try:
                         vout[..., [0, 3]] = vmin[..., [0, 3]]
                         vout[..., [1, 2]] = vmax[..., [1, 2]]
