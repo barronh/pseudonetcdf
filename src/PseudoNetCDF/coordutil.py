@@ -4,21 +4,7 @@ import numpy as np
 
 def gettimes(ifile):
     from datetime import datetime, timedelta
-    if 'TFLAG' in ifile.variables.keys():
-        dates = ifile.variables['TFLAG'][:][:, 0, 0]
-        times = ifile.variables['TFLAG'][:][:, 0, 0]
-        yyyy = dates // 1000
-        jjj = dates % 1000
-        hours = times // 10000
-        minutes = times % 10000 // 100
-        seconds = times % 100
-        days = jjj + (hours + minutes / 60. + seconds / 3600.) / 24.
-        out = np.array([datetime(yyyyi, 1, 1) + timedelta(days = day - 1) for day in days])
-        return out
-    elif 'tau0' in ifile.variables.keys():
-        out = datetime(1985, 1, 1, 0) + np.array([timedelta(hours =i) for i in ifile.variables['tau0'][:]])
-        return out
-    elif 'time' in ifile.variables.keys():
+    if 'time' in ifile.variables.keys():
         time = ifile.variables['time']
         if 'since' in time.units:
             unit, base = time.units.strip().split(' since ')
@@ -34,6 +20,20 @@ def gettimes(ifile):
             return out
         else:
             return time
+    elif 'TFLAG' in ifile.variables.keys():
+        dates = ifile.variables['TFLAG'][:][:, 0, 0]
+        times = ifile.variables['TFLAG'][:][:, 0, 1]
+        yyyys = (dates // 1000).astype('i')
+        jjj = dates % 1000
+        hours = times // 10000
+        minutes = times % 10000 // 100
+        seconds = times % 100
+        days = jjj + (hours + minutes / 60. + seconds / 3600.) / 24.
+        out = np.array([datetime(yyyy, 1, 1) + timedelta(days = day - 1) for yyyy, day in zip(yyyys, days)])
+        return out
+    elif 'tau0' in ifile.variables.keys():
+        out = datetime(1985, 1, 1, 0) + np.array([timedelta(hours =i) for i in ifile.variables['tau0'][:]])
+        return out
     else:
         raise ValueError('cannot understand time for file')
 
@@ -42,13 +42,13 @@ def gettimebnds(ifile):
     if 'TFLAG' in ifile.variables.keys():
         dates = ifile.variables['TFLAG'][:][:, 0, 0]
         times = ifile.variables['TFLAG'][:][:, 0, 0]
-        yyyy = dates // 1000
+        yyyys = (dates // 1000).astype('i')
         jjj = dates % 1000
         hours = times // 10000
         minutes = times % 10000 // 100
         seconds = times % 100
         days = jjj + (hours + minutes / 60. + seconds / 3600.) / 24.
-        out = np.array([datetime(yyyyi, 1, 1) + timedelta(days = day - 1) for day in days])
+        out = np.array([datetime(yyyy, 1, 1) + timedelta(days = day - 1) for yyyy, day in zip(yyyys, days)])
         
         hours = ifile.TSTEP // 10000
         minutes = ifile.TSTEP % 10000 // 100
@@ -151,12 +151,16 @@ def getlatbnds(ifile):
     elif 'latitude' in ifile.variables:
         latb = ifile.variables['latitude']
         unit = latb.units.strip()
+        latb = latb[:]
         latdiff = np.diff(latb, axis = 0)
         if not (latdiff == latdiff[[0]]).all():
             warn('Latitude bounds are approximate')
-        latb = np.concatenate([latb, latb[[-1]]], axis = 0) - .5 * np.concatenate([latdiff[:], latdiff[[-1]], -latdiff[[-1]]], axis = 0)
-        latb = np.minimum(90, latb)
-        latb = np.maximum(-90, latb)
+        latb = np.apply_along_axis(np.convolve, 0, latb, [0.5, 0.5])
+        latb[0] *= 2
+        latb[-1] *= 2
+        #latb = np.concatenate([latb, latb[[-1]]], axis = 0) - .5 * np.concatenate([latdiff[:], latdiff[[-1]], -latdiff[[-1]]], axis = 0)
+        #latb = np.minimum(90, latb)
+        #latb = np.maximum(-90, latb)
         if latb.ndim == 2:
             latb = np.append(latb, latb[:, [-1]], axis = 1)
             
@@ -187,6 +191,7 @@ def getlonbnds(ifile):
     elif 'longitude' in ifile.variables:
         lonb = ifile.variables['longitude']
         unit = lonb.units.strip()
+        lonb = lonb[:]
         if lonb.ndim > 1:
             londiff = np.diff(lonb, axis = 1)
             alldiffsame = (londiff == londiff[:, [0]]).all()
