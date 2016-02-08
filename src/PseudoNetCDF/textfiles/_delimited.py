@@ -1,4 +1,4 @@
-from __future__ import print_function, unicode_literals
+from __future__ import print_function#, unicode_literals
 from PseudoNetCDF.sci_var import PseudoNetCDFFile
 import numpy as np
 from warnings import warn
@@ -17,22 +17,34 @@ class csv(PseudoNetCDFFile):
         kwds['names'] = names
         kwds['delimiter'] =  delimiter
         data = np.recfromtxt(path, **kwds)
-        dimkeys = [dk for dk in data.dtype.names if dk in coordkeys]
+        dimkeys = [dk for dk in coordkeys if dk in data.dtype.names]
         varkeys = [vk for vk in data.dtype.names if not vk in coordkeys]
         for dk in dimkeys:
             dv = np.unique(data[dk])
             dv.sort()
             self.createDimension(dk, len(dv))
-            dvar = self.createVariable(dk, dv.dtype.char, (dk,))
+            mydtype = dv.dtype.char
+            if mydtype == 'S':
+                mydtype = dv.dtype
+            dvar = self.createVariable(dk, mydtype, (dk,))
             dvar[:] = dv
         
         for vk in varkeys:
             vv = data[vk]
-            var = self.createVariable(vk, vv.dtype.char, tuple(dimkeys))
-            for idx in np.ndindex(var.shape):
-                thisidx = np.sum([data[dk] == self.variables[dk][di] for di, dk in zip(idx, dimkeys)], axis = 0) == len(dimkeys)
-                if thisidx.any():
-                    var[idx] = vv[thisidx]
+            if vv.dtype.char != 'S':
+                var = self.createVariable(vk, vv.dtype.char, tuple(dimkeys), fill_value = -999)
+                var[:] = -999
+            else:
+                var = self.createVariable(vk, vv.dtype.char, tuple(dimkeys))
+
+        varshape = var.shape
+        bigidx = []
+        bigidx = dict([(dk, (data[dk][:, None] == self.variables[dk][None, :]).argmax(1)) for dk in dimkeys])
+        for vk in varkeys:
+            vv = data[vk]
+            ov = self.variables[vk]
+            myidx = tuple([bigidx[dk] for dk in ov.dimensions])
+            ov[myidx] = vv
         
     
 
