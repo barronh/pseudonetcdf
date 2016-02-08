@@ -1502,6 +1502,12 @@ def makeibcon(args):
 
 from PseudoNetCDF.sci_var import stack_files, getvarpnc, PseudoNetCDFFile
 class benchmark(PseudoNetCDFFile):
+    """
+    Designed to work with CTM runs with PEDGE-$_PSURF and DAO-3D-$_TMPU and IJ-AVG-$_*
+    
+    Available here:
+    http://ftp.as.harvard.edu/gcgrid/geos-chem/1yr_benchmarks/
+    """
     def __init__(self, bpath, vertgrid = 'GEOS-5-NATIVE'):
         from PseudoNetCDF.geoschemfiles import bpch
         inf = bpch(bpath, vertgrid = vertgrid)
