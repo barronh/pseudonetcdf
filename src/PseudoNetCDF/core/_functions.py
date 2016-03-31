@@ -42,10 +42,9 @@ def removesingleton(f, coordkeys = []):
         unlim = d.isunlimited()
         ni = len(d)
         if ni != 1:
+            tempd = outf.createDimension(dk, ni)
             if unlim:
-                outf.createDimension(dk, None)
-            else:
-                outf.createDimension(dk, ni)
+                tempd.setunlimited(True)
     
     for vk, v in f.variables.items():
         dims = tuple([dk for dk in v.dimensions if dk in outf.dimensions])
@@ -699,7 +698,7 @@ def add_attr(f, attr_def):
     else:
         var = f.variables[var_nm]
 
-    if not (att_typ == 'c' and isinstance(att_val, (str, ))):
+    if not (att_typ == 'c' and isinstance(att_val, (str, unicode))):
         att_val = np.array(eval(att_val), dtype = att_typ)
 
     if mode in ('a',):
@@ -746,14 +745,17 @@ def merge(fs):
         for d, v in f.dimensions.items():
             if not d in outf.dimensions:
                 nv = outf.createDimension(d, len(v))
-                nv.isunlimited(v.isunlimited())
+                nv.setunlimited(v.isunlimited())
         for k, v in f.variables.items():
             if k in outf.variables:
-                warn('%s already in output')
+                if v.shape != outf.variables[k].shape or not (v[:] == outf.variables[k][:]).all():
+                    warn('%s already in output' % k)
             else:
                 var = outf.createVariable(k, v.dtype.char, v.dimensions, values = v)
                 for p in v.ncattrs():
                     setattr(var, p, getattr(v, p))
+    
+    return outf
 
 def stack_files(fs, stackdim, coordkeys = []):
     """
