@@ -2,7 +2,7 @@ from __future__ import print_function
 import os
 from collections import OrderedDict
 import numpy as np
-from PseudoNetCDF.sci_var import PseudoNetCDFFile
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
 from ._bpch import _general_header_type
 
 _datablock_header_type = np.dtype([('bpad1', '>i4'),
@@ -96,7 +96,7 @@ def add_lat(self, key, example):
     var = self.createVariable(key, 'f', dims)
     var[:] = data
     for p, v in kwds.items():
-        setattr(self, p, v)
+        setattr(var, p, v)
 
 def add_lon(self, key, example):
     xres = self.modelres[0]
@@ -116,7 +116,7 @@ def add_lon(self, key, example):
     var = self.createVariable(key, 'f', dims)
     var[:] = data
     for p, v in kwds.items():
-        setattr(self, p, v)
+        setattr(var, p, v)
 
 class gcvar(object):
     def __init__(self, key, parent):
