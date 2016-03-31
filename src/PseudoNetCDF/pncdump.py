@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 import sys
 if sys.version_info.major == 2:
-    bytes = lambda s, f: str(s)
+    bytes = lambda s, f = None: str(s)
 
 __doc__ = r"""
 .. _dumper
@@ -45,11 +45,11 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
     pncdump(vertical_diffusivity('camx_kv.20000825.hgbpa_04km.TCEQuh1_eta.v43.tke',rows=65,cols=83))
     """
     file_type = str(type(f)).split("'")[1]
-    formats = defaultdict(lambda: "%s", float64 = "%%.%de" % (double_precision,), \
-                   float32 = "%%.%de" % (float_precision,), \
-                   int32 = "%i", \
-                   uint32 = "%i", \
-                   int64 = "%i", \
+    formats = defaultdict(lambda: "%s", float64 = bytes("%%.%de" % (double_precision,), 'utf-8'), \
+                   float32 = bytes("%%.%de" % (float_precision,), 'utf-8'), \
+                   int32 = bytes("%i", 'utf-8'), \
+                   uint32 = bytes("%i", 'utf-8'), \
+                   int64 = bytes("%i", 'utf-8'), \
                    str = "%s", \
                    bool = "%s", \
                    string8 = "'%s'")
