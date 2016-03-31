@@ -46,6 +46,7 @@ def add_time_variable(ifileo, key):
         sdate += 2000000
     sdate = datetime(sdate // 1000, 1, 1) + timedelta(days = (sdate % 1000) - 1)
     sdate = sdate + timedelta(days = ifileo.STIME / 240000.)
+    rdate = datetime(1970, 1, 1)
     if ifileo.TSTEP == 0:
         tmpseconds = 0;
     else:
@@ -54,8 +55,8 @@ def add_time_variable(ifileo, key):
         mtmp = tmp[2:4]
         stmp = tmp[4:]
         tmpseconds = 3600 * int(htmp) + 60 * int(mtmp) + int(stmp)
-
-    time_unit = "seconds since %s" % (sdate.strftime('%Y-%m-%d %H:%M:%S'),)
+    
+    time_unit = "seconds since %s" % (rdate.strftime('%Y-%m-%d %H:%M:%S'),)
     if 'TFLAG' in ifileo.variables:
         tflag = ifileo.variables['TFLAG'][:, 0]
         jdays = tflag[:, 0]
@@ -63,10 +64,14 @@ def add_time_variable(ifileo, key):
         if jdays[0] == 0:
             jdays = [ifileo.SDATE]
         dates = np.array([datetime.strptime('%7d %06d' % (jday, hhmmss), '%Y%j %H%M%S') for jday, hhmmss in zip(jdays, hhmmsss)])
-        time = np.array([(date - sdate).total_seconds() for date in dates])
+        time = np.array([(date - rdate).total_seconds() for date in dates])
         if key == 'time_bounds':
             time = np.array([time, time + tmpseconds]).T
-        
+            dims = ('TSTEP', 'tnv')
+            if 'tnv' not in ifileo.dimensions.keys():
+                ifileo.createDimension('tnv', 2)
+        else:
+            dims = ('TSTEP',)
     else:
         if key == 'time':
             time = np.arange(0, max(1, len(ifileo.dimensions['TSTEP'])), dtype = 'i') * tmpseconds
@@ -84,6 +89,7 @@ def add_time_variable(ifileo, key):
     else:
         var = ifileo.variables[key]
     var[:] = time
+    
     var.units = time_unit
     if key == 'time':
         var._CoordinateAxisType = "Time" ;
