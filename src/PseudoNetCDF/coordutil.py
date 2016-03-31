@@ -222,6 +222,41 @@ def getxbnds(ifile):
         raise KeyError('x bounds not found')
     return lonb, unit
 
+def getprojwkt(ifile, withgrid = False):
+    import osr
+    proj4str = getproj4(ifile, withgrid = withgrid)
+    
+    srs = osr.SpatialReference()
+    # Imports WKT to Spatial Reference Object
+    srs.ImportFromProj4(proj4str)
+    srs.ExportToWkt() # converts the WKT to an ESRI-compatible format
+    return srs.ExportToWkt()
+
+def getproj4(ifile, withgrid = False):
+    """
+    Arguments:
+      ifile - PseudoNetCDF file
+      withgrid - True to include gridding parameters
+    
+    Returns:
+      proj4str - string with proj4 parameters
+    """
+    from .conventions.ioapi import get_ioapi_sphere
+    if getattr(ifile, 'GDTYP', 0) in (2, 7) and all([hasattr(ifile, k) for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()]):
+        semi_major_axis, semi_minor_axis = get_ioapi_sphere()
+        if ifile.GDTYP == 2:
+            mapstr = '+proj=lcc +a=%s +b=%s +lon_0=%s +lat_1=%s +lat_2=%s +lat_0=%s' % (semi_major_axis, semi_minor_axis, ifile.P_GAM, ifile.P_ALP, ifile.P_BET, ifile.YCENT)
+            #p = Proj(proj='lcc',rsphere = (semi_major_axis, semi_minor_axis), lon_0 = ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT)
+        elif ifile.GDTYP == 7:
+            from mpl_toolkits.basemap.pyproj import Proj
+            mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (semi_major_axis, semi_minor_axis, ifile.XCENT)
+        if withgrid:
+            mapstr += ' +x_0=%s +y_0=%s +to_meter=%sm' % (-ifile.XORIG, -ifile.YORIG, ifile.XCELL)
+    else:
+        mapstr = '+proj=lonlat'
+    mapstr += ' +no_defs'
+    return mapstr
+
 def getmap(ifile, resolution = 'i'):
     from mpl_toolkits.basemap import Basemap
     from .conventions.ioapi import get_ioapi_sphere
