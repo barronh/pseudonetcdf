@@ -5,7 +5,7 @@ import sys
 import os
 
 from PseudoNetCDF.pncload import PNCConsole
-from PseudoNetCDF.pncparse import pncparse
+from PseudoNetCDF.pncparse import pncparse, getparser
 from PseudoNetCDF.coordutil import getmap, getlatbnds, getlonbnds, getybnds, getxbnds
 import warnings
 warn=warnings.warn
