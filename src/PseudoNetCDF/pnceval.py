@@ -381,14 +381,28 @@ def main():
     ifile1, ifile2 = ifiles
     for k in options.funcs:
         console.locals[k] = func = eval(k)
-        console.locals[k+'_f'] = ofile = pncbfunc(func, ifile1, ifile2)
-        times = ifile1.variables['time']
-        tstart = times[:].min()
-        tstop = times[:].max()
+        try:
+            console.locals[k+'_f'] = ofile = pncbfunc(func, ifile1, ifile2)
+        except:
+            warn("Skipped " + k)
+            continue
+        try:
+            from PseudoNetCDF.coordutil import gettimes
+            times = gettimes(ifile1)
+            tstart = times[:].min()
+            tstop = times[:].max()
+            tfmts = tstart.strftime('%F %H:%M:%S')+',' + tstop.strftime('%F %H:%M:%S')
+            tfmts = str(tstart) + ',' + str(tstop)
+        except Exception, e:
+            print(e)
+            times = ifile1.variables['time']
+            tstart = times[:].min()
+            tstop = times[:].max()
+            tfmts = '%.2f,%.2f' % (tstart, tstop)
         dt = tstop - tstart
         for vk in options.variables:
             if vk in ('time', 'TFLAG'): continue
-            print('%.2f,%.2f,%.2f,%s,%s,%s,%f' % (tstart, tstop, dt, vk, func.__doc__.strip(), k, ofile.variables[vk].ravel()[0]))
+            print((tfmts + ',%s,%s,%s,%f') % (vk, func.__doc__.strip(), k, ofile.variables[vk].ravel()[0]))
     np.seterr(divide = 'warn', invalid = 'warn')
     if options.interactive:
         console.interact()
