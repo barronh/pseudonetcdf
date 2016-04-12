@@ -153,7 +153,7 @@ class ffi1001(PseudoNetCDFFile):
         while datalines[-1] in ('', ' ', '\r'):
             ndatalines -=1
             datalines.pop(-1)
-        data = genfromtxt(StringIO(bytes('\n'.join(datalines), 'utf-8')), delimiter = delim, dtype = 'd')
+        data = genfromtxt(StringIO(u'\n'.join(datalines)), delimiter = delim, dtype = 'd')
         data = data.reshape(ndatalines,len(variables))
         data = data.swapaxes(0,1)
         self.createDimension('POINTS', ndatalines)
