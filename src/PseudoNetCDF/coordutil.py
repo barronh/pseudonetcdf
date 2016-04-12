@@ -16,7 +16,7 @@ def gettimes(ifile):
                 sdate = datetime.strptime(base, '%Y-%m-%d %H:%M:%S')
             else:
                 sdate = datetime.strptime(base, '%Y-%m-%d')
-            out = sdate + np.array([timedelta(**{unit: i}) for i in time[:]])
+            out = sdate + np.array([timedelta(**{unit: float(i)}) for i in time[:]])
             return out
         else:
             return time
@@ -71,8 +71,13 @@ def gettimebnds(ifile):
                 sdate = datetime.strptime(base, '%Y-%m-%d %H:%M:%S')
             else:
                 sdate = datetime.strptime(base, '%Y-%m-%d')
-            out = sdate + np.array([timedelta(**{unit: i}) for i in time[:]])
-            return np.array([out, out + (out[1] - out[0])]).T
+            out = sdate + np.array([timedelta(**{unit: float(i)}) for i in time[:]])
+            if len(out) > 1:
+                dt = (out[1] - out[0])
+            else:
+                dt = timedelta(**{unit: 0.})
+            
+            return np.array([out, out + dt]).T
         else:
             return np.array([time, time + (time[1] - time[0])]).T
     else:
