@@ -30,7 +30,7 @@ def makemap(ifiles, options):
     map = options.map
     nborders = len(ax.collections)
     for fi, ifile in enumerate(ifiles):
-        if map.projection == 'lcc':
+        if map.projection in ('lcc', 'merc'):
             lat = ifile.variables['latitude']
             lon = ifile.variables['longitude']
             latb, latunit = getybnds(ifile)[:]
@@ -44,7 +44,7 @@ def makemap(ifiles, options):
         if latb.ndim == lonb.ndim and lonb.ndim == 2:
             LON, LAT = lonb, latb
         else:
-            LON, LAT = np.meshgrid(lonb, latb)
+            LON, LAT = np.meshgrid(lonb.view(np.ndarray), latb.view(np.ndarray))
     
         variables = options.variables
         if variables is None:
@@ -87,19 +87,19 @@ def makemap(ifiles, options):
             varunit = getattr(var, 'units', 'unknown').strip()
             print(varkey, sep = '')
             if vals.ndim == 1:
-                patches = map.scatter(lon[:], lat[:], c = vals, s = 24, norm = norm, ax = ax)
+                patches = map.scatter(lon[:], lat[:], c = vals, s = 24, norm = norm, ax = ax, zorder = 2)
             else:
                 patches = map.pcolor(LON, LAT, vals, norm = norm, ax = ax)
-            if lonunit == 'x (LCC m)':
+            if lonunit == 'x (m)':
                 ax.xaxis.get_major_formatter().set_scientific(True)
                 ax.xaxis.get_major_formatter().set_powerlimits((-3, 3))
-            if latunit == 'y (LCC m)':
+            if latunit == 'y (m)':
                 ax.yaxis.get_major_formatter().set_scientific(True)
                 ax.yaxis.get_major_formatter().set_powerlimits((-3, 3))
             ax.set_xlabel(lonunit)
             ax.set_ylabel(latunit)
-            height = LAT.max() - LAT.min()
-            width = LON.max() - LON.min()
+            height = np.abs(np.diff(ax.get_ylim()))
+            width = np.abs(np.diff(ax.get_xlim()))
             if width >= height:
                 orientation = 'horizontal'
             else:
@@ -130,8 +130,8 @@ def makemap(ifiles, options):
             fmt = 'png'
             outpath = options.outpath
             if len(ifiles) > 1:
+                outpath += ('%%0%dd' % len(str(len(ifiles)))) % fi
                 
-                outpath += ('_%%0%dd' % len(str(len(ifiles)))) % fi
             figpath = os.path.join(outpath + varkey + '.' + fmt)
             if options.interactive:
                 csl = PNCConsole(locals = globals())
@@ -145,8 +145,8 @@ if __name__ == '__main__':
     parser.add_argument("--iter", dest = "iter", action = 'append', default = [], help = "Create plots for each element of specified dimension (e.g., --iter=time).")
     ifiles, options = pncparse(has_ofile = True, plot_options = True, interactive = True, parser = parser)
     prepmap(ifiles, options)
-    ifile, = ifiles
     if options.iter != []:
+        ifile, = ifiles
         ifiles = []
         for dimk in options.iter:
             ifiles += [slice_dim(getvarpnc(ifile, None), '%s,%d' % (dimk,i)) for i in range(len(ifile.dimensions[dimk]))]
