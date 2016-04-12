@@ -34,14 +34,14 @@ def manglenames(f, translator = _translator):
             del outf.variables[k]
     return outf
 
-def removesingleton(f, coordkeys = []):
+def removesingleton(f, rd, coordkeys = []):
     outf = PseudoNetCDFFile()
     for propkey in f.ncattrs():
         setattr(outf, propkey, getattr(f, propkey))
     for dk, d in f.dimensions.items():
         unlim = d.isunlimited()
         ni = len(d)
-        if ni != 1:
+        if ni != 1 or dk != rd:
             tempd = outf.createDimension(dk, ni)
             if unlim:
                 tempd.setunlimited(True)

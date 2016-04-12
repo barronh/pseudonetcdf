@@ -98,7 +98,7 @@ To impose your own order, use standard options (global options) and then use -- 
 
     parser.add_argument("--mangle", dest = "mangle", action = "store_true", default = False, help = "Remove non-standard ascii from names")
     
-    parser.add_argument("--remove-singleton", dest = "removesingleton", type = lambda x: [k for k in x.split() if k != ''], default = False, help = "Remove singleton (length 1) dimensions")
+    parser.add_argument("--remove-singleton", dest = "removesingleton", type = lambda x: [k for k in x.split(',') if k != ''], default = [], help = "Remove singleton (length 1) dimensions")
     
     # Only has output file if pncgen is called.
     if has_ofile:
@@ -170,7 +170,7 @@ To impose your own order, use standard options (global options) and then use -- 
 
     parser.add_argument("--exprscript", dest = "expressionscripts", type = str, action = 'append', default = [], help = "Generic expressions to execute in the context of the file.")
     if plot_options:
-        parser.add_argument("--matplotlibrc", dest = "matplotlibrc", type = str, action = 'append', default = [], help = 'rc options for matplotlib')
+        parser.add_argument("--matplotlibrc", dest = "matplotlibrc", type = lambda x: x.split(';'), action = 'append', default = [], help = 'rc options for matplotlib')
         
         parser.add_argument("--plot-commands", dest = "plotcommands", type = str, action = 'append', default = [], help = "Plotting functions to call for all variables expressions to execute in the context of the file.")
 
@@ -180,17 +180,17 @@ To impose your own order, use standard options (global options) and then use -- 
 
         parser.add_argument("--colorbar-formatter", dest = "colorbarformatter", type = str, default = None, help = "Typical examples LogFormatter(labelOnlyBase = False), ScalarFormatter(), '%%3g'")
 
-        parser.add_argument("--coastlines", dest = "coastlines", type = bool, default = True, help = "Disable coastlines by setting equal to False")
+        parser.add_argument("--no-coastlines", dest = "coastlines", action = 'store_false', help = "Disable coastlines by setting equal to False")
 
-        parser.add_argument("--countries", dest = "countries", type = bool, default = True, help = "Disable countries by setting equal to False")
+        parser.add_argument("--no-countries", dest = "countries", action = 'store_false', help = "Disable countries by setting equal to False")
 
-        parser.add_argument("--states", dest = "states", type = bool, default = False, help = "Enable states by setting equal to True")
+        parser.add_argument("--states", dest = "states", action = 'store_true', help = "Enable states by setting equal to True")
 
-        parser.add_argument("--counties", dest = "counties", type = bool, default = False, help = "Enable counties by setting equal to True")
+        parser.add_argument("--counties", dest = "counties", action = 'store_true', help = "Enable counties by setting equal to True")
 
         parser.add_argument("--shapefiles", dest = "shapefiles", type = str, action = 'append', default = [], help = "Enable custom shapefiles (must be lon, lat)")
 
-        parser.add_argument("--overlay", dest = "overlay", type = bool, default = False, help = "Enable overlay by setting equal to True")
+        parser.add_argument("--overlay", dest = "overlay", action = 'store_true', help = "Enable overlay by setting equal to True")
 
     if interactive:
         parser.add_argument("-i", "--interactive", dest = "interactive", action = 'store_true', default = False, help = "Use interactive mode")
@@ -290,9 +290,10 @@ args : args as parsed
 
     if plot_options:
         from matplotlib import rcParams
-        for rcassign in args.matplotlibrc:
-            key, value = rcassign.split('=')
-            rcParams[key] = value
+        for rcassigns in args.matplotlibrc:
+            for rcassign in rcassigns:
+                key, value = rcassign.split('=')
+                rcParams[key] = value
 
     return pncprep(args)
 
@@ -342,8 +343,8 @@ def subsetfiles(ifiles, args):
             f = convolve_dim(f, opts)
         if len(args.extract) > 0:
             f = extract(f, args.extract, method = args.extractmethod)
-        if args.removesingleton != False:
-            f = removesingleton(f)
+        for rd in args.removesingleton:
+            f = removesingleton(f, rd)
         fs.append(f)
     return fs
 
