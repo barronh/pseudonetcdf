@@ -7,7 +7,6 @@ import os
 
 def plot_diurnal_box(ifiles, args):
     times = [gettimes(ifile) for ifile in ifiles]
-    hours = [np.array([t.hour for t in time]) for time in times]
     fig = plt.figure()
     sax = fig.add_subplot(111)#add_axes([.1, .15, .8, .8])
     sax.set_xlabel('Time (UTC)')
