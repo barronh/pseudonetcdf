@@ -14,7 +14,7 @@ from PseudoNetCDF.plotutil import *
 def prepmap(ifiles, options):
     ifile = ifiles[0]
     ax = pl.gca()
-    map = getmap(ifile, resolution = 'c')
+    map = getmap(ifile, resolution = options.resolution)
     if options.coastlines: map.drawcoastlines(ax = ax)
     if options.countries: map.drawcountries(ax = ax)
     if options.states: map.drawstates(ax = ax)
@@ -61,7 +61,7 @@ def makemap(ifiles, options):
             vmin, vmax = vals.min(), vals.max()
             if options.normalize is None:
                 from scipy.stats import normaltest
-                if normaltest(vals.ravel())[1] < 0.05:
+                if normaltest(vals.ravel())[1] < 0.001:
                     cvals = np.ma.compressed(vals)
                     boundaries = np.percentile(cvals, np.arange(0, 110, 10))
                     warn('Autoselect deciles colormap of %s; override width --norm' % varkey)
@@ -143,6 +143,7 @@ def makemap(ifiles, options):
 if __name__ == '__main__':
     parser = getparser(has_ofile = True, plot_options = True, interactive = True)
     parser.add_argument("--iter", dest = "iter", action = 'append', default = [], help = "Create plots for each element of specified dimension (e.g., --iter=time).")
+    parser.add_argument("--resolution", dest = "resolution", choices = ['c', 'i', 'h'], default = 'i', help = "Use coarse (c), intermediate (i), or high (h) resolution for maps.")
     ifiles, options = pncparse(has_ofile = True, plot_options = True, interactive = True, parser = parser)
     prepmap(ifiles, options)
     if options.iter != []:
