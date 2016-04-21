@@ -1,8 +1,3 @@
-from __future__ import unicode_literals
-import sys
-if sys.version_info.major == 2:
-    bytes = lambda s, f = None: str(s)
-
 __doc__ = r"""
 .. _dumper
 :mod:`dumper` -- PseudoNetCDF dump module
@@ -21,12 +16,16 @@ from warnings import warn
 from collections import defaultdict
 from PseudoNetCDF import PseudoNetCDFMaskedVariable
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import BytesIO as StringIO
-import textwrap
 import sys
+if sys.version_info.major == 3:
+    from io import BytesIO as StringIO
+    commaspace = u', '
+    semicolon = b';'
+else:
+    from StringIO import StringIO
+    commaspace = ', '
+    semicolon = ';'
+import textwrap
 import operator
 
 def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 80, full_indices = None, float_precision = 8, double_precision = 16, isgroup = False, timestring = False, outfile = sys.stdout):
@@ -45,11 +44,11 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
     pncdump(vertical_diffusivity('camx_kv.20000825.hgbpa_04km.TCEQuh1_eta.v43.tke',rows=65,cols=83))
     """
     file_type = str(type(f)).split("'")[1]
-    formats = defaultdict(lambda: "%s", float64 = bytes("%%.%de" % (double_precision,), 'utf-8'), \
-                   float32 = bytes("%%.%de" % (float_precision,), 'utf-8'), \
-                   int32 = bytes("%i", 'utf-8'), \
-                   uint32 = bytes("%i", 'utf-8'), \
-                   int64 = bytes("%i", 'utf-8'), \
+    formats = defaultdict(lambda: "%s", float64 = "%%.%de" % (double_precision,), \
+                   float32 = "%%.%de" % (float_precision,), \
+                   int32 = "%i", \
+                   uint32 = "%i", \
+                   int64 = "%i", \
                    str = "%s", \
                    bool = "%s", \
                    string8 = "'%s'")
@@ -136,31 +135,31 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         if isscalar(row) or row.ndim == 0:
                             outfile.write(startindent + '  ' + str(row.filled().astype(ndarray)))
                             return
-                        tmpstr = StringIO(bytes('', 'utf-8'))
+                        tmpstr = StringIO()
                         if ma.getmaskarray(row).all():
                             tmpstr.write(', '.join(['_'] * row.size) + ', ')
                         else:
-                            savetxt(tmpstr, ma.filled(row), fmt, delimiter = ', ', newline =', ')
+                            savetxt(tmpstr, ma.filled(row), fmt, delimiter = commaspace, newline = commaspace)
                         if last:
                             tmpstr.seek(-2, 1)
-                            tmpstr.write(b';')
+                            tmpstr.write(semicolon)
                         tmpstr.seek(0, 0)
-                        tmpstr = tmpstr.read()
-                        tmpstr = tmpstr.replace(bytes(fmt % getattr(row, 'fill_value', 0) + ',', 'utf-8'), bytes('_,', 'utf-8'))
-                        outfile.write(textwrap.fill(tmpstr.decode('utf-8'), line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
+                        tmpstr = str(tmpstr.read())
+                        tmpstr = tmpstr.replace(fmt % getattr(row, 'fill_value', 0) + ',', '_,')
+                        outfile.write(textwrap.fill(tmpstr, line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
                         outfile.write('\n')
                 else:
                     def writer(row, last):
                         if isscalar(row) or row.ndim == 0:
                             outfile.write(startindent + '  ' + str(row.astype(ndarray)))
                             return
-                        tmpstr = StringIO(bytes('', 'utf-8'))
-                        savetxt(tmpstr, row, fmt, delimiter = ', ', newline =', ')
+                        tmpstr = StringIO()
+                        savetxt(tmpstr, row, fmt, delimiter = commaspace, newline =commaspace)
                         if last:
                             tmpstr.seek(-2, 1)
-                            tmpstr.write(';')
+                            tmpstr.write(semicolon)
                         tmpstr.seek(0, 0)
-                        outfile.write(textwrap.fill(tmpstr.read().decode('utf-8'), line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
+                        outfile.write(textwrap.fill(str(tmpstr.read()), line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
                         outfile.write('\n')
                         
                         
