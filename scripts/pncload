@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-python -um PseudoNetCDF.pncload $@
+python -um PseudoNetCDF.pncload "$@"

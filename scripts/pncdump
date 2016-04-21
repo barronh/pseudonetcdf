@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-python -um PseudoNetCDF.pncdump $@
+python -um PseudoNetCDF.pncdump "$@"
