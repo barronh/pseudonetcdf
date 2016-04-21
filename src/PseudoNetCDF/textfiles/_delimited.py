@@ -14,9 +14,22 @@ class csv(PseudoNetCDFFile):
         
         * Note: currently only works when all coordinate variables are 1-d
         """
-        kwds['names'] = names
-        kwds['delimiter'] =  delimiter
-        data = np.recfromtxt(path, **kwds)
+        try:
+            kwds['names'] = names
+            kwds['delimiter'] =  delimiter
+            data = np.recfromtxt(path, **kwds)
+        except:
+            import pandas
+            del kwds['names']
+            del kwds['delimiter']
+            if names:
+                kwds['header'] = 'infer'
+            else:
+                kwds['names'] = names
+            kwds['sep'] = delimiter
+            odata = pandas.read_csv(path, **kwds)
+            data = odata.to_records(index = False)
+            
         dimkeys = [dk for dk in coordkeys if dk in data.dtype.names]
         varkeys = [vk for vk in data.dtype.names if not vk in coordkeys]
         for dk in dimkeys:
