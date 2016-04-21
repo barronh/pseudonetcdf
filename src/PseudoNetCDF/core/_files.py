@@ -22,7 +22,10 @@ class OrderedDefaultDict(OrderedDict):
         self[key] = default = self.default_factory()
         return default
 
-class fileclassreg(type):
+class PseudoNetCDFType(type):
+    """
+    Create a PseudoNetCDFType meta-class
+    """
     def __init__(cls, name, bases, clsdict):
         pieces = str(cls).split('\'')[1].split('.')
         longname = '.'.join([p for p in pieces[1:-1]  if '_' != p[0] and p not in ('core',)] + [pieces[-1]])
@@ -30,15 +33,16 @@ class fileclassreg(type):
             if name != 'PseudoNetCDFFileMemmap':
                 registerreader(name, cls)
                 registerreader(longname, cls)
-        super(fileclassreg, cls).__init__(name, bases, clsdict)
+        super(PseudoNetCDFType, cls).__init__(name, bases, clsdict)
 
-class PseudoNetCDFFile(object):
+PseudoNetCDFSelfReg = PseudoNetCDFType('pnc', (object,), dict(__doc__ = 'Test'))
+
+class PseudoNetCDFFile(PseudoNetCDFSelfReg):
     """
     PseudoNetCDFFile provides an interface and standard set of
     methods that a file should present to act like a netCDF file
     using the Scientific.IO.NetCDF.NetCDFFile interface.
     """
-    __metaclass__ = fileclassreg
     @classmethod
     def isMine(cls, *args, **kwds):
         try:
