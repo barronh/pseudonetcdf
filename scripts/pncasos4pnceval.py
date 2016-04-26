@@ -14,7 +14,6 @@ except:
 # IEM quirk to have Iowa AWOS sites in its own labeled network
 from shapely.geometry import Polygon, Point
 import numpy as np
-from PseudoNetCDF.coordutil import gettimes
 import argparse
 from netCDF4 import Dataset
 parser = argparse.ArgumentParser(prog = 'METAR', description = "Downloads met data from http://mesonet.agron.iastate.edu for a CMAQ domain")
