@@ -352,6 +352,9 @@ def slice_dim(f, slicedef, fuzzydim = True):
         
     e.g., slice_dim(f, 'layer,0,47,5') would sample every fifth layer starting at 0
     """
+    inf = f
+    outf = getvarpnc(f, None)
+    f = outf
     historydef = "slice_dim(f, %s, fuzzydim = %s); " % (slicedef, fuzzydim)
     slicedef = slicedef.split(',')
     slicedef = [slicedef[0]] + list(map(eval, slicedef[1:]))
@@ -413,6 +416,8 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
     
     Weighting is not fully functional.
     """
+    inf = f
+    f = outf = getvarpnc(f, None)
     metakeys = [k for k in metakeys if k in f.variables.keys()]
     historydef = "reduce_dim(f, %s, fuzzydim = %s, metakeys = %s); " % (reducedef, fuzzydim, metakeys)
     import numpy as np
@@ -446,6 +451,7 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
     if dimkey not in f.dimensions:
         warn('%s not in file' % dimkey)
         return f
+    
     unlimited = f.dimensions[dimkey].isunlimited()
     f.createDimension(dimkey, 1)
     if unlimited:
