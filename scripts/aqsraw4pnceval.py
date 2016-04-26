@@ -156,4 +156,4 @@ time.units = args.rdate.strftime('hours since %F UTC')
 time.standard_name = 'time'
 time[:] = [(t - args.rdate).total_seconds() / 3600 for t in alltimes]
 outf.sync()
-print 'Successful'
+print('Successful')
