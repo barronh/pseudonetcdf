@@ -6,6 +6,8 @@ from PseudoNetCDF.netcdf import NetCDFFile, NetCDFVariable
 from .sci_var import PseudoNetCDFFile
 from .sci_var import get_ncf_object
 import numpy as np
+if sys.version_info > (3,):
+    long = int
 
 
 class Pseudo2NetCDF:
@@ -125,7 +127,7 @@ class Pseudo2NetCDF:
         if isscalar(nvar) or nvar.ndim == 0:
             if isinstance(pvar, NetCDFVariable):
                 pvar = pvar[...]
-            nvar.assignValue(pvar)
+            nvar[...] = pvar
         elif isinstance(pvar[...], MaskedArray):
             nvar[:] = pvar[...].filled(getattr(nvar, 'fill_value', getattr(nvar, '_FillValue', getattr(pvar, 'missing_value', -9999))))
         else:
