@@ -50,11 +50,6 @@ else:
     bounds = loads(args.wktpolygon)
 
 prep_bounds = prep(bounds)
-if args.username is None:
-    args.username = input('MADIS username:')
-
-if args.password is None:
-    args.password = getpass.getpass(prompt='MADIS password: ', stream=None)
 
 level1 = dict(zip(("sao"   , "metar"  , "maritime", "mesonet", "raob"  , "acarsProfiles"  , "profiler", "profiler", "hydro"), ("point" , "point"  , "point"   , "LDAD"   , "point" , "point"          ,  "point"  , "LDAD"    , "LDAD")))[args.type]
 level3 = dict(zip(("sao"   , "metar"  , "maritime", "mesonet", "raob"  , "acarsProfiles"  , "profiler", "profiler", "hydro"), ("netcdf", "netcdf" , "netcdf"  , "netCDF" , "netcdf", "netcdf"         ,  "netcdf" , "netCDF"  , "netCDF")))[args.type]
@@ -76,9 +71,15 @@ for time in times:
     if args.verbose > 0:
         print(time, 'start')
     url = time.strftime(template)
-    cachedpath = os.path.basename(url)
+    cachedpath = os.path.join(level1, args.type, level3, os.path.basename(url))
     if not args.cache or not os.path.exists(cachedpath):
         if args.verbose > 0: print('downloading ' + cachedpath)
+        if args.username is None:
+            args.username = input('MADIS username:')
+
+        if args.password is None:
+            args.password = getpass.getpass(prompt='MADIS password: ', stream=None)
+
         ftpf = urlopen(url)
         # create BytesIO temporary file
         if args.cache:
