@@ -67,7 +67,7 @@ def ncf2lateral_boundary(ncffile, outpath):
     time_hdr['btime'] = time
     time_hdr['iedate'] = date
     time_hdr['etime'] = time + 1.
-    time_hdr['iedate'] += time_hdr['etime'] // 24
+    time_hdr['iedate'] += (time_hdr['etime'] // 24).astype('i')
     time_hdr['etime'] -= (time_hdr['etime'] // 24) * 24
     emiss_hdr['ibdate'] = time_hdr['ibdate'][0]
     emiss_hdr['btime'] = time_hdr['btime'][0]
