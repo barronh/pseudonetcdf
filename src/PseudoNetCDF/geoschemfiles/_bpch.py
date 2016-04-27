@@ -956,14 +956,14 @@ class TestMemmaps(unittest.TestCase):
         from PseudoNetCDF.sci_var import reduce_dim, slice_dim
         ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']
         ALD2_check = np.array([1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02, 1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02, 1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02]).reshape(ALD2.shape)
-        bpchfile = slice_dim(reduce_dim(bpchfile, 'layer,mean'), 'time,0')
-        pncgen(bpchfile,outpath, inmode = 'r', outmode = 'w', format = 'bpch', verbose = False)
-        ALD2_check = ALD2_check[0].mean(0)[None, None]
-        ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']
-        np.testing.assert_allclose(ALD2, ALD2_check * 1e-9)
+        slided_reduced_bpchfile = slice_dim(reduce_dim(bpchfile, 'layer,mean'), 'time,0')
+        pncgen(slided_reduced_bpchfile,outpath, inmode = 'r', outmode = 'w', format = 'bpch', verbose = False)
+        ALD2_check_slided_reduced = ALD2_check[0].mean(0)[None, None]
+        ALD2 = slided_reduced_bpchfile.variables['IJ-AVG-$_ALD2']
+        np.testing.assert_allclose(ALD2, ALD2_check_slided_reduced * 1e-9)
         bpchfile = bpch(outpath)
         ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']
-        np.testing.assert_allclose(ALD2, ALD2_check)
+        np.testing.assert_allclose(ALD2, ALD2_check_slided_reduced)
         
          
     def testBPCH(self):

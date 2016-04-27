@@ -353,8 +353,7 @@ def slice_dim(f, slicedef, fuzzydim = True):
     e.g., slice_dim(f, 'layer,0,47,5') would sample every fifth layer starting at 0
     """
     inf = f
-    outf = getvarpnc(f, None)
-    f = outf
+
     historydef = "slice_dim(f, %s, fuzzydim = %s); " % (slicedef, fuzzydim)
     slicedef = slicedef.split(',')
     slicedef = [slicedef[0]] + list(map(eval, slicedef[1:]))
@@ -362,32 +361,40 @@ def slice_dim(f, slicedef, fuzzydim = True):
         slicedef.append(slicedef[-1] + 1)
     slicedef = (slicedef + [None,])[:4]
     dimkey, dmin, dmax, dstride = slicedef
-    if dimkey not in f.dimensions:
+    if dimkey not in inf.dimensions:
         warn('%s not in file' % dimkey)
-        return f
+        return inf
 
-    unlimited = f.dimensions[dimkey].isunlimited()
+    unlimited = inf.dimensions[dimkey].isunlimited()
     if fuzzydim:
-        partial_check = [key for key in f.dimensions if dimkey == key[:len(dimkey)] and key[len(dimkey):].isdigit()]
+        partial_check = [key for key in inf.dimensions if dimkey == key[:len(dimkey)] and key[len(dimkey):].isdigit()]
         for dimk in partial_check:
-            f = slice_dim(f, '%s,%s,%s,%s' % (dimk, dmin, dmax, dstride))
-        
-    for varkey in f.variables.keys():
-        var = f.variables[varkey]
+            inf = slice_dim(inf, '%s,%s,%s,%s' % (dimk, dmin, dmax, dstride))
+    
+    from PseudoNetCDF.sci_var import Pseudo2NetCDF
+    p2p = Pseudo2NetCDF(verbose = False)
+    outf = PseudoNetCDFFile()
+    p2p.addDimensions(inf, outf)
+    p2p.addGlobalProperties(inf, outf)
+    
+    for varkey in inf.variables.keys():
+        var = inf.variables[varkey]
         if dimkey not in var.dimensions:
-            continue
-        axis = list(var.dimensions).index(dimkey)
-        vout = var[...].swapaxes(0, axis)[dmin:dmax:dstride].swapaxes(0, axis)
+            p2p.addVariable(inf, outf, varkey)
+        else:
+            axis = list(var.dimensions).index(dimkey)
+            vout = var[...].swapaxes(0, axis)[dmin:dmax:dstride].swapaxes(0, axis)
         
-        newlen = vout.shape[axis]
-        newdim = f.createDimension(dimkey, newlen)
-        newdim.setunlimited(unlimited)
-        f.variables[varkey] = vout
-    history = getattr(f, 'history', '')
+            newlen = vout.shape[axis]
+            newdim = outf.createDimension(dimkey, newlen)
+            newdim.setunlimited(unlimited)
+            outf.variables[varkey] = vout
+        
+    history = getattr(outf, 'history', '')
     history += historydef
-    setattr(f, 'history', history)
+    setattr(outf, 'history', history)
 
-    return f
+    return outf
     
 def _getfunc(a, func):
     """
@@ -417,8 +424,7 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
     Weighting is not fully functional.
     """
     inf = f
-    f = outf = getvarpnc(f, None)
-    metakeys = [k for k in metakeys if k in f.variables.keys()]
+    metakeys = [k for k in metakeys if k in inf.variables.keys()]
     historydef = "reduce_dim(f, %s, fuzzydim = %s, metakeys = %s); " % (reducedef, fuzzydim, metakeys)
     import numpy as np
     if hasattr(reducedef, 'split') and hasattr(reducedef, 'count'):
@@ -429,37 +435,44 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
         reducevals = reducedef
     if commacount == 3:
         dimkey, func, numweightkey, denweightkey = reducevals
-        numweight = f.variables[numweightkey]
-        denweight = f.variables[denweightkey]
+        numweight = inf.variables[numweightkey]
+        denweight = inf.variables[denweightkey]
     elif commacount == 2:
         dimkey, func, numweightkey = reducevals
-        numweight = f.variables[numweightkey]
+        numweight = inf.variables[numweightkey]
         denweightkey = None
     elif commacount == 1:
         dimkey, func = reducevals
         numweightkey = None
         denweightkey = None
     if fuzzydim:
-        partial_check = [key for key in f.dimensions if dimkey == key[:len(dimkey)] and key[len(dimkey):].isdigit()]
+        partial_check = [key for key in inf.dimensions if dimkey == key[:len(dimkey)] and key[len(dimkey):].isdigit()]
         for dimk in partial_check:
             if commacount == 1:
-                f = reduce_dim(f, '%s,%s' % (dimk, func),)
+                inf = reduce_dim(inf, '%s,%s' % (dimk, func),)
             elif commacount == 2:
-                f = reduce_dim(f, '%s,%s,%s' % (dimk, func, numweightkey),)
+                inf = reduce_dim(inf, '%s,%s,%s' % (dimk, func, numweightkey),)
             elif commacount == 3:
-                f = reduce_dim(f, '%s,%s,%s,%s' % (dimk, func, numweightkey, denweightkey),)
-    if dimkey not in f.dimensions:
+                inf = reduce_dim(inf, '%s,%s,%s,%s' % (dimk, func, numweightkey, denweightkey),)
+    if dimkey not in inf.dimensions:
         warn('%s not in file' % dimkey)
-        return f
-    
-    unlimited = f.dimensions[dimkey].isunlimited()
-    f.createDimension(dimkey, 1)
-    if unlimited:
-        f.dimensions[dimkey].setunlimited(True)
+        return inf
 
-    for varkey in f.variables.keys():
-        var = f.variables[varkey]
+    from PseudoNetCDF.sci_var import Pseudo2NetCDF
+    p2p = Pseudo2NetCDF(verbose = False)
+    outf = PseudoNetCDFFile()
+    p2p.addDimensions(inf, outf)
+    p2p.addGlobalProperties(inf, outf)
+    
+    unlimited = inf.dimensions[dimkey].isunlimited()
+    outf.createDimension(dimkey, 1)
+    if unlimited:
+        outf.dimensions[dimkey].setunlimited(True)
+
+    for varkey in inf.variables.keys():
+        var = inf.variables[varkey]
         if dimkey not in var.dimensions:
+            p2p.addVariable(inf, outf, varkey)
             continue
         
         axis = list(var.dimensions).index(dimkey)
@@ -495,14 +508,14 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
                     nmin = vout.shape[-1] // 2
                     vout[..., :nmin] = vmin[..., :nmin]
                     vout[..., nmin:] = vmax[..., nmin:]
-        nvar = f.variables[varkey] = PseudoNetCDFMaskedVariable(f, varkey, var.dtype.char, var.dimensions, values = vout)
+        nvar = outf.variables[varkey] = PseudoNetCDFMaskedVariable(outf, varkey, var.dtype.char, var.dimensions, values = vout)
         for k in var.ncattrs():
             setattr(nvar, k, getattr(var, k))
 
-    history = getattr(f, 'history', '')
+    history = getattr(outf, 'history', '')
     history += historydef
-    setattr(f, 'history', history)
-    return f
+    setattr(outf, 'history', history)
+    return outf
 
 def pncfunc(func, ifile1, coordkeys = [], verbose = False):
     """
@@ -796,9 +809,10 @@ def stack_files(fs, stackdim, coordkeys = []):
                 else:
                     p2p.addVariable(tmpf, f, varkey, data = True)
             else:
-                axisi = list(var.dimensions).index(stackdim)
-                values = np.ma.concatenate([f_.variables[varkey][:] for f_ in fs], axis = axisi)
-                p2p.addVariable(tmpf, f, varkey, data = False)
-                f.variables[varkey][:] = values
+                if not varkey in f.variables.keys():
+                    axisi = list(var.dimensions).index(stackdim)
+                    values = np.ma.concatenate([f_.variables[varkey][:] for f_ in fs], axis = axisi)
+                    p2p.addVariable(tmpf, f, varkey, data = False)
+                    f.variables[varkey][:] = values
         
     return f
