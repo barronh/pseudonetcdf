@@ -2,6 +2,25 @@ from __future__ import print_function
 from PseudoNetCDF import warn
 import numpy as np
 
+
+def getlonlatcoordstr(ifile, makemesh = None):
+    """
+    ifile - file with latitude and longitude variables
+    makemesh - use numpy.meshgrid to construct gridded values (default None)
+               None - check if longitude and latitude are coordinate variables
+                      or have different dimensions if so set to True
+               True - use meshgrid
+               False - assume latitude and longitude are on same g
+    """
+    lon = ifile.variables['longitude']
+    lat = ifile.variables['latitude']
+    
+    if lon.dimensions != lat.dimensions or (lon.dimensions == ('longitude',) and lat.dimensions == ('latitude',)):
+        lon, lat = np.meshgrid(lon[:], lat[:])
+    
+    
+    return '/'.join(['%s,%s' % ll for ll in zip(lon.flat, lat.flat)])
+
 def gettimes(ifile):
     from datetime import datetime, timedelta
     if 'time' in ifile.variables.keys():
@@ -227,6 +246,51 @@ def getxbnds(ifile):
         raise KeyError('x bounds not found')
     return lonb, unit
 
+def getcdo(ifile):
+    """
+    ifile - file containing latitude, longitude and optionally latitude_bounds and longitude_bounds
+    """
+    import textwrap
+    def wrapper(first, instr):
+        outstr = "\n".join(textwrap.wrap(instr, width = 72, subsequent_indent = ' '*12, initial_indent = first))
+        return outstr
+    
+    outdict = {}
+    if 'latitude' in ifile.dimensions and 'longitude' in ifile.dimensions:
+        outdict['gridtype'] = 'lonlat'
+        outdict['nverts'] = 2
+        outdict['NCOLS'] = len(ifile.dimensions['longitude'])
+        outdict['NROWS'] = len(ifile.dimensions['latitude'])
+    elif 'ROW' in ifile.dimensions and 'COL' in ifile.dimensions:
+        outdict['gridtype'] = 'curvilinear'
+        outdict['nverts'] = 4
+        outdict['NCOLS'] = len(ifile.dimensions['COL'])
+        outdict['NROWS'] = len(ifile.dimensions['ROW'])
+    else:
+        raise ValueError('Could not find latitude/longitude or ROW/COL')
+    outdict['NCELLS'] = outdict['NCOLS'] * outdict['NROWS']
+    LONSTR = ' '.join(' '.join(['%f' % lon for lon in row]) for row in ifile.variables['longitude'][:])
+    LATSTR = ' '.join(' '.join(['%f' % lat for lat in row]) for row in ifile.variables['latitude'][:])
+    LONBSTR = ' '.join(' '.join([' '.join(['%f' % lon for lon in cell]) for cell in row]) for row in ifile.variables['longitude_bounds'][:])
+    LATBSTR = ' '.join(' '.join([' '.join(['%f' % lat for lat in cell]) for cell in row]) for row in ifile.variables['latitude_bounds'][:])
+    outdict['LONSTR'] = wrapper('xvals     = ', LONSTR)
+    outdict['LONBSTR'] = wrapper('xbounds   = ', LONBSTR)
+    outdict['LATSTR'] = wrapper('yvals     = ', LATSTR)
+    outdict['LATBSTR'] = wrapper('ybounds   = ', LATBSTR)
+    return """
+    gridtype  = curvilinear
+    nvertex   = %(nverts)
+    gridsize  = %(NCELLS)d
+    xsize     = %(NCOLS)d
+    ysize     = %(NROWS)d
+    xunits    = degrees_east
+    yunits    = degrees_north
+    %(LONSTR)s
+    %(LONBSTR)s
+    %(LATSTR)s
+    %(LATBSTR)s
+    """ % outdict
+
 def getprojwkt(ifile, withgrid = False):
     import osr
     proj4str = getproj4(ifile, withgrid = withgrid)
@@ -281,7 +345,7 @@ def getmap(ifile, resolution = 'i'):
         semi_major_axis, semi_minor_axis = get_ioapi_sphere()
         if ifile.GDTYP == 2:
             from mpl_toolkits.basemap.pyproj import Proj
-            p = Proj(proj='lcc',rsphere = (semi_major_axis, semi_major_axis), lon_0 = ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT)
+            p = Proj(proj='lcc',a = semi_major_axis, b = semi_major_axis, lon_0 = ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT)
             llcrnrlon, llcrnrlat = p(llcrnrx, llcrnry, inverse = True)
             urcrnrlon, urcrnrlat = p(urcrnrx, urcrnry, inverse = True)
             m = Basemap(projection = 'lcc', rsphere = (semi_major_axis, semi_major_axis), lon_0=ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT, llcrnrlon = llcrnrlon, llcrnrlat = llcrnrlat, urcrnrlat = urcrnrlat, urcrnrlon = urcrnrlon, resolution = resolution, suppress_ticks = False)
