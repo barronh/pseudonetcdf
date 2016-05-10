@@ -3,7 +3,8 @@ import os
 import numpy as np
 import datetime
 from argparse import ArgumentParser
-from urllib.request import urlopen
+from urllib.parse import urlencode
+from urllib.request import urlopen, Request
 from io import BytesIO
 import gzip
 import tempfile
@@ -54,7 +55,10 @@ prep_bounds = prep(bounds)
 level1 = dict(zip(("sao"   , "metar"  , "maritime", "mesonet", "raob"  , "acarsProfiles"  , "profiler", "profiler", "hydro"), ("point" , "point"  , "point"   , "LDAD"   , "point" , "point"          ,  "point"  , "LDAD"    , "LDAD")))[args.type]
 level3 = dict(zip(("sao"   , "metar"  , "maritime", "mesonet", "raob"  , "acarsProfiles"  , "profiler", "profiler", "hydro"), ("netcdf", "netcdf" , "netcdf"  , "netCDF" , "netcdf", "netcdf"         ,  "netcdf" , "netCDF"  , "netCDF")))[args.type]
 
-template = 'ftp://%(username)s:%(password)s@pftp.madis-data.noaa.gov/archive/%%Y/%%m/%%d/%(level1)s/%(level2)s/%(level3)s/%%Y%%m%%d_%%H%%M.gz' % dict(username = args.username, password = args.password, level2 = args.type, level3 = level3, level1 = level1)
+authvalues = dict(username = args.username, password = args.password)
+auth = urlencode(authvalues)
+
+template = 'ftp://@pftp.madis-data.noaa.gov/archive/%%Y/%%m/%%d/%(level1)s/%(level2)s/%(level3)s/%%Y%%m%%d_%%H%%M.gz' % dict(level2 = args.type, level3 = level3, level1 = level1)
 
 times = [args.START_DATE]
 now = times[0]
@@ -80,9 +84,13 @@ for time in times:
         if args.password is None:
             args.password = getpass.getpass(prompt='MADIS password: ', stream=None)
 
-        ftpf = urlopen(url)
+        req = Request(url, data = auth)
+        ftpf = urlopen(req)
         # create BytesIO temporary file
         if args.cache:
+            dirpath = os.path.dirname(cachedpath)
+            if not os.path.exists(dirpath):
+                os.makedirs(dirpath)
             compressedFile = open(cachedpath, 'w+b')
         else:
             compressedFile = BytesIO()
