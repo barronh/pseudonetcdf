@@ -82,8 +82,10 @@ def makemap(ifiles, options):
                 except:
                     formatter = options.colorbarformatter
 
-                
-            vmin, vmax = norm.vmin, norm.vmax
+            if not norm.vmin is None:
+                vmin = norm.vmin
+            if not norm.vmax is None:
+                vmax = norm.vmax
             varunit = getattr(var, 'units', 'unknown').strip()
             print(varkey, sep = '')
             if vals.ndim == 1:
@@ -117,7 +119,7 @@ def makemap(ifiles, options):
                 extend = 'min'
             else:
                 extend = 'neither'
-            cbar = pl.gcf().colorbar(patches, orientation = orientation, cax = cax, extend = extend, format = formatter)
+            cbar = pl.gcf().colorbar(patches, orientation = orientation, cax = cax, extend = extend, format = formatter, spacing = 'proportional')
             del cbar.ax.texts[:]
             cbar.set_label(varkey + ' (' + varunit + '; min=%.3g; max=%.3g)' % (var[:].min(), var[:].max()))
  #           if orientation == 'vertical':
