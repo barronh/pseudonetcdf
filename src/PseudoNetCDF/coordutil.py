@@ -19,7 +19,7 @@ def getlonlatcoordstr(ifile, makemesh = None):
         lon, lat = np.meshgrid(lon[:], lat[:])
     
     
-    return '/'.join(['%s,%s' % ll for ll in zip(lon.flat, lat.flat)])
+    return '/'.join(['%s,%s' % ll for ll in zip(lon[:].flat, lat[:].flat)])
 
 def gettimes(ifile):
     from datetime import datetime, timedelta
