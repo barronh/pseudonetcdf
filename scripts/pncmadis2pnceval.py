@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import sys
 import numpy as np
 import datetime
 from argparse import ArgumentParser
@@ -58,7 +59,7 @@ level3 = dict(zip(("sao"   , "metar"  , "maritime", "mesonet", "raob"  , "acarsP
 authvalues = dict(username = args.username, password = args.password)
 auth = urlencode(authvalues)
 
-template = 'ftp://@pftp.madis-data.noaa.gov/archive/%%Y/%%m/%%d/%(level1)s/%(level2)s/%(level3)s/%%Y%%m%%d_%%H%%M.gz' % dict(level2 = args.type, level3 = level3, level1 = level1)
+template = 'ftp://pftp.madis-data.noaa.gov/archive/%%Y/%%m/%%d/%(level1)s/%(level2)s/%(level3)s/%%Y%%m%%d_%%H%%M.gz' % dict(level2 = args.type, level3 = level3, level1 = level1)
 
 times = [args.START_DATE]
 now = times[0]
@@ -75,17 +76,21 @@ for time in times:
     if args.verbose > 0:
         print(time, 'start')
     url = time.strftime(template)
-    cachedpath = os.path.join(level1, args.type, level3, os.path.basename(url))
+    cachedpath = time.strftime(os.path.join('madis', 'archive', '%Y', '%m', '%d', level1, args.type, level3, os.path.basename(url)))
     if not args.cache or not os.path.exists(cachedpath):
-        if args.verbose > 0: print('downloading ' + cachedpath)
         if args.username is None:
             args.username = input('MADIS username:')
 
         if args.password is None:
             args.password = getpass.getpass(prompt='MADIS password: ', stream=None)
-
+        if args.verbose > 0:
+            print('downloading: ' + url)
         req = Request(url, data = auth)
-        ftpf = urlopen(req)
+        try:
+            ftpf = urlopen(req)
+        except:
+            print('Failed to retrieve ' + url + '; continuing', file = sys.stderr)
+            continue
         # create BytesIO temporary file
         if args.cache:
             dirpath = os.path.dirname(cachedpath)
