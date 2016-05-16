@@ -45,6 +45,6 @@ setup(name = 'PseudoNetCDF',
       package_dir = {'': 'src'},
       package_data = {'PseudoNetCDF': data},
       scripts = ['scripts/pncmadis2pnceval.py', 'scripts/pncaqsraw4pnceval.py', 'scripts/pncaqsrest4pnceval.py', 'scripts/pncasos4pnceval.py', 'scripts/pnc1d.py', 'scripts/pnc2d.py', 'scripts/pncboundaries.py', 'scripts/pncdiurnal.py', 'scripts/pncdump', 'scripts/pncdump.py', 'scripts/pnceval', 'scripts/pnceval.py', 'scripts/pncgen', 'scripts/pncgen.py', 'scripts/pncglobal2cmaq.py', 'scripts/pncload', 'scripts/pncmap.py', 'scripts/pncqq.py', 'scripts/pncscatter.py', 'scripts/pncts.py', 'scripts/pncvertprofile.py', 'scripts/pncview', 'scripts/pncview.py', 'scripts/pncwindrose.py'],
-      requires = ['numpy (>=1.2)', 'yaml', 'netCDF4'],
+      requires = ['numpy (>=1.2)', 'yaml', 'netCDF4', 'pandas', 'scipy', 'matplotlib'],
       url = 'http://github.com/barronh/pseudonetcdf/'
       )
