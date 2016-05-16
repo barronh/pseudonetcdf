@@ -10,6 +10,9 @@ import argparse
 from netCDF4 import Dataset
 import numpy as np
 import pandas
+from shapely.wkt import loads
+from shapely.geometry import Point, Polygon
+from shapely.prepared import prep
 
 def getbdate(x):
     return datetime.strptime(x, '%Y-%m-%d')
@@ -18,7 +21,7 @@ def getedate(x):
     return datetime.strptime(x + ' 23:59', '%Y-%m-%d %H:%M')
 
 def getrdate(x):
-    return datetime.strptime(x, '%Y-%m-%d %H:%M')
+    return datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
 
 parser = argparse.ArgumentParser(description = """Converts AQS Raw Hourly files for comparison with pncgen --extract files.
 
@@ -29,11 +32,13 @@ Example Workflow:
     $ pncgen -s LAY,0 --extract="-87.881412,30.498001/-85.802182,33.281261/..." CCTM_V5g_par_Linux2_x86_64gfort.ACONC.CMAQ-BENCHMARK_20060801 Benchmark_20060801-20060801.nc
     $ pnceval AQS_DATA_20060801-20060801.nc Benchmark_20060801-20060801.nc
     """)
-parser.add_argument('-s', '--start-date', required = True, dest = 'bdate', type = getbdate, help = 'Start date (inclusive) YYYYMMDD')
-parser.add_argument('-e', '--end-date', required = True, dest = 'edate', type = getedate, help = 'Start date (inclusive) YYYYMMDD')
-parser.add_argument('-r', '--ref-date', default = datetime(1900, 1, 1), dest = 'rdate', type = getrdate, help = 'Reference date YYYYMMDD HH:MM:DD')
+parser.add_argument('-s', '--start-date', required = True, dest = 'bdate', type = getbdate, help = 'Start date (inclusive) YYYY-MM-DD')
+parser.add_argument('-e', '--end-date', required = True, dest = 'edate', type = getedate, help = 'Start date (inclusive) YYYY-MM-DD')
+parser.add_argument('-r', '--ref-date', default = datetime(1900, 1, 1), dest = 'rdate', type = getrdate, help = 'Reference date YYYYMMDD HH:MM:SS')
 parser.add_argument('--param', type = str, default = '44201', nargs = '?', help = "Must exist as an AQS parameter")
-parser.add_argument('GRIDCRO2D', help = 'CMAQ MCIP GRIDCRO2D file or any file that has LAT and LON variables; used to identify domain of interest.')
+spacegroup = parser.add_mutually_exclusive_group(required = True)
+spacegroup.add_argument('--gridcro2d', dest = 'GRIDCRO2D', help = 'CMAQ MCIP GRIDCRO2D file or any file that has LAT and LON variables')
+spacegroup.add_argument('--wktpolygon')
 parser.add_argument('-o', '--output', type = str, dest = 'outpath', nargs = '?', help = 'Path for output defaults to AQS_DATA_YYYYMMDD-YYYYMMDD.nc.')
 parser.add_argument('-O', '--overwrite', dest = 'overwrite', default = False, action = 'store_true', help = 'Ovewrite if output already exists.')
 
@@ -45,18 +50,26 @@ if args.outpath is None:
 if os.path.exists(args.outpath) and not args.overwrite:
     raise IOError('Path already exists: %s' % args.outpath)
 
-f = Dataset(args.GRIDCRO2D)
-lon = f.variables['LON'][0, 0]
-lat = f.variables['LAT'][0, 0]
-args.minlon = llcrnrlon = lon[:, 0].max()
-args.maxlon = urcrnrlon = lon[:, -1].min()
-args.minlat = llcrnrlat = lat[0, :].max()
-args.maxlat = urcrnrlat = lat[-1, :].min()
+if not args.GRIDCRO2D is None:
+    f = Dataset(args.GRIDCRO2D)
+    lon = f.variables['LON'][0, 0]
+    lat = f.variables['LAT'][0, 0]
+    args.minlon = llcrnrlon = lon[:, 0].max()
+    args.maxlon = urcrnrlon = lon[:, -1].min()
+    args.minlat = llcrnrlat = lat[0, :].max()
+    args.maxlat = urcrnrlat = lat[-1, :].min()
+    ll = (args.minlon, args.minlat)
+    lr = (args.maxlon, args.minlat)
+    ur = (args.maxlon, args.maxlat)
+    ul = (args.minlon, args.maxlat)
+    args.wktpolygon = "POLYGON ((%s %s, %s %s, %s %s, %s %s, %s %s))" % (ll + lr + ur + ul + ll)
+
+bounds = loads(args.wktpolygon)
+pbounds = prep(bounds)
+        
 ntimes = int((args.edate - args.bdate).total_seconds() / 3600) + 1
 alltimes = [timedelta(hours = i) + args.bdate for i in range(ntimes)]
 
-print(args.minlon, args.maxlon)
-print(args.minlat, args.maxlat)
 
 # http://aqsdr1.epa.gov/aqsweb/aqstmp/airdata/download_files.html#Raw
 
@@ -76,12 +89,11 @@ for year in years:
         os.system(getcmd)
         os.system('unzip hourly_%s_%s.zip' % (args.param, year))
     print('Reading', yearpath)
-    data = pandas.read_csv(yearpath, index_col = False, converters = {'State Code': str, 'County Code': str, 'Site Num': str}, parse_dates = [[11, 12]], date_parser = hourly_parser)
-
-    mask = (data['Latitude'].values >= args.minlat) & (data['Latitude'].values <= args.maxlat) & \
-       (data['Longitude'].values >= args.minlon) & (data['Longitude'].values <= args.maxlon) & \
-       (data['Date GMT_Time GMT'] >= args.bdate) & \
+    data = pandas.read_csv(yearpath, index_col = False, converters = {'State Code': str, 'County Code': str, 'Site Num': str}, parse_dates = [[11, 12]])
+    inspace = np.array([pbounds.contains(Point(plon, plat)) for plon, plat in zip(data['Longitude'].values, data['Latitude'].values)])
+    intime = (data['Date GMT_Time GMT'] >= args.bdate) & \
        (data['Date GMT_Time GMT'] < args.edate)
+    mask = inspace & intime
        
 
     hourly = data[mask].groupby(['Parameter Code', 'Parameter Name', 'Units of Measure', 'Date GMT_Time GMT', 'State Code', 'County Code', 'Site Num'], as_index = False).aggregate(np.mean).sort(['Parameter Code', 'Parameter Name', 'Units of Measure', 'Date GMT_Time GMT', 'State Code', 'County Code', 'Site Num'])
@@ -141,7 +153,7 @@ for idx, row in hourly.iterrows():
     if last_time != this_time:
         last_time = this_time
         tidx = alltimes.index(this_time.to_datetime())
-        print('\b\b\b\b\b\b %3d%%' % int(tidx / float(ntimes) * 100),)
+        print('\b\b\b\b\b\b %3d%%' % int(tidx / float(ntimes) * 100), end = '', flush = True)
     if tidx > ntimes:
         raise ValueError('Times (%d) exceed expected (%d)' % (tidx, ntimes))
     
@@ -152,7 +164,7 @@ for varkey, tempvals in temp.items():
     outf.variables[varkey][:] = tempvals
 
 time = outf.createVariable('time', 'f', ('time',))
-time.units = args.rdate.strftime('hours since %F UTC')
+time.units = args.rdate.strftime('hours since %F')
 time.standard_name = 'time'
 time[:] = [(t - args.rdate).total_seconds() / 3600 for t in alltimes]
 outf.sync()
