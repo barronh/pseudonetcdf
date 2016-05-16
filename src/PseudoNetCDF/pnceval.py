@@ -1,6 +1,6 @@
 from __future__ import print_function
 __all__ = ['NO', 'NP', 'NOP', 'MO', 'MP', 'MdnO', 'MdnP', 'STDO', 'STDP', 'RM', 'RMdn', 'MB', 'MdnB', 'WDMB', 'WDMdnB', 'FB', 'MNB', 'MdnNB', 'NMB', 'NMdnB', 'USUTPB', 'PSUTMNPB', 'PSUTMdnNPB', 'PSUTNMPB', 'PSUTNMdnPB', 'ME', 'MdnE', 'WDME', 'WDMdnE', 'FE', 'MNE', 'MdnNE', 'NME', 'NMdnE', 'USUTPE',  'PSUTMNPE', 'PSUTMdnNPE', 'PSUTNMPE', 'PSUTNMdnPE', 'R2', 'RMSE', 'RMSEs', 'RMSEu', 'E1', 'IOA', 'd1', 'AC', 'WDIOA', 'WDRMSE', 'WDAC']
-from pncload import createconsole
+from .pncload import createconsole
 import numpy as np
 
 def STDO(obs, mod, axis = None):
@@ -393,7 +393,7 @@ def main():
             tstop = times[:].max()
             tfmts = tstart.strftime('%F %H:%M:%S')+',' + tstop.strftime('%F %H:%M:%S')
             tfmts = str(tstart) + ',' + str(tstop)
-        except Exception, e:
+        except Exception as e:
             print(e)
             times = ifile1.variables['time']
             tstart = times[:].min()
