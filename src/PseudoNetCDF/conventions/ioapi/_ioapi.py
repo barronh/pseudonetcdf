@@ -267,7 +267,27 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
                 var.coordinates = ' '.join(dims)
                 var.grid_mapping = lccname
 
-def add_cf_from_ioapi(ifileo):
+        
+def add_ioapi_from_cf(ifileo, coordkeys = []):
+    from ...coordutil import gettimes
+    times = gettimes(ifileo)
+    jdays = np.array([int(t.strftime('%Y%j')) for t in times])
+    itimes = np.array([int(t.strftime('%H%M%S')) for t in times])
+    outkeys = [k.ljust(16) for k in ifileo.variables.keys() if k not in ('ETFLAG', 'TFLAG') and k not in coordkeys]
+    setattr(ifileo, 'VAR-LIST', ''.join(outkeys))
+    setattr(ifileo, 'NVARS', len(outkeys))
+    ifileo.createDimension('VAR', ifileo.NVARS)
+    setattr(ifileo, 'SDATE', jdays[0])
+    setattr(ifileo, 'STIME', itimes[0])
+    setattr(ifileo, 'EDATE', jdays[-1])
+    setattr(ifileo, 'ETIME', itimes[-1])
+    tflag = ifileo.createVariable('TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
+    tflag[:, :, 0] = jdays[:, None]
+    tflag[:, :, 1] = itimes[:, None]
+    
+add_ioapi_from_ioapi = add_ioapi_from_cf
+    
+def add_cf_from_ioapi(ifileo, coordkeys = []):
     try:
         add_lay_coordinates(ifileo)
     except:

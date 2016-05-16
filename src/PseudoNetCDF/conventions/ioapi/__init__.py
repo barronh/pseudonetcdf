@@ -1,2 +1,2 @@
-from ._ioapi import add_cf_from_ioapi, get_ioapi_sphere
+from ._ioapi import add_cf_from_ioapi, get_ioapi_sphere, add_ioapi_from_ioapi, add_ioapi_from_cf
 from ._wrfioapi import add_cf_from_wrfioapi
