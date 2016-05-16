@@ -12,7 +12,7 @@ from ._getwriter import getwriterdict
 from .icarttfiles.ffi1001 import ffi1001, ncf2ffi1001
 from .geoschemfiles import *
 from .noaafiles import *
-from .conventions.ioapi import add_cf_from_ioapi, add_cf_from_wrfioapi
+from .conventions.ioapi import *
 from .aermodfiles import *
 from PseudoNetCDF import PseudoNetCDFFile
 from PseudoNetCDF.netcdf import NetCDFFile
@@ -32,7 +32,7 @@ try:
 except:
     pass
 
-from .sci_var import reduce_dim, mesh_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr, stack_files, add_attr, convolve_dim, manglenames, removesingleton, merge
+from .sci_var import reduce_dim, mesh_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr, stack_files, add_attr, convolve_dim, manglenames, removesingleton, merge, extract_from_file, pncrename
 
 class AggCommaString(Action):
     def __call__(self, parser, namespace, values, option_string=None):
@@ -97,6 +97,8 @@ To impose your own order, use standard options (global options) and then use -- 
     parser.add_argument("--inherit", dest="inherit", action = "store_true", default=False, help = "Allow subparsed sections (separated with -- and --sep) to inherit from global options (-f, --format is always inherited).")
 
     parser.add_argument("--mangle", dest = "mangle", action = "store_true", default = False, help = "Remove non-standard ascii from names")
+
+    parser.add_argument("--rename", dest = "rename", action = "append", default = [], help = "Provide pairs of strings to be substituted --rename=type,oldkey,newkey (type: v = variable; d = dimension;)")
     
     parser.add_argument("--remove-singleton", dest = "removesingleton", type = lambda x: [k for k in x.split(',') if k != ''], default = [], help = "Remove singleton (length 1) dimensions")
     
@@ -159,6 +161,9 @@ To impose your own order, use standard options (global options) and then use -- 
 
     parser.add_argument("-e", "--extract", dest = "extract", action = "append", default = [],
                         help = "lon/lat coordinates to extract lon1,lat1/lon2,lat2/lon3,lat3/.../lonN,latN")
+
+    parser.add_argument("--extract-file", dest = "extractfile", action = "append", default = [],
+                        help = "pncparse options for file")
 
     parser.add_argument("--extractmethod", dest = "extractmethod", type = str, default = 'nn', choices = ['nn', 'linear', 'cubic', 'quintic', 'KDTree'],
                         help = "Method for extraction")
@@ -343,6 +348,14 @@ def subsetfiles(ifiles, args):
             f = convolve_dim(f, opts)
         if len(args.extract) > 0:
             f = extract(f, args.extract, method = args.extractmethod)
+        if len(args.extractfile) > 0:
+            extractfiles = []
+            import shlex
+            for extractfile in args.extractfile:
+                extractfile, options = pncparse(has_ofile = False, args = shlex.split(extractfile))
+                extractfiles.extend(extractfile)
+            
+            f = extract_from_file(f, extractfiles, method = args.extractmethod)
         for rd in args.removesingleton:
             f = removesingleton(f, rd)
         fs.append(f)
@@ -382,7 +395,7 @@ def getfiles(ipaths, args):
             f = mask_vals(f, opts, metakeys = args.coordkeys)
         if laddconv:
             try:
-                eval('add_%s_from_%s' % (args.toconv, args.fromconv))(f)
+                eval('add_%s_from_%s' % (args.toconv, args.fromconv))(f, coordkeys = args.coordkeys)
             except Exception as e:
                 warn('Cannot add %s from %s; %s' % (args.toconv, args.fromconv, str(e)))
         if args.cdlname is None:
@@ -393,6 +406,8 @@ def getfiles(ipaths, args):
         except: pass
         if args.mangle:
             f = manglenames(f)
+        for rename in args.rename:
+            f = pncrename(f, rename)
         fs.append(f)
     if args.stack is not None:
         fs = [stack_files(fs, args.stack, coordkeys = args.coordkeys)]

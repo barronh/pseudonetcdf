@@ -1,4 +1,8 @@
 from __future__ import print_function, unicode_literals
+import sys
+if sys.version_info.major == 2:
+    bytes = lambda x, enc: str(x)
+
 from warnings import warn
 import re
 import numpy as np
@@ -11,17 +15,19 @@ from ._variables import PseudoNetCDFMaskedVariable, PseudoNetCDFVariable
 def pncrename(ifile, type_old_new):
     outf = getvarpnc(ifile, None)
     t,o,n = type_old_new.split(',')
-    if t == 'd':
+    if t in ('d', 'dimension'):
         outf.dimensions[n] = outf.dimensions[o]
         del outf.dimensions[o]
         for k, v in outf.variables.items():
             if o in v.dimensions:
                 v.dimensions = tuple([n if d == o else d for d in v.dimensions])
-    if t == 'v':
+    if t in ('v', 'variable'):
         outf.variables[n] = outf.variables[o]
         del outf.variables[o]
     
-_translator = {'-': '_', '$': '', ' ': '', '+': '_add_', '(': '', ')': ''}
+    return outf
+    
+_translator = {'-': '_', '$': 'S', ' ': '_', '+': '_add_', '(': '', ')': ''}
 def manglenames(f, translator = _translator):
     outf = getvarpnc(f, None)
     varkeys = outf.variables.items()
@@ -171,12 +177,19 @@ def interpvars(f, weights, dimension, loginterp = []):
             outf.variables[vark] = oldvar
     return outf
 
+def extract_from_file(f, lonlatfs, unique = False, gridded = None, method = 'nn', passthrough = True):
+    from ..coordutil import getlonlatcoordstr
+    lonlatcoordstr = ""
+    for lonlatf in lonlatfs:
+        lonlatcoordstr += getlonlatcoordstr(lonlatf)
+    return extract_lonlat(f, lonlatcoordstr, unique = unique, gridded = gridded, method = method, passthrough = passthrough)
+    
 def extract_lonlat(f, lonlat, unique = False, gridded = None, method = 'nn', passthrough = True):
     from PseudoNetCDF.sci_var import Pseudo2NetCDF
     try:
-        from StringIO import StringIO
+        from StringIO import StringIO as BytesIO
     except ImportError:
-        from io import StringIO
+        from io import BytesIO
     import os
     outf = PseudoNetCDFFile()
     outf.dimensions = f.dimensions.copy()
@@ -206,7 +219,7 @@ def extract_lonlat(f, lonlat, unique = False, gridded = None, method = 'nn', pas
             lonlatout.append(ll)
     lonlat = ('/'.join(lonlatout))
     try:
-        lons, lats = np.genfromtxt(StringIO(lonlat.replace('/', '\n')), delimiter = ',').T
+        lons, lats = np.genfromtxt(BytesIO(bytes(lonlat.replace('/', '\n'), 'ASCII')), delimiter = ',').T
     except Exception as e:
         print(str(e))
         raise e
@@ -639,6 +652,8 @@ def pncexpr(expr, ifile, verbose = False):
     
     # Copy file to temporary PseudoNetCDF file
     co = compile(expr, 'none', 'exec')
+
+                    
     varkeys = [key for key in co.co_names if key in ifile.variables]
     varpnc = getvarpnc(ifile, varkeys)
     tmpfile = getvarpnc(ifile, None)
