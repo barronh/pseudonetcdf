@@ -21,8 +21,10 @@ def plot_omi(ax, lon_bnds, lat_bnds, omipaths, key = 'O3Profile', airden = None,
     lat_bnds = lat_bnds[:]
     if len(omipaths) == 0:
         return None, None
-    
-    omipaths = reduce(list.__add__, [glob(i) for i in omipaths])
+    outomipaths = []
+    for omipath in omipaths:
+        outomipaths.extend(glob(omipath))
+    omipaths = outomipaths
     omipaths.sort()
     for path in omipaths:
         print(path)
@@ -67,9 +69,10 @@ def plot_omi(ax, lon_bnds, lat_bnds, omipaths, key = 'O3Profile', airden = None,
 
 
 def matchspace(lons, lats, lon_bnds, lat_bnds):
-    inlon = np.logical_and(lons >= lon_bnds[None, :, 0], lons <= lon_bnds[None, :, 1])
-    inlat = np.logical_and(lats >= lat_bnds[None, :, 0], lats <= lat_bnds[None, :, 1])
-    inboth = np.logical_and(inlon, inlat).any(1)
+    slicer = [slice(None, None)] + [None]*(lon_bnds.ndim-1)
+    inlon = np.logical_and(lons[slicer] >= lon_bnds[None, ..., 0], lons[slicer] <= lon_bnds[None, ..., 1])
+    inlat = np.logical_and(lats[slicer] >= lat_bnds[None, ..., 0], lats[slicer] <= lat_bnds[None, ..., 1])
+    inboth = np.logical_and(inlon, inlat).reshape(inlon.shape[0], -1).any(1)
     return inboth
 
 def plot_tes(ax, lon_bnds, lat_bnds, tespaths):
@@ -80,7 +83,10 @@ def plot_tes(ax, lon_bnds, lat_bnds, tespaths):
     lat_bnds = lat_bnds[:]
     if len(tespaths) == 0:
         return None, None
-    tespaths = reduce(list.__add__, [glob(i) for i in tespaths])
+    outtespaths = []
+    for tespath in tespaths:
+        outtespaths.extend(glob(tespath))
+    tespaths = outtespaths
     tespaths.sort()
     for path in tespaths:
         f = Dataset(path)
@@ -103,8 +109,7 @@ def plot_tes(ax, lon_bnds, lat_bnds, tespaths):
     var = np.ma.masked_values(np.ma.concatenate(ally, axis = 0), -999.) * 1e9
     var = var.reshape(-1, var.shape[-1])
     vertcrd = np.ma.masked_values(np.ma.concatenate(allx, axis = 0), -999.).mean(0)
-    tesl, tesr = minmaxmean(ax, var.T, vertcrd, ls = '-', lw = 2, color = 'r', facecolor = 'r', edgecolor = 'r', alpha = .2, zorder = 2, label = 'TES')
-    ax.text(.05, .8, 'TES = %d' % var.shape[0], transform = ax.transAxes)
+    tesl, tesr = minmaxmean(ax, var.T, vertcrd, ls = '-', lw = 2, color = 'r', facecolor = 'r', edgecolor = 'r', alpha = .2, zorder = 2, label = 'TES (%d)' % var.shape[0])
     return tesl, tesr
 
 def minmaxmean(ax, vals, vertcrd, **kwds):
@@ -178,7 +183,8 @@ def plot(ifiles, args):
             temp[var_name]
             var = f.variables[var_name][:]
         if maskzeros: var = np.ma.masked_values(var, 0)
-        unit = f.variables[temp.keys()[0]].units.strip()
+        vkeys = [k for k in temp.keys()]
+        unit = f.variables[vkeys[0]].units.strip()
         if unit in unitconvert:
             var = unitconvert.get((unit, outunit), lambda x: x)(var)
         else:
@@ -213,16 +219,19 @@ def plot(ifiles, args):
             latbss = [latb[ss:se], latb[es:ee], latb[ns:ne][::-1], latb[ws:we][::-1]]
             
         else:
-            fig = pl.figure(figsize = (8, 4))
-            ax = fig.add_axes([.1, .15, .8, .725])
+            fig = pl.figure()
+            ax = fig.add_subplot(111)
             axs = fig.axes
             vars = [var]
-            lonbss = [lonb[:]]
-            latbss = [latb[:]]
+            if lonb.dimensions == ('longitude', 'nv') and latb.dimensions == ('latitude', 'nv'):
+                lonbss = [lonb[:][None, :, :]]
+                latbss = [latb[:][:, None, :]]
+            else:
+                lonbss = [lonb[:]]
+                latbss = [latb[:]]
         for ax, var, lonbs, latbs in zip(axs, vars, lonbss, latbss):
             vals = var.swapaxes(0, 1).reshape(var.shape[1], -1)
-            ax.text(.05, .9, 'n = %d' % vals.shape[1], transform = ax.transAxes)
-            modl, modr = minmaxmean(ax, vals, vertcrd, facecolor = 'k', edgecolor = 'k', alpha = .2, zorder = 4, label = 'GC', ls = '-', lw = 2, color = 'k')
+            modl, modr = minmaxmean(ax, vals, vertcrd, facecolor = 'k', edgecolor = 'k', alpha = .2, zorder = 4, label = 'mod (%d)' % vals.shape[1], ls = '-', lw = 2, color = 'k')
             llines = [(modl, modr)]
             ymin, ymax = vertcrd.min(), vertcrd.max()
             ax.set_ylim(ymax, ymin)
@@ -343,8 +352,17 @@ Example:
     if args.variables is None:
         raise ValueError('User must specify variable(s) to plot:\n%s' % '\n\t'.join(ifiles[0].variables.keys()))
     if len(args.tespaths) > 0:
-        args.tespaths = reduce(list.__add__, [tp.split(',') for tp in args.tespaths])
+        tespaths = []
+        for tespathstmp in args.tespaths:
+            tespaths.extend(tespathstmp.split(','))
+            
+        args.tespaths = tespaths
         
     if len(args.omipaths) > 0:
-        args.omipaths = reduce(list.__add__, [op.split(',') for op in args.omipaths])
+        omipaths = []
+        for omipathstmp in args.omipaths:
+            omipaths.extend(omipathstmp.split(','))
+            
+        args.omipaths = omipaths
+
     plot(ifiles, args)
