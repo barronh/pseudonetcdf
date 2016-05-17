@@ -11,7 +11,7 @@ __doc__ = r"""
 """
 
 __all__=['pncdump',]
-from numpy import float32, float64, int16, int32, int64, ndindex, ndenumerate, nan, savetxt, isscalar, ndarray, ma, prod
+from numpy import float32, float64, int16, int32, int64, ndindex, ndenumerate, nan, savetxt, isscalar, ndarray, ma, prod, set_printoptions, get_printoptions, array2string, inf
 from warnings import warn
 from collections import defaultdict
 from PseudoNetCDF import PseudoNetCDFMaskedVariable
@@ -25,8 +25,24 @@ else:
     from StringIO import StringIO
     commaspace = ', '
     semicolon = ';'
+    BrokenPipeError = None
 import textwrap
 import operator
+
+def exception_handler(e, outfile):
+    """
+    Exceptions are largely ignored
+    """
+    try:
+        outfile.flush()
+        outfile.close()
+    except:
+        pass
+    if isinstance(e, KeyboardInterrupt) or isinstance(e, BrokenPipeError) or (isinstance(e, IOError) and e.strerror == 'Broken pipe'):
+        exit()
+    else:
+        warn(repr(e) + "; Typically from CTRL+C or exiting less")
+        exit()
 
 def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 80, full_indices = None, float_precision = 8, double_precision = 16, isgroup = False, timestring = False, outfile = sys.stdout):
     """
@@ -44,18 +60,21 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
     pncdump(vertical_diffusivity('camx_kv.20000825.hgbpa_04km.TCEQuh1_eta.v43.tke',rows=65,cols=83))
     """
     file_type = str(type(f)).split("'")[1]
-    formats = defaultdict(lambda: "%s", float64 = "%%.%de" % (double_precision,), \
-                   float32 = "%%.%de" % (float_precision,), \
+    float_fmt = "%%.%dg" % (float_precision,)
+    double_fmt = "%%.%dg" % (double_precision,)
+    int_fmt = "%i"
+    formats = defaultdict(lambda: "%s",
+                   float = double_fmt, \
+                   float64 = double_fmt, \
+                   float32 = float_fmt, \
                    int32 = "%i", \
                    uint32 = "%i", \
                    int64 = "%i", \
                    str = "%s", \
                    bool = "%s", \
                    string8 = "'%s'")
-    
-    float_fmt = "%%.%df" % (float_precision,)
-    int_fmt = "%i"
-    # initialize indentation as 8 characters
+
+    funcs = dict()#float = lambda x: double_fmt % x)    # initialize indentation as 8 characters
     # based on ncdump
     indent = 8*" "
     if isgroup:
@@ -135,6 +154,17 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         if isscalar(row) or row.ndim == 0:
                             outfile.write(startindent + '  ' + str(row.filled().astype(ndarray)))
                             return
+                        #old = get_printoptions()
+                        #set_printoptions(threshold = inf, linewidth = line_length)
+                        #tmpstr =  startindent + '    ' + array2string(row, separator = commaspace, formatter = funcs).replace('\n', '\n' + startindent + '    ')[1:-1].replace('--', '_')
+                        #if last:
+                        #    tmpstr += ';'
+                        #else:
+                        #    tmpstr += commaspace                        
+                        #set_printoptions(**old)
+                        #outfile.write(tmpstr)
+                        #outfile.write('\n')
+                        
                         tmpstr = StringIO()
                         if ma.getmaskarray(row).all():
                             tmpstr.write(', '.join(['_'] * row.size) + ', ')
@@ -144,23 +174,38 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                             tmpstr.seek(-2, 1)
                             tmpstr.write(semicolon)
                         tmpstr.seek(0, 0)
-                        tmpstr = str(tmpstr.read())
+                        tmpstr = tmpstr.read().decode('ASCII')
                         tmpstr = tmpstr.replace(fmt % getattr(row, 'fill_value', 0) + ',', '_,')
-                        outfile.write(textwrap.fill(tmpstr, line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
-                        outfile.write('\n')
+                        tmpstr = textwrap.fill(tmpstr, line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    ')
+                        try:
+                            outfile.write(tmpstr)
+                            outfile.write('\n')
+                        except Exception as e:
+                            exception_handler(e, outfile)
                 else:
                     def writer(row, last):
                         if isscalar(row) or row.ndim == 0:
                             outfile.write(startindent + '  ' + str(row.astype(ndarray)))
                             return
-                        tmpstr = StringIO()
-                        savetxt(tmpstr, row, fmt, delimiter = commaspace, newline =commaspace)
+                        old = get_printoptions()
+                        set_printoptions(threshold = inf, linewidth = line_length)
+                        tmpstr =  startindent + '    ' + array2string(row, separator = commaspace, formatter = funcs).replace('\n', '\n' + startindent + '    ')[1:-1]
+                        #tmpstr = StringIO()
+                        #savetxt(tmpstr, row, fmt, delimiter = commaspace, newline =commaspace)
                         if last:
-                            tmpstr.seek(-2, 1)
-                            tmpstr.write(semicolon)
-                        tmpstr.seek(0, 0)
-                        outfile.write(textwrap.fill(str(tmpstr.read()), line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
-                        outfile.write('\n')
+                            tmpstr += ';'
+                            #tmpstr.seek(-2, 1)
+                            #tmpstr.write(semicolon)
+                        else:
+                            tmpstr += commaspace
+                        #tmpstr.seek(0, 0)
+                        #outfile.write(textwrap.fill(str(tmpstr.read()), line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
+                        set_printoptions(**old)
+                        try:
+                            outfile.write(tmpstr)
+                            outfile.write('\n')
+                        except Exception as e:
+                            exception_handler(e, outfile)
                         
                         
                 outfile.write(startindent + 1*indent+("%s =\n" % var_name))
@@ -186,9 +231,8 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         array_str += " // %s%s %s \n" % (var_name, i, str(times[i]))
                         try:
                             outfile.write(array_str)
-                        except IOError:
-                            outfile.close()
-                            exit()
+                        except Exception as e:
+                            exception_handler(e, outfile)
                 elif full_indices is not None:
                     id_display = {'f': lambda idx: str(tuple([idx[i]+1 for i in range(len(idx)-1,-1,-1)])), \
                                   'c': lambda idx: str(idx)}[full_indices]
@@ -210,9 +254,8 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         array_str += " // %s%s \n" % (var_name, id_display(i))
                         try:
                             outfile.write(array_str)
-                        except IOError:
-                            outfile.close()
-                            exit()
+                        except Exception as e:
+                            exception_handler(e, outfile)
                 else:
                     dimensions = [len(f.dimensions[d]) for d in var.dimensions]
                     if len(dimensions) > 1:
@@ -228,15 +271,13 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                     for rowi, row in enumerate(var2d):
                         try:
                             writer(row, rowi == lastrow)
-                                
-                        except IOError as e:
-                            warn(repr(e) + "; Typically from CTRL+C or exiting less")
-                            exit()
+                        except Exception as e:
+                            exception_handler(e, outfile)
                                             
                     
-        except KeyboardInterrupt:
-            outfile.flush()
-            exit()
+        except Exception as e:
+            exception_handler(e, outfile)
+            
     outfile.write("}\n")
     return outfile
 
@@ -244,7 +285,7 @@ def main():
     from .pncparse import pncparse
     ifiles, options = pncparse(has_ofile = False)
     for ifile in ifiles:
-        pncdump(ifile, header = options.header, full_indices = options.full_indices, line_length = options.line_length, float_precision = options.float_precision, timestring = options.timestring, name = options.cdlname)
+        pncdump(ifile, header = options.header, full_indices = options.full_indices, line_length = options.line_length, float_precision = options.float_precision, double_precision = options.double_precision, timestring = options.timestring, name = options.cdlname)
 
 if __name__ == '__main__':
     main()
