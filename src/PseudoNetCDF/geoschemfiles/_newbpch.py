@@ -286,7 +286,7 @@ class TestMemmaps(unittest.TestCase):
     def testNCF2BPCH(self):
         bpchfile=bpch2(self.bpchpath, noscale = True)
         from PseudoNetCDF.pncgen import pncgen
-        pncgen(bpchfile,self.bpchpath + '.check', inmode = 'r', outmode = 'w', format = 'bpch', verbose = False)
+        pncgen(bpchfile,self.bpchpath + '.check', inmode = 'r', outmode = 'w', format = 'bpch', verbose = 0)
         orig = open(self.bpchpath, 'rb').read()
         new = open(self.bpchpath + '.check', 'rb').read()
         assert(orig == new)

@@ -107,70 +107,70 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
     def __add__(self, lhs):
         from _functions import pncbo
-        return pncbo(op = '+', ifile1 = self, ifile2 = lhs, verbose = False, coordkeys = self._operator_exclude_vars)
+        return pncbo(op = '+', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)
     
     def __sub__(self, lhs):
         from _functions import pncbo
-        return pncbo(op = '-', ifile1 = self, ifile2 = lhs, verbose = False, coordkeys = self._operator_exclude_vars)
+        return pncbo(op = '-', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)
     
     def __mul__(self, lhs):
         from _functions import pncbo
-        return pncbo(op = '*', ifile1 = self, ifile2 = lhs, verbose = False, coordkeys = self._operator_exclude_vars)
+        return pncbo(op = '*', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)
     
     def __div__(self, lhs):
         from _functions import pncbo
-        return pncbo(op = '/', ifile1 = self, ifile2 = lhs, verbose = False, coordkeys = self._operator_exclude_vars)
+        return pncbo(op = '/', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)
     
     def __floordiv__(self, lhs):
         from _functions import pncbo
-        return pncbo(op = '//', ifile1 = self, ifile2 = lhs, verbose = False, coordkeys = self._operator_exclude_vars)
+        return pncbo(op = '//', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)
     
     def __pow__(self, lhs):
         from _functions import pncbo
-        return pncbo(op = '**', ifile1 = self, ifile2 = lhs, verbose = False, coordkeys = self._operator_exclude_vars)
+        return pncbo(op = '**', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)
     
     def __and__(self, lhs):
         from _functions import pncbo
-        return pncbo(op = '&', ifile1 = self, ifile2 = lhs, verbose = False, coordkeys = self._operator_exclude_vars)
+        return pncbo(op = '&', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)
     
     def __or__(self, lhs):
         from _functions import pncbo
-        return pncbo(op = '|', ifile1 = self, ifile2 = lhs, verbose = False, coordkeys = self._operator_exclude_vars)
+        return pncbo(op = '|', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)
 
     def __xor__(self, lhs):
         from _functions import pncbo
-        return pncbo(op = '^', ifile1 = self, ifile2 = lhs, verbose = False, coordkeys = self._operator_exclude_vars)
+        return pncbo(op = '^', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)
 
     def __mod__(self, lhs):
         from _functions import pncbo
-        return pncbo(op = '%', ifile1 = self, ifile2 = lhs, verbose = False, coordkeys = self._operator_exclude_vars)
+        return pncbo(op = '%', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)
     
     def __lt__(self, lhs):
         from _functions import pncbo
-        return pncbo(op = '<', ifile1 = self, ifile2 = lhs, verbose = False, coordkeys = self._operator_exclude_vars)
+        return pncbo(op = '<', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)
     
     def __gt__(self, lhs):
         from _functions import pncbo
-        return pncbo(op = '>', ifile1 = self, ifile2 = lhs, verbose = False, coordkeys = self._operator_exclude_vars)
+        return pncbo(op = '>', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)
 
     def __eq__(self, lhs):
         if isinstance(lhs, (NetCDFFile, PseudoNetCDFFile)):
             from _functions import pncbo
-            return pncbo(op = ' == ', ifile1 = self, ifile2 = lhs, verbose = False, coordkeys = self._operator_exclude_vars)
+            return pncbo(op = ' == ', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)
         else:
             return lhs.__eq__(self)
 
     def __le__(self, lhs):
         from _functions import pncbo
-        return pncbo(op = '<=', ifile1 = self, ifile2 = lhs, verbose = False, coordkeys = self._operator_exclude_vars)
+        return pncbo(op = '<=', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)
     
     def __ge__(self, lhs):
         from _functions import pncbo
-        return pncbo(op = '>=', ifile1 = self, ifile2 = lhs, verbose = False, coordkeys = self._operator_exclude_vars)
+        return pncbo(op = '>=', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)
 
     def __ne__(self, lhs):
         from _functions import pncbo
-        return pncbo(op = '!=', ifile1 = self, ifile2 = lhs, verbose = False, coordkeys = self._operator_exclude_vars)
+        return pncbo(op = '!=', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)
     
     
     sync = close

@@ -208,7 +208,9 @@ def plot(ifiles, args):
                 extend = 'neither'
             fig.colorbar(patchesw, cax = cax, extend = extend)
             cax.set_xlabel('ppm')
-            fig.savefig('%s_%s%s.%s' % (args.outpath, var_name, lstr, args.figformat))
+            figpath = args.outpath + var_name + lstr + '.' + args.figformat
+            fig.savefig(figpath)
+            if args.verbose > 0: print('Saved fig', figpath)
             pl.close(fig)
     
 if __name__ == '__main__':

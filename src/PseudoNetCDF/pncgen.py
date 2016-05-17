@@ -27,7 +27,7 @@ class Pseudo2NetCDF:
     special_properties = ['_fillvalue', '_FillValue']
     unlimited_dimensions = []
     create_variable_kwds = {}
-    def __init__(self, datafirst = False, verbose = True):
+    def __init__(self, datafirst = False, verbose = 1):
         self.datafirst = datafirst
         self.verbose = verbose
     def convert(self,pfile,npath=None, inmode = 'r', outmode = 'w', format = 'NETCDF4'):
@@ -195,7 +195,7 @@ outfile = Dataset(outpath, 'w')
             print("var[:] = %s" % (repr(v[:].view(type = vtype))))
 
 
-def pncgen(ifile,outpath, inmode = 'r', outmode = 'w', format = 'NETCDF4_CLASSIC', verbose = True):
+def pncgen(ifile,outpath, inmode = 'r', outmode = 'w', format = 'NETCDF4_CLASSIC', verbose = 1):
     if format[:6] == 'NETCDF':
         p2n = Pseudo2NetCDF()
         p2n.verbose = verbose

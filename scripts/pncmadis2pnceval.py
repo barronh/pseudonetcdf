@@ -140,7 +140,7 @@ if args.verbose > 1:
     print('Slicing files')
 
 from PseudoNetCDF.sci_var import Pseudo2NetCDF, PseudoNetCDFFile
-p2p = Pseudo2NetCDF(verbose = False)
+p2p = Pseudo2NetCDF(verbose = 0)
 outfile = PseudoNetCDFFile()
 p2p.addDimensions(ncff, outfile)
 outfile.createDimension('recNum', len(found_point_ids))
@@ -271,7 +271,7 @@ if not args.hourlypath is None:
         outvals = np.ma.masked_where(dt_mask, outvals)
         outvar[:] = outvals[:]
 
-    pncgen(nomtimefile, args.hourlypath, verbose = False)
+    pncgen(nomtimefile, args.hourlypath, verbose = 0)
 # :DD_long_name = "QC data descriptor model:  QC summary values" ;
 # :DD_reference = "AWIPS Technique Specification Package (TSP) 88-21-R2" ;
 # :DD_values = "Z,C,S,V,X,Q,K,k,G, or B" ;

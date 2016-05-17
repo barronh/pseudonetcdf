@@ -7,7 +7,11 @@ import os
 
 def plot_scatter(ifiles, args):
     fig = plt.figure()
+    if len(args.figure_keywords) > 0:
+        plt.setp(fig, **args.figure_keywords)
     sax = fig.add_subplot(111)#add_axes([.1, .15, .8, .8])
+    if len(args.axes_keywords) > 0:
+        plt.setp(sax, **args.axes_keywords)
     split = 25
     ifilex = ifiles[0]
     ifiley = ifiles[1]
@@ -23,10 +27,15 @@ def plot_scatter(ifiles, args):
         valy = np.ma.compressed(vary[:])
         if valx.size < valy.size:
             svalx = np.sort(valx)
-            svaly = np.percentile(valy, np.arange(svalx.size, dtype = 'f')/svalx.size*100)
+            svaly = np.percentile(valy, np.arange(svalx.size, dtype = 'f')/(svalx.size-1)*100)
+        elif valy.size < valx.size:
+            svaly = np.sort(valy)
+            pctidx = np.arange(svaly.size, dtype = 'f')/(svaly.size-1)*100
+            svalx = np.percentile(valx, pctidx)
         else:
             svaly = np.sort(valy)
-            svalx = np.percentile(valx, np.arange(svaly.size, dtype = 'f')/svaly.size*100)
+            svalx = np.sort(valx)
+        
         del sax.lines[:]
         vmin = np.minimum(varx[:].min(), vary[:].min())
         vmax = np.maximum(varx[:].max(), vary[:].max())
@@ -35,10 +44,9 @@ def plot_scatter(ifiles, args):
         sax.set_xlim(vmin, vmax)
         sax.set_ylim(vmin, vmax)
         #plt.setp(sax.xaxis.get_ticklabels(),rotation = 45)
-        figpath = args.outpath + target + '_qq.png'
+        figpath = args.outpath + target + '.' + args.figformat
         fig.savefig(figpath)
-        print figpath
-
+        if args.verbose > 0: print('Saved fig', figpath)
 if __name__ == '__main__':
     from PseudoNetCDF.pncparse import getparser, pncparse
     parser = getparser(plot_options = True, has_ofile = True)

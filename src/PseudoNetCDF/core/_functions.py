@@ -2,6 +2,8 @@ from __future__ import print_function, unicode_literals
 import sys
 if sys.version_info.major == 2:
     bytes = lambda x, enc: str(x)
+else:
+    unicode = str
 
 from warnings import warn
 import re
@@ -55,9 +57,8 @@ def removesingleton(f, rd, coordkeys = []):
     for vk, v in f.variables.items():
         dims = tuple([dk for dk in v.dimensions if dk in outf.dimensions])
         sdims = tuple([dk for dk in enumerate(v.dimensions) if dk[1] not in outf.dimensions])[::-1]
-        ov = outf.createVariable(vk, v.dtype.char, dims)    
-        for pk in v.ncattrs():
-            setattr(ov, pk, getattr(v, pk))
+        propd = dict([(pk, getattr(v, pk)) for pk in v.ncattrs()])
+        ov = outf.createVariable(vk, v.dtype.char, dims, **propd)
         outvals = v[...]
         for di, dk in sdims:
             outvals = outvals.take(0, axis = di)
@@ -199,7 +200,7 @@ def extract_lonlat(f, lonlat, unique = False, gridded = None, method = 'nn', pas
             outf.groups[grpk] = extract(grpv, lonlat)
     
     p2p = Pseudo2NetCDF()
-    p2p.verbose = False
+    p2p.verbose = 0
     p2p.addGlobalProperties(f, outf)
 
     longitude = f.variables['longitude'][:]
@@ -330,9 +331,8 @@ def extract_lonlat(f, lonlat, unique = False, gridded = None, method = 'nn', pas
             newdims = tuple(newdims)
             newv = extractfunc(v, thiscoords)
             
-            nv = outf.createVariable(k, v.dtype.char, newdims, values = newv)
-            for ak in v.ncattrs():
-                setattr(nv, ak, getattr(v, ak))
+            propd = dict([(ak, getattr(v, ak)) for ak in v.ncattrs()])
+            nv = outf.createVariable(k, v.dtype.char, newdims, values = newv, **propd)
             setattr(nv, 'coordinates', getattr(v, 'coordinates', ' '.join(coords)))
             for di, dk in enumerate(newdims):
                 if dk not in outf.dimensions:
@@ -385,7 +385,7 @@ def slice_dim(f, slicedef, fuzzydim = True):
             inf = slice_dim(inf, '%s,%s,%s,%s' % (dimk, dmin, dmax, dstride))
     
     from PseudoNetCDF.sci_var import Pseudo2NetCDF
-    p2p = Pseudo2NetCDF(verbose = False)
+    p2p = Pseudo2NetCDF(verbose = 0)
     outf = PseudoNetCDFFile()
     p2p.addDimensions(inf, outf)
     p2p.addGlobalProperties(inf, outf)
@@ -472,7 +472,7 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
         return inf
 
     from PseudoNetCDF.sci_var import Pseudo2NetCDF
-    p2p = Pseudo2NetCDF(verbose = False)
+    p2p = Pseudo2NetCDF(verbose = 0)
     outf = PseudoNetCDFFile()
     p2p.addDimensions(inf, outf)
     p2p.addGlobalProperties(inf, outf)
@@ -530,7 +530,7 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
     setattr(outf, 'history', history)
     return outf
 
-def pncfunc(func, ifile1, coordkeys = [], verbose = False):
+def pncfunc(func, ifile1, coordkeys = [], verbose = 0):
     """
     Perform function (func) on all variables in ifile1.  The returned file (rfile) contains the result
     
@@ -567,7 +567,7 @@ def pncfunc(func, ifile1, coordkeys = [], verbose = False):
         outvar.fill_value = -999
     return tmpfile
 
-def pncbo(op, ifile1, ifile2, coordkeys = [], verbose = False):
+def pncbo(op, ifile1, ifile2, coordkeys = [], verbose = 0):
     """
     Perform binary operation (op) on all variables in ifile1
     and ifile2.  The returned file (rfile) contains the result
@@ -601,7 +601,7 @@ def pncbo(op, ifile1, ifile2, coordkeys = [], verbose = False):
             outvar = tmpfile.createVariable(k, in1var.dtype.char, in1var.dimensions, fill_value = -999, values = outval)
     return tmpfile
 
-def pncbfunc(func, ifile1, ifile2, coordkeys = [], verbose = False):
+def pncbfunc(func, ifile1, ifile2, coordkeys = [], verbose = 0):
     """
     Perform binary function (func) on all variables in ifile1
     and ifile2.  The returned file (rfile) contains the result
@@ -643,7 +643,7 @@ def _namemangler(k):
     k = k.replace(')', 'rparen')
     return k
 
-def pncexpr(expr, ifile, verbose = False):
+def pncexpr(expr, ifile, verbose = 0):
     """
     Evaluate an arbitrary expression in the context of ifile.variables
     and add the result to the file with appropriate units.
@@ -752,7 +752,7 @@ def convolve_dim(f, convolve_def):
     weights = np.array(convolve_parts, dtype = 'f')
     outf = PseudoNetCDFFile()
     from PseudoNetCDF.pncgen import Pseudo2NetCDF
-    p2p = Pseudo2NetCDF(verbose = False)
+    p2p = Pseudo2NetCDF(verbose = 0)
     p2p.addGlobalProperties(f, outf)
     p2p.addDimensions(f, outf)
     dim = outf.dimensions[dimkey]
@@ -785,9 +785,8 @@ def merge(fs):
                 if v.shape != outf.variables[k].shape or not (v[:] == outf.variables[k][:]).all():
                     warn('%s already in output' % k)
             else:
-                var = outf.createVariable(k, v.dtype.char, v.dimensions, values = v)
-                for p in v.ncattrs():
-                    setattr(var, p, getattr(v, p))
+                propd = dict([(p, getattr(v, p)) for p in v.ncattrs()])
+                var = outf.createVariable(k, v.dtype.char, v.dimensions, values = v, **propd)
     
     return outf
 
@@ -811,7 +810,7 @@ def stack_files(fs, stackdim, coordkeys = []):
     differentdims = [set(dims.keys()).difference(shareddims.keys()) for dims in dimensions]
     assert(all([different == set([stackdim]) for different in differentdims]))
     from PseudoNetCDF.sci_var import Pseudo2NetCDF
-    p2p = Pseudo2NetCDF(verbose = False)
+    p2p = Pseudo2NetCDF(verbose = 0)
     p2p.addDimensions(tmpf, f)
     f.createDimension(stackdim, sum([len(dims[stackdim]) for dims in dimensions]))
     p2p.addGlobalProperties(tmpf, f)

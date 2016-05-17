@@ -247,7 +247,7 @@ class TestMemmaps(unittest.TestCase):
         import tempfile
         out = BytesIO()
         out = tempfile.TemporaryFile(mode = 'w+t')
-        pncgen(self.testfile, out, inmode = 'r', outmode = 'w', format = 'csv', verbose = False)
+        pncgen(self.testfile, out, inmode = 'r', outmode = 'w', format = 'csv', verbose = 0)
         out.seek(0,0)
         outval = out.read()
         assert(outval == self.checkval)

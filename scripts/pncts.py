@@ -20,18 +20,22 @@ def plot_diurnal_box(ifiles, args):
         varwidth = .8/nvars/1.1
         po = np.arange(24) + 0.1 + varwidth/2
         for vi, (time, var) in enumerate(zip(times, vars)):
-            color = plt.get_cmap()((vi + .5)/float(nvars))
+            vals = var[:]
+            if args.squeeze:
+                vals = vals.squeeze()
             vardesc = getattr(var, 'description', None)
-            varb = sax.plot(time, var[:], color = color, label = vardesc)
+            varb = sax.plot(time, vals[:], label = vardesc)
         #plt.setp(sax.xaxis.get_ticklabels(),rotation = 45)
         plt.legend()
-        figpath = args.outpath + target + '_ts.png'
+        figpath = args.outpath + target + '.' + args.figformat
         fig.savefig(figpath)
-        print figpath
+        if args.verbose > 0: print('Saved fig', figpath)
+        print(figpath)
 
 if __name__ == '__main__':
     from PseudoNetCDF.pncparse import getparser, pncparse
     parser = getparser(plot_options = True, has_ofile = True)
+    parser.add_argument('--no-squeeze', dest = 'squeeze', default = True, action = 'store_false', help = 'Squeeze automatically removes singleton dimensions; disabling requires user to remove singleton dimensions with --remove-singleton option')
     parser.epilog += """
     -----
 box.py inobs inmod target [target ...]

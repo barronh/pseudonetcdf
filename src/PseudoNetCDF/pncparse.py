@@ -42,7 +42,7 @@ class AggCommaString(Action):
         setattr(namespace, self.dest, startv + values.split(','))
 
 
-def getparser(has_ofile, plot_options = False, interactive = False):
+def getparser(has_ofile, plot_options = False, map_options = False, interactive = False):
     """getparser produces a parser for PseudoNetCDF
     
 Parameters
@@ -110,7 +110,7 @@ To impose your own order, use standard options (global options) and then use -- 
 
         parser.add_argument("--mode", dest = "mode", type = str, default = "w", help = "File mode for writing (w, a or r+ or with unbuffered writes ws, as, or r+s; pncgen only).", choices = 'w a r+ ws as r+s'.split())
 
-        parser.add_argument("--verbose", dest="verbose", action = "store_true", default=False, help = "Provides verbosity with pncgen")
+        parser.add_argument("--verbose", dest="verbose", action = "count", default=0, help = "Provides verbosity with pncgen")
 
         parser.add_argument('outpath', type = str, help='path to a output file formatted as --out-format')
 
@@ -176,6 +176,9 @@ To impose your own order, use standard options (global options) and then use -- 
     parser.add_argument("--exprscript", dest = "expressionscripts", type = str, action = 'append', default = [], help = "Generic expressions to execute in the context of the file.")
     if plot_options:
         parser.add_argument("--matplotlibrc", dest = "matplotlibrc", type = lambda x: x.split(';'), action = 'append', default = [], help = 'rc options for matplotlib')
+        parser.add_argument("--figure-keywords", dest = 'figure_keywords', type = lambda x: eval('dict(' + x + ')'), default = dict(), help = 'options for figure')
+        
+        parser.add_argument("--axes-keywords", dest = 'axes_keywords', type = lambda x: eval('dict(' + x + ')'), default = dict(), help = 'options for axes')
         
         parser.add_argument("--plot-commands", dest = "plotcommands", type = str, action = 'append', default = [], help = "Plotting functions to call for all variables expressions to execute in the context of the file.")
 
@@ -184,7 +187,10 @@ To impose your own order, use standard options (global options) and then use -- 
         parser.add_argument("--norm", dest = "normalize", type = str, default = None, help = "Typical examples Normalize(), LogNorm(), BoundaryNorm([0, 10, 20, 30, 40], ncolors = 256)")
 
         parser.add_argument("--colorbar-formatter", dest = "colorbarformatter", type = str, default = None, help = "Typical examples LogFormatter(labelOnlyBase = False), ScalarFormatter(), '%%3g'")
-
+        
+        parser.add_argument("--overlay", dest = "overlay", action = 'store_true', help = "Enable overlay by setting equal to True")
+        
+    if map_options:
         parser.add_argument("--no-coastlines", dest = "coastlines", action = 'store_false', help = "Disable coastlines by setting equal to False")
 
         parser.add_argument("--no-countries", dest = "countries", action = 'store_false', help = "Disable countries by setting equal to False")
@@ -195,14 +201,13 @@ To impose your own order, use standard options (global options) and then use -- 
 
         parser.add_argument("--shapefiles", dest = "shapefiles", type = str, action = 'append', default = [], help = "Enable custom shapefiles (must be lon, lat)")
 
-        parser.add_argument("--overlay", dest = "overlay", action = 'store_true', help = "Enable overlay by setting equal to True")
-
     if interactive:
         parser.add_argument("-i", "--interactive", dest = "interactive", action = 'store_true', default = False, help = "Use interactive mode")
+    
     return parser
         
         
-def pncparse(has_ofile = False, plot_options = False, interactive = False, args = None, parser = None):
+def pncparse(has_ofile = False, plot_options = False, map_options = False, interactive = False, args = None, parser = None):
     """
 Parameters
 ----------
@@ -233,7 +238,7 @@ args : args as parsed
     """
     
     if parser is None:
-        parser = getparser(has_ofile, plot_options = plot_options, interactive = interactive)
+        parser = getparser(has_ofile, plot_options = plot_options, map_options = map_options, interactive = interactive)
     helpparser = ArgumentParser(add_help = False)
     helpparser.add_argument("--help", dest = "help", action = 'store_true')
     helpparser.add_argument("--help-format", dest = "helpformat", default = None, help = "Show help for file format (must be one of" + '; '.join(_readernames))

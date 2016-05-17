@@ -55,7 +55,9 @@ def windrose(wd, ws, args):
     plt.yticks(ticks, labels)
     ax.set_rmax(args.maxpct)
     ax.set_clip_on(False)
-    fig.savefig(args.outpath)
+    figpath = args.outpath
+    fig.savefig(figpath)
+    if args.verbose > 0: print('Saved fig', figpath)
     plt.close(fig)
     
 if __name__ == '__main__':

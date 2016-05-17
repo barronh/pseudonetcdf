@@ -23,10 +23,15 @@ ScalarFormatter = matplotlib.ticker.ScalarFormatter
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
-def make2d(ifile, options):
+
+def make2d(ifile, args):
+    if len(args.figure_keywords) > 0:
+        plt.setp(fig, **args.figure_keywords)
+    if len(args.axes_keywords) > 0:
+        plt.setp(ax, **args.axes_keywords)
     nborders = len(ax.collections)
     for fi, ifile in enumerate(ifiles):
-        variables = options.variables
+        variables = args.variables
         if variables is None:
             variables = [key for key, var in ifile.variables.items() if var.ndim == 2]
         if len(variables) == 0:
@@ -34,7 +39,10 @@ def make2d(ifile, options):
         for varkey in variables:
             var = ifile.variables[varkey]
             vals = var[:]
-            if options.normalize is None:
+            if args.squeeze:
+                vals = vals.squeeze()
+            
+            if args.normalize is None:
                 from scipy.stats import normaltest
                 vmin, vmax = vals.min(), vals.max()
                 if normaltest(vals.ravel())[1] < 0.05:
@@ -50,20 +58,25 @@ def make2d(ifile, options):
                     formatter = None
                 norm = BoundaryNorm(boundaries, ncolors = 256)
             else:
-                norm = eval(options.normalize)
+                norm = eval(args.normalize)
                 formatter = None
-            if not options.colorbarformatter is None:
+            if not args.colorbarformatter is None:
                 try:
-                    formatter = eval(options.colorbarformatter)
+                    formatter = eval(args.colorbarformatter)
                 except:
-                    formatter = options.colorbarformatter
+                    formatter = args.colorbarformatter
 
                 
-            vmin, vmax = norm.vmin, norm.vmax
+            vmin, vmax = vals.min(), vals.max()
+            if not norm.vmin is None:
+                vmin = norm.vmin
+            if not norm.vmax is None:
+                vmax = norm.vmax
+            
             varunit = getattr(var, 'units', 'unknown').strip()
             print(varkey, sep = '')
             del ax.collections[nborders:]
-            if options.swapaxes:
+            if args.swapaxes:
                 patches = ax.pcolor(vals.T, norm = norm)
                 ax.set_xlabel(var.dimensions[0])
                 ax.set_ylabel(var.dimensions[1]) 
@@ -102,21 +115,24 @@ def make2d(ifile, options):
 #                cbar.ax.text(-.06, .5, '%.3g ' % var[:].min(), verticalalignment = 'center', horizontalalignment = 'right')
             #cbar.update_ticks()
             fmt = 'png'
-            outpath = options.outpath
-            if len(ifiles) > 1:
+            outpath = args.outpath
+            if len(ifiles) > 1:                
+                lstr = str(fi).rjust(len(str(len(ifiles))), '0')
+            else:
+                lstr = ''
                 
-                outpath += ('_%%0%dd' % len(str(len(ifiles)))) % fi
-            figpath = os.path.join(outpath + varkey + '.' + fmt)
-            if options.interactive:
+            figpath = os.path.join(outpath + varkey + lstr + '.' + fmt)
+            if args.interactive:
                 csl = PNCConsole(locals = globals())
                 csl.interact()
             
             fig.savefig(figpath)
-            print('Saved fig', figpath)
+            if args.verbose > 0: print('Saved fig', figpath)
         
 if __name__ == '__main__':
     from PseudoNetCDF.pncparse import pncparse, getparser
     parser = getparser(has_ofile = True, plot_options = True, interactive = True)
+    parser.add_argument('--no-squeeze', dest = 'squeeze', default = True, action = 'store_false', help = 'Squeeze automatically removes singleton dimensions; disabling requires user to remove singleton dimensions with --remove-singleton option')
     parser.add_argument('--swapaxes', action = 'store_true', help = 'Swap x-y axes')
-    ifiles, options = pncparse(has_ofile = True, plot_options = True, interactive = True, parser = parser)
-    make2d(ifiles, options)
+    ifiles, args = pncparse(has_ofile = True, plot_options = True, interactive = True, parser = parser)
+    make2d(ifiles, args)

@@ -305,7 +305,9 @@ def plot(ifiles, args):
             fig.text(0.95, 0.975, title, horizontalalignment = 'right', verticalalignment = "top", fontsize = 16)
         else:
             fig.text(0.95, 0.025, title, horizontalalignment = 'right', verticalalignment = "bottom", fontsize = 16)
-        fig.savefig('%s_%s.%s' % (args.outpath, var_name, args.figformat))
+        figpath = args.outpath + var_name + '.' + args.figformat
+        fig.savefig(figpath)
+        if args.verbose > 0: print('Saved fig', figpath)
         pl.close(fig)
     return fig
 

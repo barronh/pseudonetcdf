@@ -11,23 +11,29 @@ import warnings
 warn=warnings.warn
 import numpy as np
 from PseudoNetCDF.plotutil import *
-def prepmap(ifiles, options):
+def prepmap(ifiles, args):
     ifile = ifiles[0]
     ax = pl.gca()
-    map = getmap(ifile, resolution = options.resolution)
-    if options.coastlines: map.drawcoastlines(ax = ax)
-    if options.countries: map.drawcountries(ax = ax)
-    if options.states: map.drawstates(ax = ax)
-    if options.counties: map.drawcounties(ax = ax)
-    for si, shapefile in enumerate(options.shapefiles):
+    map = getmap(ifile, resolution = args.resolution)
+    if args.coastlines: map.drawcoastlines(ax = ax)
+    if args.countries: map.drawcountries(ax = ax)
+    if args.states: map.drawstates(ax = ax)
+    if args.counties: map.drawcounties(ax = ax)
+    for si, shapefile in enumerate(args.shapefiles):
         shapename = os.path.basename(shapefile)[:-3] + str(si)
         map.readshapefile(shapefile, shapename, ax = ax, linewidth = pl.rcParams['lines.linewidth'])
-    options.map = map
+    args.map = map
 
-def makemap(ifiles, options):
+def makemap(ifiles, args):
     fig = pl.gcf()
+    if len(args.figure_keywords) > 0:
+        plt.setp(fig, **figure_keywords)
+    
     ax = pl.gca()
-    map = options.map
+    if len(args.axes_keywords) > 0:
+        plt.setp(ax, **args.axes_keywords)
+    
+    map = args.map
     nborders = len(ax.collections)
     for fi, ifile in enumerate(ifiles):
         if map.projection in ('lcc', 'merc'):
@@ -46,7 +52,7 @@ def makemap(ifiles, options):
         else:
             LON, LAT = np.meshgrid(lonb.view(np.ndarray), latb.view(np.ndarray))
     
-        variables = options.variables
+        variables = args.variables
         if variables is None:
             variables = [key for key, var in ifile.variables.items() if len(set(['latitude', 'longitude']).intersection(getattr(var, 'coordinates', '').split())) == 2]
         if len(variables) == 0:
@@ -54,12 +60,15 @@ def makemap(ifiles, options):
         for varkey in variables:
             ax = pl.gca()
                     
-            if not options.overlay:
+            if not args.overlay:
                 del ax.collections[nborders:]
             var = ifile.variables[varkey]
-            vals = var[:].squeeze()
+            if args.squeeze()
+                vals = var[:].squeeze()
+            else:
+                vals = var[:]
             vmin, vmax = vals.min(), vals.max()
-            if options.normalize is None:
+            if args.normalize is None:
                 from scipy.stats import normaltest
                 if normaltest(vals.ravel())[1] < 0.001:
                     cvals = np.ma.compressed(vals)
@@ -74,13 +83,13 @@ def makemap(ifiles, options):
                     formatter = None
                 norm = BoundaryNorm(boundaries, ncolors = 256)
             else:
-                norm = eval(options.normalize)
+                norm = eval(args.normalize)
                 formatter = None
-            if not options.colorbarformatter is None:
+            if not args.colorbarformatter is None:
                 try:
-                    formatter = eval(options.colorbarformatter)
+                    formatter = eval(args.colorbarformatter)
                 except:
-                    formatter = options.colorbarformatter
+                    formatter = args.colorbarformatter
 
             if not norm.vmin is None:
                 vmin = norm.vmin
@@ -129,28 +138,31 @@ def makemap(ifiles, options):
 #                cbar.ax.text(1.05, .5, ' %.3g' % var[:].max(), verticalalignment = 'center', horizontalalignment = 'left')
 #                cbar.ax.text(-.06, .5, '%.3g ' % var[:].min(), verticalalignment = 'center', horizontalalignment = 'right')
             cbar.update_ticks()
-            fmt = 'png'
-            outpath = options.outpath
-            if len(ifiles) > 1:
-                outpath += ('%%0%dd' % len(str(len(ifiles)))) % fi
+            fmt = args.figformat
+            outpath = args.outpath
+            if len(ifiles) > 1:                
+                lstr = str(fi).rjust(len(str(len(ifiles))), '0')
+            else:
+                lstr = ''
                 
-            figpath = os.path.join(outpath + varkey + '.' + fmt)
-            if options.interactive:
+            figpath = os.path.join(outpath + varkey + lstr + '.' + fmt)
+            if args.interactive:
                 csl = PNCConsole(locals = globals())
                 csl.interact()
             
             pl.savefig(figpath)
-            print('Saved fig', figpath)
+            if args.verbose > 0: print('Saved fig', figpath)
         
 if __name__ == '__main__':
-    parser = getparser(has_ofile = True, plot_options = True, interactive = True)
+    parser = getparser(has_ofile = True, map_options = True, plot_options = True, interactive = True)
+    parser.add_argument('--no-squeeze', dest = 'squeeze', default = True, action = 'store_false', help = 'Squeeze automatically removes singleton dimensions; disabling requires user to remove singleton dimensions with --remove-singleton option')
     parser.add_argument("--iter", dest = "iter", action = 'append', default = [], help = "Create plots for each element of specified dimension (e.g., --iter=time).")
-    parser.add_argument("--resolution", dest = "resolution", choices = ['c', 'i', 'h'], default = 'i', help = "Use coarse (c), intermediate (i), or high (h) resolution for maps.")
-    ifiles, options = pncparse(has_ofile = True, plot_options = True, interactive = True, parser = parser)
-    prepmap(ifiles, options)
-    if options.iter != []:
+    parser.add_argument("--resolution", dest = "resolution", choices = ['c', 'i', 'h'], default = 'c', help = "Use coarse (c), intermediate (i), or high (h) resolution for maps.")
+    ifiles, args = pncparse(has_ofile = True, plot_options = True, interactive = True, parser = parser)
+    prepmap(ifiles, args)
+    if args.iter != []:
         ifile, = ifiles
         ifiles = []
-        for dimk in options.iter:
+        for dimk in args.iter:
             ifiles += [slice_dim(getvarpnc(ifile, None), '%s,%d' % (dimk,i)) for i in range(len(ifile.dimensions[dimk]))]
-    makemap(ifiles, options)
+    makemap(ifiles, args)

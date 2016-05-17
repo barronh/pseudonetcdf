@@ -210,7 +210,7 @@ def plotwithopts(ifile, method, vars, options = defaultoption):
     exec(options.pre_txt)
     for varkey in vars:
         figpath = eval(method)(ifile = ifile, varkey = varkey, options = options, before = options.before_txt, after = options.after_txt)
-        pncgen(getvarpnc(ifile, list(vars) + ['TFLAG', 'time', 'latitude', 'longitude', 'latitude_bounds', 'longitude_bounds']), figpath + '.nc', verbose = False)
+        pncgen(getvarpnc(ifile, list(vars) + ['TFLAG', 'time', 'latitude', 'longitude', 'latitude_bounds', 'longitude_bounds']), figpath + '.nc', verbose = 0)
     exec(options.post_txt)
 
 def StartTk(ncffile, options):
