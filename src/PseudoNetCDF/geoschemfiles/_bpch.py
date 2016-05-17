@@ -544,7 +544,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             key = str(key)
             header = self._memmap[key]['header'][0]
             sl, sj, si = header['f14'][::-1] - 1
-            group = header['f7'].strip()
+            group = header['f7'].strip().decode('ASCII')
             offset = self._diag_data.get(group, {}).get('offset', 0)
             tracerid = header['f8']
             ord = header['f8'] + offset
@@ -834,6 +834,17 @@ class bpch(PseudoNetCDFFile):
           tid = datamap[k]['header']['f8']
           assert((tid[0] == tid).all())
           assert((gn[0] == gn).all())
+
+        layerns = set([datamap[0][k]['header']['f13'][-1] for k in datamap.dtype.names])
+        maxlayerns = max(layerns)
+        if vertgrid is None:
+            if maxlayerns > 48:
+                self.vertgrid = vertgrid = 'GEOS-5-NATIVE'
+            else:
+                self.vertgrid = vertgrid = 'GEOS-5-REDUCED'
+            
+            warn('Vertical grid was diagnosted as %s.' % vertgrid)
+
         # Create variables and dimensions
         self.vertgrid = vertgrid
         # Ap [hPa]
@@ -841,10 +852,10 @@ class bpch(PseudoNetCDFFile):
 
         # Bp [unitless]
         self.Bp = geos_hybi[self.vertgrid]
-
-        layerns = set([datamap[0][k]['header']['f13'][-1] for k in datamap.dtype.names])
+            
         if max(layerns) > self.Ap.size:
-            warn('vertgrid selected (%s) and output layers are not consistent' % vertgrid)
+            warn("vertgrid selected (%s) and output layers are not consistent; update to GEOS-5-NATIVE (e.g., bpch(..., vertgrid='GEOS-5-NATIVE') -f \"bpch,vertgrid='GEOS-5-NATIVE'\"" % vertgrid)
+            
         layerkeys = ['layer_bounds'] + ['layer%d' % l for l in layerns]
         keys.extend(layerkeys)
         keys.extend(['hyai', 'hyam', 'hybi', 'hybm', 'etai_pressure', 'etam_pressure'])
@@ -867,7 +878,7 @@ class bpch(PseudoNetCDFFile):
     def __repr__(self):
         return PseudoNetCDFFile.__repr__(self) + str(self.variables)
 
-def ncf2bpch(ncffile, outpath, verbose = False):
+def ncf2bpch(ncffile, outpath, verbose = 0):
     outfile = open(outpath, 'wb')
     _general_header_type = np.dtype(dict(names = ['SPAD1', 'ftype', 'EPAD1', 'SPAD2', 'toptitle', 'EPAD2'], formats = '>i4, S40, >i4, >i4, S80, >i4'.split()))
     _datablock_header_type = np.dtype(dict(names = ['SPAD1', 'modelname', 'modelres', 'halfpolar', 'center180', 'EPAD1', 'SPAD2', 'category', 'tracerid', 'unit', 'tau0', 'tau1', 'reserved', 'dim', 'skip', 'EPAD2'], formats = '>i4, S20, 2>f4, >i4, >i4, >i4, >i4, S40, >i4, S40, >f8, >f8, S40, 6>i4, >i4, >i4'.split(', ')))
@@ -948,7 +959,7 @@ class TestMemmaps(unittest.TestCase):
         bpchfile=bpch(self.bpchpath, noscale = True)
         outpath = self.bpchpath + '.check'
         from PseudoNetCDF.pncgen import pncgen
-        pncgen(bpchfile,outpath, inmode = 'r', outmode = 'w', format = 'bpch', verbose = False)
+        pncgen(bpchfile,outpath, inmode = 'r', outmode = 'w', format = 'bpch', verbose = 0)
         orig = open(self.bpchpath, 'rb').read()
         new = open(outpath, 'rb').read()
         assert(orig == new)
@@ -957,7 +968,7 @@ class TestMemmaps(unittest.TestCase):
         ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']
         ALD2_check = np.array([1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02, 1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02, 1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02]).reshape(ALD2.shape)
         slided_reduced_bpchfile = slice_dim(reduce_dim(bpchfile, 'layer,mean'), 'time,0')
-        pncgen(slided_reduced_bpchfile,outpath, inmode = 'r', outmode = 'w', format = 'bpch', verbose = False)
+        pncgen(slided_reduced_bpchfile,outpath, inmode = 'r', outmode = 'w', format = 'bpch', verbose = 0)
         ALD2_check_slided_reduced = ALD2_check[0].mean(0)[None, None]
         ALD2 = slided_reduced_bpchfile.variables['IJ-AVG-$_ALD2']
         np.testing.assert_allclose(ALD2, ALD2_check_slided_reduced * 1e-9)
