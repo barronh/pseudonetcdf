@@ -364,10 +364,10 @@ def getmap(ifile, resolution = 'i'):
             lat, latunit = getlatbnds(ifile)
             lon, lonunit = getlonbnds(ifile)
             kwds['resolution'] = 'i'
-            kwds['llcrnrlat'] = lat[:].min()
-            kwds['urcrnrlat'] = lat[:].max()
-            kwds['llcrnrlon'] = lon[:].min()
-            kwds['urcrnrlon'] = lon[:].max()
+            kwds['llcrnrlat'] = float(lat[:].min())
+            kwds['urcrnrlat'] = float(lat[:].max())
+            kwds['llcrnrlon'] = float(lon[:].min())
+            kwds['urcrnrlon'] = float(lon[:].max())
             kwds['resolution'] = resolution
         except:
             pass
