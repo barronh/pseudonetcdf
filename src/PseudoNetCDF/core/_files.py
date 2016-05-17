@@ -105,6 +105,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
     def ncattrs(self):
         return self._ncattrs
 
+    def setncattr(self, k, v):
+        return setattr(self, k, v)
+    
     def __add__(self, lhs):
         from _functions import pncbo
         return pncbo(op = '+', ifile1 = self, ifile2 = lhs, verbose = 0, coordkeys = self._operator_exclude_vars)

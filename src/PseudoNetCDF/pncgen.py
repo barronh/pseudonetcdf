@@ -80,10 +80,12 @@ class Pseudo2NetCDF:
                 continue
             if not isinstance(value, MethodType):
                 try:
-                    setattr(nvar,a,value)
+                    nvar.setncattr(a, value)
+                    #setattr(nvar,a,value)
                 except TypeError as e:
                     if isinstance(value, bool):
-                        setattr(nvar, a, np.int8(value))
+                        nvar.setncattr(a, np.int8(value))
+                        #setattr(nvar, a, np.int8(value))
                     else:
                         raise e
                 except Exception as e:

@@ -23,6 +23,9 @@ class PseudoNetCDFVariable(np.ndarray):
         if k in self._ncattrs:
             self._ncattrs = tuple([k_ for k_ in self._ncattrs if k_ != k])
         object.__delattr__(self, k)
+
+    def setncattr(self, k, v):
+        return setattr(self, k, v)
     
     def ncattrs(self):
         """
