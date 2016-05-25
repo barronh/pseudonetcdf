@@ -63,7 +63,7 @@ def makemap(ifiles, args):
             if not args.overlay:
                 del ax.collections[nborders:]
             var = ifile.variables[varkey]
-            if args.squeeze()
+            if args.squeeze():
                 vals = var[:].squeeze()
             else:
                 vals = var[:]
