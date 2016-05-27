@@ -1402,12 +1402,17 @@ def makeibcon(args):
                             assert((np.array(inunits) == inunit).all())
                             if inunit == ounit:
                                 pass
+                            elif ounit == 'ppmV' and inunit in ('pptv', 'pptC'):
+                                # pptC has automatically been converted to pptv
+                                temp_val *= 1e-6
                             elif ounit == 'ppmV' and inunit in ('ppbv', 'ppbC'):
                                 # ppbC has automatically been converted to ppbv
                                 temp_val *= 1e-3
-                            elif ounit == 'micrograms/m**3' and inunit == 'ppbv':
+                            elif ounit == 'micrograms/m**3' and (inunit == 'ppbv' or inunit == 'pptv'):
                                 airmolden = eval(mappings_file['AIRMOLDEN']['expression'], None, nd49.variables)
                                 temp_val *= airmolden
+                                if inunit == 'pptv':
+                                    temp_val *= 1e-3
                             else:
                                 raise ValueError('Error: in unit/outunit combo unknown: "%s", "%s"' % (inunit, ounit))
                         toff
