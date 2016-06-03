@@ -86,13 +86,14 @@ PseudoNetCDF has many operations and the order often matters. The order is consi
 13. Apply binary operators (--op_typ)
 
 To impose your own order, use standard options (global options) and then use -- to force positional interpretation of remaining options. In remaining options, use --sep to separate groups of files and options to be evaluated before any global operations."""
-    parser.add_argument('ifile', nargs='+', help='path to a file formatted as type -f')
-    
+    parser.add_argument('ifile', nargs='*', help='path to a file formatted as type -f')
+    parser.add_argument('--pnc', action = 'append', default = [], help='Set of pseudonetcdf commands to be process separately')
+
     parser.add_argument("-f", "--format", dest = "format", default = 'netcdf', metavar = '{' + ', '.join(_readernames) + '}', help = "File format (default netcdf), can be one of the choices listed, or an expression that evaluates to a reader. Keyword arguments are passed via ,kwd=value.")
 
     parser.add_argument("--help-format", dest = "helpformat", default = None, help = "Show help for file format (must be one of the options for -f)")
     
-    parser.add_argument("--sep", dest = "separator", default = None, help = "Used to separate groups of arguments for parsing (e.g., pncgen -- [options1] file(s)1 [--sep [options2] file(s)2 [... [--sep [optionsN] file(s)N]] ")
+    parser.add_argument("--sep", dest = "separator", action = 'store_true', default = False, help = "Used to separate groups of arguments for parsing (e.g., pncgen -- [options1] file(s)1 [--sep [options2] file(s)2 [... [--sep [optionsN] file(s)N]] ")
 
     parser.add_argument("--inherit", dest="inherit", action = "store_true", default=False, help = "Allow subparsed sections (separated with -- and --sep) to inherit from global options (-f, --format is always inherited).")
 
@@ -276,14 +277,20 @@ args : args as parsed
         if 'y' == raw_input('Hit Y/y to see detailed help\n').lower():
             help(helpformat)
         exit()
+    
     subparser = getparser(has_ofile = False, plot_options = plot_options, interactive = interactive)
     args = parser.parse_args(args = args)
+    if len(args.pnc + args.ifile) == 0:
+        print('ifile or pnc are required')
+        parser.print_help()
     subargs = split_positionals(subparser, args)
     ifiles = []
     ipaths = []
     for subarg in subargs:
         ipaths.extend(subarg.ifile)
         ifiles.extend(pncprep(subarg)[0])
+    # ifile is set to results from parsing
+    # this includes the standard ifile
     args.ifile = ifiles
     args.ipath = ipaths
     #if args.stack is not None:
@@ -305,12 +312,19 @@ args : args as parsed
                 key, value = rcassign.split('=')
                 rcParams[key] = value
 
-    return pncprep(args)
+    out = pncprep(args)
+    return out
+
+def PNC(*args, **kwds):
+    ifiles, outargs = pncparse(args = args, **kwds)
+    outargs.ifiles = ifiles
+    return outargs
 
 def split_positionals(parser, args):
+    import shlex
     positionals = args.ifile
     parser.set_defaults(**dict([(k, v) for k, v in args._get_kwargs() if args.inherit or k == 'format']))
-    outs = []
+    outs = [shlex.split(pnc) for pnc in args.pnc]
     last_split = 0
     for i in range(len(positionals)):
         if positionals[i] in ('--', '--sep'):
@@ -338,6 +352,7 @@ def pncprep(args):
     for script in args.expressionscripts:
         expr = open(script).read()
         fs = [pncexpr(expr, f) for f in fs]
+    args.ifile = fs
     return fs, args
 
 def subsetfiles(ifiles, args):
