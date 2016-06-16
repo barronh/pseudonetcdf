@@ -60,7 +60,6 @@ Returns
 parser : ArgumentParser with options that are processable with pncparse
 
     """
-    from PseudoNetCDF.register import readers
     parser = ArgumentParser(description = """PseudoNetCDF Argument Parsing
 
 
@@ -89,7 +88,9 @@ To impose your own order, use standard options (global options) and then use -- 
     parser.add_argument('ifile', nargs='*', help='path to a file formatted as type -f')
     parser.add_argument('--pnc', action = 'append', default = [], help='Set of pseudonetcdf commands to be process separately')
 
-    parser.add_argument("-f", "--format", dest = "format", default = 'netcdf', metavar = '{' + ', '.join(_readernames) + '}', help = "File format (default netcdf), can be one of the choices listed, or an expression that evaluates to a reader. Keyword arguments are passed via ,kwd=value.")
+    parser.add_argument("-f", "--format", dest = "format", default = 'netcdf', metavar = '{see --list-formats for choices}', help = "File format (default netcdf), can be one of the choices listed, or an expression that evaluates to a reader. Keyword arguments are passed via ,kwd=value.")
+
+    parser.add_argument("--list-format", dest = "listformat", action = 'store_true', default = False, help = "Show format options for -f")
 
     parser.add_argument("--help-format", dest = "helpformat", default = None, help = "Show help for file format (must be one of the options for -f)")
     
@@ -120,7 +121,7 @@ To impose your own order, use standard options (global options) and then use -- 
         
         parser.add_argument("-t", "--timestring", dest="timestring", action = "store_true", default=False)
         
-        parser.add_argument("--full-indices", dest="full_indices",default=None, metavar = "[c|f]", choices = ['c', 'f'])
+        parser.add_argument("--full-indices", dest="full_indices",default=None, metavar = "[c|f]", choices = ['c', 'f'], help = "Provide indices in CDL using either C or Fortran style indexes. C style is 0-based and ordered from slowest iterating dimension to fastest. Fortran style is 1-based and ordered from fastest to slowest iterating dimension")
 
         parser.add_argument("-l", "--length", dest="line_length", type = int, default=80, metavar = "LEN", help = "CDL line length (pncdump only)")
 
@@ -181,7 +182,7 @@ To impose your own order, use standard options (global options) and then use -- 
         
         parser.add_argument("--axes-keywords", dest = 'axes_keywords', type = lambda x: eval('dict(' + x + ')'), default = dict(), help = 'options for axes')
         
-        parser.add_argument("--plot-commands", dest = "plotcommands", type = str, action = 'append', default = [], help = "Plotting functions to call for all variables expressions to execute in the context of the file.")
+        parser.add_argument("--plot-commands", dest = "plotcommands", type = str, action = 'append', default = [], help = "Plotting functions to call for all variables expressions to execute in the context of the file. The figure object will always be 'fig'.")
 
         parser.add_argument("--figformat", dest = "figformat", type = str, default = 'png', help = "Any format supported by matplotlib")
 
@@ -192,6 +193,8 @@ To impose your own order, use standard options (global options) and then use -- 
         parser.add_argument("--overlay", dest = "overlay", action = 'store_true', help = "Enable overlay by setting equal to True")
         
     if map_options:
+        parser.add_argument("--resolution", dest = "resolution", choices = ['c', 'i', 'h'], default = 'c', help = "Use coarse (c), intermediate (i), or high (h) resolution for maps.")
+        
         parser.add_argument("--no-coastlines", dest = "coastlines", action = 'store_false', help = "Disable coastlines by setting equal to False")
 
         parser.add_argument("--no-countries", dest = "countries", action = 'store_false', help = "Disable countries by setting equal to False")
@@ -200,7 +203,7 @@ To impose your own order, use standard options (global options) and then use -- 
 
         parser.add_argument("--counties", dest = "counties", action = 'store_true', help = "Enable counties by setting equal to True")
 
-        parser.add_argument("--shapefiles", dest = "shapefiles", type = str, action = 'append', default = [], help = "Enable custom shapefiles (must be lon, lat)")
+        parser.add_argument("--shapefile", "--shapefiles", dest = "shapefiles", type = str, action = 'append', default = [], help = "Enable custom shapefiles (must be lon, lat). Keyword arguments for display can be added with commas (see -f for syntax).")
 
     if interactive:
         parser.add_argument("-i", "--interactive", dest = "interactive", action = 'store_true', default = False, help = "Use interactive mode")
@@ -242,40 +245,49 @@ args : args as parsed
         parser = getparser(has_ofile, plot_options = plot_options, map_options = map_options, interactive = interactive)
     helpparser = ArgumentParser(add_help = False)
     helpparser.add_argument("--help", dest = "help", action = 'store_true')
-    helpparser.add_argument("--help-format", dest = "helpformat", default = None, help = "Show help for file format (must be one of" + '; '.join(_readernames))
+    helpgroup = helpparser.add_mutually_exclusive_group()
+    helpgroup.add_argument("--list-format", dest = "listformat", action = 'store_true', default = False, help = "List file formats for -f")
+    helpgroup.add_argument("--help-format", dest = "helpformat", default = None, help = "Show help for file format (must be one of" + '; '.join(_readernames))
     helpargs, dum = helpparser.parse_known_args(args = args)
-    if not helpargs.helpformat is None:
-        file_format = helpargs.helpformat.split(',')[0]
-        print('All formats require a "path". Some formats also ')
-        print('take extra arguments. All arguments other than ')
-        print('the input path must be specified using keyword')
-        print('arguments.')
-        print('')
-        helpformat = allreaders[file_format]
-        try:
-            import inspect
-            print('Example:')
-            idef = inspect.getargspec(helpformat.__init__)
-            args = idef.args[2:]
-            if idef.defaults is None:
-                defs = ['<VAL>'] * len(args)
-            else:
-                defs = (len(args) - len(idef.defaults)) * ['<VAL>'] + list(idef.defaults)
-            longform = 'pncdump -f ' + ','.join([file_format] + [karg + "=%s" % kdef for karg, kdef in zip(args, defs)]) + ' path'
-            shortform = 'pncdump -f ' + ','.join([file_format] + [karg + "=%s" % kdef for karg, kdef in zip(args, defs) if kdef == '<VAL>']) + ' path'
-            print(shortform)
-            if longform != shortform:
-                print('')
-                print('Extended example with keywords:')
-                print(longform)
-                print('')
-                print('* Any keyword with a non "<VAL>" default can be omitted.')
+    if helpargs.listformat or not helpargs.helpformat is None:
+        if helpargs.listformat:
+            print('The formats listed below are available for the following options')
+            print('-f FORMAT or --format FORMAT or --help-format FORMAT')
+            print('where FORMAT is one of the options below')
+            print('\t' + '\n\t'.join(_readernames))
+            print('**Some readers are listed twice (e.g., without dotted form)')
+        if not helpargs.helpformat is None:
+            file_format = helpargs.helpformat.split(',')[0]
+            print('All formats require a "path". Some formats also ')
+            print('take extra arguments. All arguments other than ')
+            print('the input path must be specified using keyword')
+            print('arguments.')
             print('')
-        except Exception as e:
-            pass
+            helpformat = allreaders[file_format]
+            try:
+                import inspect
+                print('Example:')
+                idef = inspect.getargspec(helpformat.__init__)
+                args = idef.args[2:]
+                if idef.defaults is None:
+                    defs = ['<VAL>'] * len(args)
+                else:
+                    defs = (len(args) - len(idef.defaults)) * ['<VAL>'] + list(idef.defaults)
+                longform = 'pncdump -f ' + ','.join([file_format] + [karg + "=%s" % kdef for karg, kdef in zip(args, defs)]) + ' path'
+                shortform = 'pncdump -f ' + ','.join([file_format] + [karg + "=%s" % kdef for karg, kdef in zip(args, defs) if kdef == '<VAL>']) + ' path'
+                print(shortform)
+                if longform != shortform:
+                    print('')
+                    print('Extended example with keywords:')
+                    print(longform)
+                    print('')
+                    print('* Any keyword with a non "<VAL>" default can be omitted.')
+                print('')
+            except Exception as e:
+                pass
             
-        if 'y' == raw_input('Hit Y/y to see detailed help\n').lower():
-            help(helpformat)
+            if 'y' == input('Hit Y/y to see detailed help\n').lower():
+                help(helpformat)
         exit()
     
     subparser = getparser(has_ofile = False, plot_options = plot_options, interactive = interactive)
@@ -391,12 +403,14 @@ def getfiles(ipaths, args):
             f = ipath
         elif isinstance(ipath, (str,)) :
             try:
+                allreaders = getreaderdict()
                 if file_format in allreaders:
                     f = allreaders[file_format](ipath, **format_options)
                 else:
                     f = eval(file_format)(ipath, **format_options)
             except Exception as e:
-                raise IOError('Unable to open path with %s(path, **%s)\n\tpath="%s"\n\terror="%s"' % (file_format, str(format_options), ipath, str(e)))
+                oute = IOError('Unable to open path with %s(path, **%s)\n\tpath="%s"\n\terror="%s"' % (file_format, str(format_options), ipath, str(e)))
+                raise oute from e
         else:
             warn('File is type %s, which is unknown' % type(ipath))
             f = ipath
