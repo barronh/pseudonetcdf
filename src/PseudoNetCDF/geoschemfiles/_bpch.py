@@ -38,7 +38,7 @@ try:
 except:
     warn('Using static PseudoNetCDF')
     # PseudoNetCDF is my own home grown
-    # https://dawes.sph.unc.edu/trac/PseudoNetCDF
+    # http://github.com/barronh/pseudonetcdf
     #from PseudoNetCDF import PseudoNetCDFVariable, PseudoNetCDFFile
     class PseudoNetCDFDimension(object):
         """
@@ -639,6 +639,7 @@ class bpch(PseudoNetCDFFile):
                         - list/tuple/set: return specified times where each time is in the set (0..N-1)
          noscale: Do not apply scaling factors
          vertgrid: vertical coordinate system (options: 'GEOS-5-REDUCED', 'GEOS-5-NATIVE', 'MERRA-REDUCED', 'MERRA-NATIVE', 'GEOS-4-REDUCED', 'GEOS-4-NATIVE' -- default 'GEOS-5-REDUCED')
+         nogroup: False - use all groups, True - use no groups, list of groups to ignore
         """
         from ._vertcoord import geos_hyai, geos_hybi, geos_eta_slp
         self._ncattrs = () 
@@ -750,7 +751,11 @@ class bpch(PseudoNetCDFFile):
                     data_type = dtype('>i4, %s>f4, >i4' % str(tuple(dim[:])))
                     assert(data_type.itemsize == header[-2])
                     data_types.append(data_type)
-                    if self.nogroup:
+                    if self.nogroup == True:
+                        keys.append('%s' % (tracername,))
+                    elif self.nogroup == False:
+                        keys.append('%s_%s' % (group, tracername))
+                    elif group in self.nogroup:
                         keys.append('%s' % (tracername,))
                     else:
                         keys.append('%s_%s' % (group, tracername))
@@ -761,7 +766,11 @@ class bpch(PseudoNetCDFFile):
             data_type = dtype('>i4, %s>f4, >i4' % str(tuple(dim[:])))
             assert(data_type.itemsize == header[-2])
             data_types.append(data_type)
-            if self.nogroup:
+            if self.nogroup == True:
+                keys.append('%s' % (tracername,))
+            elif self.nogroup == False:
+                keys.append('%s_%s' % (group, tracername))
+            elif group in self.nogroup:
                 keys.append('%s' % (tracername,))
             else:
                 keys.append('%s_%s' % (group, tracername))
