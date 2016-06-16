@@ -1,8 +1,12 @@
-import pylab as pl
-Normalize = pl.matplotlib.colors.Normalize
+import pylab
+pl = pylab
+import matplotlib.pyplot as pyplot
+plt = pyplot
 
+Normalize = pl.matplotlib.colors.Normalize
 LogNorm = pl.matplotlib.colors.LogNorm
 BoundaryNorm = pl.matplotlib.colors.BoundaryNorm
+
 def SegmentedNorm(vmin, vmax, bins = 10, ncolors = 256):
     boundaries = np.linspace(vmin, vmax, bins + 1)
     return BoundaryNorm(boundaries, ncolors)
