@@ -8,9 +8,10 @@ __doc__ = """
 .. module:: Memmap
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx
-              point_source files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              point_source files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
-.. moduleauthor:: Barron Henderson <barronh@unc.edu>
+.. moduleauthor:: Barron Henderson <barronh@gmail.com>
+.. modulecontributor:: Yoann Long (little endian support)
 """
 HeadURL="$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxMemmap.py $"
 ChangeDate = "$LastChangedDate$"
@@ -71,20 +72,7 @@ class point_source(PseudoNetCDFFile):
         {'TSTEP': 25, 'NSTK': 38452}
     """
     
-    __emiss_hdr_fmt=dtype(dict(names=['SPAD','name','note','itzon','nspec','ibdate','btime','iedate','etime','EPAD'],formats=['>i','>(10,4)S1','>(60,4)S1','>i','>i','>i','>f','>i','>f','>i']))
-    __grid_hdr_fmt=dtype(dict(names=['SPAD','plon','plat','iutm','xorg','yorg','delx','dely','nx','ny','nz', 'iproj','istag','tlat1','tlat2','rdum5','EPAD'],formats=['>i','>f','>f','>i','>f','>f','>f','>f','>i','>i','>i','>i','>i','>f','>f','>f','>i']))
-    __cell_hdr_fmt=dtype(dict(names=['SPAD','ione1','ione2','nx','ny','EPAD'],formats=['>i','>i','>i','>i','>i','>i']))
-    
-    __spc_hdr_fmt=dtype('(10,4)>S1')
-    __time_hdr_fmt=dtype(dict(names=['SPAD','ibdate','btime','iedate','etime','EPAD'],formats=['>i','>i','>f','>i','>f','>i']))
-    __nstk_hdr_fmt=dtype(dict(names=['SPAD','ione','nstk','EPAD'],formats=['>i','>i','>i','>i']))
-    
-    
-    __stk_prop_fmt=dtype(dict(names=['XSTK','YSTK','HSTK','DSTK','TSTK','VSTK'],formats=['>f','>f','>f','>f','>f','>f']))
-    
-    __stk_time_prop_fmt=dtype(dict(names=['IONE','ITWO','KCELL','FLOW','PLMHT'],formats=['>i','>i','>f','>f','>f']))
-
-    def __init__(self,rf):
+    def __init__(self, rf, endian = 'big'):
         """
         Initialization included reading the header and learning
         about the format.
@@ -92,10 +80,19 @@ class point_source(PseudoNetCDFFile):
         see __readheader and __gettimestep() for more info
         """
         self.__rffile=rf
-        
-        
+
+        ep = self.__endianprefix = dict(big = '>', little = '<')[endian]
         self.variables={}
-        self.__memmap=memmap(self.__rffile,'>f','r')
+        self.__memmap=memmap(self.__rffile,ep+'f','r')
+        self.__emiss_hdr_fmt=dtype(dict(names=['SPAD','name','note','itzon','nspec','ibdate','btime','iedate','etime','EPAD'],formats=[ep+'i',ep+'(10,4)S1',ep+'(60,4)S1',ep+'i',ep+'i',ep+'i',ep+'f',ep+'i',ep+'f',ep+'i']))
+        self.__grid_hdr_fmt=dtype(dict(names=['SPAD','plon','plat','iutm','xorg','yorg','delx','dely','nx','ny','nz', 'iproj','istag','tlat1','tlat2','rdum5','EPAD'],formats=[ep+'i',ep+'f',ep+'f',ep+'i',ep+'f',ep+'f',ep+'f',ep+'f',ep+'i',ep+'i',ep+'i',ep+'i',ep+'i',ep+'f',ep+'f',ep+'f',ep+'i']))
+        self.__cell_hdr_fmt=dtype(dict(names=['SPAD','ione1','ione2','nx','ny','EPAD'],formats=[ep+'i',ep+'i',ep+'i',ep+'i',ep+'i',ep+'i']))
+        self.__spc_hdr_fmt=dtype('(10,4)'+ep+'S1')
+        self.__time_hdr_fmt=dtype(dict(names=['SPAD','ibdate','btime','iedate','etime','EPAD'],formats=[ep+'i',ep+'i',ep+'f',ep+'i',ep+'f',ep+'i']))
+        self.__nstk_hdr_fmt=dtype(dict(names=['SPAD','ione','nstk','EPAD'],formats=[ep+'i',ep+'i',ep+'i',ep+'i']))
+        self.__stk_prop_fmt=dtype(dict(names=['XSTK','YSTK','HSTK','DSTK','TSTK','VSTK'],formats=[ep+'f',ep+'f',ep+'f',ep+'f',ep+'f',ep+'f']))
+        self.__stk_time_prop_fmt=dtype(dict(names=['IONE','ITWO','KCELL','FLOW','PLMHT'],formats=[ep+'i',ep+'i',ep+'f',ep+'f',ep+'f']))
+
         self.__globalheader()
         varkeys=['ETFLAG', 'TFLAG', 'XSTK', 'YSTK', 'HSTK', 'DSTK', 'TSTK', 'VSTK', 'IONE', 'ITWO', 'KCELL', 'FLOW', 'PLMHT', 'NSTKS']+[i.strip() for i in self.__spc_names]
         self.SPC_NAMES = ''.join([s.ljust(16) for s in self.__spc_names])
@@ -103,15 +100,16 @@ class point_source(PseudoNetCDFFile):
         self.variables=PseudoNetCDFVariables(self.__variables,varkeys)
         self.__time_stks()
         self.createDimension('NSTK',self.__nstk_hdr['nstk'])
-        
-        
-    
+
+
+
     def __globalheader(self):
         """
         __readheader reads the header section of the ipr file
         it initializes each header field (see CAMx Users Manual for a list)
         as properties of the ipr class
         """
+        ep = self.__endianprefix
         offset=0
 
         self.__emiss_hdr=self.__memmap[offset:offset+self.__emiss_hdr_fmt.itemsize/4].view(self.__emiss_hdr_fmt)
@@ -133,7 +131,7 @@ class point_source(PseudoNetCDFFile):
         self.TLAT1 = tlat1 = self.__grid_hdr['tlat1'][0]
         self.TLAT2 = tlat2 = self.__grid_hdr['tlat2'][0]
         self.IUTM = iutm = self.__grid_hdr['iutm'][0]
-        self.ISTAG = istag = self.__grid_hdr['istag'][0]        
+        self.ISTAG = istag = self.__grid_hdr['istag'][0]
         self.CPROJ = cproj = self.__grid_hdr['iproj'][0]
         self.__cell_hdr=self.__memmap[offset:offset+self.__cell_hdr_fmt.itemsize/4].view(self.__cell_hdr_fmt)
         offset+=self.__cell_hdr.nbytes/4+1
@@ -142,7 +140,7 @@ class point_source(PseudoNetCDFFile):
         self.ITZON=self.__emiss_hdr['itzon'][0]
 
 
-        self.__spc_hdr=self.__memmap[offset:offset+self.__spc_hdr_fmt.itemsize/4*nspec].view('>S1').reshape(nspec, 10, 4)
+        self.__spc_hdr=self.__memmap[offset:offset+self.__spc_hdr_fmt.itemsize/4*nspec].view(ep+'S1').reshape(nspec, 10, 4)
         offset+=self.__spc_hdr.nbytes/4+1
 
         spc_names=[np.char.strip(spc[:,0].copy().view('S10'))[0] for spc in self.__spc_hdr]
@@ -169,6 +167,7 @@ class point_source(PseudoNetCDFFile):
         return self.__spc_names.index(spc)
 
     def __time_stks(self):
+        ep = self.__endianprefix
         i=offset=0
         nspcs=len(self.__spc_names)
         nstks=len(self.dimensions['NSTK'])
@@ -185,13 +184,13 @@ class point_source(PseudoNetCDFFile):
         start=0
         end=date_block_size
         date_times=data[:,start:end]
-        dates=date_times[:,[1,3]].view('>i')
+        dates=date_times[:,[1,3]].view(ep+'i')
         times=date_times[:,[2,4]]
         
         start=end
         end=start+stk_block_size
         nstk_hdr=data[:,start:end]
-        if not (nstks==nstk_hdr[:,2:3].view('>i')).all():
+        if not (nstks==nstk_hdr[:,2:3].view(ep+'i')).all():
             raise ValueError("Number of stacks varies with time")
         start=end
         end=start+stk_props_size
@@ -231,7 +230,7 @@ class point_source(PseudoNetCDFFile):
             v=self.createVariable(k,data_type,('TSTEP','NSTK'))
             v.units={'IONE':'#', 'ITWO':'#', 'KCELL':'#', 'FLOW':'m**3/hr', 'PLMHT':'m'}[k]
             v.long_name=k.ljust(16)
-            v.var_desc=k.ljust(16)            
+            v.var_desc=k.ljust(16)
             vals = self.__hourly_stk_props[:,:,['IONE','ITWO','KCELL','FLOW','PLMHT'].index(k)]
             v[:] = vals.view('>' + data_type)
             return v
