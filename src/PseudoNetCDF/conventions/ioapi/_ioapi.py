@@ -193,7 +193,9 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         elif ifileo.GDTYP == 1:
             mapproj = lambda x, y, inverse: (x, y)
         lon, lat = mapproj(lcc_x, lcc_y, inverse = True)
-        lone, late = mapproj(lcc_xe, lcc_ye, inverse = True)
+        lone, late = mapproj(lcc_xe.ravel(), lcc_ye.ravel(), inverse = True)
+        lone = lone.reshape(*lcc_xe.shape)
+        late = late.reshape(*lcc_ye.shape)
         
     if 'x' not in ifileo.variables.keys():
         """
@@ -284,6 +286,9 @@ def add_ioapi_from_cf(ifileo, coordkeys = []):
     tflag = ifileo.createVariable('TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
     tflag[:, :, 0] = jdays[:, None]
     tflag[:, :, 1] = itimes[:, None]
+    tflag.units = "<YYYYDDD,HHMMSS>" ;
+    tflag.long_name = "TFLAG           " ;
+    tflag.var_desc = "Timestep-valid flags:  (1) YYYYDDD or (2) HHMMSS                                " ;
     
 add_ioapi_from_ioapi = add_ioapi_from_cf
     
