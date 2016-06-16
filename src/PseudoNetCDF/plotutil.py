@@ -5,6 +5,7 @@ plt = pyplot
 
 Normalize = pl.matplotlib.colors.Normalize
 LogNorm = pl.matplotlib.colors.LogNorm
+SymLogNorm = pl.matplotlib.colors.SymLogNorm
 BoundaryNorm = pl.matplotlib.colors.BoundaryNorm
 
 def SegmentedNorm(vmin, vmax, bins = 10, ncolors = 256):
