@@ -69,7 +69,7 @@ def plot(ifiles, args):
                 elif scale == 'linear':
                     bins = np.linspace(vmin, vmax, 11)
                 elif scale == 'deciles':
-                    bins = np.percentile(np.ma.compressed(np.ma.masked_greater(np.ma.masked_less(var, vmin), vmax)).ravel(), [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
+                    bins = np.percentile(np.ma.compressed(np.ma.masked_greater(np.ma.masked_less(var, vmin).view(np.ma.MaskedArray), vmax)).ravel(), [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
                     bins[0] = vmin; bins[-1] = vmax
                 norm = BoundaryNorm(bins, ncolors = 256)
             
@@ -78,10 +78,10 @@ def plot(ifiles, args):
                 fig.subplots_adjust(hspace = .3, wspace = .3)
                 axmap = fig.add_subplot(3,3,5)
                 try:
-                    cmaqmap = getmap(f)
+                    cmaqmap = getmap(f, resolution = args.resolution)
                     cmaqmap.drawcoastlines(ax = axmap)
                     cmaqmap.drawcountries(ax = axmap)
-                    if args.states: cmaqmap.drawstates(ax = axmap)
+                    if not args.states: cmaqmap.drawstates(ax = axmap)
                     if args.counties: cmaqmap.drawcounties(ax = axmap)
                     cmaqmap.drawparallels(np.arange(-90, 100, 10), labels = [True, True, False, False], ax = axmap)
                     cmaqmap.drawmeridians(np.arange(-180, 190, 20), labels = [False, False, True, True], ax = axmap)
@@ -216,7 +216,7 @@ def plot(ifiles, args):
 if __name__ == '__main__':
     from PseudoNetCDF.pncparse import getparser, pncparse
     
-    parser = getparser(has_ofile = True, plot_options = True, interactive = False)
+    parser = getparser(has_ofile = True, map_options = True, plot_options = True, interactive = False)
     parser.add_argument("--itertime", dest = "itertime", action = "store_true", default = False,
                         help = "Create plots for each time.")
 
@@ -239,7 +239,7 @@ if __name__ == '__main__':
                         help = "Defaults 0,100.")
     parser.epilog = """
 Example:
-    $ pncboundaries.py outputs/ts20120301.bpch.BCON.nc -v O3 test_boundary -r TSTEP,mean --states True
+    $ pncboundaries.py outputs/ts20120301.bpch.BCON.nc -v O3 test_boundary -r TSTEP,mean --states
 """
     ifiles, args = pncparse(has_ofile = True, parser = parser)
     if args.variables is None:
