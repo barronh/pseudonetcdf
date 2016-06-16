@@ -20,14 +20,17 @@ def prepmap(ifiles, args):
     if args.states: map.drawstates(ax = ax)
     if args.counties: map.drawcounties(ax = ax)
     for si, shapefile in enumerate(args.shapefiles):
-        shapename = os.path.basename(shapefile)[:-3] + str(si)
-        map.readshapefile(shapefile, shapename, ax = ax, linewidth = pl.rcParams['lines.linewidth'])
+        shapeopts = shapefile.split(',')
+        shapepath = shapeopts[0]
+        shapeoptdict = eval('dict(' + ','.join(shapeopts[1:]) + ')')
+        shapename = os.path.basename(shapepath)[:-3] + str(si)
+        map.readshapefile(shapepath, shapename, ax = ax, **shapeoptdict)
     args.map = map
 
 def makemap(ifiles, args):
     fig = pl.gcf()
     if len(args.figure_keywords) > 0:
-        plt.setp(fig, **figure_keywords)
+        plt.setp(fig, **args.figure_keywords)
     
     ax = pl.gca()
     if len(args.axes_keywords) > 0:
@@ -96,9 +99,9 @@ def makemap(ifiles, args):
             if not norm.vmax is None:
                 vmax = norm.vmax
             varunit = getattr(var, 'units', 'unknown').strip()
-            print(varkey, sep = '')
+            if args.verbose > 0: print(varkey, sep = '')
             if vals.ndim == 1:
-                patches = map.scatter(lon[:], lat[:], c = vals, s = 24, norm = norm, ax = ax, zorder = 2)
+                patches = map.scatter(lon[:], lat[:], c = vals, edgecolors = 'none', s = 24, norm = norm, ax = ax, zorder = 2)
             else:
                 patches = map.pcolor(LON, LAT, vals, norm = norm, ax = ax)
             if lonunit == 'x (m)':
@@ -140,8 +143,9 @@ def makemap(ifiles, args):
             cbar.update_ticks()
             fmt = args.figformat
             outpath = args.outpath
-            if len(ifiles) > 1:                
+            if len(ifiles) > 1:
                 lstr = str(fi).rjust(len(str(len(ifiles))), '0')
+                if args.verbose > 0: print('adding numeric suffix for file', lstr)
             else:
                 lstr = ''
                 
@@ -149,7 +153,8 @@ def makemap(ifiles, args):
             if args.interactive:
                 csl = PNCConsole(locals = globals())
                 csl.interact()
-            
+            for cmd in args.plotcommands:
+                exec(cmd)
             pl.savefig(figpath)
             if args.verbose > 0: print('Saved fig', figpath)
         
@@ -157,7 +162,6 @@ if __name__ == '__main__':
     parser = getparser(has_ofile = True, map_options = True, plot_options = True, interactive = True)
     parser.add_argument('--no-squeeze', dest = 'squeeze', default = True, action = 'store_false', help = 'Squeeze automatically removes singleton dimensions; disabling requires user to remove singleton dimensions with --remove-singleton option')
     parser.add_argument("--iter", dest = "iter", action = 'append', default = [], help = "Create plots for each element of specified dimension (e.g., --iter=time).")
-    parser.add_argument("--resolution", dest = "resolution", choices = ['c', 'i', 'h'], default = 'c', help = "Use coarse (c), intermediate (i), or high (h) resolution for maps.")
     ifiles, args = pncparse(has_ofile = True, plot_options = True, interactive = True, parser = parser)
     prepmap(ifiles, args)
     if args.iter != []:
