@@ -33,7 +33,7 @@ MISSING_LINE = 12
 class ffi1001(PseudoNetCDFFile):
     def __init__(self,path):
         PseudoNetCDFFile.__init__(self)
-        f = open(path, 'r')
+        f = open(path, 'rU')
         missing = []
         units = []
         l = f.readline()
@@ -153,7 +153,8 @@ class ffi1001(PseudoNetCDFFile):
         while datalines[-1] in ('', ' ', '\r'):
             ndatalines -=1
             datalines.pop(-1)
-        data = genfromtxt(StringIO(u'\n'.join(datalines)), delimiter = delim, dtype = 'd')
+        
+        data = genfromtxt(StringIO('\n'.join(datalines).encode()), delimiter = delim, dtype = 'd')
         data = data.reshape(ndatalines,len(variables))
         data = data.swapaxes(0,1)
         self.createDimension('POINTS', ndatalines)
