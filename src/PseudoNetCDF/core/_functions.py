@@ -66,7 +66,7 @@ def removesingleton(f, rd, coordkeys = []):
         ov[...] = outvals[...]
     return outf
     
-def getvarpnc(f, varkeys, coordkeys = []):
+def getvarpnc(f, varkeys, coordkeys = [], copy = True):
     coordkeys = set(coordkeys)
     if varkeys is None:
         varkeys = list(set(f.variables.keys()).difference(coordkeys))
@@ -116,8 +116,10 @@ def getvarpnc(f, varkeys, coordkeys = []):
             if not 'standard_name' in propd:
                 propd['standard_name'] = propd['name']
             del propd['name']
-        
-        outf.createVariable(varkey, var.dtype.char, var.dimensions, values = var[...], **propd)
+        vals = var[...]
+        if copy:
+            vals = vals.copy()
+        outf.createVariable(varkey, var.dtype.char, var.dimensions, values = vals, **propd)
     for coordkey in coordkeys:
         if coordkey in f.variables.keys():
             coordvar = f.variables[coordkey]
@@ -345,7 +347,7 @@ def mask_vals(f, maskdef, metakeys = 'time layer level latitude longitude time_b
     mtype = maskdef.split(',')[0]
     mval = ','.join(maskdef.split(',')[1:])
     if mtype == 'where':
-        maskexpr = 'np.ma.masked_where(mask, var[:])'
+        maskexpr = 'np.ma.masked_where(mask, var[:].view(np.ndarray))'
         mask = eval(mval, None, f.variables)
     else:
         maskexpr = 'np.ma.masked_%s(var[:], %s)' % (mtype, mval)
@@ -655,13 +657,13 @@ def pncexpr(expr, ifile, verbose = 0):
 
                     
     varkeys = [key for key in co.co_names if key in ifile.variables]
-    varpnc = getvarpnc(ifile, varkeys)
-    tmpfile = getvarpnc(ifile, None)
+    #getvarpnc(ifile, varkeys)
+    varpnc = tmpfile = getvarpnc(ifile, None)
 
     # Get NetCDF variables as a dictionary with 
     # names mangled to allow special characters
     # in the names
-    vardict = dict([(_namemangler(k), ifile.variables[k]) for k in varpnc.variables.keys()])
+    vardict = dict([(_namemangler(k), varpnc.variables[k]) for k in varpnc.variables.keys()])
     # Compile the expr
     comp = compile(expr, 'none', 'exec')
     for key in comp.co_names:
@@ -681,10 +683,13 @@ def pncexpr(expr, ifile, verbose = 0):
     # Assign expression to new variable.
     exec(comp, None, vardict)
     newkeys = set(vardict.keys())
-    assignedkeys = newkeys.difference(oldkeys)
+    assignedkeys = [k for k in newkeys.difference(oldkeys) if k[:1] != '_']
+    
     for key in assignedkeys:
         val = vardict[key]
-        if isinstance(val, (PseudoNetCDFVariable,)):
+        # if the output variable has no dimensions, there is likely a problem
+        # and the output should be defined.
+        if isinstance(val, (PseudoNetCDFVariable,)) and val.dimensions != ():
             tmpfile.variables[key] = val
         else:
             tmpfile.createVariable(key, val.dtype.char, dimt, values = val, **propd)
@@ -782,7 +787,7 @@ def merge(fs):
                 nv.setunlimited(v.isunlimited())
         for k, v in f.variables.items():
             if k in outf.variables:
-                if v.shape != outf.variables[k].shape or not (v[:] == outf.variables[k][:]).all():
+                if v.shape != outf.variables[k].shape or not (v[...] == outf.variables[k][...]).all():
                     warn('%s already in output' % k)
             else:
                 propd = dict([(p, getattr(v, p)) for p in v.ncattrs()])
