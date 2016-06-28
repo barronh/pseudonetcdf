@@ -363,13 +363,13 @@ def getmap(ifile, resolution = 'i'):
         try:
             lat, latunit = getlatbnds(ifile)
             lon, lonunit = getlonbnds(ifile)
-            kwds['resolution'] = 'i'
             kwds['llcrnrlat'] = float(lat[:].min())
             kwds['urcrnrlat'] = float(lat[:].max())
             kwds['llcrnrlon'] = float(lon[:].min())
             kwds['urcrnrlon'] = float(lon[:].max())
             kwds['resolution'] = resolution
-        except:
+        except Exception as e:
+            print(e)
             pass
         m = Basemap(**kwds)
     return m
