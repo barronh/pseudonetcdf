@@ -218,7 +218,7 @@ def WDRMSE(obs, mod, axis = None):
     return np.ma.sqrt(((circlebias(mod-obs))**2).mean(axis = axis))
 
 def RMSEs(obs, mod, axis = None):
-    """Root Mean Squared Error (obs, mod_hat)"""
+    """Root Mean Squared Error systematic (obs, mod_hat)"""
     if axis is None:
         try:
             from scipy.stats import linregress
@@ -240,7 +240,7 @@ def matchedcompressed(a1, a2):
     return a1.compressed(), a2.compressed()
 
 def RMSEu(obs, mod, axis = None):
-    """Root Mean Squared Error (mod_hat, mod)"""
+    """Root Mean Squared Error unsystematic (mod_hat, mod)"""
     if axis is None:
         try:
             from scipy.stats import linregress
@@ -383,8 +383,8 @@ def main():
         console.locals[k] = func = eval(k)
         try:
             console.locals[k+'_f'] = ofile = pncbfunc(func, ifile1, ifile2)
-        except:
-            warn("Skipped " + k)
+        except Exception as e:
+            warn("Skipped " + k + ';' + str(e))
             continue
         try:
             from PseudoNetCDF.coordutil import gettimes
