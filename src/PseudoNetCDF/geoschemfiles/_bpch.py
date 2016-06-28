@@ -926,7 +926,7 @@ def ncf2bpch(ncffile, outpath, verbose = 0):
             header['tracerid'] = var.tracerid
             header['category'] = var.category.ljust(40)
             header['unit'] = var.base_units
-            header['dim'] = list(vals.shape[::-1]) + [getattr(var, k_) + 1 for k_ in 'STARTI STARTJ STARTK'.split()]
+            header['dim'] = list(vals.shape[::-1]) + [getattr(var, k_, 0) + 1 for k_ in 'STARTI STARTJ STARTK'.split()]
             time_data[varkey]['SPAD1'] = time_data[varkey]['EPAD1'] = np.prod(vals.shape) * 4
             header['skip'] = time_data[varkey]['SPAD1'] + 8
             if ncffile.noscale:
