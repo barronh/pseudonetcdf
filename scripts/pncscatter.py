@@ -32,6 +32,8 @@ def plot_scatter(ifiles, args):
         sax.set_ylim(vmin, vmax)
         #plt.setp(sax.xaxis.get_ticklabels(),rotation = 45)
         figpath = args.outpath + target + '.' + args.figformat
+        for pc in args.plotcommands:
+            exec(pc)
         fig.savefig(figpath)
         if args.verbose > 0: print('Saved fig', figpath)
 
