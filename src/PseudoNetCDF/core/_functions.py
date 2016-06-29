@@ -217,8 +217,12 @@ def extract_lonlat(f, lonlat, unique = False, gridded = None, method = 'nn', pas
     lonlatout = []
     for ll in lonlat:
         if isinstance(ll, (str, )):
-            if os.path.exists(ll):
-                ll = open(ll, 'r').read().strip()
+            try:
+                if os.path.exists(ll):
+                    ll = open(ll, 'r').read().strip()
+            except Exception as e:
+                warn('Windows machines may have uncessary warnings; ' + str(e))
+                
             lonlatout.append(ll)
     lonlat = ('/'.join(lonlatout))
     try:
