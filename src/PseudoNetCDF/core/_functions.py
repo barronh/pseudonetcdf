@@ -655,12 +655,13 @@ def pncexpr(expr, ifile, verbose = 0):
     and add the result to the file with appropriate units.
     """
     from PseudoNetCDF.sci_var import Pseudo2NetCDF
+    from symtable import symtable
     
     # Copy file to temporary PseudoNetCDF file
-    co = compile(expr, 'none', 'exec')
+    comp = compile(expr, 'none', 'exec')
 
                     
-    varkeys = [key for key in co.co_names if key in ifile.variables]
+    #varkeys = [key for key in comp.co_names if key in ifile.variables]
     #getvarpnc(ifile, varkeys)
     varpnc = tmpfile = getvarpnc(ifile, None)
 
@@ -669,13 +670,16 @@ def pncexpr(expr, ifile, verbose = 0):
     # in the names
     vardict = dict([(_namemangler(k), varpnc.variables[k]) for k in varpnc.variables.keys()])
     # Compile the expr
-    comp = compile(expr, 'none', 'exec')
-    for key in comp.co_names:
+    symtbl = symtable(expr, '<pncexpr>', 'exec')
+    symbols = symtbl.get_symbols()
+    for symbol in symbols:
+        key = symbol.get_name()
         if key in vardict:
             tmpvar = vardict[key]
             break
     else:
         tmpvar = PseudoNetCDFVariable(None, 'temp', 'f', ())
+    
     propd = dict([(k, getattr(tmpvar, k)) for k in tmpvar.ncattrs()])
     dimt = tmpvar.dimensions
     # Add all used constants as properties
@@ -684,11 +688,14 @@ def pncexpr(expr, ifile, verbose = 0):
     vardict['np'] = np
     exec('from scipy.constants import *', None, vardict)
     oldkeys = set(vardict.keys())
+    
     # Assign expression to new variable.
     exec(comp, None, vardict)
-    newkeys = set(vardict.keys())
-    assignedkeys = [k for k in newkeys.difference(oldkeys) if k[:1] != '_']
     
+    #newkeys = set(vardict.keys())
+    #assignedkeys = [k for k in newkeys.difference(oldkeys) if k[:1] != '_']
+    assignedkeys = [s.get_name() for s in symbols if s.is_assigned()]
+    assignedkeys = [k for k in assignedkeys if k in vardict]
     for key in assignedkeys:
         val = vardict[key]
         # if the output variable has no dimensions, there is likely a problem
@@ -839,3 +846,40 @@ def stack_files(fs, stackdim, coordkeys = []):
                     f.variables[varkey][:] = values
         
     return f
+
+def splitdim(inf, olddim, newdims, newshape):
+    oldsize = len(inf.dimensions[olddim])
+    newsize = np.prod(newshape)
+    if newsize != oldsize:
+        raise ValueError('New shape, must match old dimension length: %d %d %s' % (oldsize, newsize, newshape))
+    if len(newdims) != len(newshape):
+        raise ValueError('Shape and dimensions must match in length')
+    from PseudoNetCDF.sci_var import Pseudo2NetCDF
+    p2n = Pseudo2NetCDF()
+    outf = PseudoNetCDFFile()
+    for dk, d in inf.dimensions.items():
+        if dk == olddim:
+            for dk, dl in zip(newdims, newshape):
+                outf.createDimension(dk, dl)
+        else:
+            p2n.addDimension(inf, outf, dk)
+    
+    for vk, invar in inf.variables.items():
+        if olddim in invar.dimensions:
+            outdims = []
+            outshape = []
+            for dk in invar.dimensions:
+                if dk == olddim:
+                    outdims.extend(newdims)
+                    outshape.extend(newshape)
+                else:
+                    outdims.append(dk)
+                    outshape.append(len(inf.dimensions[dk]))
+            
+            outvar = outf.createVariable(vk, invar.dtype.char, tuple(outdims))
+            p2n.addVariableProperties(invar,outvar)
+            outvar[:] = invar[:].reshape(*outshape)
+        else:
+            p2n.addVariable(inf, outf, vk)
+    
+    return outf
