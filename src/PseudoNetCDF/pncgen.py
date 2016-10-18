@@ -43,19 +43,23 @@ class Pseudo2NetCDF:
         return nfile
         
     def addDimensions(self,pfile,nfile):
-        for d,v in pfile.dimensions.items():
-            unlim = (d in self.unlimited_dimensions or v.isunlimited())
-            if not isinstance(v, (int, long)) and v is not None:
-                v = len(v)
-            
-            if unlim:
-                if isinstance(nfile, PseudoNetCDFFile):
-                    nd = nfile.createDimension(d,v)
-                    nd.setunlimited(True)
-                else:
-                    nd = nfile.createDimension(d,None)
-            else:
+        for d in pfile.dimensions.keys():
+            self.addDimension(pfile, nfile, d)
+    
+    def addDimension(self,pfile,nfile,d):
+        v = pfile.dimensions[d]
+        unlim = (d in self.unlimited_dimensions or v.isunlimited())
+        if not isinstance(v, (int, long)) and v is not None:
+            v = len(v)
+        
+        if unlim:
+            if isinstance(nfile, PseudoNetCDFFile):
                 nd = nfile.createDimension(d,v)
+                nd.setunlimited(True)
+            else:
+                nd = nfile.createDimension(d,None)
+        else:
+            nd = nfile.createDimension(d,v)
 
         nfile.sync()
     
