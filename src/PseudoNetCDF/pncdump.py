@@ -167,7 +167,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                         
                         tmpstr = StringIO()
                         if ma.getmaskarray(row).all():
-                            tmpstr.write(', '.join(['_'] * row.size) + ', ')
+                            tmpstr.write(b', '.join([b'_'] * row.size) + b', ')
                         else:
                             savetxt(tmpstr, ma.filled(row), fmt, delimiter = commaspace, newline = commaspace)
                         if last:
