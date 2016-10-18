@@ -30,9 +30,10 @@ from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd
 from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoIOAPIVariable, PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
-from PseudoNetCDF.camxfiles.units import get_uamiv_units
+from PseudoNetCDF.camxfiles.units import get_uamiv_units, get_chemparam_names
 from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
 #for use in identifying uncaught nan
+
 class uamiv(PseudoNetCDFFile):
     """
     uamiv provides a PseudoNetCDF interface for CAMx
@@ -66,13 +67,18 @@ class uamiv(PseudoNetCDFFile):
     __ione=1
     __idum=0
     __rdum=0.
-    def __init__(self, rf, mode='r', P_ALP = None, P_BET = None, P_GAM = None, XCENT = None, YCENT = None, GDTYP = None, endian = 'big'):
+    def __init__(self, rf, mode='r', P_ALP = None, P_BET = None, P_GAM = None, XCENT = None, YCENT = None, GDTYP = None, endian = 'big', chemparam = None):
         """
         Initialization included reading the header and learning
         about the format.
         
         see __readheader and __gettimestep() for more info
         """
+        if chemparam is None:
+            self._aerosol_names = None
+        else:
+            self._aerosol_names = get_chemparam_names(chemparam)['aerosol']
+        
         ep = self.__endianprefix = dict(big = '>', little = '<')[endian]
         self.__emiss_hdr_fmt=dtype(dict(names=['SPAD', 'name', 'note', 'itzon', 'nspec', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[ep + 'i', '(10, 4)%sS1' % ep, '(60,4)%sS1' % ep, ep + 'i', ep + 'i', ep + 'i', ep + 'f', ep + 'i', ep + 'f', ep + 'i']))
         self.__grid_hdr_fmt=dtype(dict(names=['SPAD', 'plon', 'plat', 'iutm', 'xorg', 'yorg', 'delx', 'dely', 'nx', 'ny', 'nz', 'iproj', 'istag', 'tlat1', 'tlat2', 'rdum', 'EPAD'], formats=[ep + 'i', ep + 'f', ep + 'f', ep + 'i', ep + 'f', ep + 'f', ep + 'f', ep + 'f', ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'f', ep + 'f', ep + 'f', ep + 'i']))
@@ -237,7 +243,7 @@ class uamiv(PseudoNetCDFFile):
         del f
         ntimes=float(size-offset)/4./data_block_size
         if int(ntimes)!=ntimes:
-            raise ValueError("Not an even number of times %f" % ntimes)
+            raise ValueError("Partial time output (%f times); partial time indicates incomplete file." % ntimes)
         ntimes=int(ntimes)
         
         self.createDimension('LAY', nz)
@@ -253,7 +259,7 @@ class uamiv(PseudoNetCDFFile):
         spc_index=self.__var_names__.index(k)
         dimensions=('TSTEP', 'LAY', 'ROW', 'COL')
         outvals=self.__memmap__[k]['DATA']
-        units = get_uamiv_units(self.NAME, k)
+        units = get_uamiv_units(self.NAME, k, self._aerosol_names)
         
         return PseudoIOAPIVariable(self, k, 'f', dimensions, values=outvals, units = units)
 

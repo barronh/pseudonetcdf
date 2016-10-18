@@ -32,7 +32,7 @@ from numpy import zeros,array,where,memmap,newaxis,dtype,fromfile
 #This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timediff,timeadd,timerange
 from PseudoNetCDF.camxfiles.util import sliceit
-from PseudoNetCDF.camxfiles.units import get_uamiv_units
+from PseudoNetCDF.camxfiles.units import get_uamiv_units, get_chemparam_names
 from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile,read_into,Int2Asc,Asc2Int
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoIOAPIVariable, PseudoNetCDFVariables
 
@@ -83,7 +83,7 @@ class uamiv(PseudoNetCDFFile):
     ione=1
     idum=0
     rdum=0.
-    def __init__(self,rf):
+    def __init__(self,rf,chemparam = None):
         """
         Initialization included reading the header and learning
         about the format.
@@ -92,6 +92,10 @@ class uamiv(PseudoNetCDFFile):
         """
                 
         self.rffile=OpenRecordFile(rf)
+        if chemparam is None:
+            self._aerosol_names = None
+        else:
+            self._aerosol_names = get_chemparam_names(chemparam)
         
         self.padded_time_hdr_size=struct.calcsize(self.time_hdr_fmt+"ii")
         self.__readheader()
@@ -106,7 +110,7 @@ class uamiv(PseudoNetCDFFile):
         self.variables=PseudoNetCDFVariables(self.__var_get,map(str.strip,self.spcnames))
 
     def __var_get(self,key):
-        units = get_uamiv_units(self.name, key)
+        units = get_uamiv_units(self.name, key, self._aerosol_names)
         spcnames = map(str.strip, self.spcnames)
         if self.name=='EMISSIONS ':
             constr=lambda spc: self.getArray(nspec=spcnames.index(spc)).squeeze()[:,newaxis,:,:]
