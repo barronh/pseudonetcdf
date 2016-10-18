@@ -133,7 +133,10 @@ class ipr(PseudoNetCDFFile):
         for di, domain in enumerate(self.padomains):
             dk = 'PA%02d' % di
             prefix = dk + '_'
-            grp = self.groups[dk] = PseudoNetCDFFile()
+            if len(self.padomains) == 1:
+                grp = self.groups[dk] = self
+            else:
+                grp = self.groups[dk] = PseudoNetCDFFile()
             pavarkeys.extend([prefix + k for k in varkeys])
             grp.createDimension('VAR', NVARS)
             grp.createDimension('DATE-TIME', 2)
@@ -142,12 +145,7 @@ class ipr(PseudoNetCDFFile):
             grp.createDimension('ROW', domain['jend'] - domain['jstart'] + 1)
             grp.createDimension('LAY', domain['tlay'] - domain['blay'] + 1)
             padatatype.append((dk, self.__ipr_record_type, (len(grp.dimensions['ROW']), len(grp.dimensions['COL']), len(grp.dimensions['LAY']))))
-            if len(self.padomains) == 1:
-                self.createDimension('COL', domain['iend']-domain['istart']+1)
-                self.createDimension('ROW', domain['jend']-domain['jstart']+1)
-                self.createDimension('LAY', domain['tlay']-domain['blay']+1)
-            exec("""def varget(k):
-                return self._ipr__variables('%s', k)""" % dk, dict(self = self), locals())
+            grp.varget  = eval("lambda k: self._ipr__variables('%s', k)""" % dk, dict(self = self), locals())
             if len(self.padomains) == 1:
                 self.variables = PseudoNetCDFVariables(varget,varkeys)
             else:
@@ -225,7 +223,7 @@ class ipr(PseudoNetCDFFile):
         
         self.spcnames = []
         for spc in range(self.__rffile.read("i")[-1]):
-            self.spcnames.append(self.__rffile.read("10s")[-1].strip())
+            self.spcnames.append(char.decode(self.__rffile.read("10s")[-1]).strip())
             
         self.nspec=len(self.spcnames)
         self.padomains=[]

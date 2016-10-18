@@ -27,6 +27,7 @@ import os,sys
 
 #Site-Packages
 from numpy import zeros,array,where,memmap,newaxis,dtype,fromfile,dtype
+from numpy import char
 
 #This Package modules
 from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
@@ -119,17 +120,20 @@ class ipr(PseudoNetCDFFile):
         tdim.setunlimited(True)
         self.createDimension('DATE-TIME',2)
         self.createDimension('VAR',self.NSPCS*self.NPROCESS)
-        varkeys=["_".join([j[1],j[0]]) for j in [i for i in cartesian([i.strip() for i in self.spcnames['SPECIES'].tolist()],self.proc_dict.keys())]]+['TFLAG']
+        varkeys=["_".join([j[1],j[0]]) for j in [i for i in cartesian([i.strip() for i in char.decode(self.spcnames['SPECIES']).tolist()],self.proc_dict.keys())]]+['TFLAG']
         self.variables=PseudoNetCDFVariables(self.__variables,varkeys)
         for k, v in props.items():
             setattr(self, k, v)
-        add_cf_from_ioapi(self)
+        try:
+            add_cf_from_ioapi(self)
+        except:
+            pass
         
 
     def __variables(self,proc_spc):
         if proc_spc=='TFLAG':
-            time=self.variables['TIME_%s'  % self.spcnames[0][1].strip()]
-            date=self.variables['DATE_%s'  % self.spcnames[0][1].strip()]
+            time=self.variables['TIME_%s'  % char.decode(self.spcnames)[0][1].strip()]
+            date=self.variables['DATE_%s'  % char.decode(self.spcnames[0])[1].strip()]
             self.variables['TFLAG']=PseudoNetCDFVariable(self,'proc_spc','i',('TSTEP','VAR','DATE-TIME'),values=ConvertCAMxTime(date[:,0,0,0],time[:,0,0,0],len(self.dimensions['VAR'])))
             return self.variables['TFLAG']
         
@@ -138,7 +142,7 @@ class ipr(PseudoNetCDFFile):
         for k in self.proc_dict:
             proc=proc_spc[:len(k)]
             spc=proc_spc[len(k)+1:]
-            if proc==k and spc.ljust(10) in self.spcnames['SPECIES'].tolist():
+            if proc==k and spc.ljust(10) in char.decode(self.spcnames['SPECIES']).tolist():
                 spcprocs=self.__readalltime(spc)
                 for p,plong in self.proc_dict.items():
                     var_name=p+'_'+spc
@@ -172,7 +176,7 @@ class ipr(PseudoNetCDFFile):
         return out
 
     def __start(self,ntime,spc):
-        nspec=self.spcnames['SPECIES'].tolist().index(spc.ljust(10))
+        nspec=char.decode(self.spcnames['SPECIES']).tolist().index(spc.ljust(10))
         return self.__data_start_byte+(long(ntime)*self.__block4d+self.__block3d*nspec)*self.__ipr_record_type.itemsize
     
     def __readheader(self):
