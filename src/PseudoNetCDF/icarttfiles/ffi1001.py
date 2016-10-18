@@ -31,9 +31,10 @@ DATE_VAR_LINE = 10
 SCALE_LINE = 11
 MISSING_LINE = 12
 class ffi1001(PseudoNetCDFFile):
-    def __init__(self,path):
+    def __init__(self,path,keysubs={'/': '_'},encoding='utf-8'):
+        lastattr = None
         PseudoNetCDFFile.__init__(self)
-        f = open(path, 'rU')
+        f = open(path, 'rU', encoding = encoding)
         missing = []
         units = []
         l = f.readline()
@@ -69,7 +70,7 @@ class ffi1001(PseudoNetCDFFile):
                 elif li == VOL_LINE:
                     self.VOLUME_INFO = l.strip()
                 elif li == DATE_LINE:
-                    l = l.replace(',', '').split()
+                    l = l.replace(',', ' ').replace('  ', ' ').split()
                     SDATE = "".join(l[:3])
                     WDATE = "".join(l[3:])
                     self.SDATE = SDATE
@@ -109,11 +110,18 @@ class ffi1001(PseudoNetCDFFile):
                     n_user_comments = int(l.replace('\n',''))
                 elif li > USER_COMMENT_COUNT_LINE and li < self.n_header_lines:
                     colon_pos = l.find(':')
-                    k = l[:colon_pos].strip()
-                    v = l[colon_pos+1:].strip()
+                    if l[:1] == ' ':
+                        k = lastattr
+                        v = getattr(self,k,'') + l
+                    else:
+                        k = l[:colon_pos].strip()
+                        v = l[colon_pos+1:].strip()
                     setattr(self,k,v)
+                    lastattr = k
                 elif li == self.n_header_lines:
-                    variables = l.replace(',','').split()
+                    variables = l.replace(',',' ').replace('  ', ' ').split()
+                    for oc, nc in keysubs.items():
+                        variables = [vn.replace(oc, nc) for vn in variables]
                     self.TFLAG = variables[0]
         except Exception as e:
             raise SyntaxError("Error parsing icartt file %s: %s" % (path, repr(e)))
