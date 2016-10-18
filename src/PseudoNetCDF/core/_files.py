@@ -43,6 +43,15 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
     methods that a file should present to act like a netCDF file
     using the Scientific.IO.NetCDF.NetCDFFile interface.
     """
+    
+    def __repr__(self):
+        from PseudoNetCDF.pncdump import pncdump
+        from io import StringIO
+        out = StringIO()
+        pncdump(self, header = True, outfile = out)
+        out.seek(0, 0)
+        return out.read()
+    
     @classmethod
     def isMine(cls, *args, **kwds):
         try:

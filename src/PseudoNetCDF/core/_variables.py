@@ -9,6 +9,49 @@ class PseudoNetCDFVariable(np.ndarray):
     without adding it to the parent file
     """
     __array_priority__ = 10000000.
+    def __repr__(self):
+        out = str(self)
+        return object.__repr__(self).replace(' at ', '\n' + out + ' at ')
+    
+    def __str__(self):
+        namekeys = ['name', 'standard_name', 'long_name']
+        for nck in self.ncattrs():
+            if 'name' in nck:
+                namekeys.append(nck)
+        
+        for nck in namekeys:
+            if hasattr(self, nck):
+                var_name = getattr(self, nck)
+                break
+        else:
+            var_name = 'unknown'
+                                
+        var_type = dict(float32='float', \
+                        float64='double', \
+                        int32='integer', \
+                        uint32='integer', \
+                        int64='long', \
+                        bool='bool', \
+                        string8='char', \
+                        string80='char').get(self.dtype.name, self.dtype.name)
+        out = ""
+        indent = "    "
+        startindent = ""
+        out += startindent + 1*indent+("%s %s%s; // shape: %s\n" % (var_type, var_name,str(self.dimensions).replace('u\'', '').replace('\'','').replace(',)',')'), str(self.shape)))
+        for prop_name in self.ncattrs():
+            prop = getattr(self, prop_name)
+            out += startindent + 2*indent+("%s:%s = %s ;\n" % (var_name,prop_name,repr(prop).replace("'", '"')))
+        
+        out += 'array: '
+        out += self.array().__str__()
+        return out
+
+    def array(self):
+        """
+        Return parent type view object
+        """
+        return self.view(type = np.ndarray)
+    
     def __setattr__(self, k, v):
         """
         Set attributes (aka properties) and identify user-defined attributes.
@@ -146,6 +189,12 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
             setattr(result,k,v)
         return result
 
+    def array(self):
+        """
+        Return parent type view object
+        """
+        return self.view(type = np.ma.masked_array)
+    
     def __array_finalize__(self, obj):
         np.ma.MaskedArray.__array_finalize__(self, obj)
     

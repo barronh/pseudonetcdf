@@ -11,4 +11,7 @@ class PseudoNetCDFDimension(object):
         return self._len
     def setunlimited(self, unlimited):
         self._unlimited = unlimited
-        
+    
+    def __repr__(self):
+        out = object.__repr__(self).replace(' at ', ' (len = %d) at' % len(self))
+        return out
