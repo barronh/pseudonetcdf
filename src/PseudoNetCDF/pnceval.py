@@ -362,24 +362,15 @@ def stat_timeseries(ifile0, ifile1, variables = ['O3'], counties = False):
             dots = ax.plot(statvs)
             show() 
 
-def main():
+def pnceval(args):
     from warnings import warn
-    from .pncparse import pncparse
     from PseudoNetCDF.core._functions import pncfunc, pncbfunc
-    from PseudoNetCDF.pncparse import getparser, pncparse
-
-    parser = getparser(has_ofile = False, plot_options = False, interactive = True)
-    parser.add_argument('--funcs', default = __all__, type = lambda x: x.split(','), help='Functions to evaluate split by , (default: %s)' % ','.join(__all__))
-
-    import numpy as np
-    np.seterr(divide = 'ignore', invalid = 'ignore')
-    ifiles, options = pncparse(has_ofile = False, interactive = True, parser = parser)
-    if options.variables is None:
-        options.variables = set(ifiles[0].variables.keys()).difference(options.coordkeys)
-    console = createconsole(ifiles, options)
+    if args.variables is None:
+        args.variables = set(ifiles[0].variables.keys()).difference(args.coordkeys)
+    console = createconsole(args.ifiles, args)
     warn("Assumes input order is obs model")
-    ifile1, ifile2 = ifiles
-    for k in options.funcs:
+    ifile1, ifile2 = args.ifiles
+    for k in args.funcs:
         console.locals[k] = func = eval(k)
         try:
             console.locals[k+'_f'] = ofile = pncbfunc(func, ifile1, ifile2)
@@ -400,11 +391,24 @@ def main():
             tstop = times[:].max()
             tfmts = '%.2f,%.2f' % (tstart, tstop)
         dt = tstop - tstart
-        for vk in options.variables:
+        for vk in args.variables:
             if vk in ('time', 'TFLAG'): continue
             print((tfmts + ',%s,%s,%s,%f') % (vk, func.__doc__.strip(), k, ofile.variables[vk].ravel()[0]))
     np.seterr(divide = 'warn', invalid = 'warn')
-    if options.interactive:
+    if args.interactive:
         console.interact()
+
+def main():
+    from .pncparse import getparser, pncparse
+
+    parser = getparser(has_ofile = False, plot_options = False, interactive = True)
+    parser.add_argument('--funcs', default = __all__, type = lambda x: x.split(','), help='Functions to evaluate split by , (default: %s)' % ','.join(__all__))
+
+    import numpy as np
+    np.seterr(divide = 'ignore', invalid = 'ignore')
+    ifiles, args = pncparse(has_ofile = False, interactive = True, parser = parser)
+    args.ifiles = ifiles
+    pnceval(args)
+
 if __name__ == '__main__':
     main()
