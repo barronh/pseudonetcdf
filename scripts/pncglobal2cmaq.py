@@ -21,6 +21,7 @@ from PseudoNetCDF import getvarpnc, slice_dim, extract
 from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
 from PseudoNetCDF.pncgen import pncgen
 from PseudoNetCDF.geoschemfiles import bpch
+from PseudoNetCDF.register import registerreader
 
 def makedefaulticon(metcroprops):
     """
@@ -198,7 +199,7 @@ def get_template(option, gcversion):
     "comment2": "Each line has the form \"Species\": {\"expression\": \"some expression\", \"unit\": \"some unit\"},",
     "comment3": "Variables with the output unit (micrograms/m**3) will be multiplied by air density (moles/m**3) and molar mass in the script. It should not be done in the expression.",
     "comment4": "Set \"manual_unit\": true to bypass script unit corrections",
-    "comment5": "If you do not have PSURF and/or TMPU, you can use values from the standard atmosphere by replacing the 'expression' value with the 'for_stdatm_use' value",
+    "comment5": "If you do not have PSURF and/or TMPU, you can use values from the standard atmosphere by adding --expr=\"PSURF=np.ones_like(O3[:,0][:, None])*1013.25;TMPU=np.ones_like(O3[:])*np.array([287.7,286.9,286.0,285.2,284.3,283.4,282.6,281.7,280.7,279.8,278.9,277.9,276.8,275.3,273.6,271.8,270.0,268.2,265.8,262.8,259.7,256.4,252.9,249.2,245.2,241.0,236.4,230.5,223.6,216.8,216.6,216.6,216.6,216.6,216.6,216.6,216.6,217.5,219.8,222.0,225.3,233.6,250.5,269.2,260.0,237.7,214.3])[None, :47, None, None]\"",
     "comment6": "more comments are added like this",
     "PRESS": {
             "expression": "(hyam[:].reshape(1, -1).T + hybm[:].reshape(1, -1).T * PSURF[:][:, [0]].T).T * 100.",
@@ -1221,8 +1222,11 @@ def makeibcon(args):
     messages += ' '.join(sys.argv[:]) + '\n'
     mappings_file = json.load(open(args.mapping, mode = 'r'))
     mappings = mappings_file['CMAQSPECIES']
-    spcs = ','.join(reduce(tuple.__add__, [compile(mapping['expression'], 'mapping', 'eval').co_names for mapping in mappings.values() + [mappings_file['AIRMOLDEN']]]))
-
+    spcs_list = []
+    for spcs in [compile(mapping['expression'], 'mapping', 'eval').co_names for mapping in [mv for mv in mappings.values()] + [mappings_file['AIRMOLDEN']]]:
+        spcs_list.extend(spcs)
+    
+    spcs = ','.join(spcs_list)
     if args.METBDY3D is None:
         dobcon = False
     else:
@@ -1506,6 +1510,41 @@ def makeibcon(args):
         newcon.sync()
 
 from PseudoNetCDF.sci_var import stack_files, getvarpnc, PseudoNetCDFFile
+
+class bpchwithstdatm(PseudoNetCDFFile):
+    """
+    Designed to add PSURF and TMPU variables based on simple standard atmospher assumption.
+    """
+    def __init__(self, bpath, vertgrid = 'GEOS-5-REDUCED', nogroup = True, verbose = False):
+        PseudoNetCDFFile.__init__(self)
+        from PseudoNetCDF.geoschemfiles import bpch
+        self.variables = {}
+        self.dimensions = {}
+        infile = self._infile = bpch(bpath, vertgrid = vertgrid, nogroup = nogroup)
+        NTIMES = len(infile.dimensions['time'])
+        NLAYS = len(infile.dimensions['layer'])
+        NLATS = len(infile.dimensions['latitude'])
+        NLONS = len(infile.dimensions['longitude'])
+        o = np.ones((NTIMES, NLAYS, NLATS, NLONS), dtype = 'f')
+        if 'layer1' not in infile.dimensions:
+            infile.createDimension('layer1', 1)
+        pvar = infile.createVariable('PSURF', 'f', ('time', 'layer1', 'latitude', 'longitude'))
+        pvar.units = 'hPa'
+        pvar[:] = 1013.25
+        if vertgrid == 'GEOS-5-REDUCED':
+            layer = 'layer47'
+        elif vertgrid == 'GEOS-5-NATIVE':
+            layer = 'layer72'
+        else:
+            raise KeyError('vertgrid must be GEOS-5-NATIVE or GEOS-4-NATIVE')
+        
+        tvar = infile.createVariable('TMPU', 'f', ('time', 'layer', 'latitude', 'longitude'))
+        tvar.units = 'K'
+        tvar[:] = np.array([287.7,286.9,286.0,285.2,284.3,283.4,282.6,281.7,280.7,279.8,278.9,277.9,276.8,275.3,273.6,271.8,270.0,268.2,265.8,262.8,259.7,256.4,252.9,249.2,245.2,241.0,236.4,230.5,223.6,216.8,216.6,216.6,216.6,216.6,216.6,216.6,216.6,217.5,219.8,222.0,225.3,233.6,250.5,269.2,260.0,237.7,214.3])[None, :NLAYS, None, None]*o
+        pncgen(infile, self, verbose = verbose)
+    
+        
+        
 class benchmark(PseudoNetCDFFile):
     """
     Designed to work with CTM runs with PEDGE-$_PSURF and DAO-3D-$_TMPU and IJ-AVG-$_*
@@ -1514,6 +1553,7 @@ class benchmark(PseudoNetCDFFile):
     http://ftp.as.harvard.edu/gcgrid/geos-chem/1yr_benchmarks/
     """
     def __init__(self, bpath, vertgrid = 'GEOS-5-NATIVE'):
+        PseudoNetCDFFile.__init__(self)
         from PseudoNetCDF.geoschemfiles import bpch
         inf = bpch(bpath, vertgrid = vertgrid)
         group_varkeys = [('', 'time'), ('', 'latitude'), ('', 'longitude'), ('', 'hyam'), ('', 'hybm'), ('', 'etam_pressure'), ('PEDGE-$', 'PSURF'), ('DAO-3D-$', 'TMPU')]
@@ -1540,8 +1580,9 @@ class benchmark(PseudoNetCDFFile):
             outvar[:] = invar[:]
         
         outf.sync()
+registerreader('benchmark', benchmark)
+registerreader('bpchwithstdatm', bpchwithstdatm)
 
-    
 if __name__ == '__main__':
     from PseudoNetCDF.pncparse import getparser, pncparse
     
@@ -1574,9 +1615,11 @@ Requirements:
         --METCRO3D - path to METCRO3D MCIP output file
 
 Example:
-    $ pncglobal2cmaq.py inputs/ts20120301.bpch --template=cb04tucl_ae6_aq > mappings.json
+    $ pncglobal2cmaq.py inputs/ts20120301.bpch --template=cb05tucl_ae6_aq > mappings.json
     $ pncglobal2cmaq.py inputs/ts20120301.bpch --METBDY3D inputs/METBDY3D_20120301 --METCRO3D inputs/METCRO3D_20120301 --mapping=mappings.json  --outifolder=outputs/ --outbfolder=outputs/
-
+    
+Example where BPCH file is missing PSURF and TMPU
+    
 """
     
     args = parser.parse_args()
