@@ -32,13 +32,14 @@ Example Workflow:
     $ pncgen -s LAY,0 --extract="-87.881412,30.498001/-85.802182,33.281261/..." CCTM_V5g_par_Linux2_x86_64gfort.ACONC.CMAQ-BENCHMARK_20060801 Benchmark_20060801-20060801.nc
     $ pnceval AQS_DATA_20060801-20060801.nc Benchmark_20060801-20060801.nc
     """)
+parser.add_argument('-v', '--verbose', action = 'count', dest = 'verbose', default = 0)
 parser.add_argument('--sampleval', default = None, help = 'Defaults to "Sample Measurement" for hourly and "Arithmetic Mean" for daily')
 parser.add_argument('--timeresolution', choices = ['daily', 'hourly'], default = 'hourly', help = 'Defaults to hourly')
 parser.add_argument('-s', '--start-date', required = True, dest = 'bdate', type = getbdate, help = 'Start date (inclusive) YYYY-MM-DD')
 parser.add_argument('-e', '--end-date', required = True, dest = 'edate', type = getedate, help = 'Start date (inclusive) YYYY-MM-DD')
 parser.add_argument('-r', '--ref-date', default = datetime(1900, 1, 1), dest = 'rdate', type = getrdate, help = 'Reference date YYYYMMDD HH:MM:SS')
 parser.add_argument('--param', type = str, default = '44201', nargs = '?', help = "Must exist as an AQS parameter")
-spacegroup = parser.add_mutually_exclusive_group(required = True)
+spacegroup = parser.add_mutually_exclusive_group(required = False)
 spacegroup.add_argument('--gridcro2d', dest = 'GRIDCRO2D', help = 'CMAQ MCIP GRIDCRO2D file or any file that has LAT and LON variables')
 spacegroup.add_argument('--wktpolygon')
 parser.add_argument('-o', '--output', type = str, dest = 'outpath', nargs = '?', help = 'Path for output defaults to AQS_DATA_YYYYMMDD-YYYYMMDD.nc.')
@@ -73,39 +74,19 @@ if not args.GRIDCRO2D is None:
     ul = (args.minlon, args.maxlat)
     args.wktpolygon = "POLYGON ((%s %s, %s %s, %s %s, %s %s, %s %s))" % (ll + lr + ur + ul + ll)
 
-bounds = loads(args.wktpolygon)
-pbounds = prep(bounds)
-        
-
-nseconds = {'hourly': 3600, 'daily': 3600*24}[args.timeresolution]
-tunit = {'hourly': 'hours', 'daily': 'days'}[args.timeresolution]
-ntimes = int((args.edate - args.bdate).total_seconds() / nseconds) + 1
-alltimes = [timedelta(**{tunit: i}) + args.bdate for i in range(ntimes)]
-
-
-# http://aqsdr1.epa.gov/aqsweb/aqstmp/airdata/download_files.html#Raw
-
-def hourly_parser(*args):
-    import dateutil
-    parse = np.vectorize(dateutil.parser.parse)
-    out =  (args[0] + ' ' + args[1].astype('S2')+'Z').astype(np.datetime64)
-    return out
-
-def hourly_parser(*args):
-    import dateutil
-    parse = np.vectorize(dateutil.parser.parse)
-    out =  (args[0] + ' ' + args[1].astype('S2')+'Z').astype(np.datetime64)
-    return out
-
 years = np.arange(args.bdate.year, args.edate.year + 1)
-hourlys = []
+yearpaths = []
 for year in years:
     yearpath = '%s_%s_%s.csv' % (args.timeresolution, args.param, year)
     filepath = '%s_%s_%s.zip' % (args.timeresolution, args.param, year)
     print('Downloading', yearpath)
     url = 'http://aqsdr1.epa.gov/aqsweb/aqstmp/airdata/%s' % (filepath,)
-    if not os.path.exists(yearpath):
-        if not os.path.exists(filepath):
+    if os.path.exists(yearpath):
+        print('..Already have ' + yearpath)
+    else:
+        if os.path.exists(filepath):
+            print('..Already have ' + filepath)
+        else:
             from urllib.request import urlopen, Request
             req = Request(url)
             ret = urlopen(req)
@@ -118,91 +99,18 @@ for year in years:
         import zipfile
         zf = zipfile.ZipFile(filepath)
         zf.extract(yearpath)        
+    yearpaths.append(yearpath)
 
-    print('Reading', yearpath)
-    if args.timeresolution == 'hourly':
-        parse_dates = [[11, 12]]
-        date_key = 'Date GMT_Time GMT'
-    else:
-        parse_dates = [11]
-        date_key = 'Date Local'
-    data = pandas.read_csv(yearpath, index_col = False, converters = {'State Code': str, 'County Code': str, 'Site Num': str}, parse_dates = parse_dates)
-    inspace = np.array([pbounds.contains(Point(plon, plat)) for plon, plat in zip(data['Longitude'].values, data['Latitude'].values)])
-    intime = (data[date_key] >= args.bdate) & \
-       (data[date_key] < args.edate)
-    mask = inspace & intime
-       
+from PseudoNetCDF.epafiles import aqsraw
+from PseudoNetCDF.sci_var import stack_files
+from PseudoNetCDF.pncgen import pncgen
 
-    hourly = data[mask].groupby(['Parameter Code', 'Parameter Name', 'Units of Measure', date_key, 'State Code', 'County Code', 'Site Num'], as_index = False).aggregate(np.mean).sort_values(by = ['Parameter Code', 'Parameter Name', 'Units of Measure', date_key, 'State Code', 'County Code', 'Site Num'])
+infiles = []
+for yearpath in yearpaths:
+    infile = aqsraw(yearpath, timeresolution = args.timeresolution, param = args.param, bdate = args.bdate, edate = args.edate, rdate = args.rdate, wktpolygon = args.wktpolygon, sampleval = args.sampleval, verbose = args.verbose)
+    infiles.append(infile)
     
-    hourlys.append(hourly)
-
-print('Concatenating files')
-if len(hourlys) > 1:
-    hourly = pandas.concat(hourlys)
-else:
-    hourly = hourlys[0]
-
-
-
-sites = hourly.groupby(['State Code', 'County Code', 'Site Num'], as_index = False).aggregate(np.mean)
-nsites = len(sites)
-
-print('Creating output file')
-outf = Dataset(args.outpath, 'w')
-outf.createDimension('time', None)
-outf.createDimension('LAY', 1)
-sitelist = [row['State Code'] + row['County Code'] + row['Site Num'] for idx, row in sites.iterrows()]
-outf.SITENAMES = ';'.join(sitelist)
-
-outf.createDimension('points', len(sitelist))
-outf.lonlatcoords = '/'.join(['%f,%f' % (row['Longitude'], row['Latitude']) for idx, row in sites.iterrows()])
-last_time = start_time = hourly[date_key].values.min()
-end_time = hourly[date_key].values.max()
-temp = {}
-lat = outf.createVariable('latitude', 'f', ('points',))
-lat.units = 'degrees_north'
-lat.standard_name = 'latitude'
-lat[:] = sites['Latitude'].values
-lon = outf.createVariable('longitude', 'f', ('points',))
-lon.units = 'degrees_east'
-lon.standard_name = 'longitude'
-lon[:] = sites['Longitude'].values
-
-print('Processing data rows')
-
-for idx, row in hourly.iterrows():
-    this_time = row[date_key]
-    val = row[args.sampleval]
-    unit = row['Units of Measure'].strip()
-    aqsid = row['State Code'] + row['County Code'] + row['Site Num']
-    sidx = sitelist.index(aqsid)
-    var_name = row['Parameter Name']
-    if not var_name in outf.variables.keys():
-        var = outf.createVariable(var_name, 'f', ('time', 'LAY', 'points'), fill_value = -999)
-        var.units = unit
-        var.standard_name = var_name
-        temp[var_name] = np.ma.masked_all((ntimes, 1, nsites), dtype = 'f')
-        temp[var_name].set_fill_value(-999)
-    tmpvar = temp[var_name]
-    var = outf.variables[var_name]
-    assert(var.units == unit)
-    if last_time != this_time:
-        last_time = this_time
-        tidx = alltimes.index(this_time.to_datetime())
-        print('\b\b\b\b\b\b %3d%%' % int(tidx / float(ntimes) * 100), end = '', flush = True)
-    if tidx > ntimes:
-        raise ValueError('Times (%d) exceed expected (%d)' % (tidx, ntimes))
-    
-    tmpvar[tidx, 0, sidx] = val
-print('')
-print('Writing to disk')
-for varkey, tempvals in temp.items():
-    outf.variables[varkey][:] = tempvals
-
-time = outf.createVariable('time', 'f', ('time',))
-time.units = args.rdate.strftime(tunit + ' since %F')
-time.standard_name = 'time'
-time[:] = [(t - args.rdate).total_seconds() / nseconds for t in alltimes]
-outf.sync()
+outfile = stack_files(infiles, 'time')
+persisted = pncgen(outfile, args.outpath)
+persisted.sync()
 print('Successful')

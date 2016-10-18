@@ -35,6 +35,7 @@ from . import cmaqfiles
 from . import racmfiles
 from . import geoschemfiles
 from . import noaafiles
+from . import epafiles
 from . import MetaNetCDF
 from . import ArrayTransforms
 from . import units
