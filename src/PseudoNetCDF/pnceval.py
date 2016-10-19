@@ -368,32 +368,45 @@ def pnceval(args):
     if args.variables is None:
         args.variables = set(ifiles[0].variables.keys()).difference(args.coordkeys)
     console = createconsole(args.ifiles, args)
-    warn("Assumes input order is obs model")
-    ifile1, ifile2 = args.ifiles
-    for k in args.funcs:
-        console.locals[k] = func = eval(k)
+    ifile0, ifile1 = args.ifiles
+    from PseudoNetCDF.coordutil import gettimes
+    print('# ifile0=' + args.ipath[0])
+    print('# ifile1=' + args.ipath[1])
+    print('# Stats calculated as func(ifile0, ifile1)')
+    print('# Generally: func(obs, mod, ....)')
+    for ipath, ifile in zip(args.ipath, args.ifiles):
+        print('# Meta-data from %s' % ipath)
         try:
-            console.locals[k+'_f'] = ofile = pncbfunc(func, ifile1, ifile2)
-        except Exception as e:
-            warn("Skipped " + k + ';' + str(e))
-            continue
-        try:
-            from PseudoNetCDF.coordutil import gettimes
-            times = gettimes(ifile1)
+            times = gettimes(ifile)
             tstart = times[:].min()
             tstop = times[:].max()
             tfmts = tstart.strftime('%F %H:%M:%S')+',' + tstop.strftime('%F %H:%M:%S')
             tfmts = str(tstart) + ',' + str(tstop)
+            print('# Date Range: ' + str(tstart) + ' to ' + str(tstop))
         except Exception as e:
-            print(e)
-            times = ifile1.variables['time']
-            tstart = times[:].min()
-            tstop = times[:].max()
-            tfmts = '%.2f,%.2f' % (tstart, tstop)
+            warn(str(e))
+        try:
+            lon = ifile.variables['longitude']
+            print('# Longitude Range: ' + str(float(lon.min())) + ' to ' + str(float(lon.max())))
+        except Exception as e:
+            warn(str(e))
+        try:
+            lat = ifile.variables['latitude']
+            print('# Latitude Range: ' + str(float(lat.min())) + ' to ' + str(float(lat.max())))
+        except Exception as e:
+            warn(str(e))
+    
+    for k in args.funcs:
+        console.locals[k] = func = eval(k)
+        try:
+            console.locals[k+'_f'] = ofile = pncbfunc(func, ifile0, ifile1)
+        except Exception as e:
+            warn("Skipped " + k + ';' + str(e))
+            continue
         dt = tstop - tstart
         for vk in args.variables:
             if vk in ('time', 'TFLAG'): continue
-            print((tfmts + ',%s,%s,%s,%f') % (vk, func.__doc__.strip(), k, ofile.variables[vk].ravel()[0]))
+            print('%s,%s,%s,%f' % (vk, func.__doc__.strip(), k, ofile.variables[vk].ravel()[0]))
     np.seterr(divide = 'warn', invalid = 'warn')
     if args.interactive:
         console.interact()
