@@ -135,6 +135,8 @@ class AggCommaString(Action):
         setattr(namespace, self.dest, values.split(','))
 
 _plotcmds = ['plot', 'plot2d', 'plotts', 'plotprofile', 'plotscatter']
+_allcmds = ['gen', 'dump', 'eval', 'map'] + _plotcmds
+
 def add_basic_options(parser):
     parser.add_argument('ifiles', nargs='*', help='path to a file formatted as type -f')
     parser.add_argument("--verbose", dest="verbose", action = "count", default=0, help = "Provides verbosity with pncgen")
@@ -210,6 +212,11 @@ def add_basic_options(parser):
 
 def add_2d_options(parser):
     parser.add_argument('--swapaxes', action = 'store_true', help = 'Swap x-y axes')
+
+def add_eval_options(parser):
+    from .pnceval import __all__ as evalfuncs
+    add_interactive_options(parser)
+    parser.add_argument('--funcs', default = evalfuncs, type = lambda x: x.split(','), help='Functions to evaluate split by , (default: %s)' % ','.join(evalfuncs))
 
 def add_map_options(parser):
     parser.add_argument("--iter", dest = "iter", action = 'append', default = [], help = "Create plots for each element of specified dimension (e.g., --iter=time).")
@@ -447,6 +454,11 @@ def add_action_commands(parser, withbasic = False, add_help = True):
     add_output_options(genparser)
     if withbasic:
         add_basic_options(genparser)
+
+    evalparser = subparsers.add_parser('eval', description = 'Evaluation options.', help = 'sub-command help', add_help = add_help)
+    add_eval_options(evalparser)
+    if withbasic:
+        add_basic_options(evalparser)
     
     mapparser = subparsers.add_parser('map', description = 'Make maps quickly', help = 'sub-command help', add_help = add_help)
     add_plot_options(mapparser)
@@ -463,11 +475,6 @@ def add_action_commands(parser, withbasic = False, add_help = True):
             from .plotutil import add_vertprofile_options
             add_vertprofile_options(plotparser)
     
-    evalparser = subparsers.add_parser('eval', description = 'Evaluate obs and mod', add_help = add_help)
-    from . import pnceval
-    evalparser.add_argument('--funcs', default = pnceval.__all__, type = lambda x: x.split(','), help='Functions to evaluate split by , (default: %s)' % ','.join(pnceval.__all__))
-    if withbasic:
-        add_basic_options(evalparser)
 
 
 def do_actions(outargs):
@@ -484,6 +491,11 @@ def do_actions(outargs):
             raise IOError('pncgen can output only 1 file; user requested %d' % len(outargs.ifiles))
         ifile, = outargs.ifiles
         pncgen(ifile, outargs.outpath, outmode = outargs.mode, format = outargs.outformat, verbose = outargs.verbose)
+    elif outargs.subcommand == 'eval':
+        from .pnceval import pnceval
+        if len(outargs.ifiles) != 2:
+            raise IOError('pnceval requires 2 files; user requested %d' % len(outargs.ifiles))
+        pnceval(outargs)
     elif outargs.subcommand == 'map':
         if getattr(outargs, 'outpath', None) is None:
             outargs.outpath = outargs.figroot
@@ -495,7 +507,7 @@ def do_actions(outargs):
         from . import plotutil
         getattr(plotutil, outargs.subcommand)(outargs)        
 
-def PNC(*args, ifiles = [], actions = False, **kwds):
+def PNC(*args, ifiles = [], actions = None, **kwds):
     """
 Arguments:
     args - Command Line arguments/options for PseudoNetCDF
@@ -536,6 +548,9 @@ variables:
                 O3_ESRL:missing_value = -999999 ;
     ...
     """
+    if actions is None:
+        actions = args[0] in _allcmds
+
     parser = getparser2(actions = actions)
     nfiles = len(ifiles)
     ifiles, outargs = pncparse(args = args, ifiles = ifiles, parser = parser, **kwds)
