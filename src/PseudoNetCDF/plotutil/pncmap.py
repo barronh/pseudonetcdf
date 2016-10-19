@@ -107,7 +107,11 @@ def makemaps(args):
             varunit = getattr(var, 'units', 'unknown').strip()
             if args.verbose > 0: print(varkey, sep = '')
             if vals.ndim == 1:
-                patches = map.scatter(lon[:], lat[:], c = vals, edgecolors = 'none', s = 24, norm = norm, ax = ax, zorder = 2)
+                notmasked = ~(np.ma.getmaskarray(lon[:]) | np.ma.getmaskarray(lat[:]) | np.ma.getmaskarray(vals[:]))
+                scatlon = lon[:][notmasked]
+                scatlat = lat[:][notmasked]
+                scatvals = vals[:][notmasked]
+                patches = map.scatter(scatlon[:], scatlat[:], c = scatvals, edgecolors = 'none', s = 24, norm = norm, ax = ax, zorder = 2)
             else:
                 patches = map.pcolor(LON, LAT, vals, norm = norm, ax = ax)
             if lonunit == 'x (m)':
