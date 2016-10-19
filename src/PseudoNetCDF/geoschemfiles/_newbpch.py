@@ -35,11 +35,11 @@ def add_vert(self, key):
         kwds = dict(units = "hPa", long_name = "hybrid A coefficient at layer interfaces", note = "unit consistent with GEOS-Chem pressure outputs")
     elif key == 'hyam':
         data = geos_hyam[self.vertgrid]
-        dims = ('layer', )
+        dims = ('layer',)
         dtype = data.dtype.char
         if dims[0] not in self.dimensions:
             self.createDimension(dims[0], data.size)
-        kwds = dict(units = "hPa", long_name = "hybrid B coefficient at layer midpoints", note = "unit consistent with GEOS-Chem pressure outputs")
+        kwds = dict(units = "hPa", long_name = "hybrid A coefficient at layer midpoints", note = "unit consistent with GEOS-Chem pressure outputs")
     elif key == 'hybi':
         data = self.Bp
         dims = ('layer_bounds',)
@@ -50,14 +50,14 @@ def add_vert(self, key):
     elif key == 'etai_pressure':
         data = geos_etai_pressure[self.vertgrid]
         dtype = data.dtype.char
-        dims = ('layer48',)
+        dims = ('layer_bounds',)
         kwds = dict(units = 'hPa', long_name = 'eta levels at interfaces')
         if dims[0] not in self.dimensions:
             self.createDimension(dims[0], data.size)
     elif key == 'etam_pressure':
         data = geos_etam_pressure[self.vertgrid]
         dtype = data.dtype.char
-        dims = ('layer47',)
+        dims = ('layer',)
         kwds = dict(units = 'hPa', long_name = 'eta levels at mid points')
         if dims[0] not in self.dimensions:
             self.createDimension(dims[0], data.size)
@@ -233,7 +233,7 @@ class bpch2(PseudoNetCDFFile):
                 setattr(var, k, getattr(tmpvar, k))
         tmpvar = list(tmpvariables.values())[0]
         self.createDimension('time', max([len(pos) for pos in outpos.values()]))
-        self.createDimension('layer', max(levels))
+        self.createDimension('layer', min(max(levels), self.Ap.size - 1))
         for layer in levels:
             self.createDimension('layer%d' % layer, layer)
         self.createDimension('latitude', max(latitudes)) 
