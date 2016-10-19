@@ -3,6 +3,10 @@ pl = pylab
 import matplotlib.pyplot as pyplot
 plt = pyplot
 
+from .pncts import plotts
+from .vertprofile import plotprofile, add_vertprofile_options
+from .pncscatter import pncscatter as plotscatter
+
 Normalize = pl.matplotlib.colors.Normalize
 LogNorm = pl.matplotlib.colors.LogNorm
 SymLogNorm = pl.matplotlib.colors.SymLogNorm
@@ -31,3 +35,20 @@ def SegmentedLogNorm(vmin, vmax, bins = 10, ncolors = 256, full_levels = False):
 
 LogFormatter = pl.matplotlib.ticker.LogFormatter
 ScalarFormatter = pl.matplotlib.ticker.ScalarFormatter
+
+def plot(args, plotfunc = plt.plot):
+    for ifile in args.ifiles:
+        for varkey in args.variables:
+            y = ifile.variables[varkey]
+            if args.squeeze:
+                y = y.squeeze()
+            plotfunc(y)
+
+def plot2d(args):
+    plot(args, plotfunc = plt.pcolor)
+
+def plotcontour(args):
+    plot(args, plotfunc = plt.contour)
+
+def plotcontourf(args):
+    plot(args, plotfunc = plt.contourf)
