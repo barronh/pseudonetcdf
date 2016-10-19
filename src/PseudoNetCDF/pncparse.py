@@ -134,6 +134,7 @@ class AggCommaString(Action):
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, values.split(','))
 
+_plotcmds = ['plot', 'plot2d', 'plotts', 'plotprofile', 'plotscatter']
 def add_basic_options(parser):
     parser.add_argument('ifiles', nargs='*', help='path to a file formatted as type -f')
     parser.add_argument("--verbose", dest="verbose", action = "count", default=0, help = "Provides verbosity with pncgen")
@@ -450,11 +451,14 @@ def add_action_commands(parser, withbasic = False, add_help = True):
     if withbasic:
         add_basic_options(mapparser)
     
-    for plotcmd in ['plot', 'plot2d', 'plotts']:
+    for plotcmd in _plotcmds:
         plotparser = subparsers.add_parser(plotcmd, description = 'Plot data', add_help = add_help)
         add_plot_options(plotparser)
         if withbasic:
             add_basic_options(plotparser)
+        if plotcmd == 'plotprofile':
+            from .plotutil import add_vertprofile_options
+            add_vertprofile_options(plotparser)
     
     evalparser = subparsers.add_parser('eval', description = 'Evaluate obs and mod', add_help = add_help)
     from . import pnceval
@@ -482,7 +486,7 @@ def do_actions(outargs):
             outargs.outpath = outargs.figroot
         from .plotutil.pncmap import makemaps
         makemaps(outargs)        
-    elif outargs.subcommand in ('plot', 'plot2d', 'plotts'):
+    elif outargs.subcommand in _plotcmds:
         if outargs.outpath is None:
             outargs.outpath = outargs.figroot
         from . import plotutil
