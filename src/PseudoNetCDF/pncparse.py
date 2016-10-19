@@ -392,14 +392,17 @@ args : args as parsed
         raise e
     except BaseException as be:
         return [], args
-    if 'ifiles' not in args:
-        inopts = len(args.pnc)
-    else:
-        inopts = len(args.pnc + args.ifiles)
+        
+    inpaths = getattr(args, 'ifiles', [])
+    inpnc = getattr(args, 'pnc', [])
+    inopts = len(inpaths + inpnc)
     if len(ifiles) == 0 and inopts == 0:
-        print('ifile or pnc are required')
-        if not args.help:
+        if not getattr(args, 'help', False):
             parser.print_help()
+        
+        print('\n*ifile or pnc are required')
+        return [], args
+    
     subargs = split_positionals(subparser, args)
     ifiles = [ifile for ifile in ifiles]
     ipaths = ['unknown'] * len(ifiles)
