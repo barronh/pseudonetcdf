@@ -84,7 +84,7 @@ def createconsole(ifiles, options):
         spathsoc[spath] += 1
         npathso.append('ifile%d' % filei)
     for rpath, npath, spath in zip(options.ipath, npathso, spathso):
-        print(spath + ' = ' + npath + ' = ' + rpath)
+        print('# ' + spath + ' = ' + npath + ' = ' + rpath)
     for filei, (ipath, npath, spath, ifile) in enumerate(zip(ipaths, npathso, spathso, ifiles)):
         console.locals[npath] = ifile
         try:
