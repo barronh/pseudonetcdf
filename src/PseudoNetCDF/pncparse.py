@@ -255,7 +255,7 @@ def add_output_options(parser):
 
     parser.add_argument("--mode", dest = "mode", type = str, default = "w", help = "File mode for writing (w, a or r+ or with unbuffered writes ws, as, or r+s; pncgen only).", choices = 'w a r+ ws as r+s'.split())
 
-    parser.add_argument('outpath', type = str, help='path to a output file formatted as --out-format')
+    parser.add_argument('outpath', default = None, type = str, help='path to a output file formatted as --out-format')
 
 def add_interactive_options(parser):
     try:
@@ -427,11 +427,9 @@ args : args as parsed
     #    print('Too many arguments', len(args.ifiles), len(args.operators), has_ofile)
     #    parser.print_help()
     #    return
-    if has_ofile:
+    if has_ofile or not getattr(args, 'outpath', None) is None:
         if not args.clobber and os.path.exists(args.outpath):
             parser.error(message = 'Output path (%s) exists; enable clobber (--clobber or -O) to overwrite.' % (args.outpath,))
-    else:
-        args.outpath = None
 
     if plot_options:
         from matplotlib import rcParams
@@ -451,9 +449,9 @@ def add_action_commands(parser, withbasic = False, add_help = True):
         add_basic_options(dumpparser)
     
     genparser = subparsers.add_parser('gen', description = 'Like ncgen with more format support', help = 'sub-command help', add_help = add_help)
-    add_output_options(genparser)
     if withbasic:
         add_basic_options(genparser)
+    add_output_options(genparser)
 
     evalparser = subparsers.add_parser('eval', description = 'Evaluation options.', help = 'sub-command help', add_help = add_help)
     add_eval_options(evalparser)
