@@ -6,22 +6,41 @@ from shapely.geometry import Point, Polygon
 from shapely.prepared import prep
 from datetime import datetime, timedelta
 
+def getbdate(x):
+    if x is None:
+        return x
+    elif isinstance(x, (datetime, np.datetime64)):
+        return x
+    else:
+        return datetime.strptime(x + ' 00:00', '%Y-%m-%d %H:%M')
+
+def getedate(x):
+    if x is None:
+        return x
+    elif isinstance(x, (datetime, np.datetime64)):
+        return x
+    else:
+        return datetime.strptime(x + ' 23:59', '%Y-%m-%d %H:%M')
+
+
 class aqsraw(PseudoNetCDFFile):
-    def __init__(self, yearpath, timeresolution = 'hourly', param = '44201', bdate = None, edate = None, rdate = datetime(1900, 1, 1), wktpolygon = None, sampleval = None, verbose = 0):
+    def __init__(self, yearpath, timeresolution = 'hourly', bdate = None, edate = None, rdate = datetime(1900, 1, 1), wktpolygon = None, sampleval = None, verbose = 0):
         """
-        sampleval - Defaults to "Sample Measurement" for hourly and "Arithmetic Mean" for daily
+        yearpath - path to csv file from AQS
         timeresolution - choices = ['daily', 'hourly'] default = 'hourly', Defaults to hourly'
-        bdate - Start date YYYY-MM-DD
-        edate - End date (inclusive) YYYY-MM-DD
+        bdate - Limit output so that the date starts at YYYY-MM-DD
+        edate - Limit output so that the date end YYYY-MM-DD (inclusive)
         rdate - datetime(1900, 1, 1), dest = 'rdate', type = getrdate, help = 'Reference date YYYYMMDD HH:MM:SS')
-        param -  default = '44201' Must exist as an AQS parameter")
         wktpolygon - WKT Polygon (default: None) equivalent to "POLYGON ((-180 -90, 180 -90, 180 90, -180 90, -180 -90))"
+        sampleval - Defaults to "Sample Measurement" for hourly and "Arithmetic Mean" for daily
+        verbose - level of verbosity
         """
         if not wktpolygon is None:
             bounds = loads(wktpolygon)
             pbounds = prep(bounds)
         
-
+        bdate = getbdate(bdate)
+        edate = getedate(edate)
         nseconds = {'hourly': 3600, 'daily': 3600*24}[timeresolution]
         tunit = {'hourly': 'hours', 'daily': 'days'}[timeresolution]
 
@@ -43,6 +62,8 @@ class aqsraw(PseudoNetCDFFile):
                 date_key = 'Date Local'
             data = pandas.read_csv(yearpath, index_col = False, converters = {'State Code': str, 'County Code': str, 'Site Num': str}, parse_dates = parse_dates)
             intimes = np.array([True]).repeat(len(data), 0)
+            #intimes = intimes & (data['Parameter Code'] == param)
+            
             if not bdate is None:
                 intimes = intimes & (data[date_key] >= bdate)
             if not edate is None:
@@ -121,7 +142,7 @@ class aqsraw(PseudoNetCDFFile):
             assert(var.units == unit)
             if last_time != this_time:
                 last_time = this_time
-                tidx = alltimes.index(this_time.to_datetime())
+                tidx = alltimes.index(this_time.to_pydatetime())
                 if verbose > 0: print('\b\b\b\b\b\b %3d%%' % int(tidx / float(ntimes) * 100), end = '', flush = True)
             if tidx > ntimes:
                 raise ValueError('Times (%d) exceed expected (%d)' % (tidx, ntimes))
