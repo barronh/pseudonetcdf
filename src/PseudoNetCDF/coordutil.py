@@ -2,7 +2,6 @@ from __future__ import print_function
 from PseudoNetCDF import warn
 import numpy as np
 
-
 def getlonlatcoordstr(ifile, makemesh = None):
     """
     ifile - file with latitude and longitude variables
@@ -292,7 +291,10 @@ def getcdo(ifile):
     """ % outdict
 
 def getprojwkt(ifile, withgrid = False):
-    import osr
+    try:
+        import osr
+    except:
+        from osgeo import osr
     proj4str = getproj4(ifile, withgrid = withgrid)
     
     srs = osr.SpatialReference()
@@ -317,7 +319,6 @@ def getproj4(ifile, withgrid = False):
             mapstr = '+proj=lcc +a=%s +b=%s +lon_0=%s +lat_1=%s +lat_2=%s +lat_0=%s' % (semi_major_axis, semi_minor_axis, ifile.P_GAM, ifile.P_ALP, ifile.P_BET, ifile.YCENT)
             #p = Proj(proj='lcc',rsphere = (semi_major_axis, semi_minor_axis), lon_0 = ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT)
         elif ifile.GDTYP == 7:
-            from mpl_toolkits.basemap.pyproj import Proj
             mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (semi_major_axis, semi_minor_axis, ifile.XCENT)
         if withgrid:
             mapstr += ' +x_0=%s +y_0=%s +to_meter=%sm' % (-ifile.XORIG, -ifile.YORIG, ifile.XCELL)
@@ -343,14 +344,22 @@ def getmap(ifile, resolution = 'i'):
         llcrnry = ifile.YORIG
         urcrnry = ifile.YORIG + NROWS * ifile.YCELL
         semi_major_axis, semi_minor_axis = get_ioapi_sphere()
+        # Robust import for Proj
+        # allows for migration from basemap 1.0.7 to 1.0.8
+        try:
+            from pyproj import Proj
+        except:
+            try:
+                from mpl_toolkits.basemap.pyproj import Proj
+            except:
+                import mpl_toolkits.basemap
+                Proj = mpl_toolkits.basemap.pyproj.Proj
         if ifile.GDTYP == 2:
-            from mpl_toolkits.basemap.pyproj import Proj
             p = Proj(proj='lcc',a = semi_major_axis, b = semi_major_axis, lon_0 = ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT)
             llcrnrlon, llcrnrlat = p(llcrnrx, llcrnry, inverse = True)
             urcrnrlon, urcrnrlat = p(urcrnrx, urcrnry, inverse = True)
             m = Basemap(projection = 'lcc', rsphere = (semi_major_axis, semi_major_axis), lon_0=ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT, llcrnrlon = llcrnrlon, llcrnrlat = llcrnrlat, urcrnrlat = urcrnrlat, urcrnrlon = urcrnrlon, resolution = resolution, suppress_ticks = False)
         elif ifile.GDTYP == 7:
-            from mpl_toolkits.basemap.pyproj import Proj
             mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (semi_major_axis, semi_major_axis, ifile.XCENT)
             p = Proj(mapstr)
             #p = Proj(proj='merc',rsphere = (semi_major_axis, semi_major_axis), lat_ts = ifile.P_ALP, lat_0 = ifile.YCENT, lon_0 = ifile.XCENT)
