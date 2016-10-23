@@ -431,7 +431,7 @@ args : args as parsed
         if not args.clobber and os.path.exists(args.outpath):
             parser.error(message = 'Output path (%s) exists; enable clobber (--clobber or -O) to overwrite.' % (args.outpath,))
 
-    if plot_options:
+    if plot_options or hasattr(args, 'matplotlibrc'):
         from matplotlib import rcParams
         for rcassigns in args.matplotlibrc:
             for rcassign in rcassigns:
