@@ -500,7 +500,7 @@ def do_actions(outargs):
         from .plotutil.pncmap import makemaps
         makemaps(outargs)        
     elif outargs.subcommand in _plotcmds:
-        if outargs.outpath is None:
+        if getattr(outargs, 'outpath', None) is None:
             outargs.outpath = outargs.figroot
         from . import plotutil
         getattr(plotutil, outargs.subcommand)(outargs)        
