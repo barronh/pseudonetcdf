@@ -189,8 +189,8 @@ class point_source(PseudoNetCDFFile):
         
         start=end
         end=start+stk_block_size
-        nstk_hdr=data[:,start:end]
-        if not (nstks==nstk_hdr[:,2:3].view(ep+'i')).all():
+        nstk_hdr=data[:,start:end].view(ep+'i')
+        if not (nstks==nstk_hdr[:,2:3]).all():
             raise ValueError("Number of stacks varies with time")
         start=end
         end=start+stk_props_size
@@ -211,7 +211,7 @@ class point_source(PseudoNetCDFFile):
         
         self.variables['TFLAG']=ConvertCAMxTime(bdates,btimes,len(self.dimensions['VAR']))
         self.variables['ETFLAG']=ConvertCAMxTime(edates,etimes,len(self.dimensions['VAR']))
-        v=self.variables['NSTKS']=PseudoNetCDFVariable(self,'NSTKS','i',('TSTEP',),values=array(nstk_hdr))
+        v=self.variables['NSTKS']=PseudoNetCDFVariable(self,'NSTKS','i',('TSTEP',),values=array(nstk_hdr[:, 2]))
         v.units='#'.ljust(16)
         v.long_name='NSTKS'.ljust(16)
         v.var_desc=v.long_name
