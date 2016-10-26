@@ -112,11 +112,11 @@ class point_source(PseudoNetCDFFile):
         ep = self.__endianprefix
         offset=0
 
-        self.__emiss_hdr=self.__memmap[offset:offset+self.__emiss_hdr_fmt.itemsize/4].view(self.__emiss_hdr_fmt)
-        offset+=self.__emiss_hdr.nbytes/4
+        self.__emiss_hdr=self.__memmap[offset:offset+self.__emiss_hdr_fmt.itemsize//4].view(self.__emiss_hdr_fmt)
+        offset+=self.__emiss_hdr.nbytes//4
 
-        self.__grid_hdr=self.__memmap[offset:offset+self.__grid_hdr_fmt.itemsize/4].view(self.__grid_hdr_fmt)
-        offset+=self.__grid_hdr.nbytes/4
+        self.__grid_hdr=self.__memmap[offset:offset+self.__grid_hdr_fmt.itemsize//4].view(self.__grid_hdr_fmt)
+        offset+=self.__grid_hdr.nbytes//4
         self.NAME = self.__emiss_hdr['name'][0, :, 0].copy().view('S10')[0].decode()
         self.NOTE = self.__emiss_hdr['note'][0, :, 0].copy().view('S60')[0].decode()
         self.XORIG=self.__grid_hdr['xorg'][0]
@@ -133,28 +133,27 @@ class point_source(PseudoNetCDFFile):
         self.IUTM = iutm = self.__grid_hdr['iutm'][0]
         self.ISTAG = istag = self.__grid_hdr['istag'][0]
         self.CPROJ = cproj = self.__grid_hdr['iproj'][0]
-        self.__cell_hdr=self.__memmap[offset:offset+self.__cell_hdr_fmt.itemsize/4].view(self.__cell_hdr_fmt)
-        offset+=self.__cell_hdr.nbytes/4+1
+        self.__cell_hdr=self.__memmap[offset:offset+self.__cell_hdr_fmt.itemsize//4].view(self.__cell_hdr_fmt)
+        offset+=self.__cell_hdr.nbytes//4+1
 
         nspec=self.__emiss_hdr['nspec'][0]
         self.ITZON=self.__emiss_hdr['itzon'][0]
 
 
-        self.__spc_hdr=self.__memmap[offset:offset+self.__spc_hdr_fmt.itemsize/4*nspec].view(ep+'S1').reshape(nspec, 10, 4)
-        offset+=self.__spc_hdr.nbytes/4+1
+        self.__spc_hdr=self.__memmap[offset:offset+self.__spc_hdr_fmt.itemsize//4*nspec].view(ep+'S1').reshape(nspec, 10, 4)
+        offset+=self.__spc_hdr.nbytes//4+1
 
         spc_names=[np.char.strip(spc[:,0].copy().view('S10'))[0] for spc in self.__spc_hdr]
         spc_names=[spc.decode() if hasattr(spc, 'decode') else spc for spc in spc_names]
         self.__spc_names = spc_names
-        self.__nstk_hdr=self.__memmap[offset:offset+self.__nstk_hdr_fmt.itemsize/4].view(self.__nstk_hdr_fmt)
-        offset+=self.__nstk_hdr.nbytes/4+1
+        self.__nstk_hdr=self.__memmap[offset:offset+self.__nstk_hdr_fmt.itemsize//4].view(self.__nstk_hdr_fmt)
+        offset+=self.__nstk_hdr.nbytes//4+1
 
-        nstk=self.__nstk_hdr['nstk']
+        nstk=self.__nstk_hdr['nstk'][0]
         self.createDimension('NSTK', nstk)
-
-        self.__nstk_hdr['nstk']
-        self.__stk_props=self.__memmap[offset:offset+self.__stk_prop_fmt.itemsize/4*nstk].reshape(nstk,self.__stk_prop_fmt.itemsize/4).view(self.__stk_prop_fmt)
-        offset+=self.__stk_props.nbytes/4+1
+        
+        self.__stk_props=self.__memmap[offset:offset+self.__stk_prop_fmt.itemsize//4*nstk].reshape(nstk,self.__stk_prop_fmt.itemsize//4).view(self.__stk_prop_fmt)
+        offset+=self.__stk_props.nbytes//4+1
 
         self.__data_start=offset
         
@@ -177,7 +176,7 @@ class point_source(PseudoNetCDFFile):
         emiss_block_size=nspcs*(nstks+13)
         hour_block_size=date_block_size+stk_block_size+stk_props_size+emiss_block_size
         data=self.__memmap[self.__data_start:]
-        data=data.reshape(data.size/hour_block_size,hour_block_size)
+        data=data.reshape(data.size//hour_block_size,hour_block_size)
         ntimes=data.shape[0]
         self.createDimension('TSTEP',ntimes)
         self.createDimension('DATE-TIME', 2)
