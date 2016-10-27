@@ -72,7 +72,7 @@ class point_source(PseudoNetCDFFile):
         {'TSTEP': 25, 'NSTK': 38452}
     """
     
-    def __init__(self, rf, endian = 'big'):
+    def __init__(self, rf, endian = 'big', mode = 'r', **kwds):
         """
         Initialization included reading the header and learning
         about the format.
@@ -83,7 +83,10 @@ class point_source(PseudoNetCDFFile):
 
         ep = self.__endianprefix = dict(big = '>', little = '<')[endian]
         self.variables={}
-        self.__memmap=memmap(self.__rffile,ep+'f','r')
+        for key, val in kwds.items():
+            setattr(self, key, val)
+        
+        self.__memmap=memmap(self.__rffile,ep+'f', mode)
         self.__emiss_hdr_fmt=dtype(dict(names=['SPAD','name','note','itzon','nspec','ibdate','btime','iedate','etime','EPAD'],formats=[ep+'i',ep+'(10,4)S1',ep+'(60,4)S1',ep+'i',ep+'i',ep+'i',ep+'f',ep+'i',ep+'f',ep+'i']))
         self.__grid_hdr_fmt=dtype(dict(names=['SPAD','plon','plat','iutm','xorg','yorg','delx','dely','nx','ny','nz', 'iproj','istag','tlat1','tlat2','rdum5','EPAD'],formats=[ep+'i',ep+'f',ep+'f',ep+'i',ep+'f',ep+'f',ep+'f',ep+'f',ep+'i',ep+'i',ep+'i',ep+'i',ep+'i',ep+'f',ep+'f',ep+'f',ep+'i']))
         self.__cell_hdr_fmt=dtype(dict(names=['SPAD','ione1','ione2','nx','ny','EPAD'],formats=[ep+'i',ep+'i',ep+'i',ep+'i',ep+'i',ep+'i']))
