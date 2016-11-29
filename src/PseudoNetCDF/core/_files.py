@@ -237,7 +237,11 @@ class PseudoNetCDFVariables(OrderedDefaultDict):
         self.__keys.append(k)
 
     def keys(self):
-        return tuple(set(list(dict.keys(self)) + self.__keys))
+        keys = [k for k in self.__keys]
+        for k in OrderedDefaultDict.keys(self):
+            if k not in keys:
+                keys.append(k)
+        return tuple(keys)
 
     
     def items(self):
