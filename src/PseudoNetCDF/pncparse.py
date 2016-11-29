@@ -389,7 +389,7 @@ ifiles : list of PseudoNetCDFFiles
 args : args as parsed
 
     """
-    
+    inputargs = args
     if parser is None:
         parser = getparser(has_ofile, plot_options = plot_options, map_options = map_options, interactive = interactive)
     subparser = getparser(has_ofile = False, plot_options = plot_options, interactive = interactive)
@@ -399,7 +399,8 @@ args : args as parsed
         raise e
     except BaseException as be:
         return [], args
-        
+    
+    args.inputargs = inputargs or sys.argv
     inpaths = getattr(args, 'ifiles', [])
     inpnc = getattr(args, 'pnc', [])
     inopts = len(inpaths + inpnc)
@@ -562,15 +563,17 @@ def split_positionals(parser, args):
     import shlex
     positionals = args.ifiles
     parser.set_defaults(**dict([(k, v) for k, v in args._get_kwargs() if args.inherit or k == 'format']))
-    outs = [shlex.split(pnc) for pnc in args.pnc]
+    ins = [shlex.split(pnc) for pnc in args.pnc]
     last_split = 0
     for i in range(len(positionals)):
         if positionals[i] in ('--', '--sep'):
-            outs.append(positionals[last_split:i])
+            ins.append(positionals[last_split:i])
             last_split = i + 1
-    outs.append(positionals[last_split:])        
+    ins.append(positionals[last_split:])
     try:
-        outs = list(map(parser.parse_args, outs))
+        outs = list(map(parser.parse_args, ins))
+        for outns, inargs in zip(outs, ins):
+            outns.inputargs = inargs
     except Exception as e:
         print(str(e))
         raise e
@@ -652,8 +655,9 @@ def getfiles(ipaths, args):
         else:
             warn('File is type %s, which is unknown' % type(ipath))
             f = ipath
-        history = getattr(f, 'history', '')
-        history += ' '.join(sys.argv) + ';'
+        
+        history = getattr(f, 'history', getattr(f, 'HISTORY', ''))
+        history += ' '.join(args.inputargs) + ';'
         laddconv = args.fromconv is not None and args.toconv is not None
         lslice = len(args.slice + args.reduce) > 0
         lexpr = len(args.expressions) > 0
