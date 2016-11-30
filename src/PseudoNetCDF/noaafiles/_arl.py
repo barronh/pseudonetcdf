@@ -37,27 +37,109 @@ thdtype = dtype([('YYMMDDHHFF', '>10S'), ('LEVEL', '>2S'), ('GRID', '>2S') , ('I
 vhdtype = dtype([('YYMMDDHHFF', '>10S'), ('LEVEL', '>2S'), ('grid', '>2S'), ('VKEY', '>4S'), ('EXP', '>4S'), ('PREC', '>14S'), ('VAR1', '>14S')])
 
 stdprops = dict(
-    PRSS = ('Pressure at surface', 'hPa'),
-    MSLP = ('Pressure at mean sea level', 'hPa'),
-    TMPS = ('Temperature at surface', 'K'),
-    TPP6 = ('Total precipitation (6-h)', 'm'),
-    UMOF = ('U-Momentum flux', 'N/m2'),
-    VMOF = ('V-Momentum flux', 'N/m2'),
-    SHTF = ('Sfc sensible heat flux', 'W/m2'),
-    LTHF = ('Latent heat flux', 'W/m2'),
-    DSWF = ('Downward short wave flux', 'W/m2'),
-    T02M = ('Temperature at 2 m', 'K'),
-    RH2M = ('Relative humidity at 2 m', '%'),
-    U10M = ('U-component of wind at 10 m', 'm/s'),
-    V10M = ('V-component of wind at 10 m', 'm/s'),
-    TCLD = ('Total cloud cover', '%'),
-    UWND = ('U wind component (respect to grid)', 'm/s'),
-    VWND = ('V wind component (respect to grid)', 'm/s'),
+    ABSV = ('ABSOLUTE VORTICITY', '100000.00 ? /s'),
+    CAPE = ('CONVECTIVE AVAILABLE POTENTIAL ENERGY', 'J/kg'),
+    CFZR = ('CATEGORIAL FREEZING RAIN (YES=1/NO=0)', '0--1'),
+    CICE = ('CATEGORIAL ICE PELLETS (YES=1/NO=0)', '0--1'),
+    CINH = ('CONVECTIVE INHIBITION', 'J/kg'),
+    CLDB = ('CLOUD BOTTOM HEIGHT', 'm'),
+    CLDT = ('CLOUD TOP HEIGHT', 'm'),
+    CONC = ('CONCENTRATION', '/m3'),
+    CPP3 = ('3-HOUR ACC. CONVECTIVE PRECIPITATION', 'mm'),
+    CPP6 = ('6-HOUR ACC. CONVECTIVE PRECIPITATION', 'mm'),
+    CPPT = ('CONVECTIVE PRECIPITATION', 'mm'),
+    CRAI = ('CATEGORIAL RAIN (YES=1/NO=0)', '0--1'),
+    CSNO = ('CATEGORIAL SNOW (YES=1/NO=0)', '0--1'),
+    CWMR = ('CLOUD WATER MIXING RATIO', 'g/kg'),
+    DEPO = ('SURFACE DEPOSITION', '/m2'),
+    DEPS = ('SURFACE DEPOSITION', '/m2'),
+    DEPV = ('DEPOSITION VELOCITY', 'm/s'),
+    DLWF = ('DOWNWARD LONG WAVE RADIATION FLUX', 'W/m2'),
+    DP2M = ('2 M DEW POINT', 'degC'),
+    DSWF = ('DOWNWARD SHORT WAVE RADIATION FLUX', 'W/m2'),
+    EXCO = ('EXCHANGE COEFFICIENT', '1000.00 ? GM2S'),
+    FLAG = ('WIND FLAGS', 'KNTS'),
+    HCLD = ('HIGH CLOUD COVER', 'PCT'),
+    HFLX = ('LATENT HEAT FLUX', 'W/m2'),
+    HGT1 = ('1000 MB HEIGHT', 'm'),
+    HGT5 = ('500 MB HEIGHT', 'm'),
     HGTS = ('Geopotential height', 'gpm*'),
+    ICWT = ('ICE-COVERED WATER', '0--1'),
+    LCLD = ('LOW CLOUD COVER', 'PCT'),
+    LHTF = ('LATENT HEAT NET FLUX', 'W/m2'),
+    LIB4 = ('BEST 4-LAYER LIFTED INDEX', 'K'),
+    LISD = ('STANDARD LIFTED INDEX', 'degC'),
+    LTHF = ('Latent heat flux', 'W/m2'),
+    LTNG = ('LIGHTNING STRIKES', '#'),
+    MCLD = ('MEDIUM CLOUD COVER', 'PCT'),
+    MOMF = ('TOTAL MOMENTUM FLUX', 'N/m2'),
+    MSLP = ('MEAN SEA-LEVEL PRESSURE', 'hPa'),
+    MXHT = ('MIXED LAYER DEPTH', 'm'),
+    MXLR = ('NUMBER OF MIXED SIGMA LAYERS', '0--N'),
+    OPPT = ('OBSERVED PRECIPITATION', 'mm'),
+    P10M = ('POTENTIAL TEMPERATURE ', 'K'),
+    PBLH = ('PLANETARY BOUNDARY LAYER HEIGHT', 'm'),
+    PRAT = ('PRECIPITATION RATE', 'KGM2'),
+    PRES = ('PRESSURE', 'hPa'),
+    PRSS = ('SURFACE PRESSURE', 'hPa'),
+    PTYP = ('PRECIPITATION TYPE (RA=1,TRW=2,ZR=3,ICE=4,SN=5)', '1--5'),
+    QSTR = ('FLUX MIXING RATIO', '1000.00 ? G/KG'),
+    REFC = ('COMPOSITE REFLECTIVITY', 'dBZ'),
+    RELH = ('RELATIVE HUMIDITY', 'PCT'),
+    RGHS = ('SURFACE ROUGHNESS', 'm'),
+    RH2M = ('2 METER RELATIVE HUMIDITY', 'PCT'),
+    SFCC = ('SURFACE CONCENTRATION', '/m3'),
+    SHGT = ('SURFACE HEIGHT', 'm'),
+    SHTF = ('SENSIBLE HEAT NET FLUX', 'W/m2'),
+    SNOC = ('SNOW COVERAGE ', 'PCT'),
+    SNOW = ('SNOW COVERAGE', '0--1'),
+    SNWD = ('SNOW DEPTH', 'CM'),
+    SOLM = ('SOIL MOISTURE', 'kg/m2'),
+    SOLT = ('SOIL TEMPERATURE ', 'degC'),
+    SOLW = ('0 TO 200 CM SOIL MOISTURE CONTENT', 'kg/m2'),
+    SPHU = ('SPECIFIC HUMIDITY', 'kg/kg'),
+    STRM = ('STREAMLINES ', 'KNTS'),
+    T02M = ('Temperature at 2 m', 'K'),
+    TCLD = ('AVERAGE TOTAL CLOUD COVER', 'PCT'),
     TEMP = ('Temperature', 'K'),
-    WWND = ('Pressure vertical velocity', 'hPa/s'),
-    SPHU = ('Specific humidity', 'unknown'),
+    THKN = ('THICKNESS', '0.10 ? dm'),
+    THTS = ('SURFACE POTENTIAL TEMPERATURE', 'DEFC'),
+    TKEN = ('TOTAL KINETIC ENERGY', 'J'),
+    TMPS = ('Temperature at surface', 'K'),
+    TOPO = ('TOPOGRAPHY', 'm'),
+    TPP1 = ('1 HOUR ACCUMULATED PRECIPITATION', 'm'),
+    TPP3 = ('3-HOUR ACCUMULATED PRECIPITATION', 'mm'),
+    TPP6 = ('Total precipitation (6-h)', 'm'),
+    TPPA = ('TOTAL ACCUMULATED PRECIPITATION', 'mm'),
+    TPPT = ('12-HOUR ACCUMULATED PRECIPITATION', 'mm'),
+    TSTR = ('FLUX TEMPERATURE', 'degC'),
+    U10M = ('10 M U-WIND COMPONENT', 'm/s'),
+    ULWF = ('UPWARD LONG WAVE RADIATION FLUX', 'W/m2'),
+    UMOF = ('MOMENTUM FLUX, U-WIND COMPONENT', 'N/m2'),
+    USTR = ('FRICTION VELOCITY', '100.00 ? m/s'),
+    UWND = ('U-WIND COMPONENT', 'm/s'),
+    V10M = ('10 M V-WIND COMPONENT', 'm/s'),
+    VGTP = ('VEGETATION TYPE', '0--1'),
+    VMOF = ('MOMENTUM FLUX, V-WIND COMPONENT', 'N/m2'),
+    VSBY = ('VISIBILITY', 'm'),
+    VWND = ('V-WIND COMPONENT', 'm/s'),
+    WESD = ('WATER EQUIV. OF ACCUM. SNOW DEPTH', 'kg/m2'),
+    WFLX = ('WATER VAPOR FLUX', 'kg m2 s'),
+    WSPD = ('WIND SPEED', 'KNTS'),
+    WTMP = ('WATER TEMPERATURE', 'degC'),
+    WVCT = ('WIND VECTORS', 'KNTS'),
+    WWND = ('W-WIND COMPONENT', 'hPa/s'),
     )
+# not used in favor of defn on S141.htm
+#    HGTS = ('HEIGHT ', '0.10 ? DM'),
+#    TMPS = ('SURFACE TEMPERATURE', 'degC'),
+#    T02M = ('2 M TEMPERATURE', 'degC'),
+#    TEMP = ('TEMPERATURE', 'degC'),
+#    TMPS = ('SURFACE TEMPERATURE', 'degC'),
+#    TPP6 = ('6-HOUR ACCUMULATED PRECIPITATION', 'mm'),
+
+# not used in favor of defn on https://www.ready.noaa.gov/READYflddesc.php
+#    SPHU = ('Specific humidity', 'unknown'),
 
 def readvardef(vheader, out = {}):
     out['keys'] = keys = OrderedDict()
@@ -196,19 +278,20 @@ def writearlpackedbit(infile, path):
         for sfck in sfckeys:
             invar = infile.variables[sfck.decode()]
             var_time = datamap['surface'][sfck.decode()]
+            varhead = var_time['head']
             
+            for varpropk in varhead.dtype.names:
+                if not varpropk in ('YYMMDDHHFF', 'LEVEL', 'EXP', 'PREC', 'VAR1'):
+                    varhead[varpropk][ti] = getattr(invar, varpropk)
             
-            for varpropk in var_time['head'].dtype.names:
-                if not varpropk in ('YYMMDDHHFF', 'LEVEL'):
-                    var_time['head'][varpropk][ti] = getattr(invar, varpropk)
             indata = invar[ti]
-            
-            CVAR, PREC, NEXP, VAR1, KSUM = pack2d(indata, verbose = False) #sfck == b'SNOW')
-            var_time['head']['YYMMDDHHFF'][ti] = timestr
-            var_time['head']['LEVEL'][ti] = '%2d' % 0
-            var_time['head']['PREC'][ti] = '%14.7E' % PREC
-            var_time['head']['EXP'][ti] = '%4d' % NEXP
-            var_time['head']['VAR1'][ti] = '%14.7E' % VAR1
+            CVAR, PREC, NEXP, VAR1, KSUM = pack2d(indata, verbose = False)
+                        
+            varhead['YYMMDDHHFF'][ti] = timestr
+            varhead['LEVEL'][ti] = '%2d' % 0
+            varhead['PREC'][ti] = '%14.7E' % PREC
+            varhead['EXP'][ti] = '%4d' % NEXP
+            varhead['VAR1'][ti] = '%14.7E' % VAR1
             checksums[vglvls[0], sfck] = KSUM
             var_time['data'][ti] = CVAR
         for layk in laykeys:
@@ -217,12 +300,14 @@ def writearlpackedbit(infile, path):
             for li, var_time_lay in enumerate(var_time):
                 varhead = var_time_lay['head']            
                 for varpropk in varhead.dtype.names:
-                    if not varpropk in ('YYMMDDHHFF', 'LEVEL'):
+                    if not varpropk in ('YYMMDDHHFF', 'LEVEL', 'EXP', 'PREC', 'VAR1'):
                         varhead[varpropk] = getattr(invar, varpropk)
-                varhead['YYMMDDHHFF'] = timestr
-                varhead['LEVEL'] = '%2d' % (li + 1)
+                
                 indata = invar[ti, li]
                 CVAR, PREC, NEXP, VAR1, KSUM = pack2d(indata)
+                
+                varhead['YYMMDDHHFF'] = timestr
+                varhead['LEVEL'] = '%2d' % (li + 1)
                 var_time_lay['data'] = CVAR
                 varhead['PREC'] = '%14.7E' % PREC
                 varhead['EXP'] = '%4d' % NEXP
