@@ -369,8 +369,8 @@ def maparlpackedbit(path, mode = 'r', shape = None, **props):
     sfckeys = props['sfckeys']
     laykeys = props['laykeys']
     ncell = nx * ny
-    vardefdtype = dtype('%d>S' % hlen)
-    hdrdtype = dtype('%d>c' % (50 + ncell - hlen - thdtype.itemsize))
+    vardefdtype = dtype('>S%d' % hlen)
+    hdrdtype = dtype('>S%d' % (50 + ncell - hlen - thdtype.itemsize))
     lay1dtype = dtype([('head', vhdtype), ('data', dtype('(%d,%d)>1S' % (ny, nx)))])
     sfcdtype = dtype(dict(names = [k.decode() for k in sfckeys], formats = [lay1dtype] * len(sfckeys)))
     laydtype = dtype(dict(names = [k.decode() for k in laykeys], formats = [lay1dtype] * len(laykeys)))
