@@ -202,10 +202,10 @@ def getvgtxts(vglvls):
             dp = 0
         else:
             dp = np.floor(np.log10(vglvl)+1)
-        tmpl = '%%6.%df' % (5 - dp)
+        tmpl = '%%6.%df' % np.minimum(5, (5 - dp))
         vgtxt = (tmpl % vglvl)[-6:]
         if len(vgtxt) != 6:
-            import pdb; pdb.set_trace()
+            raise ValueError('Unable to format vglvl:' + str(vglvl))
         vgtxts.append(vgtxt)
     return vgtxts
     
@@ -269,10 +269,15 @@ def writearlpackedbit(infile, path):
     times = gettimes(infile)
     
     checksums = {}
+    
     for ti, (time, thead) in enumerate(zip(times, theads)):
         for propk in thead.dtype.names:
-            thead[propk] = getattr(infile, propk)
-        
+            if propk in ('NX', 'NY', 'NZ'):
+                thead[propk] = '%3d' % props[propk]
+            elif propk == 'LENH':
+                thead[propk] = '%4d' % datamap['vardef'][ti].itemsize
+            else:
+                thead[propk] = getattr(infile, propk)
         timestr = time.strftime('%y%m%d%H').encode('ascii') + FF
         thead['YYMMDDHHFF'] = timestr
         for sfck in sfckeys:
@@ -323,7 +328,10 @@ def writearlpackedbit(infile, path):
         datamap['vardef'][ti] = ' '.ljust(datamap['vardef'][ti].itemsize)
         datamap['hdr'][ti] = ' '.ljust(datamap['hdr'][ti].itemsize)
         datamap['vardef'][ti] = vardef.encode('ascii')
+        thead['LENH'] = datamap['vardef'][ti].itemsize
+
     
+    datamap.flush()
     
         
     
@@ -610,7 +618,7 @@ class arlpackedbit(PseudoNetCDFFile):
             props = dict([(k, vhead[k][0, 0]) for k in vhead.dtype.names if not k in ('YYMMDDHHFF', 'LEVEL')])
             vdata = unpack(bytes, v11, EXP)
             return PseudoNetCDFVariable(self, k, 'f', ('time', 'z', 'y', 'x'), values = vdata, units = stdunit, standard_name = stdname, **props)
-
+            
 from PseudoNetCDF._getwriter import registerwriter
 registerwriter('noaafiles.arlpackedbit', writearlpackedbit)
 registerwriter('arlpackedbit', writearlpackedbit)
