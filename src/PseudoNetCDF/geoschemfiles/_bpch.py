@@ -787,10 +787,10 @@ class bpch(PseudoNetCDFFile):
         for fl in field_levs:
             self.createDimension('layer%d' % fl, fl)
 
-        itemcount = ((float(os.path.getsize(bpch_path)) - _general_header_type.itemsize) / time_type.itemsize)
+        itemcount = int((float(os.path.getsize(bpch_path)) - _general_header_type.itemsize) // time_type.itemsize)
         if (itemcount % 1) != 0:
             warn("Cannot read whole file; assuming partial time block is at the end; skipping partial time record")
-            itemcount = np.floor(itemcount)
+            itemcount = int(np.floor(itemcount))
 
         # load all data blocks  
         try:
