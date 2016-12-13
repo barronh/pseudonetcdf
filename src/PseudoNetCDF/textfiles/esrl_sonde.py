@@ -57,7 +57,7 @@ def skysonde1sec(inpath):
     varline, unitline = datalines[nmeta-2:nmeta]
     varnames = [vn.strip() for vn in spaces.split(varline)]
     units = [u.strip()[1:-1].strip() for u in spaces.split(unitline)]
-    print units
+    print(units)
     import pdb; pdb.set_trace()
     data = np.fromstring(', '.join(datalines[nmeta:]), sep = ',').reshape(-1, len(varnames))
     outf = PseudoNetCDFFile()
