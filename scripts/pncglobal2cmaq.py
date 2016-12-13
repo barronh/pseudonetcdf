@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/bhenders/anaconda3/bin/python
 from __future__ import print_function
 
 import sys
@@ -23,13 +23,65 @@ from PseudoNetCDF.pncgen import pncgen
 from PseudoNetCDF.geoschemfiles import bpch
 from PseudoNetCDF.register import registerreader
 
-def makedefaulticon(metcroprops):
+messages = ""
+def formatwarning(message, category, filename, lineno, line = 0):
+    """
+    Warning formatter function
+    """
+    global messages
+    strout = "\n***********\n%s:%s: %s:\n\t%s\n***********\n" % (filename, lineno, category.__name__, message)
+    messages += strout
+    return strout
+
+warnings.formatwarning = formatwarning
+
+warn = warnings.warn
+
+def interpbound(x, xp, fp):
+    "Standard numpy interp with minimum=fp.min and max=fp.max"
+    sfc = fp[0]
+    top = fp[-1]
+    out = np.interp(x[::-1], xp[::-1], fp[::-1], left = top, right = sfc)[::-1]
+    return out
+
+
+_GCLIST = "NO2 NO O3 NO3 OH HO2 N2O5 HNO3 HONO PNA H2O2 NTR ROOH FORM ALD2 PAR CO MEPX FACD C2O3 PAN PACD AACD PANX OLE ETH IOLE TOL CRES OPEN MGLY XYL ISOP SO2 SULF ETHA BENZENE NH3 SV_ALK SV_XYL1 SV_XYL2 SV_TOL1 SV_TOL2 SV_BNZ1 SV_BNZ2 SV_TRP1 SV_TRP2 SV_ISO1 SV_ISO2 SV_SQT HG HGIIGAS MACR MVK".split()
+
+_AELIST = "ASO4J ASO4I AALKJ AXYL1J AXYL2J AXYL3J ATOL1J ATOL2J ATOL3J ABNZ1J ABNZ2J ABNZ3J ATRP1J ATRP2J AISO1J AISO2J ASQTJ ACORS ASOIL AISO3J AOLGAJ          AOLGBJ ANIJ ACR_IIIJ ACR_VIJ APBJ APBK ACDJ AMN_HAPSJ AMN_HAPSK APHGJ AORGPAJ AORGPAI".split()
+_NMLIST  = "NUMATKN NUMACC NUMCOR".split()
+_SFLIST = "SRFATKN SRFACC SRFCOR".split()
+
+def makedefaulticon(metcroprops, profilepath):
     """
     Create an empty bcon file whose dimensions
     are consistent with metcroprops
     
     metcroprops - dictionary of properties from IOAPI metadata
     """
+    GCLIST = _GCLIST
+    AELIST = _AELIST
+    NMLIST  = _NMLIST
+    SFLIST = _SFLIST
+    if not profilepath is None:
+        from PseudoNetCDF.cmaqfiles import icon_profile
+        iconfile = icon_profile(profilepath)
+        missingunits = [varkey for varkey, var in iconfile.variables.items() if var[:].ndim == 2 and varkey not in GCLIST + AELIST + NMLIST + SFLIST]
+        missing = ', '.join(missingunits)
+        GCLIST = missingunits + GCLIST
+        if missing != '': warn(profilepath + ' contains ' + missing + ' whose units are assumed ppmV')
+        def getvals(varkey):
+            if varkey not in iconfile.variables:
+                warn(varkey + ' not found in icon profile path')
+                return 1e-32
+            invglvls = np.convolve([.5, .5], metcroprops['VGLVLS'], mode = 'valid')
+            outvglvls = np.convolve([.5, .5], iconfile.VGLVLS, mode = 'valid')
+            invar = iconfile.variables[varkey]
+            allvals = interpbound(invglvls, outvglvls, invar[:])[:, None, None].repeat(metcroprops['NROWS'], 1).repeat(metcroprops['NCOLS'], 2)
+            return allvals
+    else:
+        def getvals(varkey):
+            return 1e-32
+ 
     DI = Dataset('dummyicon.nc', 'w', format = 'NETCDF3_CLASSIC')
     DI.createDimension('TSTEP', None)
     DI.createDimension('DATE-TIME', 2) ;
@@ -48,10 +100,6 @@ def makedefaulticon(metcroprops):
     AIRDEN.coordinates = "lon lat" ;
     AIRDEN.var_desc = "AIRDEN          " ;
 
-    GCLIST = "NO2 NO O3 NO3 OH HO2 N2O5 HNO3 HONO PNA H2O2 NTR ROOH FORM ALD2 PAR CO MEPX FACD C2O3 PAN PACD AACD PANX OLE ETH IOLE TOL CRES OPEN MGLY XYL ISOP SO2 SULF ETHA BENZENE ISPD ALDX NH3 SV_XYL1 SV_XYL2 SV_TOL1 SV_TOL2 SV_BNZ1 SV_BNZ2 SV_TRP1 SV_TRP2 SV_ISO1 SV_ISO2 SV_SQT SV_ALK".split()
-    AELIST = "ASO4J ASO4I AALKJ AXYL1J AXYL2J AXYL3J ATOL1J ATOL2J ATOL3J ABNZ1J ABNZ2J ABNZ3J ATRP1J ATRP2J AISO1J AISO2J ASQTJ ACORS ASOIL AISO3J AOLGAJ AOLGBJ AMGJ ACAJ ANH4J AFEJ ACLK APNCOMI AMNJ APNCOMJ ANO3I ANO3J ANO3K ASIJ AECJ AOTHRJ ANH4I ATIJ AKJ ASEACAT ASO4K AALJ ANAJ APOCJ APOCI AECI ACLJ".split()
-    NMLIST  = "NUMATKN NUMACC NUMCOR".split()
-    SFLIST = "SRFATKN SRFACC SRFCOR".split()
     varkey_unit = [(i, 'ppmV') for i in GCLIST] + [(i, 'micrograms/m**3') for i in AELIST] + [(i, '#/m**3') for i in NMLIST] + [(i, 'm**2/m**3') for i in SFLIST]
     for varkey, unit in varkey_unit:
         var = DI.createVariable(varkey, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'))
@@ -61,7 +109,7 @@ def makedefaulticon(metcroprops):
         var.var_desc = ("Variable %s" % varkey).ljust(80);
     
     for varkey, unit in varkey_unit:
-        DI.variables[varkey][0] = 1e-32;
+        DI.variables[varkey][0] = getvals(varkey)
     
     TFLAG[0] = 0
     DI.IOAPI_VERSION = "$Id: @(#) ioapi library version 3.1 $".ljust(80);
@@ -100,13 +148,40 @@ def makedefaulticon(metcroprops):
     DI.sync()
     return DI
 
-def makedefaultbcon(metbdyprops):
+def makedefaultbcon(metbdyprops, profilepath):
     """
     Create an empty bcon file whose dimensions
     are consistent with metbdyprops
     
     metbdyprops - dictionary of properties from IOAPI metadata
     """
+    GCLIST = _GCLIST
+    AELIST = _AELIST
+    NMLIST  = _NMLIST
+    SFLIST = _SFLIST
+    if not profilepath is None:
+        from PseudoNetCDF.cmaqfiles import bcon_profile
+        bconfile = bcon_profile(profilepath)
+        
+        missingunits = [varkey for varkey, var in bconfile.variables.items() if var[:].ndim == 2 and varkey not in GCLIST + AELIST + NMLIST + SFLIST]
+        missing = ', '.join(missingunits)
+        if missing != '': warn(profilepath + ' contains ' + missing + ' whose units are assumed ppmV')
+        GCLIST = missingunits + GCLIST
+        def getvals(varkey):
+            if varkey not in bconfile.variables:
+                warn(varkey + ' not found in bcon profile path')
+                return 1e-32
+            invglvls = np.convolve([.5, .5], metbdyprops['VGLVLS'], mode = 'valid')
+            outvglvls = np.convolve([.5, .5], bconfile.VGLVLS, mode = 'valid')
+            invar = bconfile.variables[varkey]
+            south = interpbound(invglvls, outvglvls, invar[:, 0])[:, None].repeat(metbdyprops['NCOLS'] + 1, 1)
+            north = interpbound(invglvls, outvglvls, invar[:, 2])[:, None].repeat(metbdyprops['NCOLS'] + 1, 1)
+            east = interpbound(invglvls, outvglvls, invar[:, 1])[:, None].repeat(metbdyprops['NROWS'] + 1, 1)
+            west = interpbound(invglvls, outvglvls, invar[:, 3])[:, None].repeat(metbdyprops['NROWS'] + 1, 1)
+            return np.concatenate([south, east, north, west], axis = 1)
+    else:
+        def getvals(varkey):
+            return 1e-32
     DB = Dataset('dummybcon.nc', 'w', format = 'NETCDF3_CLASSIC')
     DB.createDimension('TSTEP', None)
     DB.createDimension('DATE-TIME', 2) ;
@@ -118,11 +193,6 @@ def makedefaultbcon(metbdyprops):
     TFLAG.units = "<YYYYDDD,HHMMSS>" ;
     TFLAG.long_name = "TFLAG           " ;
     TFLAG.var_desc = "Timestep-valid flags:  (1) YYYYDDD or (2) HHMMSS                                " ;
-    GCLIST = "NO2 NO O3 NO3 OH HO2 N2O5 HNO3 HONO PNA H2O2 NTR ROOH FORM ALD2 PAR CO MEPX FACD C2O3 PAN PACD AACD PANX OLE ETH IOLE TOL CRES OPEN MGLY XYL ISOP SO2 SULF ETHA BENZENE NH3 SV_ALK SV_XYL1 SV_XYL2 SV_TOL1 SV_TOL2 SV_BNZ1 SV_BNZ2 SV_TRP1 SV_TRP2 SV_ISO1 SV_ISO2 SV_SQT".split()
-
-    AELIST = "ASO4J ASO4I AALKJ AXYL1J AXYL2J AXYL3J ATOL1J ATOL2J ATOL3J ABNZ1J ABNZ2J ABNZ3J ATRP1J ATRP2J AISO1J AISO2J ASQTJ ACORS ASOIL AISO3J AOLGAJ          AOLGBJ".split()
-    NMLIST  = "NUMATKN NUMACC NUMCOR".split()
-    SFLIST = "SRFATKN SRFACC SRFCOR".split()
     varkey_unit = [(i, 'ppmV') for i in GCLIST] + [(i, 'micrograms/m**3') for i in AELIST] + [(i, '#/m**3') for i in NMLIST] + [(i, 'm**2/m**3') for i in SFLIST]
     for varkey, unit in varkey_unit:
         var = DB.createVariable(varkey, 'f', ('TSTEP', 'LAY', 'PERIM'))
@@ -132,7 +202,7 @@ def makedefaultbcon(metbdyprops):
         var.var_desc = ("Variable %s" % varkey).ljust(80);
     
     for varkey, unit in varkey_unit:
-        DB.variables[varkey][0] = 1e-32;
+        DB.variables[varkey][0] = getvals(varkey);
     
     TFLAG[0] = 0
     DB.IOAPI_VERSION = "$Id: @(#) ioapi library version 3.1 $".ljust(80);
@@ -171,19 +241,6 @@ def makedefaultbcon(metbdyprops):
     DB.sync()
     return DB
 
-messages = ""
-def formatwarning(message, category, filename, lineno, line = 0):
-    """
-    Warning formatter function
-    """
-    global messages
-    strout = "\n***********\n%s:%s: %s:\n\t%s\n***********\n" % (filename, lineno, category.__name__, message)
-    messages += strout
-    return strout
-
-warnings.formatwarning = formatwarning
-
-warn = warnings.warn
 
 def get_template(option, gcversion):
     """
@@ -1187,6 +1244,7 @@ def makeregriddedcro(metcro, args, spcs):
     """
     lonlatcoords = '/'.join(['%f,%f' % (lon, lat) for lon, lat in zip(metcro.variables['longitude'][:].ravel(), metcro.variables['latitude'][:].ravel())])
     out = []
+    #import pdb; pdb.set_trace()
     for ND49, ND49_REGRID_CRO in zip(args.ND49, args.ND49_REGRID_CRO):
         outf = extract(slice_dim(getvarpnc(ND49, None), 'time,0'), lonlatcoords, method = args.extractmethod)
         if args.persistintermediate:
@@ -1219,6 +1277,8 @@ def makeibcon(args):
     Main logic to make [IB]CON files
     """
     global messages
+    if args.verbose:
+        print('Starting Main')
     messages += ' '.join(sys.argv[:]) + '\n'
     mappings_file = json.load(open(args.mapping, mode = 'r'))
     mappings = mappings_file['CMAQSPECIES']
@@ -1238,6 +1298,8 @@ def makeibcon(args):
         doicon = True
     
     if dobcon:
+        if args.verbose:
+            print('Starting BCON Prep')
         metbdyfiles, metbdyargs = pncparse(has_ofile = False, plot_options = False, interactive = False, args = args.METBDY3D.split(' '), parser = None)
         metbdy = getvarpnc(metbdyfiles[0], ['TA', 'PRES'])
         add_cf_from_ioapi(metbdy)
@@ -1250,11 +1312,11 @@ def makeibcon(args):
         metbdyprops['GDTYP'] = metbdy.GDTYP
 
         if args.BCON == 'dummybcon.nc':
-            oldbcon = makedefaultbcon(metbdyprops)
+            oldbcon = makedefaultbcon(metbdyprops, args.BCONPROFILEPATH)
         else:
             bconfiles, bconargs = pncparse(has_ofile = False, plot_options = False, interactive = False, args = args.BCON.split(' '), parser = None)
             oldbcon = bconfiles[0]
-        newbcon = Dataset(args.NEWBCON, mode = 'w', format = 'NETCDF3_CLASSIC')
+        newbcon = Dataset(args.NEWBCON, mode = 'ws', format = 'NETCDF3_CLASSIC')
         for propk in oldbcon.ncattrs():
             propv = getattr(oldbcon, propk)
             setattr(newbcon, propk, propv)
@@ -1278,20 +1340,23 @@ def makeibcon(args):
 
     
     if doicon:
+        if args.verbose:
+            print('Starting ICON Prep')
         metcrofiles, metcroargs = pncparse(has_ofile = False, plot_options = False, interactive = False, args = args.METCRO3D.split(' '), parser = None)
         metcro = slice_dim(getvarpnc(metcrofiles[0], ['TA', 'PRES']), 'TSTEP,0')
         add_cf_from_ioapi(metcro)
         regridded_nd49_cro = makeregriddedcro(metcro, args, spcs)
-        metcroprops = metbdyprops.copy()
+        metcroprops = dict([(propk, getattr(metcro, propk)) for propk in metcro.ncattrs()])
+        metcroprops['VGLVLSCDL'] = 'f, '.join(['%f' % vgl for vgl in metcroprops['VGLVLS']]) + 'f'
         metcroprops['GDTYP'] = metcro.GDTYP
 
         if args.ICON == 'dummyicon.nc':
-            oldicon = makedefaulticon(metcroprops)
+            oldicon = makedefaulticon(metcroprops, args.ICONPROFILEPATH)
         else:
             iconfiles, iconargs = pncparse(has_ofile = False, plot_options = False, interactive = False, args = args.ICON.split(' '), parser = None)
             oldicon = iconfiles[0]
-        oldicon = Dataset(args.ICON, mode = 'r+', format = 'NETCDF3_CLASSIC')
-        newicon = Dataset(args.NEWICON, mode = 'w', format = 'NETCDF3_CLASSIC')
+        oldicon = Dataset(args.ICON, mode = 'r+s', format = 'NETCDF3_CLASSIC')
+        newicon = Dataset(args.NEWICON, mode = 'ws', format = 'NETCDF3_CLASSIC')
         for propk in oldicon.ncattrs():
             propv = getattr(oldicon, propk)
             setattr(newicon, propk, propv)
@@ -1318,7 +1383,8 @@ def makeibcon(args):
         infiles += [(newbcon, ('TSTEP', 'LAY', 'PERIM'))]
     if doicon:
         infiles += [(newicon, ('TSTEP', 'LAY', 'ROW', 'COL'))]
-
+    if args.verbose:
+        print('Starting Var Def')
     for vark, varo in mappings.items():
         for newcon, dims in infiles:
             if vark not in newcon.variables.keys():
@@ -1335,6 +1401,8 @@ def makeibcon(args):
     general_messages = messages
     messages = ""
     for metfile, regridded_nd49, oldcon, newcon, noutstep in infiles:
+        if args.verbose:
+            print('Starting Var Calc')
         if args.sigmaeta or args.sigma:
             cpressv = np.convolve([0.5, 0.5], metfile.VGLVLS, mode = 'valid')
         else:
@@ -1342,6 +1410,8 @@ def makeibcon(args):
             assert(cpressv.units.strip() == 'Pa')
         oldkeys = []
         for vark, varo in newcon.variables.items():
+            if args.verbose:
+                print('Starting', vark, 'Calc')
             toff = 0
             if vark in ('TFLAG',): continue
             if vark in mappings:
@@ -1422,6 +1492,8 @@ def makeibcon(args):
                         toff
                         oldrm = 0
                         for ti, temp_hour in enumerate(temp_val):
+                            if args.verbose:
+                                print('\nHour', ti, ':      ', end = '')
                             if args.sigmaeta or args.sigma:
                                 cpress = cpressv[:, None].repeat(out[0,0].size, 1)
                             else:
@@ -1445,18 +1517,23 @@ def makeibcon(args):
                             outvals = np.zeros(cpress.shape, dtype = 'f')
                             for pi, (cp, rp, column) in enumerate(zip(cpress.T, rpress.T, temp_hour.T)):
                                 outvals[:, pi] = np.interp(cp[::-1], rp[::-1], column[::-1])[::-1]
+                                if args.verbose:
+                                    print(4*'\b',end = '')
+                                    print('%3.0f%%' % (pi/cpress.shape[1]*100),end = '')
                             out[toff + ti, :, :] = outvals.reshape(*out.shape[1:])
                         toff = toff + ti + 1
-                    if args.verbose:
-                        sys.stdout.write('\n%s %.5e %.5e %.5e %.5e %.5e\n' % tuple(['Raw'] + np.percentile(out, [0, 25, 50, 75, 100]).tolist()))
-                        sys.stdout.flush()
                     minout = np.maximum(out, minval)
                     if args.verbose:
+                        sys.stdout.write('\nSPC     0    25    50    75   100')
+                        sys.stdout.write('\n%s %.5e %.5e %.5e %.5e %.5e' % tuple(['Raw'] + np.percentile(out, [0, 25, 50, 75, 100]).tolist()))
+                        sys.stdout.flush()
                         sys.stdout.write('\n%s %.5e %.5e %.5e %.5e %.5e\n' % tuple(['Min'] + np.percentile(minout, [0, 25, 50, 75, 100]).tolist()))
                         sys.stdout.flush()
             else:
                 oldkeys.append(vark)
                 minout = getdefault(oldcon, vark, noutstep)
+            if args.verbose:
+                print('Writing out', vark, ti)
             varo[0:minout.shape[0], :, :] = minout[:]
 
         #varlist = getattr(newcon, 'VAR-LIST')
@@ -1587,7 +1664,6 @@ if __name__ == '__main__':
     from PseudoNetCDF.pncparse import getparser, pncparse
     
     parser = getparser(has_ofile = False, plot_options = False, interactive = False)
-    parser.add_argument('--verbose', action = 'store_true', default = False, help = 'Add more printing details')
     parser.add_argument('--withnco', action = 'store_true', dest = 'withnco', default = False, help = 'Use NCO to make dummy BCON/ICON.')
     parser.add_argument('--BCON', default = "dummybcon.nc", type = str, help='path (or PseudoNetCDF commands) to an old BCON file (default dummybcon.nc - created on the fly)')
     parser.add_argument('--ICON', default = "dummyicon.nc", help='path (or PseudoNetCDF commands) to an old ICON file')
@@ -1598,6 +1674,8 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--sdate', default = None, help = 'Start date in YYYY-MM-DD HH:MM:SS format')
     parser.add_argument('--METBDY3D', default = None, type = str, help='path (or PseudoNetCDF commands) to a MCIP METBDY3D file')
     parser.add_argument('--METCRO3D', default = None, help='path (or PseudoNetCDF commands) to a MCIP METCRO3D file')
+    parser.add_argument('--BCONPROFILEPATH', default = None, help='path to BCON profile.dat')
+    parser.add_argument('--ICONPROFILEPATH', default = None, help='path to ICON profile.dat')
     parser.add_argument('--tstep', default = None, help = 'Time increment between ND49 files')
     parser.add_argument('--mapping', default = 'mappings.json', help = 'Path to mappings file (i.e., json formatted dictionary); use --template to get a mapping')
     parser.add_argument('--outbfolder', default = ".", help = 'Path to output folder for BCON.')

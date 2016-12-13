@@ -12,13 +12,13 @@ class icon_profile(PseudoNetCDFFile):
     def __init__(self, path):
         lines = open(path).read().split('\n')
         header = lines[3].split()
-        nlay, nspc = map(int, header[:2])
-        sigmas = map(float, header[2:])
+        nlay, nspc = [int(_v) for _v in header[:2]]
+        sigmas = [float(_v) for _v in header[2:]]
         nsigmas = len(sigmas)
         try:
             dateo = datetime.strptime(lines[4].strip(), '%Y-%m-%d')
         except:
-            date, time = map(int, lines[4].split())
+            date, time = [int(_v) for _v in lines[4].split()]
         starts =  [5]
         ends = [s + nspc for s in starts]
         keys = ['all']
@@ -29,7 +29,6 @@ class icon_profile(PseudoNetCDFFile):
         data_shape =  data[keys[0]].shape
         self.createDimension('sigma', nsigmas)
         self.createDimension('sigma-mid', nsigmas - 1)
-        self.createDimension('south_east_north_west', 4)
         self.createVariable('sigma', 'f', ('sigma',), values = np.array(sigmas), units = 'sigma')
         self.createVariable('sigma-mid', 'f', ('sigma-mid',), values = np.array(sigmas).repeat(2, 0)[1:-1].reshape(-1, 2).mean(1), units = 'sigma')
         self.VGLVLS = self.variables['sigma']
@@ -43,19 +42,19 @@ class icon_profile(PseudoNetCDFFile):
             except AssertionError:
                 raise IOError('File is corrupt or inconsistent')
         for a in data['all']:
-            self.createVariable(a[0].strip(), 'f', ('sigma-mid', 'south_east_north_west'), units = "None", values = np.array(map(lambda x: tuple(x)[1:], [a])).T, long_name = a[0].ljust(16), var_desc = a[0].ljust(16))
+            self.createVariable(a[0].strip(), 'f', ('sigma-mid',), units = "None", values = np.array([tuple(a)[1:]])[0], long_name = a[0].ljust(16), var_desc = a[0].ljust(16))
 
 class bcon_profile(PseudoNetCDFFile):
     def __init__(self, path):
         lines = open(path).read().split('\n')
         header = lines[3].split()
-        nlay, nspc = map(int, header[:2])
-        sigmas = map(float, header[2:])
+        nlay, nspc = [int(_v) for _v in header[:2]]
+        sigmas = [float(_v) for _v in header[2:]]
         nsigmas = len(sigmas)
         try:
             dateo = datetime.strptime(lines[4].strip(), '%Y-%m-%d')
         except:
-            date, time = map(int, lines[4].split())
+            date, time = [int(_v) for _v in lines[4].split()]
         starts =  [5 + i + i * nspc for i in range(4)]
         ends = [s + 1 + nspc for s in starts]
         keys = [lines[s].strip().lower() for s in starts]
@@ -81,7 +80,7 @@ class bcon_profile(PseudoNetCDFFile):
                 raise IOError('File is corrupt or inconsistent')
         for w, s, e, n in zip(data['west'], data['south'], data['east'], data['north']):
             assert(w[0] == s[0] and e[0] == n[0] and n[0] == s[0])
-            self.createVariable(w[0].strip(), 'f', ('sigma-mid', 'south_east_north_west'), units = "None", values = np.array(map(lambda x: tuple(x)[1:], [s, e, n, w])).T, long_name = w[0].ljust(16), var_desc = w[0].ljust(16))
+            self.createVariable(w[0].strip(), 'f', ('sigma-mid', 'south_east_north_west'), units = "None", values = np.array([(lambda x: tuple(x)[1:])(_v) for _v in[s, e, n, w]]).T, long_name = w[0].ljust(16), var_desc = w[0].ljust(16))
 
 if __name__ == '__main__':
     po = profile('testdata/profile.dat')
