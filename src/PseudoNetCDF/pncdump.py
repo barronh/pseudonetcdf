@@ -152,7 +152,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                 if isinstance(var, PseudoNetCDFMaskedVariable) or hasattr(var, '_FillValue'):
                     def writer(row, last):
                         if isscalar(row) or row.ndim == 0:
-                            outfile.write(startindent + '  ' + str(row.filled().astype(ndarray)))
+                            outfile.write(startindent + '  ' + str(row.filled().astype(ndarray)) + ';\n')
                             return
                         #old = get_printoptions()
                         #set_printoptions(threshold = inf, linewidth = line_length)
@@ -185,7 +185,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
                 else:
                     def writer(row, last):
                         if isscalar(row) or row.ndim == 0:
-                            outfile.write(startindent + '  ' + str(row.astype(ndarray)))
+                            outfile.write(startindent + '  ' + str(row.astype(ndarray)) + ';\n')
                             return
                         old = get_printoptions()
                         set_printoptions(threshold = inf, linewidth = line_length)
