@@ -13,6 +13,7 @@ from collections import defaultdict, OrderedDict
 
 from ._files import PseudoNetCDFFile
 from ._variables import PseudoNetCDFMaskedVariable, PseudoNetCDFVariable
+from ..userfuncs import *
 
 def pncrename(ifile, type_old_new):
     outf = getvarpnc(ifile, None)
@@ -423,13 +424,13 @@ def _getfunc(a, func):
         if hasattr(a, func):
             outfunc = getattr(a, func)
         elif isinstance(a, np.ma.MaskedArray):
-            outfunc = lambda axis = None: getattr(np.ma, func)(a, axis = axis)
+            outfunc = lambda axis = None, keepdims = True: getattr(np.ma, func)(a, axis = axis, keepdims = keepdims)
         elif hasattr(np, func):
-            outfunc = lambda axis = None: getattr(np, func)(a, axis = axis)
+            outfunc = lambda axis = None, keepdims = True: getattr(np, func)(a, axis = axis, keepdims = keepdims)
         else:
-            outfunc = lambda axis = None: eval(func)(a, axis = axis)
+            outfunc = lambda axis = None, keepdims = True: eval(func)(a, axis = axis, keepdims = keepdims)
     else:
-        outfunc = lambda axis = None: np.apply_along_axis(func1d = func, axis = axis, arr = a)
+        outfunc = lambda axis = None, keepdims = True: np.apply_along_axis(func1d = func, axis = axis, arr = a, keepdims = keepdims)
     return outfunc
     
 def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latitude longitude time_bounds latitude_bounds longitude_bounds ROW COL LAY TFLAG ETFLAG'.split()):
@@ -481,12 +482,13 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
     p2p = Pseudo2NetCDF(verbose = 0)
     outf = PseudoNetCDFFile()
     p2p.addDimensions(inf, outf)
+    del outf.dimensions[dimkey]
     p2p.addGlobalProperties(inf, outf)
     
-    unlimited = inf.dimensions[dimkey].isunlimited()
-    outf.createDimension(dimkey, 1)
-    if unlimited:
-        outf.dimensions[dimkey].setunlimited(True)
+    #unlimited = inf.dimensions[dimkey].isunlimited()
+    #outf.createDimension(dimkey, 1)
+    #if unlimited:
+    #    outf.dimensions[dimkey].setunlimited(True)
 
     for varkey in inf.variables.keys():
         var = inf.variables[varkey]
@@ -495,12 +497,13 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
             continue
         
         axis = list(var.dimensions).index(dimkey)
-        def addunitydim(var):
-            return var[(slice(None),) * (axis + 1) + (None,)]
-        vreshape = addunitydim(var)
+        #def addunitydim(var):
+        #    return var[(slice(None),) * (axis + 1) + (None,)]
+        vreshape = var[slice(None)]
+        #vreshape = addunitydim(var)
         if not varkey in metakeys:
             if numweightkey is None:
-                vout = _getfunc(vreshape, func)(axis = axis)
+                vout = _getfunc(vreshape, func)(axis = axis, keepdims = True)
             elif denweightkey is None:
                 wvar = var * np.array(numweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]),)]
                 vout = getattr(wvar[(slice(None),) * (axis + 1) + (None,)], func)(axis = axis)
@@ -512,11 +515,11 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
                 vout = getattr(nwvar[(slice(None),) * (axis + 1) + (None,)], func)(axis = axis) / getattr(np.array(denweight, ndmin = var.ndim)[(slice(None),)*axis + (slice(0,var.shape[axis]), None)], func)(axis = axis)
         else:
             if '_bounds' not in varkey and '_bnds' not in varkey:
-                vout = _getfunc(vreshape, func)(axis = axis)
+                vout = _getfunc(vreshape, func)(axis = axis, keepdims = True)
             else:
-                vout = _getfunc(vreshape, func)(axis = axis)
-                vmin = _getfunc(vreshape, 'min')(axis = axis)
-                vmax = _getfunc(vreshape, 'max')(axis = axis)
+                vout = _getfunc(vreshape, func)(axis = axis, keepdims = True)
+                vmin = _getfunc(vreshape, 'min')(axis = axis, keepdims = True)
+                vmax = _getfunc(vreshape, 'max')(axis = axis, keepdims = True)
                 if 'lon' in varkey or 'time' in varkey:
                     try:
                         vout[..., [0, 3]] = vmin[..., [0, 3]]
@@ -527,6 +530,9 @@ def reduce_dim(f, reducedef, fuzzydim = True, metakeys = 'time layer level latit
                     nmin = vout.shape[-1] // 2
                     vout[..., :nmin] = vmin[..., :nmin]
                     vout[..., nmin:] = vmax[..., nmin:]
+        if dimkey not in outf.dimensions:
+             outdim = outf.createDimension(dimkey, vout.shape[axis])
+             outdim.setunlimited(inf.dimensions[dimkey].isunlimited())
         nvar = outf.variables[varkey] = PseudoNetCDFMaskedVariable(outf, varkey, var.dtype.char, var.dimensions, values = vout)
         for k in var.ncattrs():
             setattr(nvar, k, getattr(var, k))
