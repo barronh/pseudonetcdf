@@ -40,13 +40,13 @@ def add_time_variables(ifileo):
     add_time_variable(ifileo, 'time_bounds')
 
 def add_time_variable(ifileo, key):
-    from datetime import datetime, timedelta
+    from datetime import datetime, timedelta, timezone
     sdate = int(abs(ifileo.SDATE))
     if sdate < 1400000:
         sdate += 2000000
-    sdate = datetime(sdate // 1000, 1, 1) + timedelta(days = (sdate % 1000) - 1)
+    sdate = datetime(sdate // 1000, 1, 1, tzinfo=timezone.utc) + timedelta(days = (sdate % 1000) - 1)
     sdate = sdate + timedelta(days = ifileo.STIME / 240000.)
-    rdate = datetime(1970, 1, 1)
+    rdate = datetime.strptime('1970-01-01 00:00:00+0000', '%Y-%m-%d %H:%M:%S%z')
     if ifileo.TSTEP == 0:
         tmpseconds = 0;
     else:
@@ -56,14 +56,14 @@ def add_time_variable(ifileo, key):
         stmp = tmp[4:]
         tmpseconds = 3600 * int(htmp) + 60 * int(mtmp) + int(stmp)
     
-    time_unit = "seconds since %s" % (rdate.strftime('%Y-%m-%d %H:%M:%S'),)
+    time_unit = "seconds since %s" % (rdate.strftime('%Y-%m-%d %H:%M:%S%z'),)
     if 'TFLAG' in ifileo.variables:
         tflag = ifileo.variables['TFLAG'][:, 0]
         jdays = tflag[:, 0]
         hhmmsss = tflag[:, 1]
         if jdays[0] == 0:
             jdays = [ifileo.SDATE]
-        dates = np.array([datetime.strptime('%7d %06d' % (jday, hhmmss), '%Y%j %H%M%S') for jday, hhmmss in zip(jdays, hhmmsss)])
+        dates = np.array([datetime.strptime('%7d %06d+0000' % (jday, hhmmss), '%Y%j %H%M%S%z') for jday, hhmmss in zip(jdays, hhmmsss)])
         time = np.array([(date - rdate).total_seconds() for date in dates])
         if key == 'time_bounds':
             time = np.array([time, time + tmpseconds]).T
@@ -73,11 +73,13 @@ def add_time_variable(ifileo, key):
         else:
             dims = ('TSTEP',)
     else:
+        sdate = datetime.strptime('%07d %06d+0000' % (getattr(ifileo, 'SDATE', 1970001), getattr(ifileo, 'STIME', 0)), '%Y%j %H%M%S%z')
+        off = (sdate - rdate).total_seconds()
         if key == 'time':
-            time = np.arange(0, max(1, len(ifileo.dimensions['TSTEP'])), dtype = 'i') * tmpseconds
+            time = np.arange(0, max(1, len(ifileo.dimensions['TSTEP'])), dtype = 'i') * tmpseconds + off
             dims = ('TSTEP',)
         elif key == 'time_bounds':
-            time = np.arange(0, max(1, len(ifileo.dimensions['TSTEP'])) + 1, dtype = 'i') * tmpseconds
+            time = np.arange(0, max(1, len(ifileo.dimensions['TSTEP'])) + 1, dtype = 'i') * tmpseconds + off
             time = time.repeat(2, 0)[1:-1].reshape(-1, 2)
             dims = ('TSTEP','tnv')
             if 'tnv' not in ifileo.dimensions.keys():
