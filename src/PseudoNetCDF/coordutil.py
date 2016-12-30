@@ -20,20 +20,49 @@ def getlonlatcoordstr(ifile, makemesh = None):
     
     return '/'.join(['%s,%s' % ll for ll in zip(lon[:].flat, lat[:].flat)])
 
+def _parse_ref_date(base):
+    from datetime import datetime
+    fmts = [
+            (lambda x: ':' in x and x[-3:] == 'UTC', '+0000', '%Y-%m-%d %H:%M:%S UTC%z'), # has time and Z
+            (lambda x: 'UTC' in x, '+0000', '%Y-%m-%d %H UTC%z'), # has hour and Z
+            (lambda x: x.count(':') == 2 and x[-1] == 'Z', '', '%Y-%m-%d %H:%M:%SZ'), # has time and Z
+            (lambda x: x.count(':') == 1 and x[-1] == 'Z', '', '%Y-%m-%d %H:%MZ'), # has time and Z
+            (lambda x: 'Z' == x[-1], '+0000', '%Y-%m-%d %HZ%z'), # has hour and Z
+            (None, '', '%Y-%m-%d %H:%M:%S%z'), # full ISO8601 datetime with numeric timezone info
+            (None, '+0000', '%Y-%m-%d %H:%M:%S%z'), # missing timezone
+            (None, ':00+0000', '%Y-%m-%d %H:%M:%S%z'), # missing seconds and timezone
+            (None, '', '%Y-%m-%d %H:%M%z'), # missing seconds
+            (None, ':00:00+0000', '%Y-%m-%d %H:%M:%S%z'), # missing minutes and seconds and timezone
+            (None, '', '%Y-%m-%d %H%z'), # missing minutes and seconds
+            (None, ' 00:00:00+0000', '%Y-%m-%d %H:%M:%S%z'), # missing time and timezone
+            (None, '', '%Y-%m-%d %z'), # missing time
+            (None, '', '%Y-%m-%d%z'), # missing time
+           ]
+    for test, suffix, fmt in fmts:
+        if test is None or test(base):
+            try:
+                rdate = datetime.strptime(base + suffix, fmt)
+                return rdate
+            except Exception as e:
+                pass
+    else:
+        raise ValueError('Could not find appropriate date')
+
 def gettimes(ifile):
     from datetime import datetime, timedelta
     if 'time' in ifile.variables.keys():
         time = ifile.variables['time']
         if 'since' in time.units:
             unit, base = time.units.strip().split(' since ')
-            if 'UTC' in base:
-                sdate = datetime.strptime(base, '%Y-%m-%d %H:%M:%S UTC')
-            elif 'Z' in base:
-                sdate = datetime.strptime(base, '%Y-%m-%d %HZ')
-            elif ':' in base:
-                sdate = datetime.strptime(base, '%Y-%m-%d %H:%M:%S')
-            else:
-                sdate = datetime.strptime(base, '%Y-%m-%d')
+            #consider using netcdftime
+            #try:
+            #    import netcdftime
+            #    ut = netcdftime.netcdftime.utime(time.units.strip())
+            #    sdate = ut.num2date(0.)
+            #except:
+            #    warn('tried netcdftime')
+            #    pass
+            sdate = _parse_ref_date(base)
             out = sdate + np.array([timedelta(**{unit: float(i)}) for i in time[:]])
             return out
         else:
