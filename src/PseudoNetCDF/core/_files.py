@@ -234,14 +234,11 @@ class PseudoNetCDFVariables(OrderedDefaultDict):
         Allow the user to extend keys after the object
         has been created.
         """
-        self.__keys.append(k)
+        if not k in self.__keys:
+            self.__keys.append(k)
 
     def keys(self):
-        keys = [k for k in self.__keys]
-        for k in OrderedDefaultDict.keys(self):
-            if k not in keys:
-                keys.append(k)
-        return tuple(keys)
+        return tuple(self.__keys + [k for k in dict.keys(self) if k not in self.__keys])
 
     
     def items(self):
