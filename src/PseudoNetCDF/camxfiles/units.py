@@ -5,7 +5,7 @@ _camx_units = {'EMISSIONS ': {True: 'g/time', False: 'mol/time'},
                'BOUNDARY  ': {True: 'micrograms/m**3', False: 'ppm'},
                'INSTANT   ': {True: 'micrograms/m**3', False: 'micromoles/m**3'},
                'IPR': {True: 'micrograms/m**3', False: 'micromoles/m**3'},
-               'AIRQUALITY': {True: 'micrograms/m**3', False: 'micromoles/m**3'},
+               'AIRQUALITY': {True: 'micrograms/m**3', False: 'ppm'},
                'DEPOSITION': {True: 'g/ha', False: 'mol/ha'},}
 
 def get_chemparam_names(chemparampath):
