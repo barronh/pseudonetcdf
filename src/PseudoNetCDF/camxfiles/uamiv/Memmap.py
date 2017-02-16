@@ -110,7 +110,7 @@ class uamiv(PseudoNetCDFFile):
         self.UPNAM = "CAMx            " ;
         self.FILEDESC = "CAMx            ";
         # Create variables
-        self.variables=PseudoNetCDFVariables(self.__variables, self.__var_names__+['TFLAG', 'ETFLAG'])
+        self.variables=PseudoNetCDFVariables(self.__variables, ['TFLAG', 'ETFLAG'] + self.__var_names__)
         tflag = ConvertCAMxTime(self.__memmap__['DATE']['BDATE'], self.__memmap__['DATE']['BTIME'], self.NVARS)
         etflag = ConvertCAMxTime(self.__memmap__['DATE']['EDATE'], self.__memmap__['DATE']['ETIME'], self.NVARS)
         tflagv = self.createVariable('TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'), values = tflag, units = 'DATE-TIME', long_name = 'TFLAG'.ljust(16), var_desc = 'TFLAG'.ljust(80))
