@@ -125,7 +125,11 @@ _AXIS = np.array([6378206.4,6378249.145,6377397.155,6378157.5,6378388.0,6378135.
 _BXIS = np.array([6356583.8,6356514.86955,6356078.96284,6356772.2,6356911.94613,6356750.519915,6356075.4133,6356759.769356,6356752.314140,6356256.91,6356103.039,6356034.448,6356752.314245,6356773.3205,6356774.719,6356863.0188,6356794.343479,6356784.283666,6356768.337303,6370997.0,6370000.0,6371200.0])
 def get_ioapi_sphere():
     import os
-    isph_parts = list(map(eval, os.environ.get('IOAPI_ISPH', '6370000.').split(' ')))
+    ENV_IOAPI_ISPH = os.environ.get('IOAPI_ISPH', None)
+    if ENV_IOAPI_ISPH is None:
+        ENV_IOAPI_ISPH = '6370000.'
+        warn('IOAPI_ISPH is assumed to be ' + ENV_IOAPI_ISPH + '; consistent with WRF')
+    isph_parts = [eval(ip) for ip in ENV_IOAPI_ISPH.split(' ')]
     if len(isph_parts) > 2:
         raise ValueError('IOAPI_ISPH must be 1 or 2 parameters (got: %s)' % str(isph_parts))
     elif len(isph_parts) == 2:
