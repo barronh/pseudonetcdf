@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/work/ROMO/anaconda3/bin/python
 import sys
 import numpy as np
 from warnings import warn
@@ -139,6 +139,8 @@ def plot(ifiles, args):
                 axs.set_title('South')
                 axs.set_xlabel('E to W km')
                 axs.set_xlim(*axs.get_xlim()[::-1])
+            else:
+                if not reversevert: axs.set_ylim(*axs.get_ylim()[::-1])
                 
             X, Y = np.meshgrid(np.arange(-1, x) * f.XCELL * xyfactor, vertcrd)
             patchesn = axn.pcolor(X, Y, var[:, start_north:end_north], cmap = bmap, vmin = vmin, vmax = vmax, norm = norm)
@@ -161,6 +163,7 @@ def plot(ifiles, args):
             if map:
                 X, Y = np.meshgrid(vertcrd, np.arange(-1, y) * f.YCELL)
                 patchesw = axw.pcolor(X, Y, var[:, start_west:end_west].swapaxes(0,1), cmap = bmap, vmin = vmin, vmax = vmax, norm = norm)
+                if not reversevert: axw.set_xlim(*axw.get_xlim()[::-1])
             else:
                 X, Y = np.meshgrid(np.arange(-1, y) * f.YCELL * xyfactor, vertcrd)
                 patchesw = axw.pcolor(X, Y, var[:, start_west:end_west], cmap = bmap, vmin = vmin, vmax = vmax, norm = norm)
