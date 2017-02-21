@@ -1,9 +1,6 @@
 from PseudoNetCDF.sci_var import PseudoNetCDFFile
 import numpy as np
 import pandas
-from shapely.wkt import loads
-from shapely.geometry import Point, Polygon
-from shapely.prepared import prep
 from datetime import datetime, timedelta
 
 def getbdate(x):
@@ -36,9 +33,12 @@ class aqsraw(PseudoNetCDFFile):
         verbose - level of verbosity
         """
         if not wktpolygon is None:
+            from shapely.wkt import loads
+            from shapely.prepared import prep
             bounds = loads(wktpolygon)
             pbounds = prep(bounds)
-        
+        else:
+            from shapely.geometry import Point
         bdate = getbdate(bdate)
         edate = getedate(edate)
         nseconds = {'hourly': 3600, 'daily': 3600*24}[timeresolution]
