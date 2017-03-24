@@ -171,8 +171,8 @@ class TestMemmap(unittest.TestCase):
         pncgen(infile, outpath, format = 'camxfiles.wind')
         orig = open(inpath, 'rb').read()
         new = open(outpath, 'rb').read()
-        assert(orig == new)
         os.remove(outpath)
+        assert(orig == new)
        
 TestSuite=unittest.makeSuite(TestMemmap,'test')               
 if __name__ == '__main__':

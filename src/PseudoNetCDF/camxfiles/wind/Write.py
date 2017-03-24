@@ -46,7 +46,7 @@ def ncf2wind(ncffile, outpath, tflag = 'TFLAG'):
     varkeys = [vk for vk in ['U', 'V'] if vk in ncffile.variables.keys()]
     nzcl = len(ncffile.dimensions['LAY'])
     for di, (d,t) in enumerate(ncffile.variables[tflag][:,0,:]):
-        t=np.array(t.astype('>f')//100,ndmin=1).astype('>f')
+        t=np.array(t // 100,ndmin=1).astype('>f')
         d=np.array(d,ndmin=1).astype('>i')
         d=(d%(d//100000*100000)).astype('>i')
         lstag = ncffile.LSTAGGER
