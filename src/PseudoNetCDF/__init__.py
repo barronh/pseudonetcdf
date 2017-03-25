@@ -21,7 +21,7 @@ import sys
 import os
 import warnings
 warn = warnings.warn
-def clean_showwarning(message, category, filename, lineno, file=None):
+def clean_showwarning(message, category, filename, lineno, file=None, line=None):
     print('**PNC:%s:%s:%s:\n  %s' % ((filename), lineno, category.__name__, message), file = sys.stderr)
     return
 warnings.showwarning = clean_showwarning
