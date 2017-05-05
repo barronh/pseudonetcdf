@@ -46,4 +46,7 @@ from . import coordutil
 from . import test
 from ._getreader import anyfile
 from .pncparse import PNC
+<<<<<<< HEAD
 
+=======
+>>>>>>> c17dbd4dc36ec3f11572da7bfab9b641250cc614
