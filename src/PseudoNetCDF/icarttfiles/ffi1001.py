@@ -31,7 +31,7 @@ DATE_VAR_LINE = 10
 SCALE_LINE = 11
 MISSING_LINE = 12
 class ffi1001(PseudoNetCDFFile):
-    def __init__(self,path,keysubs={'/': '_'},encoding='utf-8'):
+    def __init__(self,path,keysubs={'/': '_'},encoding='utf-8', default_llod_flag = -8888, default_llod_value = 'N/A', default_ulod_flag = -7777, default_ulod_value = 'N/A'):
         lastattr = None
         PseudoNetCDFFile.__init__(self)
         f = open(path, 'rU', encoding = encoding)
@@ -42,7 +42,7 @@ class ffi1001(PseudoNetCDFFile):
             delim = ','
         else:
             delim = None
-        split = lambda s: list(map(str.strip, s.split(delim)))
+        split = lambda s: [s_.strip() for s_ in s.split(delim)]
 
         if split(l)[-1] != '1001':
             raise TypeError("File is the wrong format.  Expected 1001; got %s" % (split(l)[-1],))
@@ -68,15 +68,15 @@ class ffi1001(PseudoNetCDFFile):
                 elif li == MISSION_LINE:
                     self.MISSION_NAME = l.strip()
                 elif li == VOL_LINE:
-                    self.VOLUME_INFO = l.strip()
+                    self.VOLUME_INFO = ', '.join(split(l))
                 elif li == DATE_LINE:
-                    l = l.replace(',', ' ').replace('  ', ' ').split()
-                    SDATE = "".join(l[:3])
-                    WDATE = "".join(l[3:])
+                    l = l.replace(',', ' ').replace('-', ' ').replace('  ', ' ').split()
+                    SDATE = ", ".join(l[:3])
+                    WDATE = ", ".join(l[3:])
                     self.SDATE = SDATE
                     self.WDATE = WDATE
-                    self._SDATE = datetime.strptime(SDATE, '%Y%m%d')
-                    self._WDATE = datetime.strptime(WDATE, '%Y%m%d')
+                    self._SDATE = datetime.strptime(SDATE, '%Y, %m, %d')
+                    self._WDATE = datetime.strptime(WDATE, '%Y, %m, %d')
                 elif li == TIME_INT_LINE:
                     self.TIME_INTERVAL = l.strip()
                 elif li == UNIT_LINE:
@@ -105,8 +105,17 @@ class ffi1001(PseudoNetCDFFile):
                 elif li == SPECIAL_COMMENT_COUNT_LINE:
                     n_special_comments = int(l.replace('\n', ''))
                 elif li > SPECIAL_COMMENT_COUNT_LINE and li <= LAST_SPECIAL_COMMENT_LINE:
-                    pass
+                    colon_pos = l.find(':')
+                    if l[:1] == ' ':
+                        k = lastattr
+                        v = getattr(self,k,'') + l
+                    else:
+                        k = l[:colon_pos].strip()
+                        v = l[colon_pos+1:].strip()
+                    setattr(self,k,v)
+                    lastattr = k
                 elif li == USER_COMMENT_COUNT_LINE:
+                    lastattr = None
                     n_user_comments = int(l.replace('\n',''))
                 elif li > USER_COMMENT_COUNT_LINE and li < self.n_header_lines:
                     colon_pos = l.find(':')
@@ -141,6 +150,9 @@ class ffi1001(PseudoNetCDFFile):
             
             llod_flags = len(llod_values)*[self.LLOD_FLAG]
             llod_flags = [get_lodval(llod_flag) for llod_flag in llod_flags]
+        else:
+            llod_flags = [default_llod_flag] * len(scales)
+            llod_values = [default_llod_value] * len(scales)
         
         if hasattr(self,'ULOD_FLAG'):
             ulod_values = loddelim.sub('\n', self.ULOD_VALUE).split()
@@ -154,6 +166,9 @@ class ffi1001(PseudoNetCDFFile):
             
             ulod_flags = len(ulod_values)*[self.ULOD_FLAG]
             ulod_flags = [get_lodval(ulod_flag) for ulod_flag in ulod_flags]
+        else:
+            ulod_flags = [default_ulod_flag] * len(scales)
+            ulod_values = [default_ulod_value] * len(scales)
         
         data = f.read()
         datalines = data.split('\n')
@@ -186,23 +201,36 @@ class ffi1001(PseudoNetCDFFile):
         
         self._date_objs = self._SDATE + vectorize(lambda s: timedelta(seconds = int(s), microseconds = (s - int(s)) * 1.E6 ))(self.variables[self.TFLAG]).view(type = ndarray)
 
-def ncf2ffi1001(f, outpath, mode = 'w'):
+def ncf2ffi1001(f, outpath, mode = 'w', delim = ', '):
     outfile = open(outpath, mode)
+    check_for_attrs = ['PI_NAME', 'ORGANIZATION_NAME', 'SOURCE_DESCRIPTION', 'MISSION_NAME', 'VOLUME_INFO']
+    missing_attrs = [k for k in check_for_attrs if not k in f.ncattrs()]
+    if len(missing_attrs) > 0:
+        warn('Missing import attributes filling with "Unknown": ' + ';'.join(missing_attrs))
     header_keys = "PI_CONTACT_INFO PLATFORM LOCATION ASSOCIATED_DATA INSTRUMENT_INFO DATA_INFO UNCERTAINTY ULOD_FLAG ULOD_VALUE LLOD_FLAG LLOD_VALUE DM_CONTACT_INFO PROJECT_INFO STIPULATIONS_ON_USE OTHER_COMMENTS REVISION".split()
-    print('%d, %d' % (len(f.ncattrs()) + len(f.variables), 1001), file = outfile)
+    IGNORE_ATTRS = ['fmt', 'n_header_lines', 'PI_NAME', 'ORGANIZATION_NAME', 'SOURCE_DESCRIPTION', 'MISSION_NAME', 'VOLUME_INFO', 'SDATE', 'WDATE', 'TIME_INTERVAL', 'INDEPENDENT_VARIABLE', 'TFLAG']
+    depvarkeys = [k for k in f.variables.keys() if k != f.INDEPENDENT_VARIABLE]
+    varkeys = [f.INDEPENDENT_VARIABLE] + depvarkeys
+    myattrs = [k for k in f.ncattrs() if not k in IGNORE_ATTRS]
+    print('%d, %d' % (len(myattrs) + len(depvarkeys) + 15, 1001), file = outfile)
     print(getattr(f, 'PI_NAME', 'Unknown'), file = outfile)
     print(getattr(f, 'ORGANIZATION_NAME', 'Unknown'), file = outfile)
     print(getattr(f, 'SOURCE_DESCRIPTION', 'Unknown'), file = outfile)
-    print(getattr(f, 'VOLUME_INFO', 'Unknown'), file = outfile)
-    print(f.SDATE, f.WDATE, file = outfile)
-    print(f.TIME_INTERVAL, file = outfile)
+    print(getattr(f, 'MISSION_NAME', 'Unknown'), file = outfile)
+    print(getattr(f, 'VOLUME_INFO', '1, 1'), file = outfile)
+    print(f.SDATE, getattr(f, 'WDATE', datetime.today().strftime('%Y, %m, %d')), file = outfile)
+    print(getattr(f, 'TIME_INTERVAL', 0), file = outfile)
     print(f.INDEPENDENT_VARIABLE, file = outfile)
-    print('%d' % len(f.variables), file = outfile)
+    print('%d' % len(depvarkeys), file = outfile)
+    print(delim.join(['1' for k in depvarkeys]), file = outfile)
+    print(delim.join([str(getattr(f.variables[k], 'missing_value', -999)) for k in depvarkeys]), file = outfile)
     for key, var in f.variables.items():
-        print('%s, %s' % (key, getattr(var, 'units', 'unknown')), file = outfile)
+        if key == f.INDEPENDENT_VARIABLE: continue
+        print(delim.join([key, getattr(var, 'units', 'unknown')]), file = outfile)
     
-    print(len(f.ncattrs()), file = outfile)
-    for key in f.ncattrs():
+    print(0, file = outfile)
+    print(len(myattrs), file = outfile)
+    for key in myattrs:
         print('%s: %s' % (key, getattr(f, key, '')), file = outfile)
     
     vals = [filled(f.variables[f.INDEPENDENT_VARIABLE][:]).ravel()]
@@ -212,9 +240,9 @@ def ncf2ffi1001(f, outpath, mode = 'w'):
         keys.append(key)
         vals.append(filled(var[:]).ravel())
         
-    print(', '.join(keys), file = outfile)
+    print(delim.join(keys), file = outfile)
     for row in array(vals).T:
-        row.tofile(outfile, format = '%.6e', sep = ', ')
+        row.tofile(outfile, format = '%.6e', sep = delim)
         print('', file = outfile)
 
 from PseudoNetCDF._getwriter import registerwriter
