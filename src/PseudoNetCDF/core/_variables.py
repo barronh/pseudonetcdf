@@ -9,6 +9,58 @@ class PseudoNetCDFVariable(np.ndarray):
     without adding it to the parent file
     """
     __array_priority__ = 10000000.
+    def xarray(self, iscoord = False):
+        """
+Experimental function
+Returns:
+    out - xarray.DataArray object with dimensions and coordinates
+        dims - are set by self.get_coords()
+        coords - are set by self.get_coords()
+
+Notes:
+    When data is 2-d, the dimensions
+        """
+        import xarray as xr
+        myname = self._name
+        if iscoord:
+            coordd = {}
+        else:
+            coordd = dict([(k, self.get_coord(k)) for k in self.get_coord_names() if k != myname])
+        attrs = dict([(k, getattr(self, k)) for k in self.ncattrs()])
+        return xr.DataArray(self[:], dims = self.dimensions, coords = coordd, attrs = attrs)
+
+    def get_coord_names(self):
+        dims = list(self.dimensions)
+        ndims = len(dims)
+        coords = getattr(self, 'coordinates', '').split()
+        ncoords = len(coords)
+        maxdims = max(ndims, ncoords);
+        coords = ((ndims * [None]) + coords)[-maxdims:]
+        dims = (dims + ncoords * [None])[:maxdims]
+        coords = [dimn if coordn is None else coordn for dimn, coordn in zip(dims, coords)]
+        return coords
+    
+    def get_coord(self, coordn):
+        if coordn in self._parent.variables:
+            v = self._parent.variables[coordn]
+            if len(v.dimensions) > 1 and coordn in v.dimensions:
+                warn(coordn + ' has dimensions ' + str(v.dimensions) + '; so it will use a standard linear coordinate. Consider manually adding coords')
+                coordi = list(self.dimensions).index(coordn)
+                coordv = np.arange(self.shape[coordi])
+            else:
+                coordv = (v.dimensions, v.xarray(iscoord = True))
+        else:
+            coordi = list(self.dimensions).index(coordn)
+            coordv = np.arange(self.shape[coordi])
+        return coordv
+     
+    def get_coords(self):
+        coords = self.get_coord_names()
+        coordsd = {}
+        for coordn in coords:
+             coordsd[coordn] = self.get_coord(coordn)
+        return coordsd
+
     def __repr__(self):
         out = str(self)
         return object.__repr__(self).replace(' at ', '\n' + out + ' at ')
@@ -86,7 +138,7 @@ class PseudoNetCDFVariable(np.ndarray):
         name: name for variable
         typecode: numpy style typecode
         dimensions: a typle of dimension names to be used from
-                    parrent
+                    parent
         kwds: Dictionary of keywords to be added as properties
               to the variable.  **The keyword 'values' is a special
               case that will be used as the starting values of
@@ -112,6 +164,8 @@ class PseudoNetCDFVariable(np.ndarray):
         result.typecode = lambda: typecode
         result.dimensions = tuple(dimensions)
         result._ncattrs = ()
+        result._parent= parent
+        result._name = name
         for k,v in kwds.items():
             setattr(result,k,v)
         return result
@@ -183,6 +237,7 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
 
         result=result.view(subtype)
         result._ncattrs = ()
+        result._parent = parent
         result.typecode = lambda: typecode
         result.dimensions = tuple(dimensions)
         for k,v in kwds.items():
