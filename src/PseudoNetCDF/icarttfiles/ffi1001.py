@@ -2,6 +2,7 @@ from __future__ import print_function
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFMaskedVariable as PseudoNetCDFVariable
 from numpy import fromstring, vectorize, ndarray, array, genfromtxt
 from numpy.ma import MaskedArray, filled
+import numpy as np
 from datetime import datetime, timedelta
 import re
 import yaml
@@ -31,7 +32,32 @@ DATE_VAR_LINE = 10
 SCALE_LINE = 11
 MISSING_LINE = 12
 class ffi1001(PseudoNetCDFFile):
+    """
+Overview:
+  ffi1001 is a reader object for the NASA AMES format also 
+  known as the ICARTT file format. The format is defined
+  in detail at https://www-air.larc.nasa.gov/missions/etc/IcarttDataFormat.htm
+  Standard of practice is to write files in UTF-8 encoding.
+  However, it is not uncommon to receive files with special
+  characters. To specify an encoding use the encoding keyword.
+  
+Example:
+  datafile = ffi1001(path, encoding = 'latin1')
+    """
     def __init__(self,path,keysubs={'/': '_'},encoding='utf-8', default_llod_flag = -8888, default_llod_value = 'N/A', default_ulod_flag = -7777, default_ulod_value = 'N/A'):
+        """
+Arguments:
+   self - implied input (not supplied in call)
+   path - path to file
+   keysubs - dictionary of characters to remove from variable keys and their replacements
+   encoding - file encoding (utf-8, latin1, cp1252, etc.)
+   default_llod_flag - flag value for lower limit of detections if not specified
+   default_llod_value - default value to use for replacement of llod_flag
+   default_ulod_flag - flag value for upper limit of detections if not specified
+   default_ulod_value - default value to use for replacement of ulod_flag
+Returns:
+   out - PseudoNetCDFFile interface to data in file.
+        """
         lastattr = None
         PseudoNetCDFFile.__init__(self)
         f = open(path, 'rU', encoding = encoding)
@@ -202,6 +228,15 @@ class ffi1001(PseudoNetCDFFile):
         self._date_objs = self._SDATE + vectorize(lambda s: timedelta(seconds = int(s), microseconds = (s - int(s)) * 1.E6 ))(self.variables[self.TFLAG]).view(type = ndarray)
 
 def ncf2ffi1001(f, outpath, mode = 'w', delim = ', '):
+    """
+Arguments:
+  f       - input file with 1-D variables and meta-data
+  outpath - location to create output
+  mode    - method for opening output file
+  delim   - delimiter for data in output file
+Returns:
+  out     - output file (still open)
+    """
     outfile = open(outpath, mode)
     check_for_attrs = ['PI_NAME', 'ORGANIZATION_NAME', 'SOURCE_DESCRIPTION', 'MISSION_NAME', 'VOLUME_INFO']
     missing_attrs = [k for k in check_for_attrs if not k in f.ncattrs()]
@@ -244,6 +279,26 @@ def ncf2ffi1001(f, outpath, mode = 'w', delim = ', '):
     for row in array(vals).T:
         row.tofile(outfile, format = '%.6e', sep = delim)
         print('', file = outfile)
-
+    
+    return outfile
 from PseudoNetCDF._getwriter import registerwriter
 registerwriter('ffi1001', ncf2ffi1001)    
+
+import unittest
+class TestMemmaps(unittest.TestCase):
+    def setUp(self):
+        from PseudoNetCDF.testcase import icarttfiles_paths
+        self.ffi1001path=icarttfiles_paths['ffi1001']
+
+    def testNCF2FFI1001(self):
+        import os
+        ffi1001file=ffi1001(self.ffi1001path)
+        outpath = self.ffi1001path + '.check'
+        ncf2ffi1001(ffi1001file, outpath)
+        newfile = ffi1001(outpath)
+        for k, v in ffi1001file.variables.items():
+            assert(k in newfile.variables)
+            nv = newfile.variables[k]
+            np.testing.assert_allclose(v[:], nv[:])
+        
+        os.remove(outpath)
