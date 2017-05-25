@@ -147,19 +147,30 @@ def ncf2uamiv(ncffile, outpath):
     time_hdr = np.zeros(shape = (len(ncffile.dimensions['TSTEP']),), dtype = _time_hdr_fmt)
     time_hdr['SPAD'] = 16
     time_hdr['EPAD'] = 16
-    date, time = ncffile.variables['TFLAG'][:, 0].T
-    time = time.astype('>f') / 10000.
-    date = date%(date//100000*100000)
-    time_hdr['ibdate'] = date
-    time_hdr['btime'] = time
-    time_hdr['iedate'] = date
-    time_hdr['etime'] = time + 1.
-    time_hdr['iedate'] += (time_hdr['etime'] // 24).astype('i')
-    time_hdr['etime'] -= (time_hdr['etime'] // 24) * 24
-    emiss_hdr['ibdate'] = time_hdr['ibdate'][0]
-    emiss_hdr['btime'] = time_hdr['btime'][0]
-    emiss_hdr['iedate'] = time_hdr['iedate'][0]
-    emiss_hdr['etime'] = time_hdr['etime'][0]
+    date_s, time_s = ncffile.variables['TFLAG'][:, 0].T
+    time_s = time_s.astype('>f') / 10000.
+    date_s = date_s%(date_s//100000*100000)
+    if 'ETFLAG' in ncffile.variables.keys():
+        date_e, time_e = ncffile.variables['ETFLAG'][:, 0].T
+        time_e = time_e.astype('>f') / 10000.
+        date_e = date_e%(date_e//100000*100000)
+    else:
+        if hasattr(ncffile, 'TSTEP'):
+            tincr = ncffile.TSTEP / 10000
+        else:
+            tincr = np.diff(time_s)[0]
+        date_e = date_s.copy()
+        time_e = time_s.copy() + tincr
+        date_e += (time_e // 24).astype('i')
+        time_e -= (time_e // 24) * 24
+    time_hdr['ibdate'] = date_s
+    time_hdr['btime'] = time_s
+    time_hdr['iedate'] = date_e
+    time_hdr['etime'] = time_e
+    emiss_hdr['ibdate'] = date_s[0]
+    emiss_hdr['btime'] = time_s[0]
+    emiss_hdr['iedate'] = date_e[-1]
+    emiss_hdr['etime'] = time_e[-1]
     emiss_hdr['SPAD'] = _emiss_hdr_fmt.itemsize - 8
     emiss_hdr['EPAD'] = _emiss_hdr_fmt.itemsize - 8
     
