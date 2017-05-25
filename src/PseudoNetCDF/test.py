@@ -38,6 +38,9 @@ addTestCasesFromModule(geoschemfiles._geos)
 from . import textfiles
 addTestCasesFromModule(textfiles._delimited)
 
+from . import icarttfiles
+addTestCasesFromModule(icarttfiles.ffi1001)
+
 def test():
 	TextTestRunner(verbosity=2).run(test_suite)
 

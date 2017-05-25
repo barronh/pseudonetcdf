@@ -28,3 +28,5 @@ geoschemfiles_paths = dict(bpch = 'geoschemfiles/test.bpch')
 
 for key, val in geoschemfiles_paths.items():
     geoschemfiles_paths[key] = join(*__path__ + val.split('/'))
+
+icarttfiles_paths = dict(ffi1001 = join(*__path__ +  ['icarttfiles', 'test.ffi1001']))
