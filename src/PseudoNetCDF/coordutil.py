@@ -1,6 +1,7 @@
 from __future__ import print_function
 from PseudoNetCDF import warn
 import numpy as np
+from collections import OrderedDict
 
 def getlonlatcoordstr(ifile, makemesh = None):
     """
@@ -23,7 +24,8 @@ def getlonlatcoordstr(ifile, makemesh = None):
 def _parse_ref_date(base):
     from datetime import datetime
     fmts = [
-            (lambda x: ':' in x and x[-3:] == 'UTC', '+0000', '%Y-%m-%d %H:%M:%S UTC%z'), # has time and Z
+            (lambda x: x.count(':') == 2 and x[-3:] == 'UTC', '+0000', '%Y-%m-%d %H:%M:%S UTC%z'), # has time and Z
+            (lambda x: x.count(':') == 1 and x[-3:] == 'UTC', '+0000', '%Y-%m-%d %H:%M UTC%z'), # has time and Z
             (lambda x: 'UTC' in x, '+0000', '%Y-%m-%d %H UTC%z'), # has hour and Z
             (lambda x: x.count(':') == 2 and x[-1] == 'Z', '', '%Y-%m-%d %H:%M:%SZ'), # has time and Z
             (lambda x: x.count(':') == 1 and x[-1] == 'Z', '', '%Y-%m-%d %H:%MZ'), # has time and Z
@@ -46,7 +48,14 @@ def _parse_ref_date(base):
             except Exception as e:
                 pass
     else:
-        raise ValueError('Could not find appropriate date')
+        #try using netcdftime
+        try:
+            import netcdftime
+            ut = netcdftime.netcdftime.utime(time.units.strip())
+            sdate = ut.num2date(0.)
+            return sdate
+        except Exception as e:
+            raise ValueError('Could not find appropriate date; tried and failed to use netcdftime' + str(e))
 
 def gettimes(ifile):
     from datetime import datetime, timedelta
@@ -54,14 +63,6 @@ def gettimes(ifile):
         time = ifile.variables['time']
         if 'since' in time.units:
             unit, base = time.units.strip().split(' since ')
-            #consider using netcdftime
-            #try:
-            #    import netcdftime
-            #    ut = netcdftime.netcdftime.utime(time.units.strip())
-            #    sdate = ut.num2date(0.)
-            #except:
-            #    warn('tried netcdftime')
-            #    pass
             sdate = _parse_ref_date(base)
             out = sdate + np.array([timedelta(**{unit: float(i)}) for i in time[:]])
             return out
@@ -110,14 +111,7 @@ def gettimebnds(ifile):
         time = ifile.variables['time']
         if 'since' in time.units:
             unit, base = time.units.strip().split(' since ')
-            if 'UTC' in base:
-                sdate = datetime.strptime(base, '%Y-%m-%d %H:%M:%S UTC')
-            elif 'Z' in base:
-                sdate = datetime.strptime(base, '%Y-%m-%d %HZ')
-            elif ':' in base:
-                sdate = datetime.strptime(base, '%Y-%m-%d %H:%M:%S')
-            else:
-                sdate = datetime.strptime(base, '%Y-%m-%d')
+            sdate = _parse_ref_date(base)
             out = sdate + np.array([timedelta(**{unit: float(i)}) for i in time[:]])
             if len(out) > 1:
                 dt = (out[1] - out[0])
@@ -227,6 +221,9 @@ def getybnds(ifile):
     if 'ROW' in ifile.dimensions:
         unit = 'y (m)'
         latb = np.arange(len(ifile.dimensions['ROW']) + 1) * getattr(ifile, 'YCELL', 1)
+    elif 'south_north' in ifile.dimensions:
+        unit = 'y (m)'
+        lonb = np.arange(len(ifile.dimensions['south_north']) + 1) * getattr(ifile, 'DY', 1)
     else:
         raise KeyError('latitude bounds not found')
     return latb, unit
@@ -270,6 +267,9 @@ def getxbnds(ifile):
     if 'COL' in ifile.dimensions:
         unit = 'x (m)'
         lonb = np.arange(len(ifile.dimensions['COL']) + 1) * getattr(ifile, 'XCELL', 1)
+    elif 'west_east' in ifile.dimensions:
+        unit = 'x (m)'
+        lonb = np.arange(len(ifile.dimensions['west_east']) + 1) * getattr(ifile, 'DX', 1)
     else:
         raise KeyError('x bounds not found')
     return lonb, unit
@@ -320,10 +320,7 @@ def getcdo(ifile):
     """ % outdict
 
 def getprojwkt(ifile, withgrid = False):
-    try:
-        import osr
-    except:
-        from osgeo import osr
+    import osr
     proj4str = getproj4(ifile, withgrid = withgrid)
     
     srs = osr.SpatialReference()
@@ -331,6 +328,132 @@ def getprojwkt(ifile, withgrid = False):
     srs.ImportFromProj4(proj4str)
     srs.ExportToWkt() # converts the WKT to an ESRI-compatible format
     return srs.ExportToWkt()
+
+
+def basemap_from_file(ifile, withgrid = False, **kwds):
+    """
+    Typically, the user will need to provide
+    """
+    proj4 = getproj4(ifile, withgrid = withgrid)
+    basemap_options = basemap_options_from_proj4(proj4, **kwds)
+    if 'llcrnrx' in basemap_options:
+        if 'urcrnrx' in kwds:
+            basemap_options['urcrnrx'] = kwds['urcrnrx']
+        elif 'width' in kwds:
+            basemap_options['urcrnrx'] = basemap_options['llcrnrx'] + kwds['width']
+        elif 'x' in ifile.variables:
+            x = ifile.variables['x']
+            urx = x.max() + np.mean(np.diff(x))
+            basemap_options['urcrnrx'] = urx
+        else:
+            raise KeyError('When a false_easting is available, the file must contain an x variable or the user must supply width or urcrnrx')
+    if 'llcrnry' in basemap_options:
+        if 'urcrnry' in kwds:
+            basemap_options['urcrnry'] = kwds['urcrnry']
+        elif 'height' in kwds:
+            basemap_options['urcrnry'] = basemap_options['llcrnry'] + kwds['height']
+        elif 'y' in ifile.variables:
+            y = ifile.variables['y']
+            ury = y.max() + np.mean(np.diff(y))
+            basemap_options['urcrnry'] = ury
+        else:
+            raise KeyError('When a false_northing is available, the file must contain a y variable or the user must supply height or urcrnry')
+
+    from mpl_toolkits.basemap import Basemap
+    print(basemap_options)
+    bmap = Basemap(**basemap_options)
+    return bmap
+
+def basemap_options_from_proj4(proj4, **kwds):
+    """
+    proj4 - string with projection optoins according to the proj4 system
+    kwds - add keywords to control basemap specific options
+        resolution = 'i' or 'c' or 'h' controls dpi of boundaries
+        llcrnrlon=None, llcrnrlat=None, urcrnrlon=None, urcrnrlat=None,
+        llcrnrx=None, llcrnry=None, urcrnrx=None, urcrnry=None,
+        width=None, height=None,
+    """
+    excluded = ('proj', 'a', 'b', 'x_0', 'y_0', 'to_meter')
+    dexpr = ''
+    proj4_options = OrderedDict()
+    for seg in proj4.split():
+        if '=' in seg:
+            k, v = seg.split('=')
+            if k in ('+proj', '+ellps'):
+                v = '"' + v + '"'
+            proj4_options[k.replace('+', '')] = eval(v)
+            
+    basemap_options = dict([(k, v) for k, v in proj4_options.items() if k not in excluded])
+    basemap_options['projection'] = proj4_options['proj']
+    if 'a' in proj4_options and 'b' in proj4_options:
+        basemap_options['rsphere'] = (proj4_options['a'], proj4_options['b'])
+    elif 'a' in proj4_options and 'f' in proj4_options:
+        basemap_options['rsphere'] = (proj4_options['a'], -(proj4_options['f'] * proj4_options['a'] - proj4_options['a']))
+    elif 'a' in proj4_options:
+        basemap_options['rsphere'] = (proj4_options['a'], proj4_options['a'])
+    
+    if 'x_0' in proj4_options:
+        basemap_options['llcrnrx'] = -proj4_options['x_0']
+    if 'y_0' in proj4_options:
+        basemap_options['llcrnry'] = -proj4_options['y_0']
+    basemap_options.update(**kwds)
+    return basemap_options
+    
+def basemap_from_proj4(proj4, **kwds):
+    from mpl_toolkits.basemap import Basemap
+    basemap_options = basemap_options_from_proj4(proj4, **kwds)
+    bmap = Basemap(**basemap_options)
+    return bmap
+    
+
+def getproj4_from_cf_var(gridmapping, withgrid = False):
+    mapstr_bits = OrderedDict()
+    for pk in gridmapping.ncattrs():
+        pv = getattr(gridmapping, pk)
+        if pk == 'grid_mapping_name':
+            pv4 = dict(lambert_conformal_conic = 'lcc',
+                       rotated_latitude_longitude = 'ob_tran',
+                       latitude_longitude = 'lonlat',
+                       transverse_mercator = 'merc',
+                       mercator = 'merc',
+                       polar_stereographic = 'stere'
+                       )[pv]
+            mapstr_bits['proj'] = pv4
+            if pv == 'rotated_latitude_longitude':
+                mapstr_bits['o_proj'] = 'eqc'
+        elif pk == 'standard_parallel':
+            mapstr_bits['lat_1'] = pv[0]
+            if len(pv) > 1:
+                mapstr_bits['lat_2'] = pv[1]
+        elif pk == 'longitude_of_central_meridian':
+            mapstr_bits['lon_0'] = pv
+        elif pk == 'latitude_of_projection_origin':
+            mapstr_bits['lat_0'] = pv
+        elif pk == 'false_easting':
+            mapstr_bits['x_0'] = pv
+        elif pk == 'false_northing':
+            mapstr_bits['y_0'] = pv
+        elif pk == 'scale_factor_at_projection_origin':
+            mapstr_bits['k_0'] = pv
+        elif pk == 'earth_radius':
+            mapstr_bits['a'] = pv
+            mapstr_bits['b'] = pv
+        elif pk == 'semi_major_axis':
+            mapstr_bits['a'] = pv
+        elif pk == 'semi_minor_axis':
+            mapstr_bits['b'] = pv
+        elif pk == 'inverse_flattening':
+            mapstr_bits['f'] = 1 / pv
+        elif pk == 'grid_north_pole_latitude':
+            mapstr_bits['o_lat_p'] = pv
+        elif pk == 'grid_north_pole_longitude':
+            mapstr_bits['lon_0'] = pv
+        else:
+            warn('Currently not using:' + str(pk) + ' ' + str(pv))
+
+            
+    mapstr = ' '.join(['+%s=%s' % (k, v) for k, v in mapstr_bits.items()])
+    return mapstr
 
 def getproj4(ifile, withgrid = False):
     """
@@ -346,15 +469,33 @@ def getproj4(ifile, withgrid = False):
         semi_major_axis, semi_minor_axis = get_ioapi_sphere()
         if ifile.GDTYP == 2:
             mapstr = '+proj=lcc +a=%s +b=%s +lon_0=%s +lat_1=%s +lat_2=%s +lat_0=%s' % (semi_major_axis, semi_minor_axis, ifile.P_GAM, ifile.P_ALP, ifile.P_BET, ifile.YCENT)
-            #p = Proj(proj='lcc',rsphere = (semi_major_axis, semi_minor_axis), lon_0 = ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT)
         elif ifile.GDTYP == 7:
             mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (semi_major_axis, semi_minor_axis, ifile.XCENT)
         if withgrid:
             mapstr += ' +x_0=%s +y_0=%s +to_meter=%sm' % (-ifile.XORIG, -ifile.YORIG, ifile.XCELL)
-    else:
-        mapstr = '+proj=lonlat'
+    elif getattr(ifile, 'Conventions', getattr(ifile, 'CONVENTIONS', ''))[:2].upper() == 'CF':
+        gridmappings = []
+        for k, v in ifile.variables.items():
+            if hasattr(v, 'grid_mapping'):
+                gridmappings.append(getattr(v, 'grid_mapping'))
+        
+        if len(gridmappings) == 0:
+            warn('No known grid mapping; assuming lonlat')
+            mapstr = '+proj=lonlat'
+        else:
+            gridmappings = list(set(gridmappings))
+            if len(gridmappings) > 1:
+                warn('Using first grid mapping of ' + str(gridmappings))
+            if not gridmappings[0] in ifile.variables:
+                warn(gridmappings[0] + ' could not be found; assuming lonlat')
+                mapstr = '+proj=lonlat'
+            else:
+                gridmapping = ifile.variables[gridmappings[0]]
+                mapstr = getproj4_from_cf_var(gridmapping, withgrid = withgrid)
+            
     mapstr += ' +no_defs'
     return mapstr
+
 
 def getmap(ifile, resolution = 'i'):
     from mpl_toolkits.basemap import Basemap
@@ -373,24 +514,16 @@ def getmap(ifile, resolution = 'i'):
         llcrnry = ifile.YORIG
         urcrnry = ifile.YORIG + NROWS * ifile.YCELL
         semi_major_axis, semi_minor_axis = get_ioapi_sphere()
-        # Robust import for Proj
-        # allows for migration from basemap 1.0.7 to 1.0.8
-        try:
-            from pyproj import Proj
-        except:
-            try:
-                from mpl_toolkits.basemap.pyproj import Proj
-            except:
-                import mpl_toolkits.basemap
-                Proj = mpl_toolkits.basemap.pyproj.Proj
         if ifile.GDTYP == 2:
-            p = Proj(proj='lcc',a = semi_major_axis, b = semi_major_axis, lon_0 = ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT)
+            from mpl_toolkits.basemap import pyproj
+            p = pyproj.Proj(proj='lcc',a = semi_major_axis, b = semi_major_axis, lon_0 = ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT)
             llcrnrlon, llcrnrlat = p(llcrnrx, llcrnry, inverse = True)
             urcrnrlon, urcrnrlat = p(urcrnrx, urcrnry, inverse = True)
             m = Basemap(projection = 'lcc', rsphere = (semi_major_axis, semi_major_axis), lon_0=ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT, llcrnrlon = llcrnrlon, llcrnrlat = llcrnrlat, urcrnrlat = urcrnrlat, urcrnrlon = urcrnrlon, resolution = resolution, suppress_ticks = False)
         elif ifile.GDTYP == 7:
+            from mpl_toolkits.basemap import pyproj
             mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (semi_major_axis, semi_major_axis, ifile.XCENT)
-            p = Proj(mapstr)
+            p = pyproj.Proj(mapstr)
             #p = Proj(proj='merc',rsphere = (semi_major_axis, semi_major_axis), lat_ts = ifile.P_ALP, lat_0 = ifile.YCENT, lon_0 = ifile.XCENT)
             llcrnrlon, llcrnrlat = p(llcrnrx, llcrnry, inverse = True)
             urcrnrlon, urcrnrlat = p(urcrnrx, urcrnry, inverse = True)
