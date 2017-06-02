@@ -28,7 +28,10 @@ def add_lay_coordinates(ifileo):
         var.standard_name = 'layer';
     if 'level' not in ifileo.variables.keys():
         var = ifileo.createVariable('level', 'd', ('LAY',))
-        var[:] = np.arange(nlay, dtype = 'd')
+        if hasattr(ifileo, 'VGLVLS'):
+            var[:] = (ifileo.VGLVLS[:-1] + ifile.VGLVLS[1:]) / 2
+        else:
+            var[:] = np.arange(nlay, dtype = 'd')
         var.units = 'sigma'
         var.positive = 'down'
         var.standard_name = 'level';
