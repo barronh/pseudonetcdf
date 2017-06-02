@@ -37,6 +37,12 @@ thdtype = dtype([('YYMMDDHHFF', '>10S'), ('LEVEL', '>2S'), ('GRID', '>2S') , ('I
 vhdtype = dtype([('YYMMDDHHFF', '>10S'), ('LEVEL', '>2S'), ('grid', '>2S'), ('VKEY', '>4S'), ('EXP', '>4S'), ('PREC', '>14S'), ('VAR1', '>14S')])
 
 stdprops = dict(
+    x = ('x', 'm'),
+    y = ('y', 'm'),
+    longitude = ('longitude', 'degrees'),
+    latitude = ('latitude', 'degrees'),
+    longitude_bounds = ('longitude_bounds', 'degrees'),
+    latitude_bounds = ('latitude_bounds', 'degrees'),
     ABSV = ('ABSOLUTE VORTICITY', '100000.00 ? /s'),
     CAPE = ('CONVECTIVE AVAILABLE POTENTIAL ENERGY', 'J/kg'),
     CFZR = ('CATEGORIAL FREEZING RAIN (YES=1/NO=0)', '0--1'),
@@ -158,7 +164,7 @@ def readvardef(vheader, out = {}):
             checksums[vglvl, vgkey] = checksum
             vheader = vheader[8:]
     out['sfckeys'] = keys[vglvls[0]]
-    out['laykeys'] = keys[vglvls[1]]
+    out['laykeys'] = [(vglvl, keys[vglvl]) for vglvl in vglvls[1:]]
     return out
 
 def writevardef(vglvls, keys, checksums):
@@ -381,9 +387,8 @@ def maparlpackedbit(path, mode = 'r', shape = None, **props):
     hdrdtype = dtype('>S%d' % (50 + ncell - hlen - thdtype.itemsize))
     lay1dtype = dtype([('head', vhdtype), ('data', dtype('(%d,%d)>1S' % (ny, nx)))])
     sfcdtype = dtype(dict(names = [k.decode() for k in sfckeys], formats = [lay1dtype] * len(sfckeys)))
-    laydtype = dtype(dict(names = [k.decode() for k in laykeys], formats = [lay1dtype] * len(laykeys)))
-    layersdtype = dtype([('layers', laydtype, (nz, ))])
-    timedtype = dtype([('timehead', thdtype), ('vardef', vardefdtype), ('hdr', hdrdtype), ('surface', sfcdtype), ('layers', laydtype, (nz, ))])
+    layersdtype = dtype([(str(laykey), dtype(dict(names = [k.decode() for k in layvarkeys], formats = [lay1dtype] * len(layvarkeys)))) for laykey, layvarkeys in laykeys])
+    timedtype = dtype([('timehead', thdtype), ('vardef', vardefdtype), ('hdr', hdrdtype), ('surface', sfcdtype), ('layers', layersdtype)])
     datamap = np.memmap(path, timedtype, shape = shape, mode = mode)
     return datamap
 
@@ -548,7 +553,7 @@ class arlpackedbit(PseudoNetCDFFile):
     
     P(i,j) = (Ri,j  - Ri-1,j)* (2**(7-(ln dRmax / ln 2)))
     """
-    def __init__(self, path):
+    def __init__(self, path, shape = None):
         self._path = path
         self._f = f = open(path, 'r') 
         f.seek(0, 2) 
@@ -561,24 +566,62 @@ class arlpackedbit(PseudoNetCDFFile):
 #        tflag = []
         
         f.seek(0, 0) 
-        datamap = self._datamap = maparlpackedbit(path)
+        datamap = self._datamap = maparlpackedbit(path, shape = shape)
         t0hdr = datamap['timehead'][0]
         for key in thdtype.names:
             setattr(self, key, t0hdr[key])
 
         out = readvardef(datamap['vardef'][0])
-        self.XSIZE = self.YSIZE = float(t0hdr['GRIDX']) * 1000.
-        self.createDimension('time', datamap.shape[0])
-        self.createDimension('x', int(self.NX))
-        self.createDimension('y', int(self.NY))
-        # minus 1 excludes surface
-        self.createDimension('z', int(self.NZ) - 1)
-
+        alllayvarkeys = []
+        for layk, layvarkeys in out['laykeys']:
+            alllayvarkeys.extend([k.decode() for k in layvarkeys if k.decode() not in alllayvarkeys])
+        self._layvarkeys = tuple(alllayvarkeys)
         tflag = np.char.replace(datamap['timehead']['YYMMDDHHFF'], b' ', b'0')
         sfckeys = self._datamap['surface'].dtype.names
-        laykeys = self._datamap['layers'][0].dtype.names
+        laykeys = self._layvarkeys
         
         self.variables = PseudoNetCDFVariables(func = self._getvar, keys = list(sfckeys + laykeys))
+        self.createDimension('time', datamap.shape[0])
+        # minus 1 excludes surface
+        self.createDimension('z', int(self.NZ) - 1)
+        gridx = float(t0hdr['GRIDX']) * 1000.
+        nx = int(self.NX)
+        ny = int(self.NY)
+        if gridx != 0:
+            self.XSIZE = self.YSIZE = gridx
+            self.createDimension('x', nx)
+            self.createDimension('y', ny)
+            x = self.createVariable('x', 'f', ('x',))
+            x[:] = np.arange(x[:].size) * gridx
+            y = self.createVariable('y', 'f', ('y',))
+            y[:] = np.arange(y[:].size) * gridx
+        else:
+            self.createDimension('x', nx)
+            self.createDimension('y', ny)
+            self.createDimension('nv', 2)
+            x = self.createVariable('x', 'f', ('x',))
+            x.standard_name = 'longitude'
+            x.units = 'degrees'
+            xe = self.createVariable('x_bounds', 'f', ('x','nv'))
+            xe.standard_name = 'longitude_bounds'
+            xe.units = 'degrees'
+            x[:] = np.arange(0, nx) * float(self.REFLON) + float(self.SYNCHLON)
+            xe[:-1, 1] = x[:1] + np.diff(x)/2
+            xe[1:, 0] = x[1:] - np.diff(x)/2
+            xe[0, 0] = x[0] - np.diff(x)[0]/2
+            xe[1, 1] = x[1] + np.diff(x)[1]/2
+            y = self.createVariable('y', 'f', ('y',))
+            y.standard_name = 'latitude'
+            y.units = 'degrees'
+            ye = self.createVariable('y_bounds', 'f', ('y','nv'))
+            ye.standard_name = 'latitude_bounds'
+            ye.units = 'degrees'
+            y[:] = np.arange(0, ny) * float(self.REFLAT) + float(self.SYNCHLAT)
+            ye[:-1, 1] = y[:1] + np.diff(y)/2
+            ye[1:, 0] = y[1:] - np.diff(y)/2
+            ye[0, 0] = y[0] - np.diff(y)[0]/2
+            ye[1, 1] = y[1] + np.diff(y)[1]/2
+
         times = [datetime.strptime(t.astype('S8').decode(), '%y%m%d%H') for t in tflag]
         rtime = times[0]
         hours_since = [(t - rtime).total_seconds() // 3600 for t in times]
@@ -589,10 +632,6 @@ class arlpackedbit(PseudoNetCDFFile):
         z[:] = out['vglvls'][1:]
         self.SFCVGLVL = out['vglvls'][0]
         z.units = {1: 'pressure sigma', 2: 'pressure absolute', 3: 'terrain sigma', 4: 'hybrid sigma'}.get(int(self.VSYS2), 'unknown')
-        x = self.createVariable('x', 'f', ('x',))
-        x[:] = np.arange(x[:].size) * float(t0hdr['GRIDX']) * 1000.
-        y = self.createVariable('y', 'f', ('y',))
-        y[:] = np.arange(y[:].size) * float(t0hdr['GRIDX']) * 1000.
 
     
     def _getvar(self, k):
@@ -610,12 +649,16 @@ class arlpackedbit(PseudoNetCDFFile):
                 
                     
             return PseudoNetCDFVariable(self, k, 'f', ('time', 'y', 'x'), values = vdata, units = stdunit, standard_name = stdname, **props)
-        elif k in datamap['layers'].dtype.names:
-            bytes = datamap['layers'][k]['data']
-            vhead = datamap['layers'][k]['head']
+        elif k in self._layvarkeys:
+            laykeys = datamap['layers'].dtype.names
+            mylaykeys = [laykey for laykey in laykeys if k in datamap['layers'][laykey].dtype.names]
+            bytes = np.array([datamap['layers'][lk][k]['data'] for lk in mylaykeys]).swapaxes(0, 1)
+            vhead = np.array([datamap['layers'][lk][k]['head'] for lk in mylaykeys]).swapaxes(0, 1)
             v11 = vhead['VAR1']
             EXP = vhead['EXP']
             props = dict([(k, vhead[k][0, 0]) for k in vhead.dtype.names if not k in ('YYMMDDHHFF', 'LEVEL')])
+            props['LEVEL_START'] = vhead['LEVEL'][0, 0]
+            props['LEVEL_END'] = vhead['LEVEL'][-1, -1]
             vdata = unpack(bytes, v11, EXP)
             return PseudoNetCDFVariable(self, k, 'f', ('time', 'z', 'y', 'x'), values = vdata, units = stdunit, standard_name = stdname, **props)
             
