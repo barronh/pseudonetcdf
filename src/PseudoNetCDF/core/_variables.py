@@ -66,7 +66,7 @@ Notes:
         return object.__repr__(self).replace(' at ', '\n' + out + ' at ')
     
     def __str__(self):
-        namekeys = ['name', 'standard_name', 'long_name']
+        namekeys = ['_name', 'name', 'standard_name', 'long_name']
         for nck in self.ncattrs():
             if 'name' in nck:
                 namekeys.append(nck)
