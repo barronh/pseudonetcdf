@@ -202,13 +202,19 @@ def PSUTNMdnPE(obs, mod, axis = None):
 
 def R2(obs, mod, axis = None):
     """ Coefficient of Determination (unit squared)"""
-    from scipy.stats import pearsonr
+    from scipy.stats.mstats import pearsonr
     if axis is None:
-        obsc, modc = matchedcompressed(obs, mod)
-        return pearsonr(obsc, modc)[0]**2
+        return pearsonr(obs, mod)[0]**2
     else:
-        raise ValueError('Not ready yet')
+        return apply_along_axis_2v(lambda x, y: pearsonr(x, y)[0]**2, axis, obs, mod)
 
+def apply_along_axis_2v(func, axis, v1, v2, *args):
+    v1r = np.rollaxis(v1, axis, v1.ndim)
+    v2r = np.rollaxis(v2, axis, v2.ndim)
+    result = np.array([func(v1r[idx], v2r[idx]) for idx in np.ndindex(v2r.shape[:1])])
+    result = np.rollaxis(result[..., None], result.ndim, axis)
+    return result
+    
 def RMSE(obs, mod, axis = None):
     """ Root Mean Square Error (model unit)"""
     return np.ma.sqrt(((mod-obs)**2).mean(axis = axis))
@@ -219,17 +225,23 @@ def WDRMSE(obs, mod, axis = None):
 
 def RMSEs(obs, mod, axis = None):
     """Root Mean Squared Error systematic (obs, mod_hat)"""
+    from scipy.stats.mstats import linregress
     if axis is None:
         try:
-            from scipy.stats import linregress
-            obsc, modc = matchedcompressed(obs, mod)
-            m, b, rval, pval, stderr = linregress(obsc, modc)
+            #obsc, modc = matchedcompressed(obs, mod)
+            m, b, rval, pval, stderr = linregress(obs, mod)
             mod_hat = b + m * obs
             return RMSE(obs, mod_hat)
         except ValueError:
             return None
     else:
-        raise ValueError('Not ready yet')
+        myvals = apply_along_axis_2v(lambda x, y: linregress(x, y), axis, obs, mod)
+        myvals = np.rollaxis(myvals, myvals.ndim-1, 0).astype(obs.dtype)
+        m, b, rval, pval, stderr = myvals
+        mod_hat = b + m * obs
+        result = RMSE(obs, mod_hat, axis = axis)
+        return result
+        #raise ValueError('Not ready yet')
 
 def matchmasks(a1, a2):
     mask = np.ma.getmaskarray(a1) | np.ma.getmaskarray(a2)
@@ -241,17 +253,22 @@ def matchedcompressed(a1, a2):
 
 def RMSEu(obs, mod, axis = None):
     """Root Mean Squared Error unsystematic (mod_hat, mod)"""
+    from scipy.stats.mstats import linregress
     if axis is None:
         try:
-            from scipy.stats import linregress
-            obsc, modc = matchedcompressed(obs, mod)
-            m, b, rval, pval, stderr = linregress(obsc, modc)
+            #obsc, modc = matchedcompressed(obs, mod)
+            m, b, rval, pval, stderr = linregress(obs, mod)
             mod_hat = b + m * obs
             return RMSE(mod_hat, mod)
         except ValueError:
             return None
     else:
-        raise ValueError('Not ready yet')
+        myvals = apply_along_axis_2v(lambda x, y: linregress(x, y), axis, obs, mod)
+        myvals = np.rollaxis(myvals, myvals.ndim-1, 0).astype(obs.dtype)
+        m, b, rval, pval, stderr = myvals
+        mod_hat = b + m * obs
+        result = RMSE(mod_hat, mod, axis = axis)
+        return result
 
 def d1(obs, mod, axis = None):
     """ Modified Index of Agreement, d1"""
@@ -396,8 +413,15 @@ def pnceval(args):
         except Exception as e:
             warn(str(e))
     
+    np.seterr(divide = 'ignore', invalid = 'ignore')
+    if args.csv:
+        from collections import OrderedDict
+        import pandas
+        output = OrderedDict()
     for k in args.funcs:
         console.locals[k] = func = eval(k)
+        output[k] = OrderedDict()
+        if args.csv: print('# %s: %s' % (k, func.__doc__.strip()))
         try:
             console.locals[k+'_f'] = ofile = pncbfunc(func, ifile0, ifile1)
         except Exception as e:
@@ -406,7 +430,17 @@ def pnceval(args):
         dt = tstop - tstart
         for vk in args.variables:
             if vk in ('time', 'TFLAG'): continue
-            print('%s,%s,%s,%f' % (vk, func.__doc__.strip(), k, ofile.variables[vk].ravel()[0]))
+            if args.csv:
+                outv = ofile.variables[vk][:]
+                outv = np.ma.array(outv)
+                output[k][vk] = outv.ravel()[0]
+            else:
+                print('%s,%s,%s,%f' % (vk, func.__doc__.strip(), k, ofile.variables[vk].ravel()[0]))
+    if args.csv:
+        print(','.join(['VAR'] + args.funcs))
+        for vk in args.variables:
+            print(','.join([vk] + ['%f' % output[fk].get(vk, np.nan) for fk in args.funcs]))
+
     np.seterr(divide = 'warn', invalid = 'warn')
     if args.interactive:
         console.interact()
@@ -415,10 +449,10 @@ def main():
     from .pncparse import getparser, pncparse
 
     parser = getparser(has_ofile = False, plot_options = False, interactive = True)
+    parser.add_argument('--csv', dest = 'csv', default = False, action = 'store_true', help = 'Print all data in CSV format')
     parser.add_argument('--funcs', default = __all__, type = lambda x: x.split(','), help='Functions to evaluate split by , (default: %s)' % ','.join(__all__))
 
     import numpy as np
-    np.seterr(divide = 'ignore', invalid = 'ignore')
     ifiles, args = pncparse(has_ofile = False, interactive = True, parser = parser)
     args.ifiles = ifiles
     pnceval(args)
