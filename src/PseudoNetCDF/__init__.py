@@ -45,4 +45,4 @@ from . import textfiles
 from . import coordutil
 from . import test
 from ._getreader import anyfile
-from .pncparse import PNC
+from .pncparse import PNC, pnc
