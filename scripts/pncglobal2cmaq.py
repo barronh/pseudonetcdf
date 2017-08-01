@@ -217,19 +217,19 @@ _GC_TO_AE6_COMMON = r"""
             "outunit": "micrograms/m**3"
         },
         "AECI": {
-            "expression": "0.001 * BCPI + 0.001 * BCPO",
+            "expression": "0.1 * BCPI + 0.1 * BCPO",
             "outunit": "micrograms/m**3"
         },
         "AECJ": {
-            "expression": "0.999 * BCPI + 0.999 * BCPO",
+            "expression": "0.9 * BCPI + 0.9 * BCPO",
             "outunit": "micrograms/m**3"
         },
         "APOCI": {
-            "expression": "0.001 * OCPI + 0.001 * OCPO",
+            "expression": "0.1 * OCPI + 0.1 * OCPO",
             "outunit": "micrograms/m**3"
         },
         "APOCJ": {
-            "expression": "0.999 * OCPI + 0.999 * OCPO + 0.01075 * DST1",
+            "expression": "0.9 * OCPI + 0.9 * OCPO + 0.01075 * DST1",
             "outunit": "micrograms/m**3"
         },
         "ACAJ": {
@@ -289,11 +289,11 @@ _GC_TO_AE6_COMMON = r"""
             "outunit": "micrograms/m**3"
         },
         "APNCOMI": {
-            "expression": "0.4 * 0.001 * OCPI + 0.4 * 0.001 * OCPO",
+            "expression": "0.4 * 0.1 * OCPI + 0.4 * 0.1 * OCPO",
             "outunit": "micrograms/m**3"
         },
         "APNCOMJ": {
-            "expression": "0.0043 * DST1 + 0.4 * 0.999 * OCPI + 0.4 * 0.999 * OCPO",
+            "expression": "0.0043 * DST1 + 0.4 * 0.9 * OCPI + 0.4 * 0.9 * OCPO",
             "outunit": "micrograms/m**3"
         },
         "ASEACAT": {
