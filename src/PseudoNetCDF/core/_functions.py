@@ -15,6 +15,8 @@ from ._files import PseudoNetCDFFile
 from ._variables import PseudoNetCDFMaskedVariable, PseudoNetCDFVariable
 from ..userfuncs import *
 
+import datetime
+
 def pncrename(ifile, type_old_new):
     outf = getvarpnc(ifile, None)
     t,o,n = type_old_new.split(',')
