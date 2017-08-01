@@ -121,6 +121,7 @@ def add_lon(self, key, example):
 class gcvar(object):
     def __init__(self, key, parent):
         self._key = key
+        self._name = key
         self._parent = parent
         self._data = None
         start, end, dim = list(self._parent._outpos[self._key].values())[0]
