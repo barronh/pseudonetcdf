@@ -565,7 +565,7 @@ Arguments - see PNC
 Returns:
     file(s) - single file or, if more than 1 file is returned a list of files
     """
-    out = PNCF(*args, ifiles = ifiles, actions = actions, **kwds).ifiles
+    out = PNC(*args, ifiles = ifiles, actions = actions, **kwds).ifiles
     if len(out) == 1:
        return out[0]
     else:
