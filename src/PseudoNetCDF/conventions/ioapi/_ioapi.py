@@ -206,7 +206,7 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         lone = lone.reshape(*lcc_xe.shape)
         late = late.reshape(*lcc_ye.shape)
         
-    if 'x' not in ifileo.variables.keys():
+    if not 'x' in ifileo.variables.keys() and 'COL' in ifileo.dimensions:
         """
         Not necessary for cdo
         """
@@ -217,7 +217,7 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         var.long_name = "synthesized coordinate from XORIG XCELL global attributes" ;
 
     
-    if 'y' not in ifileo.variables.keys():
+    if not 'y' in ifileo.variables.keys() and 'ROW' in ifileo.dimensions:
         """
         Not necessary for cdo
         """
