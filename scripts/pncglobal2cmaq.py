@@ -1,4 +1,4 @@
-#!/home/bhenders/anaconda3/bin/python
+#!/usr/bin/env python
 from __future__ import print_function
 
 import sys
@@ -50,6 +50,505 @@ _GCLIST = "NO2 NO O3 NO3 OH HO2 N2O5 HNO3 HONO PNA H2O2 NTR ROOH FORM ALD2 PAR C
 _AELIST = "ASO4J ASO4I AALKJ AXYL1J AXYL2J AXYL3J ATOL1J ATOL2J ATOL3J ABNZ1J ABNZ2J ABNZ3J ATRP1J ATRP2J AISO1J AISO2J ASQTJ ACORS ASOIL AISO3J AOLGAJ          AOLGBJ ANIJ ACR_IIIJ ACR_VIJ APBJ APBK ACDJ AMN_HAPSJ AMN_HAPSK APHGJ AORGPAJ AORGPAI".split()
 _NMLIST  = "NUMATKN NUMACC NUMCOR".split()
 _SFLIST = "SRFATKN SRFACC SRFCOR".split()
+
+_CBSPCS = r"""
+        "O3": {
+            "expression": "O3",
+            "outunit": "ppmV"
+        },
+        "NO": {
+            "expression": "NO",
+            "outunit": "ppmV"
+        },
+        "NO2": {
+            "expression": "NO2",
+            "outunit": "ppmV"
+        },
+        "NO3": {
+            "expression": "NO3",
+            "outunit": "ppmV"
+        },
+        "NH3": {
+            "expression": "NH3",
+            "outunit": "ppmV"
+        },
+        "N2O5": {
+            "expression": "N2O5",
+            "outunit": "ppmV"
+        },
+        "HONO": {
+            "expression": "HNO2",
+            "outunit": "ppmV"
+        },
+        "PNA": {
+            "expression": "HNO4",
+            "outunit": "ppmV"
+        },
+        "SO2": {
+            "expression": "SO2",
+            "outunit": "ppmV"
+        },
+        "CO": {
+            "expression": "CO",
+            "outunit": "ppmV"
+        },
+        "FORM": {
+            "expression": "CH2O",
+            "outunit": "ppmV"
+        },
+        "ALD2": {
+            "expression": "ALD2",
+            "outunit": "ppmV"
+        },
+        "ALDX": {
+            "expression": "RCHO",
+            "outunit": "ppmV"
+        },
+        "OLE": {
+            "expression": "0.5 * PRPE",
+            "outunit": "ppmV",
+            "comment1": "Half the carbon is assumed to be propene and half butene",
+            "comment2": "propene maps to 1 PAR and 1 OLE."
+        },
+        "IOLE": {
+            "expression": "0.5 * 1./4. * 3. * PRPE",
+            "outunit": "ppmV",
+            "comment1": "Half the carbon is assumed to be propene and half butene",
+            "comment2": "IOLE is a 4 carbon species.",
+            "comment2": "PRPE is a 3 carbon species."
+        },
+        "ETHA": {
+            "expression": "C2H6",
+            "outunit": "ppmV"
+        },
+        "TOL": {
+            "expression": "TOLU",
+            "outunit": "ppmV"
+        },
+        "XYL": {
+            "expression": "XYLE",
+            "outunit": "ppmV"
+        },
+        "ISOP": {
+            "expression": "ISOP",
+            "outunit": "ppmV"
+        },
+        "ISPD": {
+            "expression": "MACR + MVK",
+            "outunit": "ppmV"
+        },
+        "HNO3": {
+            "expression": "HNO3",
+            "outunit": "ppmV"
+        },
+        "NTR": {
+            "expression": "R4N2",
+            "outunit": "ppmV"
+        },
+        "H2O2": {
+            "expression": "H2O2",
+            "outunit": "ppmV"
+        },
+        "MEPX": {
+            "expression": "MP",
+            "outunit": "ppmV"
+        },
+        "PAN": {
+            "expression": "PAN",
+            "outunit": "ppmV"
+        },
+        "PANX": {
+            "expression": "PPN + PMN",
+            "outunit": "ppmV"
+        },
+        "PACD": {
+            "expression": "MAP",
+            "outunit": "ppmV"
+        },"""
+
+_CB05SPCS = r"""
+        "PAR": {
+            "expression": "1.5 * C3H8 + 4. * ALK4 + 3. * ACET + 4. * MEK + 1. * BENZ + 0.5 * PRPE",
+            "outunit": "ppmV",
+            "comment1": "Propane maps as 1.5 PAR and 1.5 unreactive",
+            "comment2": "ALK4 is a 4C species in GEOS-Chem and maps as 4 PAR",
+            "comment3": "Official mapping of acetone for CB05 is 3 PAR, but should likely be 2 or less",
+            "comment4": "Methyl ethyl ketone maps a 4 PAR.",
+            "comment5": "Benzene maps as 1PAR and 1BENZENE for SOA",
+            "comment6": "Half the carbon is assumed to be propene which is 1 PAR + 1 OLE"
+        },
+        "ROOH": {
+            "expression": "RIP",
+            "outunit": "ppmV"
+        },"""
+
+_CB6SPCS = r"""
+        "PAR": {
+            "expression": "4. * ALK4 + 0.5 * PRPE",
+            "outunit": "ppmV",
+            "comment1": "Propane maps as 1.5 PAR and 1.5 unreactive",
+            "comment2": "ALK4 is a 4C species in GEOS-Chem and maps as 4 PAR",
+            "comment5": "Missing; Benzene maps as 1PAR and 1BENZENE for SOA",
+            "comment6": "Half the carbon is assumed to be propene which is 1 PAR + 1 OLE"
+        },
+        "GLYD": {
+            "expression": "GLYC",
+            "outunit": "ppmV",
+            "comment1": "glycoaldehyde from both models"
+        },
+        "EPOX": {
+            "expression": "IEPOX",
+            "outunit": "ppmV",
+            "comment1": "EPOX and IEPOX are both isoprene epoxides"
+        },
+        "INTR": {"expression": "ISOPN",
+            "outunit": "ppmV",
+            "comment1": "INTR is the isoprene nitrate and so is ISOPN"
+        },
+        "ISPX": {
+            "expression": "RIP",
+            "outunit": "ppmV",
+            "comment1": "RIP is isoprene based higher peroxide"
+        },"""
+
+_GC_TO_AE6_COMMON = r"""
+        "AALJ": {
+            "expression": "0.05695 * DST1",
+            "outunit": "micrograms/m**3"
+        },
+        "AECI": {
+            "expression": "0.001 * BCPI + 0.001 * BCPO",
+            "outunit": "micrograms/m**3"
+        },
+        "AECJ": {
+            "expression": "0.999 * BCPI + 0.999 * BCPO",
+            "outunit": "micrograms/m**3"
+        },
+        "APOCI": {
+            "expression": "0.001 * OCPI + 0.001 * OCPO",
+            "outunit": "micrograms/m**3"
+        },
+        "APOCJ": {
+            "expression": "0.999 * OCPI + 0.999 * OCPO + 0.01075 * DST1",
+            "outunit": "micrograms/m**3"
+        },
+        "ACAJ": {
+            "expression": "0.0118 * SALA + 0.07940 * DST1",
+            "outunit": "micrograms/m**3"
+        },
+        "ACLJ": {
+            "expression": "0.00945 * DST1 + 0.5538 * SALA",
+            "outunit": "micrograms/m**3"
+        },
+        "ACLK": {
+            "expression": "0.01190 * DST2 + 0.01190 * DST3 + 0.01190 * DST4 + 0.5538 * SALC",
+            "outunit": "micrograms/m**3"
+        },
+        "AFEJ": {
+            "expression": "0.03355 * DST1",
+            "outunit": "micrograms/m**3"
+        },
+        "AKJ": {
+            "expression": "0.0114 * SALA + 0.03770 * DST1",
+            "outunit": "micrograms/m**3"
+        },
+        "AMGJ": {
+            "expression": "0.0368 * SALA",
+            "outunit": "micrograms/m**3"
+        },
+        "AMNJ": {
+            "expression": "0.00115 * DST1",
+            "outunit": "micrograms/m**3"
+        },
+        "ANAJ": {
+            "expression": "0.3086 * SALA + 0.03935 * DST1",
+            "outunit": "micrograms/m**3"
+        },
+        "ANH4I": {
+            "expression": "0.01 * NH4",
+            "outunit": "micrograms/m**3"
+        },
+        "ANH4J": {
+            "expression": "0.00005 * DST1 + 0.99 * NH4",
+            "outunit": "micrograms/m**3"
+        },
+        "ANO3I": {
+            "expression": "0.01 * NIT",
+            "outunit": "micrograms/m**3"
+        },
+        "ANO3J": {
+            "expression": "0.00020 * DST1 + 0.99 * NIT",
+            "outunit": "micrograms/m**3"
+        },
+        "ANO3K": {
+            "expression": "0.0016 * DST2 + 0.0016 * DST3 + 0.0016 * DST4 + NITs",
+            "outunit": "micrograms/m**3"
+        },
+        "AOTHRJ": {
+            "expression": "0.50219 * DST1",
+            "outunit": "micrograms/m**3"
+        },
+        "APNCOMI": {
+            "expression": "0.4 * 0.001 * OCPI + 0.4 * 0.001 * OCPO",
+            "outunit": "micrograms/m**3"
+        },
+        "APNCOMJ": {
+            "expression": "0.0043 * DST1 + 0.4 * 0.999 * OCPI + 0.4 * 0.999 * OCPO",
+            "outunit": "micrograms/m**3"
+        },
+        "ASEACAT": {
+            "expression": "0.3685 * SALC",
+            "outunit": "micrograms/m**3"
+        },
+        "ASIJ": {
+            "expression": "0.19435 * DST1",
+            "outunit": "micrograms/m**3"
+        },
+        "ASO4I": {
+            "expression": "0.01 * SO4",
+            "outunit": "micrograms/m**3"
+        },
+        "ASO4J": {
+            "expression": "0.99 * SO4 + 0.0225 * DST1 + 0.0776 * SALA",
+            "outunit": "micrograms/m**3"
+        },
+        "ASO4K": {
+            "expression": "0.0776 * SALC + 0.02655 * DST2 + 0.02655 * DST3 + 0.02655 * DST4 + SO4s",
+            "outunit": "micrograms/m**3"
+        },
+        "ASOIL": {
+            "expression": "0.95995 * DST2 + 0.95995 * DST3 + 0.95995 * DST4",
+            "outunit": "micrograms/m**3"
+        },
+        "ATIJ": {
+            "expression": "0.0028 * DST1",
+            "outunit": "micrograms/m**3"
+        },"""
+
+_GC8_to_AE6 = r"""
+        "ABNZ1J": {
+            "expression": "0.12 * SOA5",
+            "outunit": "micrograms/m**3"
+        },
+        "ABNZ2J": {
+            "expression": "0.04 * SOA5",
+            "outunit": "micrograms/m**3"
+        },
+        "ABNZ3J": {
+            "expression": "0.32 * SOA5",
+            "outunit": "micrograms/m**3"
+        },
+        "AISO1J": {
+            "expression": "0.75 * SOA4",
+            "outunit": "micrograms/m**3"
+        },
+        "AISO2J": {
+            "expression": "0.25 * SOA4",
+            "outunit": "micrograms/m**3"
+        },
+        "ASQTJ": {
+            "expression": "SOA3",
+            "outunit": "micrograms/m**3"
+        },
+        "ATOL1J": {
+            "expression": "0.04 * SOA5",
+            "outunit": "micrograms/m**3"
+        },
+        "ATOL2J": {
+            "expression": "0.04 * SOA5",
+            "outunit": "micrograms/m**3"
+        },
+        "ATOL3J": {
+            "expression": "0.29 * SOA5",
+            "outunit": "micrograms/m**3"
+        },
+        "ATRP1J": {
+            "expression": "0.33 * SOA1",
+            "outunit": "micrograms/m**3"
+        },
+        "ATRP1J": {
+            "expression": "0.33 * SOA2",
+            "outunit": "micrograms/m**3"
+        },
+        "ATRP2J": {
+            "expression": "0.67 * SOA1",
+            "outunit": "micrograms/m**3"
+        },
+        "ATRP2J": {
+            "expression": "0.67 * SOA2",
+            "outunit": "micrograms/m**3"
+        },
+        "AXYL1J": {
+            "expression": "0.03 * SOA5",
+            "outunit": "micrograms/m**3"
+        },
+        "AXYL2J": {
+            "expression": "0.01 * SOA5",
+            "outunit": "micrograms/m**3"
+        },
+        "AXYL3J": {
+            "expression": "0.11 * SOA5",
+            "outunit": "micrograms/m**3"
+        },
+        "SV_BNZ1": {
+            "expression": "0.06 * SOG5",
+            "outunit": "ppmV"
+        },
+        "SV_BNZ2": {
+            "expression": "0.23 * SOG5",
+            "outunit": "ppmV"
+        },
+        "SV_ISO1": {
+            "expression": "0.75 * SOG4",
+            "outunit": "ppmV"
+        },
+        "SV_ISO2": {
+            "expression": "0.25 * SOG4",
+            "outunit": "ppmV"
+        },
+        "SV_SQT": {
+            "expression": "SOG3",
+            "outunit": "ppmV"
+        },
+        "SV_TOL1": {
+            "expression": "0.23 * SOG5",
+            "outunit": "ppmV"
+        },
+        "SV_TOL2": {
+            "expression": "0.23 * SOG5",
+            "outunit": "ppmV"
+        },
+        "SV_TRP1": {
+            "expression": "0.33 * SOG1",
+            "outunit": "ppmV"
+        },
+        "SV_TRP1": {
+            "expression": "0.33 * SOG2",
+            "outunit": "ppmV"
+        },
+        "SV_TRP2": {
+            "expression": "0.67 * SOG1",
+            "outunit": "ppmV"
+        },
+        "SV_TRP2": {
+            "expression": "0.67 * SOG2",
+            "outunit": "ppmV"
+        },
+        "SV_XYL1": {
+            "expression": "0.19 * SOG5",
+            "outunit": "ppmV"
+        },
+        "SV_XYL2": {
+            "expression": "0.06 * SOG5",
+            "outunit": "ppmV"
+        }"""
+
+_GCgt8_to_AE6 = r"""
+        "BENZENE": {
+            "expression": "BENZ",
+            "outunit": "ppmV"
+        },
+        "ABNZ1J": {
+            "expression": "0.12 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
+            "outunit": "micrograms/m**3"
+        },
+        "ABNZ2J": {
+            "expression": "0.04 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
+            "outunit": "micrograms/m**3"
+        },
+        "ABNZ3J": {
+            "expression": "0.32 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
+            "outunit": "micrograms/m**3"
+        },
+        "AISO1J": {
+            "expression": "0.75 * (ISOA1 + ISOA2 + ISOA3)",
+            "outunit": "micrograms/m**3"
+        },
+        "AISO2J": {
+            "expression": "0.25 * (ISOA1 + ISOA2 + ISOA3)",
+            "outunit": "micrograms/m**3"
+        },
+        "ASQTJ": {
+            "expression": "0.33 * TSOA0 + 0.33 * TSOA1 + 0.33 * TSOA2 + 0.33 * TSOA3",
+            "outunit": "micrograms/m**3"
+        },
+        "ATOL1J": {
+            "expression": "0.04 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
+            "outunit": "micrograms/m**3"
+        },
+        "ATOL2J": {
+            "expression": "0.04 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
+            "outunit": "micrograms/m**3"
+        },
+        "ATOL3J": {
+            "expression": "0.29 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
+            "outunit": "micrograms/m**3"
+        },
+        "ATRP1J": {
+            "expression": "0.33 * TSOA0 + 0.33 * TSOA1 + 0.33 * TSOA2 + 0.33 * TSOA3",
+            "outunit": "micrograms/m**3"
+        },
+        "ATRP2J": {
+            "expression": "0.34 * TSOA0 + 0.34 * TSOA1 + 0.34 * TSOA2 + 0.34 * TSOA3",
+            "outunit": "micrograms/m**3"
+        },
+        "AXYL1J": {
+            "expression": "0.03 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
+            "outunit": "micrograms/m**3"
+        },
+        "AXYL2J": {
+            "expression": "0.01 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
+            "outunit": "micrograms/m**3"
+        },
+        "AXYL3J": {
+            "expression": "0.11 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
+            "outunit": "micrograms/m**3"
+        },
+        "SV_BNZ1": {
+            "expression": "0.06 * (ASOG1 + ASOG2 + ASOG3)",
+            "outunit": "ppmV"
+        },
+        "SV_BNZ2": {
+            "expression": "0.23 * (ASOG1 + ASOG2 + ASOG3)",
+            "outunit": "ppmV"
+        },
+        "SV_ISO1": {
+            "expression": "0.75 * (ISOG1 + ISOG2 + ISOG3)",
+            "outunit": "ppmV"
+        },
+        "SV_ISO2": {
+            "expression": "0.25 * (ISOG1 + ISOG2 + ISOG3)",
+            "outunit": "ppmV"
+        },
+        "SV_SQT": {
+            "expression": "0.33 * TSOG0 + 0.33 * TSOG1 + 0.33 * TSOG2 + 0.33 * TSOG3",
+            "outunit": "ppmV"
+        },
+        "SV_TOL1": {
+            "expression": "0.23 * (ASOG1 + ASOG2 + ASOG3)",
+            "outunit": "ppmV"
+        },
+        "SV_TOL2": {
+            "expression": "0.23 * (ASOG1 + ASOG2 + ASOG3)",
+            "outunit": "ppmV"
+        },
+        "SV_TRP1": {
+            "expression": "0.33 * TSOG0 + 0.33 * TSOG1 + 0.33 * TSOG2 + 0.33 * TSOG3",
+            "outunit": "ppmV"
+        },
+        "SV_TRP2": {
+            "expression": "0.34 * TSOG0 + 0.34 * TSOG1 + 0.34 * TSOG2 + 0.34 * TSOG3",
+            "outunit": "ppmV"
+        },
+        "SV_XYL1": {
+            "expression": "0.19 * (ASOG1 + ASOG2 + ASOG3)",
+            "outunit": "ppmV"
+        },
+        "SV_XYL2": {
+            "expression": "0.06 * (ASOG1 + ASOG2 + ASOG3)",
+            "outunit": "ppmV"
+        }"""
+
 
 def makedefaulticon(metcroprops, profilepath):
     """
@@ -272,10 +771,7 @@ def get_template(option, gcversion):
             "expression": "0.0289645 * (hyam[:].reshape(1, -1).T + hybm[:].reshape(1, -1).T * PSURF[:][:, [0]].T).T * 100 / 8.3144621 / TMPU[:]",
             "outunit": "kg/m**3",
             "for_stdatm_use_as_expr": "(0.0289645 * ((hyam[:, None] + hybm[:, None] * 1013.25) * 100 / 8.3144621 / np.array([287.7,286.9,286.0,285.2,284.3,283.4,282.6,281.7,280.7,279.8,278.9,277.9,276.8,275.3,273.6,271.8,270.0,268.2,265.8,262.8,259.7,256.4,252.9,249.2,245.2,241.0,236.4,230.5,223.6,216.8,216.6,216.6,216.6,216.6,216.6,216.6,216.6,217.5,219.8,222.0,225.3,233.6,250.5,269.2,260.0,237.7,214.3])[:NLAYS, None] * np.ones_like(O3).T).T"
-        }, """
-    # Next add the gas-phase
-    if 'cb05' in option:
-        out += r"""
+        },
     "CMAQSPECIES": {
         "AIRDEN": {
             "expression": "(hyam[:].reshape(1, -1).T + hybm[:].reshape(1, -1).T * PSURF[:][:, [0]].T).T * 100 / 8.3144621 / TMPU[:] * 6.022e23 / 1e6",
@@ -283,758 +779,27 @@ def get_template(option, gcversion):
             "manual_unit": true,
             "comment": "Full calculated unit",
             "for_stdatm_use_as_expr": "((hyam[:, None] + hybm[:, None] * 1013.25) * 100 / 8.3144621 / np.array([287.7,286.9,286.0,285.2,284.3,283.4,282.6,281.7,280.7,279.8,278.9,277.9,276.8,275.3,273.6,271.8,270.0,268.2,265.8,262.8,259.7,256.4,252.9,249.2,245.2,241.0,236.4,230.5,223.6,216.8,216.6,216.6,216.6,216.6,216.6,216.6,216.6,217.5,219.8,222.0,225.3,233.6,250.5,269.2,260.0,237.7,214.3])[:NLAYS, None] * np.ones_like(O3).T).T * 6.022e23 / 1e6"
-        },
-        "O3": {
-            "expression": "O3",
-            "outunit": "ppmV"
-        },
-        "NO": {
-            "expression": "NO",
-            "outunit": "ppmV"
-        },
-        "NO2": {
-            "expression": "NO2",
-            "outunit": "ppmV"
-        },
-        "NO3": {
-            "expression": "NO3",
-            "outunit": "ppmV"
-        },
-        "NH3": {
-            "expression": "NH3",
-            "outunit": "ppmV"
-        },
-        "N2O5": {
-            "expression": "N2O5",
-            "outunit": "ppmV"
-        },
-        "HONO": {
-            "expression": "HNO2",
-            "outunit": "ppmV"
-        },
-        "PNA": {
-            "expression": "HNO4",
-            "outunit": "ppmV"
-        },
-        "SO2": {
-            "expression": "SO2",
-            "outunit": "ppmV"
-        },
-        "CO": {
-            "expression": "CO",
-            "outunit": "ppmV"
-        },
-        "FORM": {
-            "expression": "CH2O",
-            "outunit": "ppmV"
-        },
-        "ALD2": {
-            "expression": "ALD2",
-            "outunit": "ppmV"
-        },
-        "ALDX": {
-            "expression": "RCHO",
-            "outunit": "ppmV"
-        },
-        "OLE": {
-            "expression": "0.5 * PRPE",
-            "outunit": "ppmV",
-            "comment1": "Half the carbon is assumed to be propene and half butene",
-            "comment2": "propene maps to 1 PAR and 1 OLE."
-        },
-        "IOLE": {
-            "expression": "0.5 * 1./4. * 3. * PRPE",
-            "outunit": "ppmV",
-            "comment1": "Half the carbon is assumed to be propene and half butene",
-            "comment2": "IOLE is a 4 carbon species.",
-            "comment2": "PRPE is a 3 carbon species."
-        },
-        "ETHA": {
-            "expression": "C2H6",
-            "outunit": "ppmV"
-        },
-        "PAR": {
-            "expression": "1.5 * C3H8 + 4. * ALK4 + 3. * ACET + 4. * MEK + 1. * BENZ + 0.5 * PRPE",
-            "outunit": "ppmV",
-            "comment1": "Propane maps as 1.5 PAR and 1.5 unreactive",
-            "comment2": "ALK4 is a 4C species in GEOS-Chem and maps as 4 PAR",
-            "comment3": "Official mapping of acetone for CB05 is 3 PAR, but should likely be 2 or less",
-            "comment4": "Methyl ethyl ketone maps a 4 PAR.",
-            "comment5": "Benzene maps as 1PAR and 1BENZENE for SOA",
-            "comment6": "Half the carbon is assumed to be propene which is 1 PAR + 1 OLE"
-        },
-        "TOL": {
-            "expression": "TOLU",
-            "outunit": "ppmV"
-        },
-        "XYL": {
-            "expression": "XYLE",
-            "outunit": "ppmV"
-        },
-        "ISOP": {
-            "expression": "ISOP",
-            "outunit": "ppmV"
-        },
-        "ISPD": {
-            "expression": "MACR + MVK",
-            "outunit": "ppmV"
-        },
-        "HNO3": {
-            "expression": "HNO3",
-            "outunit": "ppmV"
-        },
-        "NTR": {
-            "expression": "R4N2",
-            "outunit": "ppmV"
-        },
-        "H2O2": {
-            "expression": "H2O2",
-            "outunit": "ppmV"
-        },
-        "MEPX": {
-            "expression": "MP",
-            "outunit": "ppmV"
-        },
-        "ROOH": {
-            "expression": "RIP",
-            "outunit": "ppmV"
-        },
-        "PAN": {
-            "expression": "PAN",
-            "outunit": "ppmV"
-        },
-        "PANX": {
-            "expression": "PPN + PMN",
-            "outunit": "ppmV"
-        },
-        "PACD": {
-            "expression": "MAP",
-            "outunit": "ppmV"
         },"""
-        
+    # Next add the gas-phase
+    issaprc07 = 'saprc07' in option
+    iscb05 = 'cb05' in option
+    iscb6  = 'cb6'  in option
+    if iscb05 or iscb6:
+        out += _CBSPCS
+        if iscb05:
+            out += _CB05SPCS 
+        elif iscb6:
+            warn('Check CB6 version and update nitrates accordingly')
+            out += _CB6SPCS
+            
         if 'ae6' in option:
+            out += _GC_TO_AE6_COMMON
             if gcversion > 8:
-                out += r"""
-        "BENZENE": {
-            "expression": "BENZ",
-            "outunit": "ppmV"
-        },
-        "ABNZ1J": {
-            "expression": "0.12 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
-            "outunit": "micrograms/m**3"
-        },
-        "ABNZ2J": {
-            "expression": "0.04 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
-            "outunit": "micrograms/m**3"
-        },
-        "ABNZ3J": {
-            "expression": "0.32 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
-            "outunit": "micrograms/m**3"
-        },
-        "AALJ": {
-            "expression": "0.05695 * DST1",
-            "outunit": "micrograms/m**3"
-        },
-        "ACAJ": {
-            "expression": "0.0118 * SALA + 0.07940 * DST1",
-            "outunit": "micrograms/m**3"
-        },
-        "ACLJ": {
-            "expression": "0.00945 * DST1 + 0.5538 * SALA",
-            "outunit": "micrograms/m**3"
-        },
-        "ACLK": {
-            "expression": "0.01190 * DST2 + 0.01190 * DST3 + 0.01190 * DST4 + 0.5538 * SALC",
-            "outunit": "micrograms/m**3"
-        },
-        "AECI": {
-            "expression": "0.001 * BCPI + 0.001 * BCPO",
-            "outunit": "micrograms/m**3"
-        },
-        "AECJ": {
-            "expression": "0.999 * BCPI + 0.999 * BCPO",
-            "outunit": "micrograms/m**3"
-        },
-        "AFEJ": {
-            "expression": "0.03355 * DST1",
-            "outunit": "micrograms/m**3"
-        },
-        "AISO1J": {
-            "expression": "0.75 * (ISOA1 + ISOA2 + ISOA3)",
-            "outunit": "micrograms/m**3"
-        },
-        "AISO2J": {
-            "expression": "0.25 * (ISOA1 + ISOA2 + ISOA3)",
-            "outunit": "micrograms/m**3"
-        },
-        "AKJ": {
-            "expression": "0.0114 * SALA + 0.03770 * DST1",
-            "outunit": "micrograms/m**3"
-        },
-        "AMGJ": {
-            "expression": "0.0368 * SALA",
-            "outunit": "micrograms/m**3"
-        },
-        "AMNJ": {
-            "expression": "0.00115 * DST1",
-            "outunit": "micrograms/m**3"
-        },
-        "ANAJ": {
-            "expression": "0.3086 * SALA + 0.03935 * DST1",
-            "outunit": "micrograms/m**3"
-        },
-        "ANH4I": {
-            "expression": "0.01 * NH4",
-            "outunit": "micrograms/m**3"
-        },
-        "ANH4J": {
-            "expression": "0.00005 * DST1 + 0.99 * NH4",
-            "outunit": "micrograms/m**3"
-        },
-        "ANO3I": {
-            "expression": "0.01 * NIT",
-            "outunit": "micrograms/m**3"
-        },
-        "ANO3J": {
-            "expression": "0.00020 * DST1 + 0.99 * NIT",
-            "outunit": "micrograms/m**3"
-        },
-        "ANO3K": {
-            "expression": "0.0016 * DST2 + 0.0016 * DST3 + 0.0016 * DST4 + NITs",
-            "outunit": "micrograms/m**3"
-        },
-        "AOTHRJ": {
-            "expression": "0.50219 * DST1",
-            "outunit": "micrograms/m**3"
-        },
-        "APNCOMI": {
-            "expression": "0.4 * 0.001 * OCPI + 0.4 * 0.001 * OCPO",
-            "outunit": "micrograms/m**3"
-        },
-        "APNCOMJ": {
-            "expression": "0.4 * 0.999 * OCPI + 0.4 * 0.999 * OCPO",
-            "outunit": "micrograms/m**3"
-        },
-        "APNCOMJ": {
-            "expression": "0.0043 * DST1",
-            "outunit": "micrograms/m**3"
-        },
-        "APOCI": {
-            "expression": "0.001 * OCPI + 0.001 * OCPO",
-            "outunit": "micrograms/m**3"
-        },
-        "APOCJ": {
-            "expression": "0.999 * OCPI + 0.999 * OCPO + 0.01075 * DST1",
-            "outunit": "micrograms/m**3"
-        },
-        "ASEACAT": {
-            "expression": "0.3685 * SALC",
-            "outunit": "micrograms/m**3"
-        },
-        "ASIJ": {
-            "expression": "0.19435 * DST1",
-            "outunit": "micrograms/m**3"
-        },
-        "ASO4I": {
-            "expression": "0.01 * SO4",
-            "outunit": "micrograms/m**3"
-        },
-        "ASO4J": {
-            "expression": "0.99 * SO4 + 0.0225 * DST1 + 0.0776 * SALA",
-            "outunit": "micrograms/m**3"
-        },
-        "ASO4K": {
-            "expression": "0.0776 * SALC + 0.02655 * DST2 + 0.02655 * DST3 + 0.02655 * DST4 + SO4s",
-            "outunit": "micrograms/m**3"
-        },
-        "ASOIL": {
-            "expression": "0.95995 * DST2 + 0.95995 * DST3 + 0.95995 * DST4",
-            "outunit": "micrograms/m**3"
-        },
-        "ASQTJ": {
-            "expression": "0.33 * TSOA0 + 0.33 * TSOA1 + 0.33 * TSOA2 + 0.33 * TSOA3",
-            "outunit": "micrograms/m**3"
-        },
-        "ATIJ": {
-            "expression": "0.0028 * DST1",
-            "outunit": "micrograms/m**3"
-        },
-        "ATOL1J": {
-            "expression": "0.04 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
-            "outunit": "micrograms/m**3"
-        },
-        "ATOL2J": {
-            "expression": "0.04 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
-            "outunit": "micrograms/m**3"
-        },
-        "ATOL3J": {
-            "expression": "0.29 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
-            "outunit": "micrograms/m**3"
-        },
-        "ATRP1J": {
-            "expression": "0.33 * TSOA0 + 0.33 * TSOA1 + 0.33 * TSOA2 + 0.33 * TSOA3",
-            "outunit": "micrograms/m**3"
-        },
-        "ATRP2J": {
-            "expression": "0.34 * TSOA0 + 0.34 * TSOA1 + 0.34 * TSOA2 + 0.34 * TSOA3",
-            "outunit": "micrograms/m**3"
-        },
-        "AXYL1J": {
-            "expression": "0.03 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
-            "outunit": "micrograms/m**3"
-        },
-        "AXYL2J": {
-            "expression": "0.01 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
-            "outunit": "micrograms/m**3"
-        },
-        "AXYL3J": {
-            "expression": "0.11 * (ASOAN + ASOA1 + ASOA2 + ASOA3)",
-            "outunit": "micrograms/m**3"
-        },
-        "SV_BNZ1": {
-            "expression": "0.06 * (ASOG1 + ASOG2 + ASOG3)",
-            "outunit": "ppmV"
-        },
-        "SV_BNZ2": {
-            "expression": "0.23 * (ASOG1 + ASOG2 + ASOG3)",
-            "outunit": "ppmV"
-        },
-        "SV_ISO1": {
-            "expression": "0.75 * (ISOG1 + ISOG2 + ISOG3)",
-            "outunit": "ppmV"
-        },
-        "SV_ISO2": {
-            "expression": "0.25 * (ISOG1 + ISOG2 + ISOG3)",
-            "outunit": "ppmV"
-        },
-        "SV_SQT": {
-            "expression": "0.33 * TSOG0 + 0.33 * TSOG1 + 0.33 * TSOG2 + 0.33 * TSOG3",
-            "outunit": "ppmV"
-        },
-        "SV_TOL1": {
-            "expression": "0.23 * (ASOG1 + ASOG2 + ASOG3)",
-            "outunit": "ppmV"
-        },
-        "SV_TOL2": {
-            "expression": "0.23 * (ASOG1 + ASOG2 + ASOG3)",
-            "outunit": "ppmV"
-        },
-        "SV_TRP1": {
-            "expression": "0.33 * TSOG0 + 0.33 * TSOG1 + 0.33 * TSOG2 + 0.33 * TSOG3",
-            "outunit": "ppmV"
-        },
-        "SV_TRP2": {
-            "expression": "0.34 * TSOG0 + 0.34 * TSOG1 + 0.34 * TSOG2 + 0.34 * TSOG3",
-            "outunit": "ppmV"
-        },
-        "SV_XYL1": {
-            "expression": "0.19 * (ASOG1 + ASOG2 + ASOG3)",
-            "outunit": "ppmV"
-        },
-        "SV_XYL2": {
-            "expression": "0.06 * (ASOG1 + ASOG2 + ASOG3)",
-            "outunit": "ppmV"
-        }"""
+                out += _GCgt8_to_AE6
             else:
-                out += r"""
-        "AALJ": {
-            "expression": "0.05695 * DST1",
-            "outunit": "micrograms/m**3"
-        }
-        "AALKJ": {
-            "expression": "AALKJ",
-            "outunit": "micrograms/m**3"
-        }
-        "ABNZ1J": {
-            "expression": "0.12 * SOA5",
-            "outunit": "micrograms/m**3"
-        }
-        "ABNZ2J": {
-            "expression": "0.04 * SOA5",
-            "outunit": "micrograms/m**3"
-        }
-        "ABNZ3J": {
-            "expression": "0.32 * SOA5",
-            "outunit": "micrograms/m**3"
-        }
-        "ACAJ": {
-            "expression": "0.0118 * SALA",
-            "outunit": "micrograms/m**3"
-        }
-        "ACAJ": {
-            "expression": "0.07940 * DST1",
-            "outunit": "micrograms/m**3"
-        }
-        "ACLJ": {
-            "expression": "0.00945 * DST1",
-            "outunit": "micrograms/m**3"
-        }
-        "ACLJ": {
-            "expression": "0.5538 * SALA",
-            "outunit": "micrograms/m**3"
-        }
-        "ACLK": {
-            "expression": "0.01190 * DST2",
-            "outunit": "micrograms/m**3"
-        }
-        "ACLK": {
-            "expression": "0.01190 * DST3",
-            "outunit": "micrograms/m**3"
-        }
-        "ACLK": {
-            "expression": "0.01190 * DST4",
-            "outunit": "micrograms/m**3"
-        }
-        "ACLK": {
-            "expression": "0.5538 * SALC",
-            "outunit": "micrograms/m**3"
-        }
-        "ACORS": {
-            "expression": "ACORS",
-            "outunit": "micrograms/m**3"
-        }
-        "AECI": {
-            "expression": "0.001 * BCPI",
-            "outunit": "micrograms/m**3"
-        }
-        "AECI": {
-            "expression": "0.001 * BCPO",
-            "outunit": "micrograms/m**3"
-        }
-        "AECJ": {
-            "expression": "0.999 * BCPI",
-            "outunit": "micrograms/m**3"
-        }
-        "AECJ": {
-            "expression": "0.999 * BCPO",
-            "outunit": "micrograms/m**3"
-        }
-        "AFEJ": {
-            "expression": "0.03355 * DST1",
-            "outunit": "micrograms/m**3"
-        }
-        "AISO1J": {
-            "expression": "0.75 * SOA4",
-            "outunit": "micrograms/m**3"
-        }
-        "AISO2J": {
-            "expression": "0.25 * SOA4",
-            "outunit": "micrograms/m**3"
-        }
-        "AISO3J": {
-            "expression": "AISO3J",
-            "outunit": "micrograms/m**3"
-        }
-        "AKJ": {
-            "expression": "0.0114 * SALA",
-            "outunit": "micrograms/m**3"
-        }
-        "AKJ": {
-            "expression": "0.03770 * DST1",
-            "outunit": "micrograms/m**3"
-        }
-        "AMGJ": {
-            "expression": "0.0368 * SALA",
-            "outunit": "micrograms/m**3"
-        }
-        "AMNJ": {
-            "expression": "0.00115 * DST1",
-            "outunit": "micrograms/m**3"
-        }
-        "ANAJ": {
-            "expression": "0.3086 * SALA",
-            "outunit": "micrograms/m**3"
-        }
-        "ANAJ": {
-            "expression": "0.03935 * DST1",
-            "outunit": "micrograms/m**3"
-        }
-        "ANH4I": {
-            "expression": "0.01 * NH4",
-            "outunit": "micrograms/m**3"
-        }
-        "ANH4J": {
-            "expression": "0.00005 * DST1",
-            "outunit": "micrograms/m**3"
-        }
-        "ANH4J": {
-            "expression": "0.99 * NH4",
-            "outunit": "micrograms/m**3"
-        }
-        "ANO3I": {
-            "expression": "0.01 * NIT",
-            "outunit": "micrograms/m**3"
-        }
-        "ANO3J": {
-            "expression": "0.00020 * DST1",
-            "outunit": "micrograms/m**3"
-        }
-        "ANO3J": {
-            "expression": "0.99 * NIT",
-            "outunit": "micrograms/m**3"
-        }
-        "ANO3K": {
-            "expression": "0.0016 * DST2",
-            "outunit": "micrograms/m**3"
-        }
-        "ANO3K": {
-            "expression": "0.0016 * DST3",
-            "outunit": "micrograms/m**3"
-        }
-        "ANO3K": {
-            "expression": "0.0016 * DST4",
-            "outunit": "micrograms/m**3"
-        }
-        "ANO3K": {
-            "expression": "NITs",
-            "outunit": "micrograms/m**3"
-        }
-        "AOLGAJ": {
-            "expression": "AOLGAJ",
-            "outunit": "micrograms/m**3"
-        }
-        "AOLGBJ": {
-            "expression": "AOLGBJ",
-            "outunit": "micrograms/m**3"
-        }
-        "AOTHRJ": {
-            "expression": "0.50219 * DST1",
-            "outunit": "micrograms/m**3"
-        }
-        "APNCOMI": {
-            "expression": "0.4 * 0.001 * OCPI",
-            "outunit": "micrograms/m**3"
-        }
-        "APNCOMI": {
-            "expression": "0.4 * 0.001 * OCPO",
-            "outunit": "micrograms/m**3"
-        }
-        "APNCOMJ": {
-            "expression": "0.4 * 0.999 * OCPI",
-            "outunit": "micrograms/m**3"
-        }
-        "APNCOMJ": {
-            "expression": "0.4 * 0.999 * OCPO",
-            "outunit": "micrograms/m**3"
-        }
-        "APNCOMJ": {
-            "expression": "0.0043 * DST1",
-            "outunit": "micrograms/m**3"
-        }
-        "APOCI": {
-            "expression": "0.001 * OCPI",
-            "outunit": "micrograms/m**3"
-        }
-        "APOCI": {
-            "expression": "0.001 * OCPO",
-            "outunit": "micrograms/m**3"
-        }
-        "APOCJ": {
-            "expression": "0.999 * OCPI",
-            "outunit": "micrograms/m**3"
-        }
-        "APOCJ": {
-            "expression": "0.999 * OCPO",
-            "outunit": "micrograms/m**3"
-        }
-        "APOCJ": {
-            "expression": "0.01075 * DST1",
-            "outunit": "micrograms/m**3"
-        }
-        "ASEACAT": {
-            "expression": "0.3685 * SALC",
-            "outunit": "micrograms/m**3"
-        }
-        "ASIJ": {
-            "expression": "0.19435 * DST1",
-            "outunit": "micrograms/m**3"
-        }
-        "ASO4I": {
-            "expression": "0.01 * SO4",
-            "outunit": "micrograms/m**3"
-        }
-        "ASO4J": {
-            "expression": "0.99 * SO4",
-            "outunit": "micrograms/m**3"
-        }
-        "ASO4J": {
-            "expression": "0.0225 * DST1",
-            "outunit": "micrograms/m**3"
-        }
-        "ASO4J": {
-            "expression": "0.0776 * SALA",
-            "outunit": "micrograms/m**3"
-        }
-        "ASO4K": {
-            "expression": "0.0776 * SALC",
-            "outunit": "micrograms/m**3"
-        }
-        "ASO4K": {
-            "expression": "0.02655 * DST2",
-            "outunit": "micrograms/m**3"
-        }
-        "ASO4K": {
-            "expression": "0.02655 * DST3",
-            "outunit": "micrograms/m**3"
-        }
-        "ASO4K": {
-            "expression": "0.02655 * DST4",
-            "outunit": "micrograms/m**3"
-        }
-        "ASO4K": {
-            "expression": "SO4s",
-            "outunit": "micrograms/m**3"
-        }
-        "ASOIL": {
-            "expression": "0.95995 * DST2",
-            "outunit": "micrograms/m**3"
-        }
-        "ASOIL": {
-            "expression": "0.95995 * DST3",
-            "outunit": "micrograms/m**3"
-        }
-        "ASOIL": {
-            "expression": "0.95995 * DST4",
-            "outunit": "micrograms/m**3"
-        }
-        "ASQTJ": {
-            "expression": "SOA3",
-            "outunit": "micrograms/m**3"
-        }
-        "ATIJ": {
-            "expression": "0.0028 * DST1",
-            "outunit": "micrograms/m**3"
-        }
-        "ATOL1J": {
-            "expression": "0.04 * SOA5",
-            "outunit": "micrograms/m**3"
-        }
-        "ATOL2J": {
-            "expression": "0.04 * SOA5",
-            "outunit": "micrograms/m**3"
-        }
-        "ATOL3J": {
-            "expression": "0.29 * SOA5",
-            "outunit": "micrograms/m**3"
-        }
-        "ATRP1J": {
-            "expression": "0.33 * SOA1",
-            "outunit": "micrograms/m**3"
-        }
-        "ATRP1J": {
-            "expression": "0.33 * SOA2",
-            "outunit": "micrograms/m**3"
-        }
-        "ATRP2J": {
-            "expression": "0.67 * SOA1",
-            "outunit": "micrograms/m**3"
-        }
-        "ATRP2J": {
-            "expression": "0.67 * SOA2",
-            "outunit": "micrograms/m**3"
-        }
-        "AXYL1J": {
-            "expression": "0.03 * SOA5",
-            "outunit": "micrograms/m**3"
-        }
-        "AXYL2J": {
-            "expression": "0.01 * SOA5",
-            "outunit": "micrograms/m**3"
-        }
-        "AXYL3J": {
-            "expression": "0.11 * SOA5",
-            "outunit": "micrograms/m**3"
-        }
-        "NH3": {
-            "expression": "NH3",
-            "outunit": "micrograms/m**3"
-        }
-        "NUMACC": {
-            "expression": "NUMACC",
-            "outunit": "micrograms/m**3"
-        }
-        "NUMATKN": {
-            "expression": "NUMATKN",
-            "outunit": "micrograms/m**3"
-        }
-        "NUMCOR": {
-            "expression": "NUMCOR",
-            "outunit": "micrograms/m**3"
-        }
-        "SRFACC": {
-            "expression": "SRFACC",
-            "outunit": "micrograms/m**3"
-        }
-        "SRFATKN": {
-            "expression": "SRFATKN",
-            "outunit": "micrograms/m**3"
-        }
-        "SRFCOR": {
-            "expression": "SRFCOR",
-            "outunit": "micrograms/m**3"
-        }
-        "SULF": {
-            "expression": "SULF",
-            "outunit": "micrograms/m**3"
-        }
-        "SV_ALK": {
-            "expression": "SV_ALK",
-            "outunit": "ppmV"
-        }
-        "SV_BNZ1": {
-            "expression": "0.06 * SOG5",
-            "outunit": "ppmV"
-        }
-        "SV_BNZ2": {
-            "expression": "0.23 * SOG5",
-            "outunit": "ppmV"
-        }
-        "SV_ISO1": {
-            "expression": "0.75 * SOG4",
-            "outunit": "ppmV"
-        }
-        "SV_ISO2": {
-            "expression": "0.25 * SOG4",
-            "outunit": "ppmV"
-        }
-        "SV_SQT": {
-            "expression": "SOG3",
-            "outunit": "ppmV"
-        }
-        "SV_TOL1": {
-            "expression": "0.23 * SOG5",
-            "outunit": "ppmV"
-        }
-        "SV_TOL2": {
-            "expression": "0.23 * SOG5",
-            "outunit": "ppmV"
-        }
-        "SV_TRP1": {
-            "expression": "0.33 * SOG1",
-            "outunit": "ppmV"
-        }
-        "SV_TRP1": {
-            "expression": "0.33 * SOG2",
-            "outunit": "ppmV"
-        }
-        "SV_TRP2": {
-            "expression": "0.67 * SOG1",
-            "outunit": "ppmV"
-        }
-        "SV_TRP2": {
-            "expression": "0.67 * SOG2",
-            "outunit": "ppmV"
-        }
-        "SV_XYL1": {
-            "expression": "0.19 * SOG5",
-            "outunit": "ppmV"
-        }
-        "SV_XYL2": {
-            "expression": "0.06 * SOG5",
-            "outunit": "ppmV"
-        }"""
-
-    
+                out += _GC8_to_AE6
+    if out[-1] == ',':
+        out = out[:-1]
     out += r"""
     }
 }
@@ -1301,7 +1066,8 @@ def makeibcon(args):
         if args.verbose:
             print('Starting BCON Prep')
         metbdyfiles, metbdyargs = pncparse(has_ofile = False, plot_options = False, interactive = False, args = args.METBDY3D.split(' '), parser = None)
-        metbdy = getvarpnc(metbdyfiles[0], ['TA', 'PRES'])
+        try: metbdy = getvarpnc(metbdyfiles[0], ['PRES'])
+        except: metbdy = getvarpnc(metbdyfiles[0], None)
         add_cf_from_ioapi(metbdy)
         regridded_nd49_bdy = makeregriddedbdy(metbdy, args, spcs)
         
@@ -1343,7 +1109,8 @@ def makeibcon(args):
         if args.verbose:
             print('Starting ICON Prep')
         metcrofiles, metcroargs = pncparse(has_ofile = False, plot_options = False, interactive = False, args = args.METCRO3D.split(' '), parser = None)
-        metcro = slice_dim(getvarpnc(metcrofiles[0], ['TA', 'PRES']), 'TSTEP,0')
+        try: metcro = slice_dim(getvarpnc(metcrofiles[0], ['PRES']), 'TSTEP,0')
+        except: metcro = slice_dim(getvarpnc(metcrofiles[0], None), 'TSTEP,0')
         add_cf_from_ioapi(metcro)
         regridded_nd49_cro = makeregriddedcro(metcro, args, spcs)
         metcroprops = dict([(propk, getattr(metcro, propk)) for propk in metcro.ncattrs()])
@@ -1680,8 +1447,8 @@ if __name__ == '__main__':
     parser.add_argument('--mapping', default = 'mappings.json', help = 'Path to mappings file (i.e., json formatted dictionary); use --template to get a mapping')
     parser.add_argument('--outbfolder', default = ".", help = 'Path to output folder for BCON.')
     parser.add_argument('--outifolder', default = ".", help = 'Path to output folder for ICON.')
-    parser.add_argument('--template', dest = 'template', default = None, choices = ['cb05tucl_ae6_aq', 'saprc07tc_ae6_aq'], type = str, help = 'Print template mappings.json to stdout and exit (still requires ND49 argument)')
-    parser.add_argument('--gc-version', dest = 'gcversion', default = 9, choices = [8, 9, 10], type = int, help = 'GEOS-Chem version is used to determine SOA mapping.')
+    parser.add_argument('--template', dest = 'template', default = None, choices = ['cb6mp_ae6_aq', 'cb05tucl_ae6_aq', 'cb05tucl_ae5_aq', 'saprc07tc_ae6_aq', 'saprc07tc_ae5_aq'], type = str, help = 'Print template mappings.json to stdout and exit (still requires ND49 argument)')
+    parser.add_argument('--gc-version', dest = 'gcversion', default = 9, choices = [8, 9, 10, 11], type = int, help = 'GEOS-Chem version is used to determine SOA mapping. Above 8 (9-11) use the same SOA species.')
     parser.set_defaults(format = 'bpch,nogroup=True')
     parser.description = """pncgeos2cmaq makes boundary conditions from GEOS-Chem for CMAQ."""
     parser.epilog = """
