@@ -294,6 +294,11 @@ def getcdo(ifile):
         outdict['nverts'] = 4
         outdict['NCOLS'] = len(ifile.dimensions['COL'])
         outdict['NROWS'] = len(ifile.dimensions['ROW'])
+    elif 'south_north' in ifile.dimensions and 'west_east' in ifile.dimensions:
+        outdict['gridtype'] = 'curvilinear'
+        outdict['nverts'] = 4
+        outdict['NCOLS'] = len(ifile.dimensions['west_east'])
+        outdict['NROWS'] = len(ifile.dimensions['south_north'])
     else:
         raise ValueError('Could not find latitude/longitude or ROW/COL')
     outdict['NCELLS'] = outdict['NCOLS'] * outdict['NROWS']
@@ -307,7 +312,7 @@ def getcdo(ifile):
     outdict['LATBSTR'] = wrapper('ybounds   = ', LATBSTR)
     return """
     gridtype  = curvilinear
-    nvertex   = %(nverts)
+    nvertex   = %(nverts)d
     gridsize  = %(NCELLS)d
     xsize     = %(NCOLS)d
     ysize     = %(NROWS)d
@@ -451,9 +456,12 @@ def getproj4_from_cf_var(gridmapping, withgrid = False):
         else:
             warn('Currently not using:' + str(pk) + ' ' + str(pv))
 
-            
-    mapstr = ' '.join(['+%s=%s' % (k, v) for k, v in mapstr_bits.items()])
+    # repr is required to prevent rounding of numpy array values        
+    mapstr = ' '.join(['+%s=%s' % (k, v if isinstance(v, str) else repr(v)) for k, v in mapstr_bits.items()])
     return mapstr
+
+def getproj(ifile, withgrid = False):
+    return pyproj.Proj(getproj4(ifile, withgrid = withgrid))
 
 def getproj4(ifile, withgrid = False):
     """
