@@ -9,11 +9,12 @@ from PseudoNetCDF.coordutil import getmap
 
 
 def plot(ifiles, args):
-    import pylab as pl
+    import matplotlib.pylab as pl
+    import matplotlib.pyplot as plt
     from pylab import figure, NullFormatter, close, rcParams
     from PseudoNetCDF.coordutil import getsigmamid, getpresmid, getpresbnds, getsigmabnds
     rcParams['text.usetex'] = False
-    from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm, LogNorm
+    from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm, LogNorm, Normalize
     map = not args.nomap
     scale = args.scale
     minmax = eval(args.minmax)
