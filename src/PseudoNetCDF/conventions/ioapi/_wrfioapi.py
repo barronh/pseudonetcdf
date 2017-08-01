@@ -34,14 +34,14 @@ def add_cf_from_wrfioapi(ifile, coordkeys = []):
     # Add x and y coordinates
     try:
         gridvar = ifile.variables[grid_mapping_name]
-        xvar = ifile.createVariable('x', 'f', ('west_east',))
+        xvar = ifile.createVariable('x', 'd', ('west_east',))
         xvar.units = 'm'
         xvar.standard_name = 'x'
-        xvar[:] = np.arange(xvar.size)*ifile.DX-gridvar.false_easting  + ifile.DX/2
-        yvar = ifile.createVariable('y', 'f', ('south_north',))
+        xvar[:] = np.arange(xvar.size, dtype = 'd')*ifile.DX-gridvar.false_easting  + ifile.DX/2
+        yvar = ifile.createVariable('y', 'd', ('south_north',))
         yvar.units = 'm'
         yvar.standard_name = 'y'
-        yvar[:] = np.arange(yvar.size)*ifile.DY-gridvar.false_northing  + ifile.DY/2
+        yvar[:] = np.arange(yvar.size, dtype = 'd')*ifile.DY-gridvar.false_northing  + ifile.DY/2
     except Exception as e:
         raise e
     for k in ifile.variables.keys():
