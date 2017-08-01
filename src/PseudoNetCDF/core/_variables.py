@@ -172,6 +172,10 @@ Notes:
 
     def __array_finalize__(self, obj):
         if obj is None: return
+        _parent = getattr(obj, '_parent', object())
+        object.__setattr__(self, '_parent', _parent)
+        _name = getattr(obj, '_name', 'unknown')
+        object.__setattr__(self, '_name', _name)
         ntypecode = getattr(obj, 'typecode', lambda: self.dtype.char)
         object.__setattr__(self, 'typecode', ntypecode)
         ndimensions = getattr(obj, 'dimensions', lambda: self.dtype.char)
@@ -238,6 +242,7 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
         result=result.view(subtype)
         result._ncattrs = ()
         result._parent = parent
+        result._name = name
         result.typecode = lambda: typecode
         result.dimensions = tuple(dimensions)
         for k,v in kwds.items():
