@@ -461,7 +461,8 @@ def getproj4_from_cf_var(gridmapping, withgrid = False):
     return mapstr
 
 def getproj(ifile, withgrid = False):
-    return pyproj.Proj(getproj4(ifile, withgrid = withgrid))
+    import pyproj
+    return pyproj.Proj(getproj4(ifile, withgrid = withgrid), preserve_units = withgrid)
 
 def getproj4(ifile, withgrid = False):
     """
