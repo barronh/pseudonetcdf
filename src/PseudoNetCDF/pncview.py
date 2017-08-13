@@ -3,10 +3,6 @@ from __future__ import print_function
 __all__ = ['mapplot', 'profile', 'tileplot', 'presslon', 'presslat', 'timeseries', 'OptionDict']
 
 from warnings import warn
-try:
-    from Tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar, Text, DISABLED, PhotoImage, LEFT, E, W
-except:
-    from tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar, Text, DISABLED, PhotoImage, LEFT, E, W
 import os
 from types import MethodType
 import pylab as pl
@@ -45,6 +41,14 @@ defaultoption = OptionDict(outpath = 'pncview')
 
 class TkApp:
     def __init__(self, ncffile, options):
+        try:
+            from Tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar, Text, DISABLED, PhotoImage, LEFT, E, W
+        except:
+            try:
+                from tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar, Text, DISABLED, PhotoImage, LEFT, E, W
+            except:
+                warn('tkinter unavailable')
+
         master = self.root = Tk()
         self.ncffile = ncffile
         self.options = options
