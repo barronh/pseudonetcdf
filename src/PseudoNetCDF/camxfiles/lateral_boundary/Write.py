@@ -97,22 +97,30 @@ def ncf2lateral_boundary(ncffile, outpath):
             nbcell = dict(WEST = NROWS, EAST = NROWS,
                           SOUTH = NCOLS, NORTH = NCOLS)[ename]
             buf = (nbcell * 4 + 3) * 4
-            np.array([buf, 1, ei, nbcell, 0, 0, 0, 0] + [2, 0, 0, 0] * (nbcell - 2) + [0, 0, 0, 0, buf]).astype('>i').tofile(outfile)
-    
+            if ename in ('WEST', 'SOUTH'):
+                icell = 2
+            else:
+                icell = nbcell - 1
+            np.array([buf, 1, ei, nbcell, 0, 0, 0, 0] + [icell, 0, 0, 0] * (nbcell - 2) + [0, 0, 0, 0, buf]).astype('>i').tofile(outfile)
+    try:
+        from io import BytesIO
+    except:
+        from StringIO import StringIO as BytesIO
     for di, (d, t) in enumerate(ncffile.variables['TFLAG'][:, 0]):
-        time_hdr[di].tofile(outfile)
+        tempout = b''
+        tempout += time_hdr[di].tobytes()
         for spc_key, spc_name in zip(spc_names, spc_hdr[0]['DATA']):
             for ename, ei in [('WEST', 1), ('EAST', 2), ('SOUTH', 3), ('NORTH', 4)]:
                 var = ncffile.variables[ename + '_' + spc_key[0].decode().strip()]
                 data = var[di].astype('>f')
                 buf = np.array(4+40+4+data.size*4).astype('>i')
-                buf.tofile(outfile)
-                np.array(1).astype('>i').tofile(outfile)
-                spc_name.tofile(outfile)
-                np.array(ei).astype('>i').tofile(outfile)
-                data.tofile(outfile)
-                buf.tofile(outfile)
-    
+                tempout += buf.tobytes()
+                tempout += np.array(1).astype('>i').tobytes()
+                tempout += spc_name.tobytes()
+                tempout += np.array(ei).astype('>i').tobytes()
+                tempout += data.tobytes()
+                tempout += buf.tobytes()
+        outfile.write(tempout)
     outfile.flush()
     return outfile
 
