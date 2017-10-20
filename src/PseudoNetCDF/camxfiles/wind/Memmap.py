@@ -77,7 +77,7 @@ class wind(PseudoNetCDFFile):
         while rf.record_size==record_size:
             lays+=1
             rf.next()
-        self.__dummy_length=(rf.record_size+8)/4
+        self.__dummy_length=(rf.record_size+8)//4
         lays//=2
         record=rows*cols*4+8
         total_size=self.__dummy_length
@@ -140,8 +140,8 @@ class wind(PseudoNetCDFFile):
         buffer=self.__memmap[out_idx==2].reshape(tsteps,lays,2,2)
         if not (buffer[:,:,:,0]==buffer[:,:,:,1]).all():
             raise ValueError('Fortran unformatted record start and end padding do not match.')
-        date=self.__memmap[out_idx==3].reshape(tsteps,(out_idx==3).sum()/tsteps)[:,2].view('>i')
-        time=self.__memmap[out_idx==3].reshape(tsteps,(out_idx==3).sum()/tsteps)[:,1]
+        date=self.__memmap[out_idx==3].reshape(tsteps,(out_idx==3).sum()//tsteps)[:,2].view('>i')
+        time=self.__memmap[out_idx==3].reshape(tsteps,(out_idx==3).sum()//tsteps)[:,1]
 
         self.variables['TFLAG']=ConvertCAMxTime(date,time,2)
         self.variables['U']=self.__decorator('U',PseudoNetCDFVariable(self,'U','f',('TSTEP','LAY','ROW','COL'),values=self.__memmap[out_idx==1].reshape(tsteps,lays,2,rows,cols)[:,:,0,:,:]))

@@ -84,7 +84,7 @@ class one3d(PseudoNetCDFFile):
 
         self.__record_items=rows*cols+4
 
-        self.__records=self.__memmap.shape[0]/self.__record_items
+        self.__records=self.__memmap.shape[0]//self.__record_items
         time_date=array(self.__memmap.reshape(self.__records,self.__record_items)[:,1:3])
 
         lays=where(time_date!=time_date[newaxis,0])[0][0]

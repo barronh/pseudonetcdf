@@ -74,9 +74,9 @@ class temperature(PseudoNetCDFFile):
     def __init__(self,rf,rows=None,cols=None):
         self.__memmap=memmap(rf,'>f','r',offset=0)
         
-        rowsXcols=self.__memmap[0].view('i')/4-2
+        rowsXcols=self.__memmap[0].view('i')//4-2
         record_length=rowsXcols+4
-        records=self.__memmap.size/record_length
+        records=self.__memmap.size//record_length
         
         times=self.__memmap.reshape(records,record_length)[:,1:3]
         self.STIME,self.SDATE=times[0]
