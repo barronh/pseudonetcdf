@@ -285,6 +285,7 @@ class TestMemmap(unittest.TestCase):
         pass
     def testAvg(self):
         import PseudoNetCDF.testcase
+        self.assert_(uamiv.isMine(PseudoNetCDF.testcase.camxfiles_paths['uamiv']))
         emissfile=uamiv(PseudoNetCDF.testcase.camxfiles_paths['uamiv'])
         emissfile.variables['TFLAG']
         v=emissfile.variables['NO2']
