@@ -67,6 +67,15 @@ class uamiv(PseudoNetCDFFile):
     __ione=1
     __idum=0
     __rdum=0.
+    def _make_header_fmt(self, ep = None):
+        if ep is None:
+            ep = self.__endianprefix
+        self.__emiss_hdr_fmt=dtype(dict(names=['SPAD', 'name', 'note', 'itzon', 'nspec', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[ep + 'i', '(10, 4)%sS1' % ep, '(60,4)%sS1' % ep, ep + 'i', ep + 'i', ep + 'i', ep + 'f', ep + 'i', ep + 'f', ep + 'i']))
+        self.__grid_hdr_fmt=dtype(dict(names=['SPAD', 'plon', 'plat', 'iutm', 'xorg', 'yorg', 'delx', 'dely', 'nx', 'ny', 'nz', 'iproj', 'istag', 'tlat1', 'tlat2', 'rdum', 'EPAD'], formats=[ep + 'i', ep + 'f', ep + 'f', ep + 'i', ep + 'f', ep + 'f', ep + 'f', ep + 'f', ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'f', ep + 'f', ep + 'f', ep + 'i']))
+        self.__cell_hdr_fmt=dtype(dict(names=['SPAD', 'ione1', 'ione2', 'nx', 'ny', 'EPAD'], formats=[ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'i']))
+        self.__time_hdr_fmt=dtype(dict(names=['SPAD', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[ep + 'i', ep + 'i', ep + 'f', ep + 'i', ep + 'f', ep + 'i']))
+        self.__spc_fmt=dtype("(10,4)%sS1" % ep)
+            
     def __init__(self, rf, mode='r', P_ALP = None, P_BET = None, P_GAM = None, XCENT = None, YCENT = None, GDTYP = None, endian = 'big', chemparam = None):
         """
         Initialization included reading the header and learning
@@ -80,11 +89,7 @@ class uamiv(PseudoNetCDFFile):
             self._aerosol_names = get_chemparam_names(chemparam)['aerosol']
         
         ep = self.__endianprefix = dict(big = '>', little = '<')[endian]
-        self.__emiss_hdr_fmt=dtype(dict(names=['SPAD', 'name', 'note', 'itzon', 'nspec', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[ep + 'i', '(10, 4)%sS1' % ep, '(60,4)%sS1' % ep, ep + 'i', ep + 'i', ep + 'i', ep + 'f', ep + 'i', ep + 'f', ep + 'i']))
-        self.__grid_hdr_fmt=dtype(dict(names=['SPAD', 'plon', 'plat', 'iutm', 'xorg', 'yorg', 'delx', 'dely', 'nx', 'ny', 'nz', 'iproj', 'istag', 'tlat1', 'tlat2', 'rdum', 'EPAD'], formats=[ep + 'i', ep + 'f', ep + 'f', ep + 'i', ep + 'f', ep + 'f', ep + 'f', ep + 'f', ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'f', ep + 'f', ep + 'f', ep + 'i']))
-        self.__cell_hdr_fmt=dtype(dict(names=['SPAD', 'ione1', 'ione2', 'nx', 'ny', 'EPAD'], formats=[ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'i']))
-        self.__time_hdr_fmt=dtype(dict(names=['SPAD', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[ep + 'i', ep + 'i', ep + 'f', ep + 'i', ep + 'f', ep + 'i']))
-        self.__spc_fmt=dtype("(10,4)%sS1" % ep)
+        self._make_header_fmt()
         self.__rffile=rf
         self.__mode=mode
         
@@ -146,7 +151,9 @@ class uamiv(PseudoNetCDFFile):
         return flen
 
     @classmethod
-    def isMine(self, path):
+    def isMine(cls, path):
+        self = PseudoNetCDFFile()
+        cls._make_header_fmt(self, '>')
         offset=0
         emiss_hdr = memmap(path,  mode = 'r', dtype = self.__emiss_hdr_fmt, shape = 1, offset = offset)
         
