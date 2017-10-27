@@ -41,6 +41,9 @@ addTestCasesFromModule(textfiles._delimited)
 from . import icarttfiles
 addTestCasesFromModule(icarttfiles.ffi1001)
 
+from . import _getreader
+addTestCasesFromModule(_getreader)
+
 def test():
 	TextTestRunner(verbosity=2).run(test_suite)
 

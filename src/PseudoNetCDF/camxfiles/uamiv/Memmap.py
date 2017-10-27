@@ -156,6 +156,9 @@ class uamiv(PseudoNetCDFFile):
         cls._make_header_fmt(self, '>')
         offset=0
         emiss_hdr = memmap(path,  mode = 'r', dtype = self.__emiss_hdr_fmt, shape = 1, offset = offset)
+        name = emiss_hdr['name'][0, :, 0].copy().view('S10')[0].decode().strip()
+        if name in ('BOUNDARY', 'PTSOURCE'):
+            return False
         
         if not emiss_hdr['SPAD'] == emiss_hdr['EPAD'] and emiss_hdr['SPAD'] == emiss_hdr.dtype.itemsize - 8:
             return False
@@ -168,7 +171,7 @@ class uamiv(PseudoNetCDFFile):
         cell_hdr = memmap(path, mode = 'r', dtype = self.__cell_hdr_fmt, shape=1, offset=offset)
         if not cell_hdr['SPAD'] == cell_hdr['EPAD'] and cell_hdr['SPAD'] == cell_hdr.dtype.itemsize - 8:
             return False
-        return True
+        return name in ('AIRQUALITY', 'EMISSIONS', 'INSTANT', 'AVERAGE')
         
     def __readheader(self):
         ep = self.__endianprefix

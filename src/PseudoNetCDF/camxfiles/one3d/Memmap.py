@@ -70,18 +70,21 @@ class one3d(PseudoNetCDFFile):
     data_fmt="f"
     var_name="UNKNOWN"
     units="UNKNOWN"
-    def __init__(self,rf,rows,cols):
+    def __init__(self,rf,rows=None,cols=None):
         """
         Initialization included reading the header and learning
         about the format.
         
-        see __readheader and __gettimestep() for more info
+        rows - number of rows in domain (defaults: 1)
+        cols - number of columns in domain (defaults: size)
+        
         """
         
         self.rffile=rf
-
+        
         self.__memmap=memmap(self.rffile,'>f','r',offset=0)
-
+        if rows == None and cols == None:
+            rows = 1; cols = self.__memmap[[-1]].view('>i')[0] // 4 - 2
         self.__record_items=rows*cols+4
 
         self.__records=self.__memmap.shape[0]//self.__record_items

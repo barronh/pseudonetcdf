@@ -1,4 +1,4 @@
-__all__ = ['camxfiles_paths', 'net_balance_paths', 'geoschemfiles_paths']
+__all__ = ['camxfiles_paths', 'net_balance_paths', 'geoschemfiles_paths', 'icarttfiles_paths', 'all_paths', 'self_described_paths']
 
 from os.path import join
 
@@ -30,3 +30,15 @@ for key, val in geoschemfiles_paths.items():
     geoschemfiles_paths[key] = join(*__path__ + val.split('/'))
 
 icarttfiles_paths = dict(ffi1001 = join(*__path__ +  ['icarttfiles', 'test.ffi1001']))
+
+all_paths = dict()
+all_paths.update(camxfiles_paths, **geoschemfiles_paths)
+all_paths.update(icarttfiles_paths, **net_balance_paths)
+
+self_described_paths = dict()
+for k in 'uamiv point_source lateral_boundary humidity vertical_diffusivity'.split():
+    self_described_paths[k] = camxfiles_paths[k]
+
+self_described_paths['bpch'] = geoschemfiles_paths['bpch']
+self_described_paths['bpch2'] = geoschemfiles_paths['bpch']
+self_described_paths['ffi1001'] = icarttfiles_paths['ffi1001']
