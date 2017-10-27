@@ -99,8 +99,11 @@ def ncf2lateral_boundary(ncffile, outpath):
             buf = (nbcell * 4 + 3) * 4
             if ename in ('WEST', 'SOUTH'):
                 icell = 2
-            else:
-                icell = nbcell - 1
+            elif ename == 'EAST':
+                icell = NCOLS - 1
+            elif ename == 'NORTH':
+                icell = NROWS - 1
+            else: raise KeyError('WEST, EAST, SOUTH, or NORTH: received %s' % ename)
             np.array([buf, 1, ei, nbcell, 0, 0, 0, 0] + [icell, 0, 0, 0] * (nbcell - 2) + [0, 0, 0, 0, buf]).astype('>i').tofile(outfile)
     try:
         from io import BytesIO
