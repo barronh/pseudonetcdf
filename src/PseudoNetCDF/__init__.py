@@ -16,7 +16,10 @@ __all__ = ['sci_var',
            'racmfiles',
            'geoschemfiles',
            'icarttfiles',
-           'toms', 'anyfile', 'conventions']
+           'toms',
+           'anyfile',
+           'pncopen',
+           'conventions']
 import sys
 import os
 import warnings
@@ -44,5 +47,5 @@ from . import aermodfiles
 from . import textfiles
 from . import coordutil
 from . import test
-from ._getreader import anyfile
+from ._getreader import anyfile, pncopen
 from .pncparse import PNC, pnc

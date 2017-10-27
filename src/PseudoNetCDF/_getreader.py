@@ -12,12 +12,17 @@ def testreader(reader, *args, **kwds):
     except:
         return False
 
-def getreader(*args, **kwds):
+def getreader(*args, format = None, **kwds):
     global _readers
     if not os.path.isfile(args[0]):
         warn('The first argument (%s) does not exist as a file.  First arguments are usually paths' % (args[0],))
     
-    for rn, reader in _readers:
+    if format is None:
+        _myreaders = _readers
+    else:
+        _myreaders = [(k, v) for k, v in _readers if format == k]
+    
+    for rn, reader in _myreaders:
         if getattr(reader, 'isMine', lambda *args, **kwds: testreader(reader, *args, **kwds))(*args, **kwds):
             return reader
     else:
@@ -27,8 +32,16 @@ def registerreader(name, reader):
     global _readers
     _readers.insert(0, (name, reader))
 
-def anyfile(*args, **kwds):
-    return getreader(*args, **kwds)(*args, **kwds)
+def pncopen(*args, format = None, **kwds):
+    """
+    Open any PNC supported format using args and kwds, which
+    are format specific. format is not passed to the reader
+    """
+    reader =  getreader(*args, format = format, **kwds)
+    outfile = reader(*args, **kwds)
+    return outfile
+
+anyfile = pncopen
 
 def getreaderdict():
     return dict(_readers)

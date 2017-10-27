@@ -6,8 +6,13 @@ units = 'm,m,micrograms/m**3,m,m,m,N/A,N/A,YYMMDDHH,N/A'.split(',')
 delimiter = [14] * 3 + [9] * 3 + [2, 6, 2, 8, 10, 2, 8]
 StrLen = 10
 class reader(PseudoNetCDFFile):
-    def isMine(self, path):
-        return open(path).read(len('* AERMOD')) == '* AERMOD'
+    @classmethod
+    def isMine(cls, path):
+        try:
+            return open(path).read(len('* AERMOD')) == '* AERMOD'
+        except:
+            return False
+            
     def __init__(self, path):
         #import pdb; pdb.set_trace()
         self._data = np.recfromtxt(path, names = names, delimiter = delimiter, comments = '*')
