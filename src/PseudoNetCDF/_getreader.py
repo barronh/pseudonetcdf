@@ -13,8 +13,14 @@ def testreader(reader, *args, **kwds):
     except:
         return False
 
-def getreader(*args, format = None, **kwds):
+def getreader(*args, **kwds):
+    """
+    args - arguments for opening file
+    kwds - keywords for file opener and optional format
+    format - name of reader (optional)
+    """
     global _readers
+    format = kwds.pop('format', None)
     if not os.path.isfile(args[0]):
         warn('The first argument (%s) does not exist as a file.  First arguments are usually paths' % (args[0],))
     
@@ -33,11 +39,19 @@ def registerreader(name, reader):
     global _readers
     _readers.insert(0, (name, reader))
 
-def pncopen(*args, format = None, addcf = True, **kwds):
+def pncopen(*args, **kwds):
     """
     Open any PNC supported format using args and kwds, which
     are format specific. format is not passed to the reader
+    
+    format = None, addcf = True, 
+    args - arguments for opening file
+    kwds - keywords for file opener and optional format and addcf
+    format - name of reader (not passed to reader)
+    addcf - boolean to add CF conventions (not passed to reader)
     """
+    format = kwds.pop('format', None)
+    addcf = kwds.pop('addcf', True)
     reader =  getreader(*args, format = format, **kwds)
     outfile = reader(*args, **kwds)
     if addcf:
