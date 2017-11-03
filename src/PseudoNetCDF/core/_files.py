@@ -46,7 +46,12 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
     
     def __repr__(self):
         from PseudoNetCDF.pncdump import pncdump
-        from io import StringIO
+        import sys
+        if sys.version_info.major == 3:
+            from io import StringIO
+        else:
+            from StringIO import StringIO
+        
         out = StringIO()
         pncdump(self, header = True, outfile = out)
         out.seek(0, 0)

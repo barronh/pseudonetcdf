@@ -152,7 +152,7 @@ class uamiv(PseudoNetCDFFile):
 
     @classmethod
     def isMine(cls, path):
-        self = PseudoNetCDFFile()
+        self = uamiv.__new__(uamiv)
         cls._make_header_fmt(self, '>')
         offset=0
         emiss_hdr = memmap(path,  mode = 'r', dtype = self.__emiss_hdr_fmt, shape = 1, offset = offset)

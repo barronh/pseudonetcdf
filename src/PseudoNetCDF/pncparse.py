@@ -506,7 +506,7 @@ def do_actions(outargs):
         from . import plotutil
         getattr(plotutil, outargs.subcommand)(outargs)        
 
-def PNC(*args, ifiles = [], actions = None, **kwds):
+def PNC(*args, **kwds):
     """
 Arguments:
     args - Command Line arguments/options for PseudoNetCDF
@@ -547,6 +547,8 @@ variables:
                 O3_ESRL:missing_value = -999999 ;
     ...
     """
+    ifiles = kwds.pop('ifiles', [])
+    actions = kwds.pop('actions', None) 
     if actions is None:
         actions = args[0] in _allcmds
 
@@ -559,12 +561,14 @@ variables:
     
     return outargs
 
-def pnc(*args, ifiles = [], actions = None, **kwds):
+def pnc(*args, **kwds):
     """
 Arguments - see PNC
 Returns:
     file(s) - single file or, if more than 1 file is returned a list of files
     """
+    ifiles = kwds.pop('ifiles', [])
+    actions = kwds.pop('actions', None) 
     out = PNC(*args, ifiles = ifiles, actions = actions, **kwds).ifiles
     if len(out) == 1:
        return out[0]
@@ -663,7 +667,7 @@ def getfiles(ipaths, args):
                     f = eval(file_format)(ipath, **format_options)
             except Exception as e:
                 oute = IOError('Unable to open path with %s(path, **%s)\n\tpath="%s"\n\terror="%s"' % (file_format, str(format_options), ipath, str(e)))
-                raise oute from e
+                raise oute# from e
         else:
             warn('File is type %s, which is unknown' % type(ipath))
             f = ipath

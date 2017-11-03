@@ -1,4 +1,10 @@
 from __future__ import print_function
+import sys
+if (sys.version_info > (3, 0)):
+   openf = open
+else:
+   openf = lambda path, mode, encoding: open(path, mode)
+
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFMaskedVariable as PseudoNetCDFVariable
 from numpy import fromstring, vectorize, ndarray, array, genfromtxt
 from numpy.ma import MaskedArray, filled
@@ -60,7 +66,7 @@ Returns:
         """
         lastattr = None
         PseudoNetCDFFile.__init__(self)
-        f = open(path, 'rU', encoding = encoding)
+        f = openf(path, 'rU', encoding = encoding)
         missing = []
         units = []
         l = f.readline()
