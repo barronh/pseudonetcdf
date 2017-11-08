@@ -292,7 +292,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                       semi_major_axis = 6375000.0,
                       inverse_flattening = 0)
           dtype = 'i'
-          data = zeros(1, dtype = dtype)
+          data = np.array(0, dtype = dtype)
         elif key in ('time', 'time_bounds'):
             tmp_key = self._example_key
             data = np.array([self['tau0'], self['tau1']]).T
