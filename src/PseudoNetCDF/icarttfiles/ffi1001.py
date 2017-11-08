@@ -50,6 +50,17 @@ Overview:
 Example:
   datafile = ffi1001(path, encoding = 'latin1')
     """
+    @classmethod
+    def isMine(cls, path):
+        try:
+            ffifmt = openf(path, 'rU', encoding = 'utf-8').readline().strip()[-4:]
+            if hasattr(ffifmt, 'decode'):
+                ffifmt = ffifmt.decode()
+            testfmt = u'1001'
+            return ffifmt == testfmt
+        except:
+            return False
+    
     def __init__(self,path,keysubs={'/': '_'},encoding='utf-8', default_llod_flag = -8888, default_llod_value = 'N/A', default_ulod_flag = -7777, default_ulod_value = 'N/A'):
         """
 Arguments:

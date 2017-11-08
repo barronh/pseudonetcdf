@@ -449,7 +449,25 @@ class bpch(PseudoNetCDFFile):
     print(var.shape)
     
     """
-
+    @classmethod
+    def isMine(cls, path):
+        try:
+            # Read binary data for general header and first datablock header
+            header_block = fromfile(path, dtype = 'bool', count = _first_header_size)
+            
+            # combine data for convenience
+            header = tuple(header_block[:_general_header_type.itemsize].view(_general_header_type)[0]) + \
+                     tuple(header_block[_general_header_type.itemsize:].view(_datablock_header_type)[0])
+            
+            # Verify that all Fortran unformatted buffers match 
+            try:
+                assert(header[0] == header[2])
+                assert(header[3] == header[5])
+                return True
+            except AssertionError:
+                return False
+        except:
+            return False
     def __init__(self, bpch_path, tracerinfo = None, diaginfo = None, mode = 'r', timeslice = slice(None), noscale = False, vertgrid = 'GEOS-5-REDUCED', nogroup = False):
         """
         bpch_path: path to binary punch file

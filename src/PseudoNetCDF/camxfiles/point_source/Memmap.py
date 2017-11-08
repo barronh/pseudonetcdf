@@ -71,7 +71,13 @@ class point_source(PseudoNetCDFFile):
         >>> point_sourcefile.dimensions
         {'TSTEP': 25, 'NSTK': 38452}
     """
-    
+    @classmethod
+    def isMine(cls, path):
+        try:
+            f = point_source(path)
+            return True
+        except:
+            return False
     def __init__(self, rf, endian = 'big', mode = 'r', **kwds):
         """
         Initialization included reading the header and learning
@@ -117,9 +123,12 @@ class point_source(PseudoNetCDFFile):
 
         self.__emiss_hdr=self.__memmap[offset:offset+self.__emiss_hdr_fmt.itemsize//4].view(self.__emiss_hdr_fmt)
         offset+=self.__emiss_hdr.nbytes//4
+        assert((self.__emiss_hdr['SPAD'] == self.__emiss_hdr['EPAD']).all())
 
         self.__grid_hdr=self.__memmap[offset:offset+self.__grid_hdr_fmt.itemsize//4].view(self.__grid_hdr_fmt)
         offset+=self.__grid_hdr.nbytes//4
+        
+        assert((self.__grid_hdr['SPAD'] == self.__grid_hdr['EPAD']).all())
         self.NAME = self.__emiss_hdr['name'][0, :, 0].copy().view('S10')[0].decode()
         self.NOTE = self.__emiss_hdr['note'][0, :, 0].copy().view('S60')[0].decode()
         self.XORIG=self.__grid_hdr['xorg'][0]
@@ -138,6 +147,7 @@ class point_source(PseudoNetCDFFile):
         self.CPROJ = cproj = self.__grid_hdr['iproj'][0]
         self.__cell_hdr=self.__memmap[offset:offset+self.__cell_hdr_fmt.itemsize//4].view(self.__cell_hdr_fmt)
         offset+=self.__cell_hdr.nbytes//4+1
+        assert((self.__cell_hdr['SPAD'] == self.__cell_hdr['EPAD']).all())
 
         nspec=self.__emiss_hdr['nspec'][0]
         self.ITZON=self.__emiss_hdr['itzon'][0]
@@ -145,12 +155,14 @@ class point_source(PseudoNetCDFFile):
 
         self.__spc_hdr=self.__memmap[offset:offset+self.__spc_hdr_fmt.itemsize//4*nspec].view(ep+'S1').reshape(nspec, 10, 4)
         offset+=self.__spc_hdr.nbytes//4+1
+        
 
         spc_names=[np.char.strip(spc[:,0].copy().view('S10'))[0] for spc in self.__spc_hdr]
         spc_names=[spc.decode() if hasattr(spc, 'decode') else spc for spc in spc_names]
         self.__spc_names = spc_names
         self.__nstk_hdr=self.__memmap[offset:offset+self.__nstk_hdr_fmt.itemsize//4].view(self.__nstk_hdr_fmt)
         offset+=self.__nstk_hdr.nbytes//4+1
+        assert((self.__nstk_hdr['SPAD'] == self.__nstk_hdr['EPAD']).all())
 
         nstk=self.__nstk_hdr['nstk'][0]
         self.createDimension('NSTK', nstk)

@@ -70,6 +70,21 @@ class one3d(PseudoNetCDFFile):
     data_fmt="f"
     var_name="UNKNOWN"
     units="UNKNOWN"
+    @classmethod
+    def isMine(cls, path):
+        try:
+            f = one3d(path)
+        except:
+            return False
+        return f._checkfile()
+    
+    def _checkfile(self):
+        if self.__memmap.size != (self.__records*self.__record_items):
+            return False
+        pad0 = self.__memmap.reshape(self.__records,self.__record_items).view('i')[:,0]
+        pad1 = self.__memmap.reshape(self.__records,self.__record_items).view('i')[:,-1]
+        return (pad0 == pad1).all()
+
     def __init__(self,rf,rows=None,cols=None):
         """
         Initialization included reading the header and learning
@@ -88,6 +103,7 @@ class one3d(PseudoNetCDFFile):
         self.__record_items=rows*cols+4
 
         self.__records=self.__memmap.shape[0]//self.__record_items
+        
         time_date=array(self.__memmap.reshape(self.__records,self.__record_items)[:,1:3])
 
         lays=where(time_date!=time_date[newaxis,0])[0][0]

@@ -74,6 +74,14 @@ class lateral_boundary(PseudoNetCDFFile):
     __ione=1
     __idum=0
     __rdum=0.
+    @classmethod
+    def isMine(cls, path):
+        try:
+            # initialization calls readheader, which has an assertion check
+            f = lateral_boundary(path)
+            return True
+        except:
+            return False
     def __init__(self,rf,mode='r'):
         """
         Initialization included reading the header and learning
