@@ -3,7 +3,7 @@ import os
 from collections import OrderedDict
 import numpy as np
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
-from ._bpch import _general_header_type
+from ._bpch import _general_header_type, bpch as oldbpch
 
 _datablock_header_type = np.dtype([('bpad1', '>i4'),
                                     ('modelname', 'S20'),
@@ -173,6 +173,18 @@ class gcvar(object):
         return tuple(self.__dict__.keys())
     
 class bpch2(PseudoNetCDFFile):
+    @classmethod
+    def isMine(cls, path):
+        isbpch = oldbpch.isMine(path)
+        if not isbpch:
+            return False
+        
+        try:
+            f = oldbpch(path)
+            return False
+        except:
+            return True
+    
     def __init__(self, path, nogroup = False, noscale = False, vertgrid = 'GEOS-5-REDUCED'):
         self.noscale = noscale
         from ._vertcoord import geos_hyai, geos_hybi
