@@ -137,9 +137,11 @@ def ncf2point_source(ncffile, outpath):
     nstk_hdr.tofile(outfile)
     spc_names = [spc[:, 0].copy().view('>S10')[0].decode().strip() for spc in spc_hdr[0]['NAME']]
     stk_prop.tofile(outfile)
+    ione = np.array([1]).astype('>i')
     for di, (d, t) in enumerate(ncffile.variables['TFLAG'][:, 0]):
-        time_hdr[di].tofile(outfile)
-        np.array([8, 1, nstk, 8], dtype = '>i').tofile(outfile)
+        tempout = b''
+        tempout += time_hdr[di].tobytes()
+        tempout += np.array([8, 1, nstk, 8], dtype = '>i').tobytes()
         #(idum,idum,kcell(n),flow(n),plmht(n),n=1,nstk)
         time_prop_fmt = np.dtype(dict(names = ['ione1', 'ione2', 'kcell', 'flow', 'plmht'], formats = ['>i', '>i', '>i', '>f', '>f']))
         props = np.ones((1,), dtype = np.dtype([('SPAD', '>i', 1), ('DATA', time_prop_fmt, nstk), ('EPAD', '>i', 1)]))
@@ -149,16 +151,17 @@ def ncf2point_source(ncffile, outpath):
         props['DATA']['kcell'] = ncffile.variables['KCELL'][di]
         props['DATA']['flow'] = ncffile.variables['FLOW'][di]
         props['DATA']['plmht'] = ncffile.variables['PLMHT'][di]
-        props.tofile(outfile)
+        tempout += props.tobytes()
         for spc_key, spc_name in zip(spc_names, spc_hdr[0]['NAME']):
             var = ncffile.variables[spc_key]
             data = var[di].astype('>f')
             buf = np.array([4+40+data.size*4]).astype('>i')
-            buf.tofile(outfile)
-            np.array([1]).astype('>i').tofile(outfile)
-            spc_name.tofile(outfile)
-            data.tofile(outfile)
-            buf.tofile(outfile)
+            tempout += buf.tobytes()
+            tempout += ione.tobytes()
+            tempout += spc_name.tobytes()
+            tempout += data.tobytes()
+            tempout += buf.tobytes()
+        outfile.write(tempout)
     outfile.flush()
     return outfile
 
