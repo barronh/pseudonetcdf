@@ -4,7 +4,7 @@ from PseudoNetCDF.netcdf import NetCDFFile
 from collections import OrderedDict
 from ._dimensions import PseudoNetCDFDimension
 from ._variables import PseudoNetCDFVariable, PseudoNetCDFMaskedVariable
-
+from warnings import warn
 class OrderedDefaultDict(OrderedDict):
     def __init__(self, *args, **kwargs):
         if not args:
@@ -31,8 +31,10 @@ class PseudoNetCDFType(type):
         longname = '.'.join([p for p in pieces[1:-1]  if '_' != p[0] and p not in ('core',)] + [pieces[-1]])
         if len(cls.mro()) > 2:
             if name not in ('PseudoNetCDFFile', 'PseudoNetCDFFileMemmap', 'WrapPnc'):
-                registerreader(name, cls)
-                registerreader(longname, cls)
+                shortl = registerreader(name, cls)
+                longl = registerreader(longname, cls)
+                if not (shortl or longl):
+                    warn('Not registered either as ' + name + ' or ' + longname)
         super(PseudoNetCDFType, cls).__init__(name, bases, clsdict)
 
 PseudoNetCDFSelfReg = PseudoNetCDFType('pnc', (object,), dict(__doc__ = 'Test'))
@@ -59,11 +61,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
     
     @classmethod
     def isMine(cls, *args, **kwds):
-        try:
-            cls(*args, **kwds)
-            return True
-        except:
-            return False
+        return False
             
     def __new__(mcl, *args, **kwds):
         new = super(PseudoNetCDFFile, mcl).__new__(mcl)
@@ -313,23 +311,6 @@ class PseudoNetCDFTest(unittest.TestCase):
         
     def runTest(self):
         pass
-
-class WrapPnc(PseudoNetCDFFile):
-    def __init__(self, pfile):
-        self._child = pfile
-        self.dimensions = self._child.dimensions.copy()
-        self.variables = PseudoNetCDFVariables(self._variables, [k for k in self._child.variables.keys()])
-        for k in self._child.ncattrs():
-            setattr(self, k, getattr(self._child, k))
-    def _variables(self, k):
-        if k in self._child.variables.keys():
-            return self._child.variables[k]
-        raise KeyError('Must overwrite _variables to return a PseudoNetCDFVariable')
-    
-    
-    @classmethod
-    def isMine(cls, pfile):
-        raise KeyError('Must overwrite isMine to return True or False')
     
 
 if __name__ == '__main__':

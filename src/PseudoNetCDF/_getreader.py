@@ -37,7 +37,11 @@ def getreader(*args, **kwds):
 
 def registerreader(name, reader):
     global _readers
-    _readers.insert(0, (name, reader))
+    if not name in [k for k, v in _readers]:
+        _readers.insert(0, (name, reader))
+        return True
+    else:
+        return False
 
 def pncopen(*args, **kwds):
     """
@@ -52,7 +56,11 @@ def pncopen(*args, **kwds):
     """
     format = kwds.pop('format', None)
     addcf = kwds.pop('addcf', True)
-    reader =  getreader(*args, format = format, **kwds)
+    if format is None:
+        reader =  getreader(*args, format = format, **kwds)
+    else:
+        reader = getreaderdict()[format]
+    
     outfile = reader(*args, **kwds)
     if addcf:
         try:
