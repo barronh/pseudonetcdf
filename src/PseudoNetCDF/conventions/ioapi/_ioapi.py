@@ -142,13 +142,17 @@ def get_ioapi_sphere():
     else:
         return isph_parts * 2
 
+_gdnames = {1: "latitude_longitude", 2: "lambert_conformal_conic", 7: "equatorial_mercator", 6: "polar_stereographic"}
 def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
     mapdef = ifileo.createVariable(lccname, 'i', ())
-    if ifileo.GDTYP == 2:
-        mapdef.grid_mapping_name = "lambert_conformal_conic" ;
-    elif ifileo.GDTYP == 7:
-        mapdef.grid_mapping_name = "equatorial_mercator" ;
-    mapdef.standard_parallel = np.array([ifileo.P_ALP, ifileo.P_BET], dtype = 'f')
+    mapdef.grid_mapping_name = _gdnames[ifileo.GDTYP]
+    if mapdef.grid_mapping_name == "polar_stereographic":
+        mapdef.latitude_of_projection_origin = ifileo.P_ALP * 90
+        mapdef.straight_vertical_longitude_from_pole = ifileo.P_GAM
+        mapdef.standard_parallel = np.array([ifileo.P_BET], dtype = 'd')
+        #mapdef.standard_parallel = np.array([ifileo.P_BET], dtype = 'f')
+    else:
+        mapdef.standard_parallel = np.array([ifileo.P_ALP, ifileo.P_BET], dtype = 'd')
     ioapi_sphere = get_ioapi_sphere()
     mapdef.semi_major_axis = getattr(ifileo, 'semi_major_axis', getattr(ifileo, 'earth_radius', ioapi_sphere[0]))
     mapdef.semi_minor_axis = getattr(ifileo, 'semi_minor_axis', getattr(ifileo, 'earth_radius', ioapi_sphere[1]))
@@ -195,6 +199,9 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
     if _withlatlon:
         if ifileo.GDTYP == 2:
             mapstr = '+proj=lcc +lon_0=%s +lat_1=%s +lat_2=%s +a=%s +b=%s +lat_0=%s' % (mapdef.longitude_of_central_meridian, mapdef.standard_parallel[0], mapdef.standard_parallel[1], mapdef.semi_major_axis, mapdef.semi_minor_axis, mapdef.latitude_of_projection_origin,) 
+            mapproj = pyproj.Proj(mapstr)
+        elif ifileo.GDTYP == 6:
+            mapstr = '+proj=stere +lon_0={0} +lat_0={1}'.format(mapdef.straight_vertical_longitude_from_pole, mapdef.latitude_of_projection_origin)
             mapproj = pyproj.Proj(mapstr)
         elif ifileo.GDTYP == 7:
             mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (mapdef.semi_major_axis, mapdef.semi_minor_axis, mapdef.longitude_of_central_meridian)
@@ -275,8 +282,11 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
             if ('PERIM' in dims or 
                 ('latitude' in dims and 'longitude' in dims)
                ) and varkey not in ('latitude', 'longitude'):
-                var.coordinates = ' '.join(dims)
-                var.grid_mapping = lccname
+                try:
+                    var.coordinates = ' '.join(dims)
+                    var.grid_mapping = lccname
+                except Exception as e:
+                    warn('coordinates="{0}" and gridmapping="{1}" not added to "{2}":\n\t{3}'.format(' '.join(dims), lccname, varkey, e))
 
         
 def add_ioapi_from_cf(ifileo, coordkeys = []):
@@ -310,7 +320,7 @@ def add_cf_from_ioapi(ifileo, coordkeys = []):
         add_time_variables(ifileo)
     except:
         pass
-    if ifileo.GDTYP in (1, 2, 7):
+    if ifileo.GDTYP in _gdnames:
         add_lcc_coordinates(ifileo)
     else:
         raise TypeError('IOAPI is only aware of LCC (GDTYP=2)')
