@@ -98,7 +98,7 @@ def pncdump(f, name = 'unknown', header = False, variables = [], line_length = 8
     ###################################
     # CDL Section 2: variables metadata
     ###################################
-    if len(f.variables.keys()) > 0:
+    if len(f.variables) > 0:
         outfile.write("\n" + startindent + "variables:\n")
     for var_name, var in f.variables.items():
         var_type = dict(float32='float', \
