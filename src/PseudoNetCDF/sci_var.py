@@ -22,6 +22,7 @@ ChangedBy  = "$LastChangedBy$"
 __version__ = RevisionNum
 
 from .core._files import PseudoNetCDFFile, PseudoNetCDFFileMemmap, PseudoNetCDFVariables, OrderedDict
+from .core._wrapnc import WrapPNC
 from .core._dimensions import PseudoNetCDFDimension
 from .core._variables import PseudoNetCDFVariable, PseudoNetCDFMaskedVariable, PseudoIOAPIVariable
 from .core._functions import interpvars, extract, mask_vals, slice_dim, reduce_dim, mesh_dim, pncbo, pncexpr, seqpncbo, getvarpnc, add_attr, stack_files, convolve_dim, manglenames, removesingleton, merge, extract_from_file, pncrename, splitdim
