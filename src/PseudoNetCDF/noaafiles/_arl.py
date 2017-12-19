@@ -553,6 +553,12 @@ class arlpackedbit(PseudoNetCDFFile):
     
     P(i,j) = (Ri,j  - Ri-1,j)* (2**(7-(ln dRmax / ln 2)))
     """
+    @classmethod
+    def isMine(cls, path):
+        testchunk = np.fromfile(path, dtype = dtype([('YYMMDDHHFF', '>10S'), ('LEVEL', '>2S'), ('GRID', '>2S') , ('INDX', '>4S')]), count = 1)
+        check = testchunk[0]['INDX'] == b'INDX'
+        return check
+        
     def __init__(self, path, shape = None):
         self._path = path
         self._f = f = open(path, 'r') 
@@ -634,33 +640,33 @@ class arlpackedbit(PseudoNetCDFFile):
         z.units = {1: 'pressure sigma', 2: 'pressure absolute', 3: 'terrain sigma', 4: 'hybrid sigma'}.get(int(self.VSYS2), 'unknown')
 
     
-    def _getvar(self, k):
+    def _getvar(self, varkey):
         datamap = self._datamap
-        stdname, stdunit = stdprops.get(k, (k, 'unknown'))
-        if k in datamap['surface'].dtype.names:
-            vhead = datamap['surface'][k]['head']
+        stdname, stdunit = stdprops.get(varkey, (varkey, 'unknown'))
+        if varkey in datamap['surface'].dtype.names:
+            vhead = datamap['surface'][varkey]['head']
             v11 = vhead['VAR1']
             EXP = vhead['EXP']
-            props = dict([(k, vhead[k][0]) for k in vhead.dtype.names if not k in ('YYMMDDHHFF', 'LEVEL')])
-            bytes = datamap['surface'][k]['data']
+            props = dict([(pk, vhead[pk][0]) for pk in vhead.dtype.names if not pk in ('YYMMDDHHFF', 'LEVEL')])
+            bytes = datamap['surface'][varkey]['data']
             vdata = unpack(bytes, v11, EXP)
-            #if k == 'MXLR':
+            #if varkey == 'MXLR':
             #    CVAR, PREC, NEXP, VAR1, KSUM = pack2d(vdata[21], verbose = True)
                 
                     
-            return PseudoNetCDFVariable(self, k, 'f', ('time', 'y', 'x'), values = vdata, units = stdunit, standard_name = stdname, **props)
-        elif k in self._layvarkeys:
+            return PseudoNetCDFVariable(self, varkey, 'f', ('time', 'y', 'x'), values = vdata, units = stdunit, standard_name = stdname, **props)
+        elif varkey in self._layvarkeys:
             laykeys = datamap['layers'].dtype.names
-            mylaykeys = [laykey for laykey in laykeys if k in datamap['layers'][laykey].dtype.names]
-            bytes = np.array([datamap['layers'][lk][k]['data'] for lk in mylaykeys]).swapaxes(0, 1)
-            vhead = np.array([datamap['layers'][lk][k]['head'] for lk in mylaykeys]).swapaxes(0, 1)
+            mylaykeys = [laykey for laykey in laykeys if varkey in datamap['layers'][laykey].dtype.names]
+            bytes = np.array([datamap['layers'][lk][varkey]['data'] for lk in mylaykeys]).swapaxes(0, 1)
+            vhead = np.array([datamap['layers'][lk][varkey]['head'] for lk in mylaykeys]).swapaxes(0, 1)
             v11 = vhead['VAR1']
             EXP = vhead['EXP']
-            props = dict([(k, vhead[k][0, 0]) for k in vhead.dtype.names if not k in ('YYMMDDHHFF', 'LEVEL')])
+            props = dict([(pk, vhead[pk][0, 0]) for pk in vhead.dtype.names if not pk in ('YYMMDDHHFF', 'LEVEL')])
             props['LEVEL_START'] = vhead['LEVEL'][0, 0]
             props['LEVEL_END'] = vhead['LEVEL'][-1, -1]
             vdata = unpack(bytes, v11, EXP)
-            return PseudoNetCDFVariable(self, k, 'f', ('time', 'z', 'y', 'x'), values = vdata, units = stdunit, standard_name = stdname, **props)
+            return PseudoNetCDFVariable(self, varkey, 'f', ('time', 'z', 'y', 'x'), values = vdata, units = stdunit, standard_name = stdname, **props)
             
 from PseudoNetCDF._getwriter import registerwriter
 registerwriter('noaafiles.arlpackedbit', writearlpackedbit)
