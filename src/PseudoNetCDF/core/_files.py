@@ -45,7 +45,43 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
     methods that a file should present to act like a netCDF file
     using the Scientific.IO.NetCDF.NetCDFFile interface.
     """
+    def ll2xy(self, lon, lat):
+        """
+        Converts lon/lat to x distances (no false easting/northing)
+        """
+        from PseudoNetCDF.coordutil import getproj
+        return getproj(self)(lon, lat)
     
+    def ll2ij(self, lon, lat):
+        """
+        Converts lon/lat to 0-based indicies (0,M), (0,N)
+        """
+        from PseudoNetCDF.coordutil import getproj
+        import numpy as np
+        p = getproj(self, withgrid = True)
+        x, y = p(lon, lat)
+        i = np.asarray(x).astype('i')
+        j = np.asarray(y).astype('i')
+        return i, j
+    
+    def xy2ll(self, x, y):
+        """
+        Converts x, y to lon, lat (no false easting/northing)
+        """
+        from PseudoNetCDF.coordutil import getproj
+        p = getproj(self)
+        lon, lat = p(x, y, inverse = True)
+        return lon, lat
+        
+    def ij2ll(self, i, j):
+        """
+        Converts x, y to lon, lat (no false easting/northing)
+        """
+        from PseudoNetCDF.coordutil import getproj
+        p = getproj(self, withgrid = True)
+        lon, lat = p(i + 0.5, j + 0.5, inverse = True)
+        return lon, lat
+        
     def __repr__(self):
         from PseudoNetCDF.pncdump import pncdump
         import sys
@@ -243,10 +279,14 @@ class PseudoNetCDFVariables(OrderedDefaultDict):
     def keys(self):
         return tuple(self.__keys + [k for k in dict.keys(self) if k not in self.__keys])
 
+    def __len__(self):
+        return len([k for k  in self.keys()])
     
     def items(self):
         return [(k, self[k]) for k in self.keys()]
     
+    def __contains__(self, k):
+        return k in [k for k in self.keys()]
 
 class PseudoNetCDFTest(unittest.TestCase):
     def setUp(self):
