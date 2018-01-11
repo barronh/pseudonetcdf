@@ -13,13 +13,14 @@ from datetime import datetime, timedelta
 
 
 import numpy as np
-from numpy import exp, log, pi, zeros
+from numpy import exp, log, pi, zeros, nan
 
 from netCDF4 import Dataset
 netcdf = Dataset
 from PseudoNetCDF import getvarpnc, slice_dim, extract
 from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
 from PseudoNetCDF.pncgen import pncgen
+from PseudoNetCDF.coordutil import gettimes
 from PseudoNetCDF.geoschemfiles import bpch
 from PseudoNetCDF.register import registerreader
 
@@ -46,7 +47,7 @@ def interpbound(x, xp, fp):
 
 
 _GCLIST = "NO2 NO O3 NO3 OH HO2 N2O5 HNO3 HONO PNA H2O2 NTR ROOH FORM ALD2 PAR CO MEPX FACD C2O3 PAN PACD AACD PANX OLE ETH IOLE TOL CRES OPEN MGLY XYL ISOP SO2 SULF ETHA BENZENE NH3 SV_ALK SV_XYL1 SV_XYL2 SV_TOL1 SV_TOL2 SV_BNZ1 SV_BNZ2 SV_TRP1 SV_TRP2 SV_ISO1 SV_ISO2 SV_SQT HG HGIIGAS MACR MVK".split()
-
+_NRLIST = []
 _AELIST = "ASO4J ASO4I AALKJ AXYL1J AXYL2J AXYL3J ATOL1J ATOL2J ATOL3J ABNZ1J ABNZ2J ABNZ3J ATRP1J ATRP2J AISO1J AISO2J ASQTJ ACORS ASOIL AISO3J AOLGAJ          AOLGBJ ANIJ ACR_IIIJ ACR_VIJ APBJ APBK ACDJ AMN_HAPSJ AMN_HAPSK APHGJ AORGPAJ AORGPAI".split()
 _NMLIST  = "NUMATKN NUMACC NUMCOR".split()
 _SFLIST = "SRFATKN SRFACC SRFCOR".split()
@@ -549,21 +550,68 @@ _GCgt8_to_AE6 = r"""
             "outunit": "ppmV"
         }"""
 
+def geticbcnames(inpath):
+    import io
+    import re
+    import numpy as np
+    with open(inpath) as infile:
+        intxt = infile.read()
+    result = re.findall("(TYPE_\S+\s*=\s*(('[^\n]+',\s*)+))", intxt)
+    names = result[0][1].strip()[1:-1].replace("'", '') + '\n'
+    nflds = len(names.split(':'))
+    if nflds == 16: fmts = 'S16 f c f c f c f S16 f c c b b b b'.split()
+    else: fmts = 'S16 f c f c f c f S16 f c b b b b'.split()
+    data = re.sub('\s+', '', result[1][1])[:-1]
+    data = re.sub("'", '', data)
+    data = re.sub(",", '\n', data)
+    data = (names + data).encode()
+    rdata = np.recfromcsv(io.BytesIO(data), delimiter = b':', dtype = fmts)
+    icbc_sur = []
+    for row in rdata:
+        if row['icbc_sur'] != b'': icbc_sur.append(row['icbc_sur'].decode().strip())
+    icbc_sur =  set(icbc_sur)
+    result = icbc_sur.union([s.decode().strip() for s in rdata['spc']])
+    return list(result)
 
-def makedefaulticon(metcroprops, profilepath):
+def getspclists(args):
+    if args.GCNML is None:
+        GCLIST = _GCLIST
+    else:
+        GCLIST = geticbcnames(args.GCNML)
+    if args.AENML is None:
+        AELIST = _AELIST
+        NMLIST  = _NMLIST
+        SFLIST = _SFLIST
+    else:
+        AELIST = geticbcnames(args.AENML)
+        SFLIST = [s for s in AELIST if s.startswith('SRF')]
+        NMLIST = [s for s in AELIST if s.startswith('NUM')]
+        AELIST = [s for s in AELIST if s not in (SFLIST + NMLIST)]
+    if args.NRNML is None:
+        NRLIST = _NRLIST
+    else:
+        NRLIST = geticbcnames(args.NRNML)
+    GCLIST += NRLIST
+    return dict(GCLIST = GCLIST, AELIST = AELIST, SFLIST = SFLIST, NMLIST = NMLIST)
+
+def makedefaulticon(metcroprops, args):
     """
     Create an empty bcon file whose dimensions
     are consistent with metcroprops
     
     metcroprops - dictionary of properties from IOAPI metadata
     """
-    GCLIST = _GCLIST
-    AELIST = _AELIST
-    NMLIST  = _NMLIST
-    SFLIST = _SFLIST
+    profilepath = args.ICONPROFILEPATH
+    SPCLISTS = getspclists(args)
+    GCLIST = SPCLISTS['GCLIST']
+    AELIST = SPCLISTS['AELIST']
+    SFLIST = SPCLISTS['SFLIST']
+    NMLIST = SPCLISTS['NMLIST']
     if not profilepath is None:
         from PseudoNetCDF.cmaqfiles import icon_profile
         iconfile = icon_profile(profilepath)
+        if not args.keepall: iconfile = getvarpnc(iconfile, GCLIST + AELIST + SFLIST + NMLIST)
+        varlist = [varkey for varkey in iconfile.variables.keys() if varkey in (GCLIST + AELIST + SFLIST + NMLIST)]
         missingunits = [varkey for varkey, var in iconfile.variables.items() if var[:].ndim == 2 and varkey not in GCLIST + AELIST + NMLIST + SFLIST]
         missing = ', '.join(missingunits)
         GCLIST = missingunits + GCLIST
@@ -598,8 +646,18 @@ def makedefaulticon(metcroprops, profilepath):
     AIRDEN.units = "molec/cm3       " ;
     AIRDEN.coordinates = "lon lat" ;
     AIRDEN.var_desc = "AIRDEN          " ;
-
-    varkey_unit = [(i, 'ppmV') for i in GCLIST] + [(i, 'micrograms/m**3') for i in AELIST] + [(i, '#/m**3') for i in NMLIST] + [(i, 'm**2/m**3') for i in SFLIST]
+    def getunit(varkey):
+        if varkey in GCLIST:
+            return 'ppmV'
+        elif varkey in AELIST:
+            return 'micrograms/m**3'
+        elif varkey in NMLIST:
+            return '#/m**3'
+        elif varkey in SFLIST:
+            return 'm**2/m**3'
+    
+    #varkey_unit = [(i, 'ppmV') for i in GCLIST] + [(i, 'micrograms/m**3') for i in AELIST] + [(i, '#/m**3') for i in NMLIST] + [(i, 'm**2/m**3') for i in SFLIST]
+    varkey_unit = [(varkey, getunit(varkey)) for varkey in varlist]
     for varkey, unit in varkey_unit:
         var = DI.createVariable(varkey, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'))
         var.long_name = varkey.ljust(16);
@@ -641,27 +699,30 @@ def makedefaulticon(metcroprops, profilepath):
     DI.VGLVLS = np.asarray(metcroprops['VGLVLS'], dtype = np.float32) ;
     DI.GDNAM = metcroprops['GDNAM'].ljust(16) ;
     DI.UPNAM = metcroprops['UPNAM'].ljust(16) ;
-    setattr(DI, 'VAR-LIST', ''.join([i.ljust(16) for i in GCLIST + AELIST + SFLIST + NMLIST + ["AIRDEN"]]));
+    setattr(DI, 'VAR-LIST', ''.join([i.ljust(16) for i in varlist + ["AIRDEN"]]));
     DI.FILEDESC = "ICON output file IC_CONC_1".ljust(80)
     DI.HISTORY = "" ;
     DI.sync()
     return DI
 
-def makedefaultbcon(metbdyprops, profilepath):
+def makedefaultbcon(metbdyprops, args):
     """
     Create an empty bcon file whose dimensions
     are consistent with metbdyprops
     
     metbdyprops - dictionary of properties from IOAPI metadata
     """
-    GCLIST = _GCLIST
-    AELIST = _AELIST
-    NMLIST  = _NMLIST
-    SFLIST = _SFLIST
+    profilepath = args.BCONPROFILEPATH
+    SPCLISTS = getspclists(args)
+    GCLIST = SPCLISTS['GCLIST']
+    AELIST = SPCLISTS['AELIST']
+    SFLIST = SPCLISTS['SFLIST']
+    NMLIST = SPCLISTS['NMLIST']
     if not profilepath is None:
         from PseudoNetCDF.cmaqfiles import bcon_profile
         bconfile = bcon_profile(profilepath)
-        
+        if not args.keepall: bconfile = getvarpnc(bconfile, GCLIST + AELIST + SFLIST + NMLIST)
+        varlist = [varkey for varkey in bconfile.variables.keys() if varkey in (GCLIST + AELIST + SFLIST + NMLIST)]
         missingunits = [varkey for varkey, var in bconfile.variables.items() if var[:].ndim == 2 and varkey not in GCLIST + AELIST + NMLIST + SFLIST]
         missing = ', '.join(missingunits)
         if missing != '': warn(profilepath + ' contains ' + missing + ' whose units are assumed ppmV')
@@ -692,7 +753,17 @@ def makedefaultbcon(metbdyprops, profilepath):
     TFLAG.units = "<YYYYDDD,HHMMSS>" ;
     TFLAG.long_name = "TFLAG           " ;
     TFLAG.var_desc = "Timestep-valid flags:  (1) YYYYDDD or (2) HHMMSS                                " ;
-    varkey_unit = [(i, 'ppmV') for i in GCLIST] + [(i, 'micrograms/m**3') for i in AELIST] + [(i, '#/m**3') for i in NMLIST] + [(i, 'm**2/m**3') for i in SFLIST]
+    def getunit(varkey):
+        if varkey in GCLIST:
+            return 'ppmV'
+        elif varkey in AELIST:
+            return 'micrograms/m**3'
+        elif varkey in NMLIST:
+            return '#/m**3'
+        elif varkey in SFLIST:
+            return 'm**2/m**3'
+    #varkey_unit = [(i, 'ppmV') for i in GCLIST] + [(i, 'micrograms/m**3') for i in AELIST] + [(i, '#/m**3') for i in NMLIST] + [(i, 'm**2/m**3') for i in SFLIST]
+    varkey_unit = [(varkey, getunit(varkey)) for varkey in varlist]
     for varkey, unit in varkey_unit:
         var = DB.createVariable(varkey, 'f', ('TSTEP', 'LAY', 'PERIM'))
         var.long_name = varkey.ljust(16);
@@ -734,7 +805,7 @@ def makedefaultbcon(metbdyprops, profilepath):
     DB.VGLVLS = np.asarray(metbdyprops['VGLVLS'], dtype = np.float32) ;
     DB.GDNAM = metbdyprops['GDNAM'].ljust(16) ;
     DB.UPNAM = metbdyprops['UPNAM'].ljust(16) ;
-    setattr(DB, 'VAR-LIST', ''.join([i.ljust(16) for i in GCLIST + AELIST + SFLIST + NMLIST + ["AIRDEN"]]));
+    setattr(DB, 'VAR-LIST', ''.join([i.ljust(16) for i in varlist + ["AIRDEN"]]));
     DB.FILEDESC = "BCON output file BNDY_CONC_1".ljust(80)
     DB.HISTORY = "" ;
     DB.sync()
@@ -764,13 +835,11 @@ def get_template(option, gcversion):
     "AIRMOLDEN": {
             "expression": "(hyam[:].reshape(1, -1).T + hybm[:].reshape(1, -1).T * PSURF[:][:, [0]].T).T * 100. / 8.3144621 / TMPU[:]",
             "outunit": "moles/m**3",
-            "for_stdatm_use": "((hyam[:, None] + hybm[:, None] * 1013.25) * 100 / 8.3144621 / np.maximum(216.6, 288.15 * ((hyam[:] + hybm[:] * 1013.25) / 1013.25)**C)[:NLAYS, None] * np.ones_like(O3).T).T"
             
         }, 
     "AIRMASSDEN": {
             "expression": "0.0289645 * (hyam[:].reshape(1, -1).T + hybm[:].reshape(1, -1).T * PSURF[:][:, [0]].T).T * 100 / 8.3144621 / TMPU[:]",
             "outunit": "kg/m**3",
-            "for_stdatm_use_as_expr": "(0.0289645 * ((hyam[:, None] + hybm[:, None] * 1013.25) * 100 / 8.3144621 / np.array([287.7,286.9,286.0,285.2,284.3,283.4,282.6,281.7,280.7,279.8,278.9,277.9,276.8,275.3,273.6,271.8,270.0,268.2,265.8,262.8,259.7,256.4,252.9,249.2,245.2,241.0,236.4,230.5,223.6,216.8,216.6,216.6,216.6,216.6,216.6,216.6,216.6,217.5,219.8,222.0,225.3,233.6,250.5,269.2,260.0,237.7,214.3])[:NLAYS, None] * np.ones_like(O3).T).T"
         },
     "CMAQSPECIES": {
         "AIRDEN": {
@@ -778,7 +847,6 @@ def get_template(option, gcversion):
             "outunit": "molec/cm3",
             "manual_unit": true,
             "comment": "Full calculated unit",
-            "for_stdatm_use_as_expr": "((hyam[:, None] + hybm[:, None] * 1013.25) * 100 / 8.3144621 / np.array([287.7,286.9,286.0,285.2,284.3,283.4,282.6,281.7,280.7,279.8,278.9,277.9,276.8,275.3,273.6,271.8,270.0,268.2,265.8,262.8,259.7,256.4,252.9,249.2,245.2,241.0,236.4,230.5,223.6,216.8,216.6,216.6,216.6,216.6,216.6,216.6,216.6,217.5,219.8,222.0,225.3,233.6,250.5,269.2,260.0,237.7,214.3])[:NLAYS, None] * np.ones_like(O3).T).T * 6.022e23 / 1e6"
         },"""
     # Next add the gas-phase
     issaprc07 = 'saprc07' in option
@@ -1078,7 +1146,7 @@ def makeibcon(args):
         metbdyprops['GDTYP'] = metbdy.GDTYP
 
         if args.BCON == 'dummybcon.nc':
-            oldbcon = makedefaultbcon(metbdyprops, args.BCONPROFILEPATH)
+            oldbcon = makedefaultbcon(metbdyprops, args)
         else:
             bconfiles, bconargs = pncparse(has_ofile = False, plot_options = False, interactive = False, args = args.BCON.split(' '), parser = None)
             oldbcon = bconfiles[0]
@@ -1097,7 +1165,10 @@ def makeibcon(args):
             for propk in oldv.ncattrs():
                 propv = getattr(oldv, propk)
                 setattr(newv, propk, propv)
-        nbconoutsteps = sum([len(tmpf.dimensions['time']) for tmpf in regridded_nd49_bdy])
+        try:
+            nbconoutsteps = sum([len(tmpf.dimensions['time']) for tmpf in regridded_nd49_bdy])
+        except:
+            nbconoutsteps = sum([len(tmpf.dimensions['TSTEP']) for tmpf in regridded_nd49_bdy])
         if len(newbcon.dimensions['PERIM']) != metbdyprops['PERIM']:
             raise ValueError('Default (I,B)CON has different perimeter dimension (%d) than the output file (%d).' % (len(newbcon.dimensions['PERIM']), metbdyprops['PERIM']))
         obconsteps = len(oldbcon.dimensions['TSTEP'])
@@ -1118,7 +1189,7 @@ def makeibcon(args):
         metcroprops['GDTYP'] = metcro.GDTYP
 
         if args.ICON == 'dummyicon.nc':
-            oldicon = makedefaulticon(metcroprops, args.ICONPROFILEPATH)
+            oldicon = makedefaulticon(metcroprops, args)
         else:
             iconfiles, iconargs = pncparse(has_ofile = False, plot_options = False, interactive = False, args = args.ICON.split(' '), parser = None)
             oldicon = iconfiles[0]
@@ -1268,7 +1339,10 @@ def makeibcon(args):
                                 cpress = cpress.reshape(cpress.shape[0], -1)
                                 assert((np.diff(cpress, axis = 0).mean(1) < 0).all())
                             if args.sigmaeta:
-                                rpress = ((nd49.variables['etam_pressure'] - newcon.VGTOP / 100) / (1013.25 - newcon.VGTOP / 100))[:, None].repeat(out[0,0].size, 1)
+                                if hasattr(nd49, 'VGLVLS'):
+                                    rpress = ((nd49.VGLVLS[:-1] + nd49.VGLVLS[1:]) * .5)[:, None].repeat(out[0, 0].size, 1)
+                                else:
+                                    rpress = ((nd49.variables['etam_pressure'] - newcon.VGTOP / 100) / (1013.25 - newcon.VGTOP / 100))[:, None].repeat(out[0,0].size, 1)
                             else:
                                 if mappings_file['PRESS']['outunit'] == 'Pa':
                                     rpress = rpressv[ti,:]
@@ -1322,14 +1396,16 @@ def makeibcon(args):
             newcon.TSTEP = np.int32(0)
             tflag[:] = 0.
         else:
-            gtime = regridded_nd49[0].variables['time']
-            gsdate = (datetime.strptime(gtime.units.split(' since ')[-1].replace(' UTC', ''), '%Y-%m-%d %H:%M:%S')  + timedelta(hours = int(gtime[0]))).strftime('%Y-%m-%d %H:%M:%S')
+            gtime = gettimes(regridded_nd49[0])
+            gsdate = gtime[0].strftime('%Y-%m-%d %H:%M:%S')
             if args.sdate is None:
                 args.sdate = gsdate
             if args.tstep is None:
                 try:
-                    gtstep = gtime[1] - gtime[0]
-                    args.tstep = gtstep * 10000
+                    total_seconds = (gtime[1] - gtime[0]).total_seconds()
+                    hours, remainder = divmod(total_seconds,60*60)
+                    minutes, seconds = divmod(remainder,60)
+                    args.tstep = '%02d%02d%02d' % (hours, minutes, seconds)
                 except IndexError:
                     raise ValueError('Unable to determine timestep from file; use --tstep option to assign manually')
             sdate = datetime.strptime(args.sdate, '%Y-%m-%d %H:%M:%S')
@@ -1441,6 +1517,10 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--sdate', default = None, help = 'Start date in YYYY-MM-DD HH:MM:SS format')
     parser.add_argument('--METBDY3D', default = None, type = str, help='path (or PseudoNetCDF commands) to a MCIP METBDY3D file')
     parser.add_argument('--METCRO3D', default = None, help='path (or PseudoNetCDF commands) to a MCIP METCRO3D file')
+    parser.add_argument('--AENML', default = None, help='Aerosol namelist')
+    parser.add_argument('--NRNML', default = None, help='Nonreactive namelist')
+    parser.add_argument('--GCNML', default = None, help='Gas concentration namelist')
+    parser.add_argument('--keepall', default = False, action = 'store_true', help = 'Keep all species from profile data, even if not explicitly used')
     parser.add_argument('--BCONPROFILEPATH', default = None, help='path to BCON profile.dat')
     parser.add_argument('--ICONPROFILEPATH', default = None, help='path to ICON profile.dat')
     parser.add_argument('--tstep', default = None, help = 'Time increment between ND49 files')
