@@ -1,4 +1,4 @@
-from warnings import warn
+from PseudoNetCDF.pncwarn import warn
 import numpy as np
 _withlatlon = False
 for impstmt in ['import pyproj', 'from mpl_toolkits.basemap import pyproj']:
@@ -213,7 +213,7 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         lone = lone.reshape(*lcc_xe.shape)
         late = late.reshape(*lcc_ye.shape)
         
-    if not 'x' in ifileo.variables.keys() and 'COL' in ifileo.dimensions:
+    if not 'x' in ifileo.variables.keys() and xdim in ifileo.dimensions:
         """
         Not necessary for cdo
         """
@@ -224,7 +224,7 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
         var.long_name = "synthesized coordinate from XORIG XCELL global attributes" ;
 
     
-    if not 'y' in ifileo.variables.keys() and 'ROW' in ifileo.dimensions:
+    if not 'y' in ifileo.variables.keys() and ydim in ifileo.dimensions:
         """
         Not necessary for cdo
         """
@@ -270,10 +270,12 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
 
     for varkey in ifileo.variables.keys():
         var = ifileo.variables[varkey]
-        try:
-            ifileo.variables[varkey] = var
-        except:
-            pass
+        # this must have been a fix for dictionaries that reproduced variables on demand
+        # we should find a better fix for this
+        #try:
+        #    ifileo.variables[varkey] = var
+        #except:
+        #    pass
         olddims = list(var.dimensions)
         if _withlatlon:
             dims = map(lambda x: {'ROW': 'latitude', 'COL': 'longitude', 'TSTEP': 'time', 'LAY': 'level'}.get(x, x), olddims)
@@ -286,7 +288,7 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
                     var.coordinates = ' '.join(dims)
                     var.grid_mapping = lccname
                 except Exception as e:
-                    warn('coordinates="{0}" and gridmapping="{1}" not added to "{2}":\n\t{3}'.format(' '.join(dims), lccname, varkey, e))
+                    warn('coordinates="{0}" and gridmapping="{1}" not added to variables:\n\t{3}'.format(' '.join(dims), lccname, varkey, e), category = UserWarning)
 
         
 def add_ioapi_from_cf(ifileo, coordkeys = []):
