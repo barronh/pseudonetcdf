@@ -17,3 +17,9 @@ def registerwriter(name, writer):
 
 def getwriterdict():
     return dict(_writers)
+
+def pncwrite(*args, **kwds):
+    """See PseudoNetCDF.pncgen.pncgen"""
+    from PseudoNetCDF.pncgen import pncgen
+    __doc__ = pncgen.__doc___
+    return pncgen(*args, **kwds)
