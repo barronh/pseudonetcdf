@@ -316,7 +316,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                 newvaro = outf.createVariable(varkey, varo.dtype, varo.dimensions)
                 for pk in varo.ncattrs():
                     setattr(newvaro, pk, getattr(varo, pk))
-                newvaro[:] = varo[:]
+                newvaro[...] = varo[...]
         return outf 
 
     def sliceDimensions(self, newdims = ('POINTS',), **dimslices):
