@@ -122,6 +122,19 @@ Notes:
     def setncattr(self, k, v):
         return setattr(self, k, v)
     
+    def getncattr(self, k):
+        return getattr(self, k)
+    
+    def setncatts(self, attdict):
+        for pk, pv in attdict.items():
+            setattr(self, pk, pv)
+
+    def getncatts(self):
+        outd = OrderedDict()
+        for pk in self.ncattrs():
+            outd[pk] = getattr(self, pk)
+        return outd
+    
     def ncattrs(self):
         """
         Returns a tuple of attributes that have been user defined

@@ -33,6 +33,7 @@ def pncrename(ifile, type_old_new):
     return outf
     
 _translator = {'-': '_', '$': 'S', ' ': '_', '+': '_add_', '(': '', ')': ''}
+
 def manglenames(f, translator = _translator):
     outf = getvarpnc(f, None)
     varkeys = outf.variables.items()
@@ -72,17 +73,19 @@ def removesingleton(f, rd, coordkeys = []):
 def getvarpnc(f, varkeys, coordkeys = [], copy = True):
     coordkeys = set(coordkeys)
     if varkeys is None:
-        varkeys = list(set(f.variables.keys()).difference(coordkeys))
+        varkeys = list(f.variables.keys())
+        varkeys = [k for k in varkeys if k not in coordkeys]
     else:
         newvarkeys = list(set(varkeys).intersection(f.variables.keys()))
-        newvarkeys.sort()
+        newvarkeys = [varkey for varkey in varkeys if varkey in newvarkeys]
         oldvarkeys = list(set(varkeys))
         oldvarkeys.sort()
-        if newvarkeys != oldvarkeys:
-            warn('Skipping %s' % ', '.join(set(oldvarkeys).difference(newvarkeys)))
+        skipping = set(oldvarkeys).difference(newvarkeys)
+        if len(skipping):
+            warn('Skipping %s' % ', '.join(skipping))
         varkeys = newvarkeys
 
-    outf = PseudoNetCDFFile()
+    outf = PseudoNetCDFFile._newlike(f)
     for propkey in f.ncattrs():
         setattr(outf, propkey, getattr(f, propkey))
     for varkey in varkeys:
@@ -132,6 +135,7 @@ def getvarpnc(f, varkeys, coordkeys = [], copy = True):
                 if dk not in outf.dimensions:
                     dv = outf.createDimension(dk, len(f.dimensions[dk]))
                     dv.setunlimited(f.dimensions[dk].isunlimited())
+    
     return outf
 
 
@@ -208,8 +212,6 @@ def extract_lonlat(f, lonlat, unique = False, gridded = None, method = 'nn', pas
     p2p.verbose = 0
     p2p.addGlobalProperties(f, outf)
 
-    longitude = f.variables['longitude'][:]
-    latitude = f.variables['latitude'][:]
     if gridded is None:
         gridded = ('longitude' in f.dimensions and 'latitude' in f.dimensions) or \
                   ('COL' in f.dimensions and 'ROW' in f.dimensions) or \
@@ -234,8 +236,19 @@ def extract_lonlat(f, lonlat, unique = False, gridded = None, method = 'nn', pas
         print(str(e))
         raise e
     outf.lonlatcoords = lonlat
-    latlon1d = longitude.ndim == 1 and latitude.ndim == 1
-    if method == 'nn':
+    if not method == 'll2ij':
+        longitude = f.variables['longitude'][:]
+        latitude = f.variables['latitude'][:]
+        latlon1d = longitude.ndim == 1 and latitude.ndim == 1
+    if method == 'll2ij':
+        lonidxs, latidxs = f.ll2ij(lons, lats)
+        def extractfunc(v, thiscoords):
+            newslice = tuple([{'ROW': latidxs, 'COL': lonidxs, 'latitude': latidxs, 'longitude': lonidxs, 'points': latidxs, 'PERIM': latidxs}.get(d, slice(None)) for d in thiscoords])
+            if newslice == ():
+                return v
+            else:
+                return v[:][newslice]
+    elif method == 'nn':
         if latlon1d and gridded:
             latitude = latitude[(slice(None), None, None)]
             longitude = longitude[(None, slice(None), None)]
@@ -316,7 +329,8 @@ def extract_lonlat(f, lonlat, unique = False, gridded = None, method = 'nn', pas
         try:
             coords = v.coordinates.split()
         except:
-            coords = v.dimensions
+            # special case for ioapi
+            coords = [{'ROW': 'latitude', 'COL': 'longitude'}.get(tempdk, tempdk) for tempdk in v.dimensions]
         dims = v.dimensions
         outf.createDimension('points', len(latidxs))
         if passthrough or 'longitude' in coords or 'latitude' in coords:
@@ -663,6 +677,7 @@ def pncexpr(expr, ifile, verbose = 0):
     and add the result to the file with appropriate units.
     """
     from PseudoNetCDF.sci_var import Pseudo2NetCDF
+    from PseudoNetCDF.sci_var import WrapPNC
     from symtable import symtable
     
     # Copy file to temporary PseudoNetCDF file
@@ -671,7 +686,7 @@ def pncexpr(expr, ifile, verbose = 0):
                     
     #varkeys = [key for key in comp.co_names if key in ifile.variables]
     #getvarpnc(ifile, varkeys)
-    varpnc = tmpfile = getvarpnc(ifile, None)
+    varpnc = tmpfile = WrapPNC(ifile, None)
 
     # Get NetCDF variables as a dictionary with 
     # names mangled to allow special characters
@@ -693,8 +708,12 @@ def pncexpr(expr, ifile, verbose = 0):
     # Add all used constants as properties
     # of the output file
     vardict['ifile'] = ifile
+    vardict['infile'] = ifile
     vardict['np'] = np
     exec('from scipy.constants import *', None, vardict)
+    for k in ifile.ncattrs():
+        if not k in vardict:
+            vardict[k] = getattr(ifile, k)
     oldkeys = set(vardict.keys())
     
     # Assign expression to new variable.

@@ -52,10 +52,12 @@ def pncopen(*args, **kwds):
     args - arguments for opening file
     kwds - keywords for file opener and optional format and addcf
     format - name of reader (not passed to reader)
-    addcf - boolean to add CF conventions (not passed to reader)
+    addcf - boolean to add CF conventions (not passed to reader; default: True)
+    diskless - boolean to add CF conventions (not passed to reader; default: False)
     """
     format = kwds.pop('format', None)
     addcf = kwds.pop('addcf', True)
+    diskless = kwds.pop('diskless', False)
     if format is None:
         reader =  getreader(*args, format = format, **kwds)
     else:
@@ -65,8 +67,15 @@ def pncopen(*args, **kwds):
     if addcf:
         try:
             from .conventions.ioapi import add_cf_from_ioapi
+            from .core._wrapnc import WrapPNC
+            from .core._functions import getvarpnc
+            if not diskless:
+                outfile = WrapPNC(outfile)
+            else:
+                outfile = getvarpnc(outfile, None)
             add_cf_from_ioapi(outfile)
-        except:
+        except Exception as e:
+            warn(str(e))
             pass
     return outfile
 

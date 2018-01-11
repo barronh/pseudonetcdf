@@ -32,7 +32,7 @@ try:
 except:
     pass
 
-from .sci_var import reduce_dim, mesh_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr, stack_files, add_attr, convolve_dim, manglenames, removesingleton, merge, extract_from_file, pncrename
+from .sci_var import reduce_dim, mesh_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr, stack_files, add_attr, convolve_dim, manglenames, removesingleton, merge, extract_from_file, pncrename, WrapPNC
 
         
 from argparse import SUPPRESS
@@ -200,7 +200,7 @@ def add_basic_options(parser):
     parser.add_argument("--extract-file", dest = "extractfile", action = "append", default = [],
                         help = "pncparse options for file")
 
-    parser.add_argument("--extractmethod", dest = "extractmethod", type = str, default = 'nn', choices = ['nn', 'linear', 'cubic', 'quintic', 'KDTree'],
+    parser.add_argument("--extractmethod", dest = "extractmethod", type = str, default = 'nn', choices = ['ll2ij', 'nn', 'linear', 'cubic', 'quintic', 'KDTree'],
                         help = "Method for extraction")
 
     
@@ -679,13 +679,14 @@ def getfiles(ipaths, args):
         lexpr = len(args.expressions) > 0
         if args.variables is not None:
             f = getvarpnc(f, args.variables, coordkeys = args.coordkeys)
-        elif laddconv or lslice or lexpr:
-            f = getvarpnc(f, None)
+        #elif laddconv or lslice or lexpr:
+        #    f = getvarpnc(f, None)
         for opts in args.attribute:
             add_attr(f, opts)
         for opts in args.masks:
             f = mask_vals(f, opts, metakeys = args.coordkeys)
         if laddconv:
+            f = WrapPNC(f)
             try:
                 eval('add_%s_from_%s' % (args.toconv, args.fromconv))(f, coordkeys = args.coordkeys)
             except Exception as e:

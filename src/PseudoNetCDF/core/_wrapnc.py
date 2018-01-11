@@ -1,34 +1,37 @@
 from ._files import PseudoNetCDFFile
+from collections import OrderedDict
 
-class WrapDict(dict):
+class WrapDict():
     def __init__(self, other):
         self._other = other
+        self._mine = OrderedDict()
     
     def __getitem__(self, k):
-        if k in dict.keys(self):
-            return dict.__getitem__(self, k)
+        if k in self._mine:
+            return self._mine[k]
         elif k in self._other:
             return self._other[k]
         else:
             raise KeyError('{0} not in dictionary or wrapped dictionary'.format(k))
         
     def items(self):
-        for k, v in dict.items(self):
+        for k, v in self._other.items():
+            if not k in self._mine:
+                yield k, v
+        
+        for k, v in self._mine.items():
             yield k, v
         
-        for k, v in self._other.items():
-            if not k in dict.keys(self):
-                yield k, v
-    
     def keys(self):
-        for k in dict.keys(self):
+        for k in self._other.keys():
+            if not k in self._mine:
+                yield k
+        
+        for k in self._mine.keys():
             yield k
         
-        for k in self._other.keys():
-            if not k in dict.keys(self):
-                yield k
     def __len__(self):
-        return dict.__len__(self) + len(self._other)
+        return len(self._mine) + len(self._other)
     
     def __iter__(self):
         return self.keys()
@@ -38,7 +41,29 @@ class WrapDict(dict):
             if k == myk: return True
         else:
             return False
+    
+    def __setitem__(self, k, v):
+        self._mine[k] = v
 
+    def __delitem__(self, k):
+        if k in self._mine:
+            del self._mine[k]
+        
+        if k in self._other:
+            del self._other[k]
+    
+    def __repr__(self):
+        outf = OrderedDict()
+        for key in self.keys():
+            outf[key] = self[key]
+        return outf.__repr__()
+    
+    def __str__(self):
+        outf = OrderedDict()
+        for key in self.keys():
+            outf[key] = self[key]
+        return outf.__str__()
+    
 class WrapPNC(PseudoNetCDFFile):
     def isMine(path):
         return False
@@ -48,8 +73,8 @@ class WrapPNC(PseudoNetCDFFile):
         self._file = args[0] #pncopen(*args, **kwds)
         for k in self._file.ncattrs():
             setattr(self, k, getattr(self._file, k))
-        self.variables = WrapDict(self._file.variables)
         self.dimensions = WrapDict(self._file.dimensions)
+        self.variables = WrapDict(self._file.variables)
     
 if __name__ == '__main__':
     from netCDF4 import Dataset
