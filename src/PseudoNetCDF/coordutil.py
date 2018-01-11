@@ -462,7 +462,12 @@ def getproj4_from_cf_var(gridmapping, withgrid = False):
 
 def getproj(ifile, withgrid = False):
     import pyproj
-    return pyproj.Proj(getproj4(ifile, withgrid = withgrid), preserve_units = withgrid)
+    proj4str = getproj4(ifile, withgrid = withgrid)
+    preserve_units = withgrid
+    # pyproj adds +units=m, which is not right for latlon/lonlat
+    if '+proj=lonlat' in proj4str or '+proj=latlon' in proj4str:
+        preserve_units = True
+    return pyproj.Proj(proj4str, preserve_units = preserve_units)
 
 def getproj4(ifile, withgrid = False):
     """
@@ -474,14 +479,16 @@ def getproj4(ifile, withgrid = False):
       proj4str - string with proj4 parameters
     """
     from .conventions.ioapi import get_ioapi_sphere
-    if getattr(ifile, 'GDTYP', 0) in (2, 7) and all([hasattr(ifile, k) for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()]):
+    if getattr(ifile, 'GDTYP', 0) in (2, 6, 7) and all([hasattr(ifile, k) for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()]):
         semi_major_axis, semi_minor_axis = get_ioapi_sphere()
         if ifile.GDTYP == 2:
             mapstr = '+proj=lcc +a=%s +b=%s +lon_0=%s +lat_1=%s +lat_2=%s +lat_0=%s' % (semi_major_axis, semi_minor_axis, ifile.P_GAM, ifile.P_ALP, ifile.P_BET, ifile.YCENT)
+        elif ifile.GDTYP == 6:
+            mapstr = '+proj=stere +lon_0={0} +lat_0={1} +a={2} +b={3}'.format(ifile.P_GAM, ifile.P_ALP * 90, semi_major_axis, semi_minor_axis)
         elif ifile.GDTYP == 7:
             mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (semi_major_axis, semi_minor_axis, ifile.XCENT)
         if withgrid:
-            mapstr += ' +x_0=%s +y_0=%s +to_meter=%sm' % (-ifile.XORIG, -ifile.YORIG, ifile.XCELL)
+            mapstr += ' +x_0=%s +y_0=%s +to_meter=%s' % (-ifile.XORIG, -ifile.YORIG, ifile.XCELL)
     elif getattr(ifile, 'Conventions', getattr(ifile, 'CONVENTIONS', ''))[:2].upper() == 'CF':
         gridmappings = []
         for k, v in ifile.variables.items():
