@@ -53,7 +53,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                   basemap_auto - automatically adds llcrnrlon,llcrnrlat,urcrnrlon,urcrnrlat
                                  based on longitude_bounds
         """
-        if maptype.startswith('basemap')
+        if maptype.startswith('basemap'):
             from PseudoNetCDF.coordutil import basemap_from_proj4
             if maptype.endswith('_auto'):
                 # Get edges for bounding
