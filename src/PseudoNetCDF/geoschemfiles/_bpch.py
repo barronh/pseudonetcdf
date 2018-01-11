@@ -288,9 +288,9 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                dims = ('time', 'layer%d' % data.shape[1], 'latitude', 'longitude')
         elif key == 'crs':
           dims = ()
-          kwds = dict(grid_mapping_name = "latitude_longitude",
-                      semi_major_axis = 6375000.0,
-                      inverse_flattening = 0)
+          kwds = OrderedDict(grid_mapping_name = "latitude_longitude",
+                             semi_major_axis = 6375000.,
+                             semi_minor_axis = 6375000.)
           dtype = 'i'
           data = np.array(0, dtype = dtype)
         elif key in ('time', 'time_bounds'):
@@ -423,11 +423,48 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                 kwds['STARTK'] = sl
         return PseudoNetCDFVariable(self._parent, key, dtype, dims, values = data, **kwds)
 
-coordkeys = 'time latitude longitude layer latitude_bounds longitude_bounds crs'.split()            
-metakeys = ['VOL', 'AREA', 'tau0', 'tau1', 'time_bounds'] + coordkeys
+coordkeys = 'time latitude longitude layer time_bounds latitude_bounds longitude_bounds crs'.split()            
+metakeys = ['VOL', 'AREA', 'tau0', 'tau1'] + coordkeys
 
-
-class bpch(PseudoNetCDFFile):
+class bpch_base(PseudoNetCDFFile):
+    def subsetVariables(self, varkeys, inplace = False):
+        varkeys = [key for key in coordkeys if not key in varkeys and key in self.variables] + varkeys
+        return PseudoNetCDFFile.subsetVariables(self, varkeys, inplace = inplace)
+            
+    def xy2ll(self, x, y):
+        "see ll2xy"
+        self.ll2xy(x, y)
+    
+    def ll2xy(self, lon, lat):
+        """
+        lon and lat are converted to local lon and lat (-180,180) (-90, 90)
+        """
+        lonr, latr = PseudoNetCDFFile.ll2xy(self, lon, lat)
+        return np.degrees(lonr), np.degrees(latr)
+    
+    def ij2ll(self, i, j):
+        """
+        i, j to center lon, lat
+        """
+        lat = np.asarray(self.variables['latitude'])
+        lon = np.asarray(self.variables['longitude'])
+        return lon[i], lat[j]
+        
+    def ll2ij(self, lon, lat):
+        """
+        lon and lat may be scalars or vectors, but matrices will crash
+        """
+        late = np.asarray(self.variables['latitude_bounds'])
+        lone = np.asarray(self.variables['longitude_bounds'])
+        inlon = (lon >= lone[:, 0, None]) & (lon < lone[:, 1, None])
+        inlat = (lat >= late[:, 0, None]) & (lat < late[:, 1, None])
+        if not inlon.any(0).all() or not inlat.any(0).all():
+            raise ValueError('lat/lon not in domain')
+        i = inlon.argmax(0)
+        j = inlat.argmax(0)
+        return i, j
+    
+class bpch(bpch_base):
     """
     NetCDF-like class to interface with GEOS-Chem binary punch files
     
@@ -468,6 +505,15 @@ class bpch(PseudoNetCDFFile):
                 return False
         except:
             return False
+    
+    def _newlike(self):
+        if isinstance(self, PseudoNetCDFFile):
+            outt = bpch_base
+            outf = outt.__new__(outt)
+        else:
+            outf = PseudoNetCDFFile()
+        return outf
+        
     def __init__(self, bpch_path, tracerinfo = None, diaginfo = None, mode = 'r', timeslice = slice(None), noscale = False, vertgrid = 'GEOS-5-REDUCED', nogroup = False):
         """
         bpch_path: path to binary punch file

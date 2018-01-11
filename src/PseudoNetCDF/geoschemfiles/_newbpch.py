@@ -3,7 +3,7 @@ import os
 from collections import OrderedDict
 import numpy as np
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
-from ._bpch import _general_header_type, bpch as oldbpch
+from ._bpch import _general_header_type, bpch as oldbpch, bpch_base
 
 _datablock_header_type = np.dtype([('bpad1', '>i4'),
                                     ('modelname', 'S20'),
@@ -172,7 +172,7 @@ class gcvar(object):
     def ncattrs(self):
         return tuple(self.__dict__.keys())
     
-class bpch2(PseudoNetCDFFile):
+class bpch2(bpch_base):
     @classmethod
     def isMine(cls, path):
         isbpch = oldbpch.isMine(path)
@@ -184,6 +184,26 @@ class bpch2(PseudoNetCDFFile):
             return False
         except:
             return True
+    
+    def ij2ll(self, i, j):
+        """
+        i, j to center lon, lat
+        """
+        lat = np.asarray(self.variables['latitude'])
+        lon = np.asarray(self.variables['longitude'])
+        return lon[i], lat[j]
+    
+    def ll2ij(self, lon, lat):
+        """
+        lon and lat may be scalars or vectors, but matrices will crash
+        """
+        late = np.asarray(self.variables['latitude_bounds'])
+        lone = np.asarray(self.variables['longitude_bounds'])
+        inlon = (lon >= lone[:, 0, None]) & (lon < lone[:, 1, None])
+        inlat = (lat >= late[:, 0, None]) & (lat < late[:, 1, None])
+        i = inlon.argmax(0)
+        j = inlat.argmax(0)
+        return i, j
     
     def __init__(self, path, nogroup = False, noscale = False, vertgrid = 'GEOS-5-REDUCED'):
         self.noscale = noscale
