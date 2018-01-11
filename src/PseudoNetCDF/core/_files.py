@@ -241,14 +241,16 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
              
         """
         outf = self._copywith(props = True, dimensions = True)
-        for dk, ds in dimfuncs.items():
+        for dk, df in dimfuncs.items():
             dv = self.dimensions[dk]
             if dk in dimfuncs:
                 if dk in self.variables:
                     dvar = self.variables[dk]
                 else:
                     dvar = np.arange(len(dv))
-                newdl = dimfuncs[dk](dvar[:]).size
+                if isinstance(df, str):
+                    newdl = getattr(dvar[...], df)(keepdims = True).size
+                else: newdl = df(dvar[:]).size
             else:
                 newdl = len(dv)
             ndv = outf.createDimension(dk, newdl) 
@@ -264,9 +266,14 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                      dfunc = dimfuncs[dk]
                      if isinstance(dfunc, dict):
                          opts.update(dfunc)
+                         noopts = False
                      else:
                          opts['func1d'] = dfunc
-                     newvals = np.apply_along_axis(dfunc, di, newvals)
+                         noopts = True
+                     if noopts and isinstance(dfunc, str):
+                         newvals = getattr(newvals, dfunc)(axis = di, keepdims = True)
+                     else:
+                         newvals = np.apply_along_axis(dfunc, di, newvals)
              newvaro = outf.createVariable(vark, varo.dtype, vdims)
              newvaro[...] = newvals
              for pk in varo.ncattrs():
