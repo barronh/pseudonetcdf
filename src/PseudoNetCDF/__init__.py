@@ -19,16 +19,15 @@ __all__ = ['sci_var',
            'toms',
            'anyfile',
            'pncopen',
+           'pncwrite',
            'conventions']
 import sys
 import os
-import warnings
-warn = warnings.warn
-def clean_showwarning(message, category, filename, lineno, file = None, line = None):
-    print('**PNC:%s:%s:%s:\n  %s' % ((filename), lineno, category.__name__, message), file = sys.stderr)
-    return
-warnings.showwarning = clean_showwarning
+from PseudoNetCDF.pncwarn import warn
 
+def makequite():
+    global _quiet
+    _quiet = True
 from PseudoNetCDF import sci_var
 from .sci_var import *
 __all__ += sci_var.__all__
@@ -48,4 +47,5 @@ from . import textfiles
 from . import coordutil
 from . import test
 from ._getreader import anyfile, pncopen
+from ._getwriter import pncwrite
 from .pncparse import PNC, pnc
