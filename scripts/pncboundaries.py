@@ -189,8 +189,11 @@ def plot(ifiles, args):
                 if SDATE == 0:
                     SDATE = 1900001
                     EDATE = 1900001
-                sdate = datetime.strptime('%07d %06d' % (SDATE, STIME), '%Y%j %H%M%S')
-                edate = datetime.strptime('%07d %06d' % (EDATE, ETIME), '%Y%j %H%M%S')
+                try:
+                    sdate = datetime.strptime('%07d %06d' % (SDATE, STIME), '%Y%j %H%M%S')
+                    edate = datetime.strptime('%07d %06d' % (EDATE, ETIME), '%Y%j %H%M%S')
+                except Exception as e:
+                    warn('Unable to convert time:' + str(e))
             elif 'tau0' in f.variables.keys():
                 sdate = datetime(1985, 1, 1, 0) + timedelta(hours = f.variables['tau0'][0])
                 edate = datetime(1985, 1, 1, 0) + timedelta(hours = f.variables['tau1'][-1])
