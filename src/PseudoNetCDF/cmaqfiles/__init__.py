@@ -12,10 +12,11 @@ __doc__ = """
               be called as a script for ncdump style output.
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-__all__=['boxmodel', 'pa', 'box_model_mrg', 'box_model_conc', 'bcon_profile', 'icon_profile']
+__all__=['boxmodel', 'pa', 'box_model_mrg', 'box_model_conc', 'bcon_profile', 'icon_profile', 'ioapi', 'ioapi_base']
 
 from . import boxmodel
 from . import pa
 from ._jtable import jtable
 from .boxmodel import *
 from .profile import *
+from ._ioapi import ioapi, ioapi_base
