@@ -74,6 +74,7 @@ def createconsole(ifiles, options):
     console = PNCConsole()
     exec("from pylab import *", None, console.locals)
     exec("from PseudoNetCDF.pncview import *; interactive(True)", None, console.locals)
+    exec("from PseudoNetCDF.coordutil import *; interactive(True)", None, console.locals)
     ipaths = [_clean(ipath) for ipath in options.ipath]
     spaths = [ipath[:6] for ipath in ipaths]
     spathsoc = dict([(k, 0) for k in spaths])
