@@ -202,6 +202,13 @@ outfile = Dataset(outpath, 'w')
 
 
 def pncgen(ifile,outpath, inmode = 'r', outmode = 'w', format = 'NETCDF4_CLASSIC', verbose = 1):
+    """
+    ifile - input file to write out
+    outpath - path to outputfile
+    inmode - how is file read (if ifile is a path)
+    outmode - w, w+s
+    format - any PseudoNetCDF or Dataset option
+    """
     if format[:6] == 'NETCDF':
         p2n = Pseudo2NetCDF()
         p2n.verbose = verbose
