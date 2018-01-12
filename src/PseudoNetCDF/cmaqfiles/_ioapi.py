@@ -1,5 +1,27 @@
 from netCDF4 import Dataset
 from ..core._files import PseudoNetCDFFile
+
+def _sigma2coeff(fromvglvls, tovglvls):
+    """
+    Calculate fraction of pressure from each layer in fromfile
+    that is in each layer in tofile and return matrix
+    """
+    import numpy as np
+    edges = np.interp(tovglvls[::-1], fromvglvls[::-1], np.arange(fromvglvls.size)[::-1])[::-1].repeat(2,0)[1:-1].reshape(-1, 2).astype('d')
+    coeff = np.zeros((fromvglvls.size - 1, tovglvls.size - 1), dtype = 'd')
+    for li, (b, t) in enumerate(edges):
+        ll = np.floor(b).astype('i')
+        ul = np.ceil(t).astype('i')
+        for lay in range(ll, ul):
+            bf = max(b - lay, 0)
+            tf = min(t - lay, 1)
+            myf = min(bf, tf)
+            myf = tf - bf
+            coeff[lay, li] = myf
+            #if li == 12:
+            #    print(li, b, t, ll, ul, lay, bf, tf, min(bf, tf))
+    return coeff
+
 class ioapi_base(PseudoNetCDFFile):
     def __getattributte__(self, *args, **kwds):
         return getattr(self, *args, **kwds)
@@ -34,14 +56,29 @@ class ioapi_base(PseudoNetCDFFile):
     def sliceDimensions(self, *args, **kwds):
         import numpy as np
         outf = PseudoNetCDFFile.sliceDimensions(self, *args, **kwds)
+        dimslices = kwds.copy()
+        dimslices.pop('newdims', None)
+        
+        isarray = {dk: not np.isscalar(dv) for dk, dv in dimslices.items()}
+        anyisarray = np.sum(list(isarray.values())) > 1
+        hascol = 'COL' in dimslices
+        hasrow = 'ROW' in dimslices
+        deleterowcol = False
+        if hascol and hasrow:
+            if isarray['ROW'] and isarray['COL']:
+               deleterowcol = True
         if 'LAY' in kwds:
             outf.VGLVLS[kwds['LAY']]
-        if 'COL' in kwds and 'COL' in outf.dimensions:
-            outf.NCOLS = len(outf.dimensions['COL'])
-            outf.XORIG += np.r_[kwds['COL']][0] * outf.XCELL
-        if 'ROW' in kwds and 'COL' in outf.dimensions:
-            outf.NROWS = len(outf.dimensions['ROW'])
-            outf.YORIG += np.r_[kwds['ROW']][0] * outf.YCELL
+        if deleterowcol:
+            del outf.dimensions['COL']
+            del outf.dimensions['ROW']
+        else:
+            if 'COL' in kwds and 'COL' in outf.dimensions:
+                outf.NCOLS = len(outf.dimensions['COL'])
+                outf.XORIG += np.r_[kwds['COL']][0] * outf.XCELL
+            if 'ROW' in kwds and 'COL' in outf.dimensions:
+                outf.NROWS = len(outf.dimensions['ROW'])
+                outf.YORIG += np.r_[kwds['ROW']][0] * outf.YCELL
         if 'TSTEP' in kwds:
             import datetime
             times = np.atleast_1d(self.getTimes()[kwds['TSTEP']])
@@ -52,6 +89,42 @@ class ioapi_base(PseudoNetCDFFile):
                 if not (dt[0] == dt).all():
                     warn('New time is unstructured')
                 outf.TSTEP = int((datetime.datetime(1900, 1, 1, 0) + dt[0]).strftime('%H%M%S'))
+        return outf
+    
+    def interpSigma(self, vglvls, interptype = 'linear'):
+        """
+        self - the file to interpolate from must have VGLVLS
+        vglvls - the new vglvls (edges)
+        interptype - 'linear' or 'conserve'
+             linear - uses a linear interpolation
+             conserve - uses a mass conserving interpolation
+        """
+        import numpy as np
+        from scipy.interpolate import interp1d
+        # input sigma coordinates
+        zs = (self.VGLVLS[:-1]+self.VGLVLS[1:])/2
+        nzs = (vglvls[:-1]+vglvls[1:])/2
+        if interptype == 'linear':
+            # output sigma coordinates
+            # identity matrix
+            ident = np.identity(zs.size)
+            # weight function
+            weight_func = interp1d(zs, ident, 'linear')
+            # weights
+            weights = weight_func(nzs)
+            def interpsigma(data):
+                newdata = (weights * data[:, None]).sum(0)
+                return newdata
+        elif interptype == 'conserve':
+            coeff = _sigma2coeff(self.VGLVLS, vglvls) # (Nold, Nnew)
+            dp_in = -np.diff(self.VGLVLS.astype('d'))[:, None]
+            #dp_out = -np.diff(VGLVLS.astype('d'))[:, None]
+            fdp = dp_in * coeff
+            ndp = fdp.sum(0)
+            def interpsigma(data):
+                nvals = (data[:, None] * fdp).sum(0) / ndp
+                return nvals
+        outf = self.applyAlongDimensions(LAY = interpsigma)
         return outf
 
 class ioapi(Dataset, ioapi_base):
