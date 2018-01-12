@@ -114,7 +114,7 @@ def makemaps(args):
                 patches = map.scatter(scatlon[:], scatlat[:], c = scatvals, edgecolors = 'none', s = 24, norm = norm, ax = ax, zorder = 2)
             else:
                 if vals.ndim != 2:
-                    warn('Maps require 2-d data; values right now %s' % (str(vals.shape), str(dict(zip(var.dimensions, var.shape)))))
+                    warn('Maps require 2-d data; values right now %s %s' % (str(vals.shape), str(dict(zip(var.dimensions, var.shape)))))
                 patches = map.pcolor(LON, LAT, vals, norm = norm, ax = ax)
             if lonunit == 'x (m)':
                 ax.xaxis.get_major_formatter().set_scientific(True)
