@@ -31,12 +31,12 @@ Example Workflow:
     		:lonlatcoords = "-87.881412,30.498001/-85.802182,33.281261/..." ;
     $ pncgen -s LAY,0 --extract="-87.881412,30.498001/-85.802182,33.281261/..." CCTM_V5g_par_Linux2_x86_64gfort.ACONC.CMAQ-BENCHMARK_20060801 Benchmark_20060801-20060801.nc
     $ pnceval AQS_DATA_20060801-20060801.nc Benchmark_20060801-20060801.nc
-    """)
+    """, formatter_class = argparse.RawDescriptionHelpFormatter)
 parser.add_argument('-v', '--verbose', action = 'count', dest = 'verbose', default = 0)
 parser.add_argument('--sampleval', default = None, help = 'Defaults to "Sample Measurement" for hourly and "Arithmetic Mean" for daily')
 parser.add_argument('--timeresolution', choices = ['daily', 'hourly'], default = 'hourly', help = 'Defaults to hourly')
 parser.add_argument('-s', '--start-date', required = True, dest = 'bdate', type = getbdate, help = 'Start date (inclusive) YYYY-MM-DD')
-parser.add_argument('-e', '--end-date', required = True, dest = 'edate', type = getedate, help = 'Start date (inclusive) YYYY-MM-DD')
+parser.add_argument('-e', '--end-date', required = True, dest = 'edate', type = getedate, help = 'End date (inclusive) YYYY-MM-DD')
 parser.add_argument('-r', '--ref-date', default = datetime(1900, 1, 1), dest = 'rdate', type = getrdate, help = 'Reference date YYYYMMDD HH:MM:SS')
 parser.add_argument('--param', type = str, default = '44201', nargs = '?', help = "Must exist as an AQS parameter")
 spacegroup = parser.add_mutually_exclusive_group(required = False)
@@ -107,7 +107,7 @@ from PseudoNetCDF.pncgen import pncgen
 
 infiles = []
 for yearpath in yearpaths:
-    infile = aqsraw(yearpath, timeresolution = args.timeresolution, param = args.param, bdate = args.bdate, edate = args.edate, rdate = args.rdate, wktpolygon = args.wktpolygon, sampleval = args.sampleval, verbose = args.verbose)
+    infile = aqsraw(yearpath, timeresolution = args.timeresolution, bdate = args.bdate, edate = args.edate, rdate = args.rdate, wktpolygon = args.wktpolygon, sampleval = args.sampleval, verbose = args.verbose)
     infiles.append(infile)
     
 outfile = stack_files(infiles, 'time')
