@@ -21,5 +21,5 @@ def getwriterdict():
 def pncwrite(*args, **kwds):
     """See PseudoNetCDF.pncgen.pncgen"""
     from PseudoNetCDF.pncgen import pncgen
-    __doc__ = pncgen.__doc___
+    __doc__ = pncgen.__doc__
     return pncgen(*args, **kwds)
