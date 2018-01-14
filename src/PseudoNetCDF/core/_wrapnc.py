@@ -1,8 +1,8 @@
 from ._files import PseudoNetCDFFile
 from collections import OrderedDict
 
-class WrapDict():
-    def __init__(self, other):
+class WrapDict(OrderedDict):
+    def __init__(self, other = {}):
         self._other = other
         self._mine = OrderedDict()
     
