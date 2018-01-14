@@ -48,10 +48,19 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
     """
     def getMap(self, maptype = 'basemap_auto', **kwds):
         """
-        maptype - choices: 'basemap', 'basemap_auto', 'cartopy' (not yet)
-                  basemap - attempts to open a basemap with only the supplied kwds
-                  basemap_auto - automatically adds llcrnrlon,llcrnrlat,urcrnrlon,urcrnrlat
+        Description
+        
+        Parameters
+        ----------
+        maptype : choices : 'basemap', 'basemap_auto', 'cartopy' (not yet)
+                  basemap : attempts to open a basemap with only the supplied kwds
+                  basemap_auto : automatically adds llcrnrlon,llcrnrlat,urcrnrlon,urcrnrlat
                                  based on longitude_bounds
+        kwds : keywords for basemap or cartopy
+        
+        Returns
+        -------
+        map : type is basemap or cartopy axis
         """
         if maptype.startswith('basemap'):
             from PseudoNetCDF.coordutil import basemap_from_proj4
@@ -71,9 +80,17 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
     
     def getproj(self, withgrid = False, projformat = 'pyproj'):
         """
-        withgrid - use grid units instead of meters
-        projformat - 'pyproj' (default), 'proj4' or 'wkt' allows function to return
+        Description
+        
+        Parameters
+        ----------
+        withgrid : use grid units instead of meters
+        projformat : 'pyproj' (default), 'proj4' or 'wkt' allows function to return
                      a pyproj projection object or a string in the format of proj4 or WKT
+        
+        Returns
+        -------
+        proj : string (wkt, proj4) or pyprojProj (pyproj)
         """
         if projformat == 'pyproj':
             from PseudoNetCDF.coordutil import getproj
@@ -90,12 +107,30 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
     def ll2xy(self, lon, lat):
         """
         Converts lon/lat to x distances (no false easting/northing)
+        
+        Parameters
+        ----------
+        lon : scalar or iterable of longitudes in decimal degrees
+        lat : scalar or iterable of latitudes in decimal degrees
+        
+        Returns
+        -------
+        x, y coordinates in map projection (meters or radians)
         """
         return self.getproj()(lon, lat)
     
     def ll2ij(self, lon, lat):
         """
         Converts lon/lat to 0-based indicies (0,M), (0,N)
+        
+        Parameters
+        ----------
+        lon : scalar or iterable of longitudes in decimal degrees
+        lat : scalar or iterable of latitudes in decimal degrees
+        
+        Returns
+        -------
+        i, j : indices (0-based) for variables
         """
         import numpy as np
         p = self.getproj(withgrid = True)
@@ -107,6 +142,15 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
     def xy2ll(self, x, y):
         """
         Converts x, y to lon, lat (no false easting/northing)
+        
+        Parameters
+        ----------
+        x : scalar or iterable of projected west-east coordinates
+        y : scalar or iterable of projected south-north coordinates
+        
+        Returns
+        -------
+        lon, lat : scalars or iterables of longitudes and latitudes in decimal degrees
         """
         p = self.getproj()
         lon, lat = p(x, y, inverse = True)
@@ -116,12 +160,24 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         """
         Converts i, j to lon, lat (no false easting/northing)
         using cell centers assuming 0-based i/j
+        
+        Parameters
+        ----------
+        i : scalar or iterable of indicies (0-based) for the west-east dimension
+        j : scalar or iterable of indicies (0-based) for the south-north dimension
+        
+        Returns
+        -------
+        lon, lat : scalars or iterables of longitudes and latitudes in decimal degrees
         """
         p = self.getproj(withgrid = True)
         lon, lat = p(i + 0.5, j + 0.5, inverse = True)
         return lon, lat
     
     def _newlike(self):
+        """
+        Internal function to return a file of the same class if a PsueoNetCDFFile
+        """
         if isinstance(self, PseudoNetCDFFile):
             outt = type(self)
             outf = outt.__new__(outt)
@@ -129,33 +185,69 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
             outf = PseudoNetCDFFile()
         return outf
         
-    def renameVariable(self, key, inplace = False, copyall = False):
+    def renameVariable(self, newkey, oldkey, inplace = False, copyall = False):
+        """
+        Rename variable (oldkey)
+        
+        Parameters
+        ----------
+        oldkey ; variable to be renamed
+        newkey : new dame for variable
+        
+        Returns
+        -------
+        outf : PseudoNetCDFFile instance with renamed variable (this file if inplace = True)
+        """
         if inplace:
             outf = self
         else:
             from ._functions import getvarpnc
-            if copyall: newkeys = None
-            else: newkeys = [key]
-            outf = getvarpnc(self, newkeys)
-        outf.variables[n] = outf.variables[o]
-        del outf.variables[o]
+            if copyall: outf = self.copy()
+            else: outf = self._copywith(props = True, dimensions = True)
+        outf.variables[newkey] = outf.variables[oldkey]
+        del outf.variables[oldkey]
         return outf
-    def renameDimension(self, key, inplace = False):
+    
+    def renameDimension(self, oldkey, newkey, inplace = False):
+        """
+        Rename dimension (oldkey) in dimensions and in all variables
+        
+        Parameters
+        ----------
+        oldkey : dimension to be renamed
+        newkey : new dame for dimension
+        
+        Returns
+        -------
+        outf : PseudoNetCDFFile instance with renamed variable (this file if inplace = True)
+        """
         if inplace:
             outf = self
         else:
-            from ._functions import getvarpnc
-            outf = getvarpnc(self, None)
+            outf = self.copy()
          
-        outf.dimensions[n] = outf.dimensions[o]
-        del outf.dimensions[o]
+        outf.dimensions[newkey] = outf.dimensions[oldkey]
+        del outf.dimensions[oldkey]
         for k, v in outf.variables.items():
-            if o in v.dimensions:
-                v.dimensions = tuple([n if d == o else d for d in v.dimensions])
+            if oldkey in v.dimensions:
+                v.dimensions = tuple([newkey if d == oldkey else d for d in v.dimensions])
         
         return outf
     
     def eval(self, expr, inplace = False, copyall = False):
+        """
+        Evaluate expr and return a PseudoNetCDFFile object with resutl
+        
+        Parameters
+        ----------
+        expr : string with expression to evaluate
+        inplace : create the new variable in this netcdf file (default False)
+        copyall : if not inplace, should all variables be copied to new file
+        
+        Returns
+        -------
+        outf : PseudoNetCDFFile instance with renamed variable (this file if inplace = True)
+        """
         import numpy as np
         # Copy file to temporary PseudoNetCDF file
         comp = compile(expr, 'none', 'exec')
@@ -206,16 +298,48 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         return outf
     
     def setncatts(self, attdict):
+        """
+        Set ncattrs from attdict keys and values
+        
+        Parameters
+        ----------
+        attdict : dictionary of properties
+        
+        Returns
+        -------
+        None
+        """
         for pk, pv in attdict.items():
             setattr(self, pk, pv)
     
     def getncatts(self):
+        """
+        Return all ncattrs keys and values as a dictionary
+
+        Returns
+        ----------
+        attdict : dictionary of properties
+        """
         outd = OrderedDict()
         for pk in self.ncattrs():
             outd[pk] = getattr(self, pk)
         return outd
-    
+
     def _copywith(self, props = True, dimensions = True, variables = False, data = False):
+        """
+        Internal function for making copies of the same type
+        
+        Parameters
+        ----------
+        props : boolean include properties
+        dimensions : boolean include dimensions
+        variables : boolean include variable structures
+        data : boolean include variable data
+        
+        Returns
+        -------
+        outf : PseudoNetCDFFile instance with renamed variable (this file if inplace = True)
+        """
         outf = self._newlike()
         if props: outf.setncatts(self.getncatts())
         if dimensions:
@@ -232,13 +356,31 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                     if data: nvv[:] = vv[:]
         return outf
     
+    def copy(self):
+        """
+        Return a full copy of this file
+        
+        Returns
+        -------
+        outf : PseudoNetCDFFile instance with renamed variable (this file if inplace = True)
+        """
+        return self._copywith(self, props = True, dimensions = True, variables = True, data = True)
+        
     def applyAlongDimensions(self, **dimfuncs):
         """
-           dimfuncs - key value pairs where the key is a dimenions and the value
-                      is a 1D function (func1d) or a dictionary. If the value is a dictionary
-                      it must include func1d as a function and any keyword arguments
-                      as additional options
-             
+        Similar to numpy.apply_along_axis, but for damed dimensions and 
+        processes dimensions as well as variables
+        
+        Parameters
+        ----------
+        dimfuncs : key value pairs where the key is a dimenions and the value
+                   is a 1D function (func1d) or a dictionary. If the value is a dictionary
+                   it must include func1d as a function and any keyword arguments
+                   as additional options
+        
+        Returns
+        -------
+        outf : PseudoNetCDFFile instance with variables and dimensions after processing (this file if inplace = True)
         """
         outf = self._copywith(props = True, dimensions = True)
         for dk, df in dimfuncs.items():
@@ -282,6 +424,13 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         return outf
     
     def getTimes(self):
+        """
+        Get an array of datetime objects
+        
+        Notes
+        -----
+        self must have a time or TFLAG variable
+        """
         from PseudoNetCDF.coordutil import _parse_ref_date
         from datetime import datetime, timedelta
         if 'time' in self.variables.keys():
@@ -310,7 +459,72 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         else:
             raise ValueError('cannot understand time for file')
     
+    def stack(self, other, stackdim):
+        """
+        Concatenates all variables on stackdim
+        
+        Parameters
+        ----------
+        other : netcdf-like object
+        stackdim : dimension name
+        
+        
+        Returns
+        -------
+        outf : PseudoNetCDFFile instance with stacked variables and dimension equal to new lenght
+        """
+        outf = self._copywith(props = True, dimensions = False)
+        fs = [self, other]
+        dimensions = [f_.dimensions for f_ in fs]
+        shareddims = {}
+        for dimk, dim in tmpf.dimensions.items():
+            if dimk == stackdim:
+                continue
+            dimlens = map(len, [dims[dimk] for dims in dimensions])
+            if all([len(dim) == i for i in dimlens]):
+                shareddims[dimk] = len(dim)
+        differentdims = [set(dims.keys()).difference(shareddims.keys()) for dims in dimensions]
+        assert(all([different == set([stackdim]) for different in differentdims]))
+        for dimkey in shareddims:
+            ind = self.dimensions[dimkey]
+            outd = outf.createDimension(dimkey, len(ind))
+            outd.setunlimited(ind.isunlimited())
+        outd = outf.createDimension(stackdim, sum([len(dims[stackdim]) for dims in dimensions]))
+        outd.setunlimited(self.dimensions[stackdim].isunlimited())
+        for tmpf in fs:
+            for varkey, var in tmpf.variables.items():
+                if not stackdim in var.dimensions:
+                    if varkey in self.variables:
+                        if not varkey in coordkeys:
+                            warn('Got duplicate variables for %s without stackable dimension; first value retained' % varkey)
+                        continue
+                    else:
+                        outvals = var[:]
+                else:
+                    if not varkey in outf.variables.keys():
+                        axisi = list(var.dimensions).index(stackdim)
+                        outvals = np.ma.concatenate([f_.variables[varkey][:] for f_ in fs], axis = axisi)
+                    else: continue
+                outvar = outf.createVariable(varkey, var.dtype, var.dimensions)
+                outvar[:] = outvals
+                for pk in var.ncattrs():
+                    var.setncattr(pk, getattr(var, pk))
+        
+        return outf
+     
     def subsetVariables(self, varkeys, inplace = False):    
+        """
+        Return a PseudoNetCDFFile with only varkeys
+        
+        Parameters
+        ----------
+        varkeys : iterable of keys to keep
+        inplace : if true (default false), then remove other variable from this file
+        
+        Returns
+        -------
+        outf : PseudoNetCDFFile instance with variables
+        """
         if inplace:
             outf = self
             for varkey in list(outf.variables):
@@ -328,14 +542,21 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
     def sliceDimensions(self, newdims = ('POINTS',), **dimslices):
         """
-        dimslices - key value pairs where the key is a dimension and the
+        Return a netcdflike object with dimensions sliced
+        
+        Parameters
+        ----------
+        dimslices : key value pairs where the key is a dimension and the
                     value is a valid slice object (slices, ints or iterables)
                     if iterables are provided, all iterables must be the same
                     size and shape. If the arrays are not 1D, newdims must have ndim
                     names
-        newdims - names for new dimensions. When more than one iterable applies to
+        newdims : names for new dimensions. When more than one iterable applies to
                  a variable slice, fancy indexing removes both dimensions and creates
                  a new one of the iterable lengths
+        Returns
+        -------
+        outf : PseudoNetCDFFile instance with variables and dimensions sliced
         """
         outf = self._copywith(props = True, dimensions = True)
         isarray = {dk: not np.isscalar(dv) for dk, dv in dimslices.items()}
@@ -420,6 +641,11 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
     
     @classmethod
     def isMine(cls, *args, **kwds):
+        """
+        True if this file or object can be identified
+        for use by this class. Useful to override for
+        classes that can be initialized from disk.
+        """
         return False
             
     def __new__(mcl, *args, **kwds):
@@ -439,25 +665,72 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
             if k not in self._ncattrs:
                 self._ncattrs += (k, )
         object.__setattr__(self, k, v)
+        
     def __delattr__(self, k):
         if k in self._ncattrs:
             self._ncattrs = tuple([k_ for k_ in self._ncattrs if k_ != k])
         object.__delattr__(self, k)
-
+    
     def createDimension(self, name, length):
         """
-        name - string name for dimension
-        length - maximum length of dimension
+        Create a dimension
+        
+        Parameters
+        ----------
+        name : string name for dimension
+        length : maximum length of dimension
+
+        Returns
+        -------
+        dim : new dimension
         """
         dim = self.dimensions[name] = PseudoNetCDFDimension(self, name, length)
         return dim
-
+    
+    def copyVariable(self, var, newkey = None, withdata = True):
+        """
+        Copy var into self as vark
+        
+        Parameters
+        ----------
+        var : netCDF4.Variable-like object (must have ncattrs and setncatts
+        newkey : key for variable in self (can be omitted if var has name,
+                 standard_name, or long_name)
+        withdata : default True, copies data
+        
+        Returns
+        -------
+        myvar : copy of var
+        """
+        if newkey is None:
+            for propk in ['name', 'standard_name', 'long_name']:
+                if hasattr(var, propk):
+                    newkey = getattr(var, propk)
+            else:
+                raise AttributeError('varkey must be supplied because var has no name, standard_name or long_name')
+        
+        myvar = self.createVariable(newkey, var.dtype, var.dimensions)
+        attrs = OrderedDict()
+        for propk in var.ncattrs():
+            attrs[propk] = getattr(var, propk)
+        myvar.setncatts(attrs)
+        if withdata: myvar[:] = var[:]
+        return myvar
+     
     def createVariable(self, name, type, dimensions, **properties):
         """
-        name - string
-        type - numpy dtype code (e.g., 'f', 'i', 'd')
-        dimensions - tuple of dimension keys that can be
+        Create a variable
+        
+        Parameters
+        ----------
+        name : string
+        type : numpy dtype code (e.g., 'f', 'i', 'd')
+        dimensions : tuple of dimension keys that can be
                      found in objects' dimensions dictionary
+        
+        Returns
+        -------
+        var : new variable
         """
         import numpy as np
         if type == 'S': type = 'c'
@@ -472,7 +745,22 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         Does nothing.  Implemented for continuity with Scientific.IO.NetCDF
         """
         pass
+    
+    def save(self, *args, **kwds):
+        """
+        Provides access to pncwrite for self
+        
+        Parameters
+        ----------
+        see Help pncwrite
 
+        Returns
+        -------
+        see Help pncwrite
+        """
+        from PseudoNetCDF import pncwrite
+        return pncwrite(self, *args, **kwds)
+    
     def ncattrs(self):
         return self._ncattrs
 
