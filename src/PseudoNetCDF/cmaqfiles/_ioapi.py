@@ -1,3 +1,4 @@
+from PseudoNetCDF.pncwarn import warn
 from netCDF4 import Dataset
 from ..core._files import PseudoNetCDFFile
 
