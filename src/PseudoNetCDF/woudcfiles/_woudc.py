@@ -96,7 +96,7 @@ class woudcsonde(PseudoNetCDFFile):
         if inplace:
             outf = self
         else:
-            outf = self._copywith(props = True, dimensions = True, variables = copyall)
+            outf = self.copy(props = True, dimensions = True, variables = copyall, data = copyall)
         nlvls = vglvls.size - 1
         outf.createDimension('LAY', nlvls)
         myp = self.variables['Pressure'][:] * 100 # hPa -> Pa

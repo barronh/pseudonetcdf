@@ -193,6 +193,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         ----------
         oldkey ; variable to be renamed
         newkey : new dame for variable
+        inplace : create the new variable in this netcdf file (default False)
+        copyall : if not inplace, should all variables be copied to new file
         
         Returns
         -------
@@ -201,7 +203,6 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         if inplace:
             outf = self
         else:
-            from ._functions import getvarpnc
             if copyall: outf = self.copy()
             else: outf = self._copywith(props = True, dimensions = True)
         outf.variables[newkey] = outf.variables[oldkey]
@@ -216,6 +217,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         ----------
         oldkey : dimension to be renamed
         newkey : new dame for dimension
+        inplace : create the new variable in this netcdf file (default False)
         
         Returns
         -------
@@ -272,10 +274,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         if inplace:
             outf = self
         else:
-            from ._functions import getvarpnc
             if copyall: newkeys = None
             else: newkeys = [key]
-            outf = getvarpnc(self, newkeys)
+            outf = self.subsetVariables(newkeys)
             try: del outf.variables[key]
             except: pass
         propd = dict([(k, getattr(tmpvar, k)) for k in tmpvar.ncattrs()])
@@ -331,14 +332,22 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         
         Parameters
         ----------
-        props : boolean include properties
-        dimensions : boolean include dimensions
-        variables : boolean include variable structures
-        data : boolean include variable data
+        props : boolean include properties (default: True)
+        dimensions : boolean include dimensions (default: True)
+        variables : boolean include variable structures (default: False)
+        data : boolean include variable data (default: False)
         
         Returns
         -------
-        outf : PseudoNetCDFFile instance with renamed variable (this file if inplace = True)
+        outf : PseudoNetCDFFile instance
+        
+        Notes
+        -----
+        Internal function does not return variables by default.
+        This is useful for functions like slice, apply, eval, etc.
+        
+        The _ in _copywith means this is a private function and the 
+        call interface may change.
         """
         outf = self._newlike()
         if props: outf.setncatts(self.getncatts())
@@ -356,15 +365,22 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                     if data: nvv[:] = vv[:]
         return outf
     
-    def copy(self):
+    def copy(self, props = True, dimensions = True, variables = True, data = True):
         """
-        Return a full copy of this file
+        Function for making copies of the same type
+        
+        Parameters
+        ----------
+        props : boolean include properties (default: True)
+        dimensions : boolean include dimensions (default: True)
+        variables : boolean include variable structures (default: True)
+        data : boolean include variable data (default: True)
         
         Returns
         -------
-        outf : PseudoNetCDFFile instance with renamed variable (this file if inplace = True)
+        outf : PseudoNetCDFFile instance
         """
-        return self._copywith(self, props = True, dimensions = True, variables = True, data = True)
+        return self._copywith(self, props = props, dimensions = dimensions, variables = variables, data = data)
         
     def applyAlongDimensions(self, **dimfuncs):
         """
@@ -380,7 +396,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         
         Returns
         -------
-        outf : PseudoNetCDFFile instance with variables and dimensions after processing (this file if inplace = True)
+        outf : PseudoNetCDFFile instance with variables and dimensions after processing
         """
         outf = self._copywith(props = True, dimensions = True)
         for dk, df in dimfuncs.items():
@@ -477,10 +493,10 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         fs = [self, other]
         dimensions = [f_.dimensions for f_ in fs]
         shareddims = {}
-        for dimk, dim in tmpf.dimensions.items():
+        for dimk, dim in self.dimensions.items():
             if dimk == stackdim:
                 continue
-            dimlens = map(len, [dims[dimk] for dims in dimensions])
+            dimlens = [len(dims[dimk]) for dims in dimensions]
             if all([len(dim) == i for i in dimlens]):
                 shareddims[dimk] = len(dim)
         differentdims = [set(dims.keys()).difference(shareddims.keys()) for dims in dimensions]
@@ -495,7 +511,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
             for varkey, var in tmpf.variables.items():
                 if not stackdim in var.dimensions:
                     if varkey in self.variables:
-                        if not varkey in coordkeys:
+                        if not varkey in self.dimensions:
                             warn('Got duplicate variables for %s without stackable dimension; first value retained' % varkey)
                         continue
                     else:
@@ -596,11 +612,11 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
              sliceo = tuple(dimslices.get(dk, slice(None)) for dk in vdims)
              isdarray = [isarray.get(dk, False) for dk in vdims]
              needsfancy = sum(isdarray) > 1
-             concatax = np.argmax(isdarray)
              if anyisarray and needsfancy:
-                  odims = [dk for dk in vdims if not isarray.get(dk, False)]
-                  for newdim in newdims[::-1]:
-                      odims.insert(concatax, newdim)
+                 concatax = np.argmax(isdarray)
+                 odims = [dk for dk in vdims if not isarray.get(dk, False)]
+                 for newdim in newdims[::-1]:
+                     odims.insert(concatax, newdim)
              
              newvaro = outf.createVariable(vark, varo.dtype, odims)
              for pk in varo.ncattrs():
@@ -621,11 +637,47 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                  newvals = np.concatenate(point_arrays, axis = concatax)
              else:
                  newvals = varo[sliceo]
-             try: newvaro[:] = newvals
-             except: newvaro[:] = newvals.reshape(newvaro.shape)
+             try: newvaro[...] = newvals
+             except: newvaro[...] = newvals.reshape(newvaro.shape)
         
         return outf
-             
+    
+    def removeSingleton(self, dimkey = None):
+        """
+        Return a netcdflike object with dimensions sliced
+        
+        Parameters
+        ----------
+        dimkey : key of dimension to be evaluated for removal; if None, evaluate all.
+                 only singleton dimensions will be removed.
+        
+        Returns
+        -------
+        outf : PseudoNetCDFFile instance with dimensions removed
+        """
+        outf = self._copywith(props = True, dimensions = False)
+        removed_dims = []
+        for dk, d in self.dimensions.items():
+            ni = len(d)
+            if (dimkey is None or dk == dimkey) and ni == 1:
+                removed_dims.append(dk)
+            else:
+                tempd = outf.createDimension(dk, ni)
+                tempd.setunlimited(d.isunlimited())
+
+        for vk, v in self.variables.items():
+            olddims = v.dimensions
+            newdims = tuple([dk for dk in v.dimensions if not dk in removed_dims])
+            sdims = tuple([(di, dk) for di, dk in enumerate(olddims) if dk not in newdims])[::-1]
+            propd = dict([(pk, getattr(v, pk)) for pk in v.ncattrs()])
+            ov = outf.createVariable(vk, v.dtype.char, newdims, **propd)
+            outvals = v[...]
+            for di, dk in sdims:
+                outvals = outvals.take(0, axis = di)
+
+            ov[...] = outvals[...]
+        return outf
+    
     def __repr__(self):
         from PseudoNetCDF.pncdump import pncdump
         import sys
