@@ -20,7 +20,8 @@ __all__ = ['sci_var',
            'anyfile',
            'pncopen',
            'pncwrite',
-           'conventions']
+           'conventions',
+           'woudcfiles']
 import sys
 import os
 from PseudoNetCDF.pncwarn import warn
@@ -37,6 +38,7 @@ from . import cmaqfiles
 from . import racmfiles
 from . import geoschemfiles
 from . import noaafiles
+from . import woudcfiles
 from . import epafiles
 from . import MetaNetCDF
 from . import ArrayTransforms
