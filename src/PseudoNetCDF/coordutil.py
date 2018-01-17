@@ -27,8 +27,8 @@ def _parse_ref_date(base):
             (lambda x: x.count(':') == 2 and x[-3:] == 'UTC', '+0000', '%Y-%m-%d %H:%M:%S UTC%z'), # has time and Z
             (lambda x: x.count(':') == 1 and x[-3:] == 'UTC', '+0000', '%Y-%m-%d %H:%M UTC%z'), # has time and Z
             (lambda x: 'UTC' in x, '+0000', '%Y-%m-%d %H UTC%z'), # has hour and Z
-            (lambda x: x.count(':') == 2 and x[-1] == 'Z', '', '%Y-%m-%d %H:%M:%SZ'), # has time and Z
-            (lambda x: x.count(':') == 1 and x[-1] == 'Z', '', '%Y-%m-%d %H:%MZ'), # has time and Z
+            (lambda x: x.count(':') == 2 and x[-1] == 'Z', '+0000', '%Y-%m-%d %H:%M:%SZ%z'), # has time and Z
+            (lambda x: x.count(':') == 1 and x[-1] == 'Z', '+0000', '%Y-%m-%d %H:%MZ%z'), # has time and Z
             (lambda x: 'Z' == x[-1], '+0000', '%Y-%m-%d %HZ%z'), # has hour and Z
             (None, '', '%Y-%m-%d %H:%M:%S%z'), # full ISO8601 datetime with numeric timezone info
             (None, '+0000', '%Y-%m-%d %H:%M:%S%z'), # missing timezone
@@ -40,7 +40,7 @@ def _parse_ref_date(base):
             (None, '', '%Y-%m-%d %z'), # missing time
             (None, '', '%Y-%m-%d%z'), # missing time
            ]
-    for test, suffix, fmt in fmts:
+    for opti, (test, suffix, fmt) in enumerate(fmts):
         if test is None or test(base):
             try:
                 rdate = datetime.strptime(base + suffix, fmt)
@@ -337,7 +337,7 @@ def getprojwkt(ifile, withgrid = False):
 
 def basemap_from_file(ifile, withgrid = False, **kwds):
     """
-    Typically, the user will need to provide
+    Typically, the user will need to provide some options
     """
     proj4 = getproj4(ifile, withgrid = withgrid)
     basemap_options = basemap_options_from_proj4(proj4, **kwds)
@@ -413,21 +413,27 @@ def basemap_from_proj4(proj4, **kwds):
 
 def getproj4_from_cf_var(gridmapping, withgrid = False):
     mapstr_bits = OrderedDict()
+    gname = getattr(gridmapping, 'grid_mapping_name')
+    pv4s = dict(lambert_conformal_conic = 'lcc',
+               rotated_latitude_longitude = 'ob_tran',
+               latitude_longitude = 'lonlat',
+               transverse_mercator = 'merc',
+               mercator = 'merc',
+               polar_stereographic = 'stere'
+               )
+    pv4name = pv4s[gname]
     for pk in gridmapping.ncattrs():
         pv = getattr(gridmapping, pk)
         if pk == 'grid_mapping_name':
-            pv4 = dict(lambert_conformal_conic = 'lcc',
-                       rotated_latitude_longitude = 'ob_tran',
-                       latitude_longitude = 'lonlat',
-                       transverse_mercator = 'merc',
-                       mercator = 'merc',
-                       polar_stereographic = 'stere'
-                       )[pv]
+            pv4 = pv4s[pv]
             mapstr_bits['proj'] = pv4
             if pv == 'rotated_latitude_longitude':
                 mapstr_bits['o_proj'] = 'eqc'
         elif pk == 'standard_parallel':
-            mapstr_bits['lat_1'] = pv[0]
+            if pv4name == 'stere':
+                mapstr_bits['lat_ts'] = pv[0]
+            else:
+                mapstr_bits['lat_1'] = pv[0]
             if len(pv) > 1:
                 mapstr_bits['lat_2'] = pv[1]
         elif pk == 'longitude_of_central_meridian':
@@ -478,17 +484,12 @@ def getproj4(ifile, withgrid = False):
     Returns:
       proj4str - string with proj4 parameters
     """
-    from .conventions.ioapi import get_ioapi_sphere
+    from .conventions.ioapi import getmapdef
     if getattr(ifile, 'GDTYP', 0) in (2, 6, 7) and all([hasattr(ifile, k) for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()]):
-        semi_major_axis, semi_minor_axis = get_ioapi_sphere()
-        if ifile.GDTYP == 2:
-            mapstr = '+proj=lcc +a=%s +b=%s +lon_0=%s +lat_1=%s +lat_2=%s +lat_0=%s' % (semi_major_axis, semi_minor_axis, ifile.P_GAM, ifile.P_ALP, ifile.P_BET, ifile.YCENT)
-        elif ifile.GDTYP == 6:
-            mapstr = '+proj=stere +lon_0={0} +lat_0={1} +a={2} +b={3}'.format(ifile.P_GAM, ifile.P_ALP * 90, semi_major_axis, semi_minor_axis)
-        elif ifile.GDTYP == 7:
-            mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (semi_major_axis, semi_minor_axis, ifile.XCENT)
+        gridmapping = getmapdef(ifile, add = False)
+        mapstr = getproj4_from_cf_var(gridmapping, withgrid = withgrid)
         if withgrid:
-            mapstr += ' +x_0=%s +y_0=%s +to_meter=%s' % (-ifile.XORIG, -ifile.YORIG, ifile.XCELL)
+            mapstr += ' +to_meter=%s' % ifile.XCELL
     elif getattr(ifile, 'Conventions', getattr(ifile, 'CONVENTIONS', ''))[:2].upper() == 'CF':
         gridmappings = []
         for k, v in ifile.variables.items():
@@ -516,7 +517,7 @@ def getproj4(ifile, withgrid = False):
 def getmap(ifile, resolution = 'i'):
     from mpl_toolkits.basemap import Basemap
     from .conventions.ioapi import get_ioapi_sphere
-    if getattr(ifile, 'GDTYP', 0) in (2, 7) and all([hasattr(ifile, k) for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()]):
+    if getattr(ifile, 'GDTYP', 0) in (2, 6, 7) and all([hasattr(ifile, k) for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()]):
         try:
             NROWS = len(ifile.dimensions['ROW'])
             NCOLS = len(ifile.dimensions['COL'])
@@ -536,6 +537,15 @@ def getmap(ifile, resolution = 'i'):
             llcrnrlon, llcrnrlat = p(llcrnrx, llcrnry, inverse = True)
             urcrnrlon, urcrnrlat = p(urcrnrx, urcrnry, inverse = True)
             m = Basemap(projection = 'lcc', rsphere = (semi_major_axis, semi_major_axis), lon_0=ifile.P_GAM, lat_1 = ifile.P_ALP, lat_2 = ifile.P_BET, lat_0 = ifile.YCENT, llcrnrlon = llcrnrlon, llcrnrlat = llcrnrlat, urcrnrlat = urcrnrlat, urcrnrlon = urcrnrlon, resolution = resolution, suppress_ticks = False)
+        elif ifile.GDTYP == 6:
+            p = getproj(ifile, withgrid = True)
+            lclon, lclat = p(ifile.NCOLS/2., 0, inverse = True)
+            lllon, lllat = p(0, 0, inverse = True)
+            urlon, urlat = p(ifile.NCOLS, ifile.NROWS, inverse = True)
+            print(lclon, lclat)
+            print(lllon, lllat)
+            print(urlon, urlat)
+            m = Basemap(projection = 'stere', lat_0 = ifile.P_ALP * 90, lat_ts = ifile.P_BET, lon_0 = ifile.P_GAM, llcrnrlon = lllon, llcrnrlat = lllat, urcrnrlon = urlon, urcrnrlat = urlat, rsphere = (semi_major_axis, semi_major_axis))
         elif ifile.GDTYP == 7:
             from mpl_toolkits.basemap import pyproj
             mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (semi_major_axis, semi_major_axis, ifile.XCENT)

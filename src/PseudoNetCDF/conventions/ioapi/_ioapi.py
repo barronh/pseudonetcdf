@@ -143,9 +143,14 @@ def get_ioapi_sphere():
         return isph_parts * 2
 
 _gdnames = {1: "latitude_longitude", 2: "lambert_conformal_conic", 7: "equatorial_mercator", 6: "polar_stereographic"}
-def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
-    mapdef = ifileo.createVariable(lccname, 'i', ())
-    mapdef.grid_mapping_name = _gdnames[ifileo.GDTYP]
+def getmapdef(ifileo, add = True):
+    gridname = _gdnames[ifileo.GDTYP]
+    if add:
+        mapdef = ifileo.createVariable(gridname, 'i', ())
+    else:
+        from PseudoNetCDF import PseudoNetCDFVariable
+        mapdef = PseudoNetCDFVariable(ifileo, gridname, 'i', ())
+    mapdef.grid_mapping_name = gridname
     if mapdef.grid_mapping_name == "polar_stereographic":
         mapdef.latitude_of_projection_origin = ifileo.P_ALP * 90
         mapdef.straight_vertical_longitude_from_pole = ifileo.P_GAM
@@ -158,9 +163,15 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
     mapdef.semi_minor_axis = getattr(ifileo, 'semi_minor_axis', getattr(ifileo, 'earth_radius', ioapi_sphere[1]))
     mapdef.latitude_of_projection_origin = ifileo.YCENT
     mapdef.longitude_of_central_meridian = ifileo.XCENT
+    mapdef.false_northing = -ifileo.YORIG
+    mapdef.false_easting = -ifileo.XORIG
     mapdef._CoordinateTransformType = "Projection" ;
     mapdef._CoordinateAxes = "x y" ;
-
+    return mapdef
+    
+def add_lcc_coordinates(ifileo):
+    mapdef = getmapdef(ifileo)
+    gridname = mapdef.grid_mapping_name
     if 'PERIM' in ifileo.dimensions.keys():
         xdim = 'PERIM'
         ydim = 'PERIM'
@@ -198,10 +209,10 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
 
     if _withlatlon:
         if ifileo.GDTYP == 2:
-            mapstr = '+proj=lcc +lon_0=%s +lat_1=%s +lat_2=%s +a=%s +b=%s +lat_0=%s' % (mapdef.longitude_of_central_meridian, mapdef.standard_parallel[0], mapdef.standard_parallel[1], mapdef.semi_major_axis, mapdef.semi_minor_axis, mapdef.latitude_of_projection_origin,) 
+            mapstr = '+proj=lcc +a=%s +b=%s +lon_0=%s +lat_1=%s +lat_2=%s +lat_0=%s' % (mapdef.semi_major_axis, mapdef.semi_minor_axis, mapdef.longitude_of_central_meridian, mapdef.standard_parallel[0], mapdef.standard_parallel[1], mapdef.latitude_of_projection_origin,) 
             mapproj = pyproj.Proj(mapstr)
         elif ifileo.GDTYP == 6:
-            mapstr = '+proj=stere +lon_0={0} +lat_0={1}'.format(mapdef.straight_vertical_longitude_from_pole, mapdef.latitude_of_projection_origin)
+            mapstr = '+proj=stere +a={3} +b={4} +lon_0={0} +lat_0={1} +lat_ts={2}'.format(mapdef.straight_vertical_longitude_from_pole, mapdef.latitude_of_projection_origin, mapdef.standard_parallel[0], mapdef.semi_major_axis, mapdef.semi_minor_axis)
             mapproj = pyproj.Proj(mapstr)
         elif ifileo.GDTYP == 7:
             mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (mapdef.semi_major_axis, mapdef.semi_minor_axis, mapdef.longitude_of_central_meridian)
@@ -286,9 +297,9 @@ def add_lcc_coordinates(ifileo, lccname = 'LambertConformalProjection'):
                ) and varkey not in ('latitude', 'longitude'):
                 try:
                     var.coordinates = ' '.join(dims)
-                    var.grid_mapping = lccname
+                    var.grid_mapping = gridname
                 except Exception as e:
-                    warn('coordinates="{0}" and gridmapping="{1}" not added to variables:\n\t{3}'.format(' '.join(dims), lccname, varkey, e), category = UserWarning)
+                    warn('coordinates="{0}" and gridmapping="{1}" not added to variables:\n\t{3}'.format(' '.join(dims), gridname, varkey, e), category = UserWarning)
 
         
 def add_ioapi_from_cf(ifileo, coordkeys = []):
