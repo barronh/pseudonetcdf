@@ -380,7 +380,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         -------
         outf : PseudoNetCDFFile instance
         """
-        return self._copywith(self, props = props, dimensions = dimensions, variables = variables, data = data)
+        return self._copywith(props = props, dimensions = dimensions, variables = variables, data = data)
         
     def applyAlongDimensions(self, **dimfuncs):
         """
@@ -524,7 +524,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                 outvar = outf.createVariable(varkey, var.dtype, var.dimensions)
                 outvar[:] = outvals
                 for pk in var.ncattrs():
-                    var.setncattr(pk, getattr(var, pk))
+                    outvar.setncattr(pk, getattr(var, pk))
         
         return outf
      

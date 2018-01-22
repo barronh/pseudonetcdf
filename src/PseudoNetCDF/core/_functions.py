@@ -85,7 +85,11 @@ def getvarpnc(f, varkeys, coordkeys = [], copy = True):
             warn('Skipping %s' % ', '.join(skipping))
         varkeys = newvarkeys
 
-    outf = f.copy(props = True, dimensions = False, variables = False, data = False)
+    if hasattr(f, 'copy'):
+        outf = f.copy(props = True, dimensions = False, variables = False, data = False)
+    else:
+        from PseudoNetCDF.sci_var import WrapPNC
+        outf = WrapPNC(f).copy(props = True, dimensions = False, variables = False, data = False)
     
     for varkey in varkeys:
         try:
