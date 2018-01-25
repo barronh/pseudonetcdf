@@ -358,11 +358,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                 ndv.setunlimited(dv.isunlimited())
         if variables: 
             for vk, vv in self.variables.items():
-                nvv = outf.createVariable(vk, vv.dtype, vv.dimensions)
-                for pk in self.ncattrs():
-                    pv = getattr(self, pk)
-                    nvv.setncattr(pk, pv)
-                    if data: nvv[:] = vv[:]
+                outf.copyVariable(vv, key = vk, withdata = data)
         return outf
     
     def copy(self, props = True, dimensions = True, variables = True, data = True):
@@ -432,10 +428,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                          newvals = getattr(newvals, dfunc)(axis = di, keepdims = True)
                      else:
                          newvals = np.apply_along_axis(dfunc, di, newvals)
-             newvaro = outf.createVariable(vark, varo.dtype, vdims)
+             newvaro = outf.copyVariable(vv, key = vk, withdata = False)
              newvaro[...] = newvals
-             for pk in varo.ncattrs():
-                 setattr(newvaro, pk, getattr(varo, pk))
         
         return outf
     
@@ -500,7 +494,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
             if all([len(dim) == i for i in dimlens]):
                 shareddims[dimk] = len(dim)
         differentdims = [set(dims.keys()).difference(shareddims.keys()) for dims in dimensions]
-        assert(all([different == set([stackdim]) for different in differentdims]))
+        assert(all([different.union([stackdim]) == set([stackdim]) for different in differentdims]))
         for dimkey in shareddims:
             ind = self.dimensions[dimkey]
             outd = outf.createDimension(dimkey, len(ind))
@@ -510,21 +504,21 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         for tmpf in fs:
             for varkey, var in tmpf.variables.items():
                 if not stackdim in var.dimensions:
-                    if varkey in self.variables:
-                        if not varkey in self.dimensions:
+                    if varkey in outf.variables:
+                        if np.array_equal(outf.variables[varkey][...], var[...]):
+                            pass
+                        elif not varkey in self.dimensions:
                             warn('Got duplicate variables for %s without stackable dimension; first value retained' % varkey)
                         continue
                     else:
-                        outvals = var[:]
+                        outvals = var[...]
                 else:
                     if not varkey in outf.variables.keys():
                         axisi = list(var.dimensions).index(stackdim)
                         outvals = np.ma.concatenate([f_.variables[varkey][:] for f_ in fs], axis = axisi)
                     else: continue
-                outvar = outf.createVariable(varkey, var.dtype, var.dimensions)
-                outvar[:] = outvals
-                for pk in var.ncattrs():
-                    outvar.setncattr(pk, getattr(var, pk))
+                outvar = outf.copyVariable(var, key = varkey, withdata = False)
+                outvar[...] = outvals
         
         return outf
      
@@ -550,9 +544,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
             outf = self._copywith(props = True, dimensions = True)
             for varkey in varkeys:
                 varo = self.variables[varkey]
-                newvaro = outf.createVariable(varkey, varo.dtype, varo.dimensions)
-                for pk in varo.ncattrs():
-                    setattr(newvaro, pk, getattr(varo, pk))
+                newvaro = outf.copyVariable(varo, key = varkey, withdata = False)
                 newvaro[...] = varo[...]
         return outf 
 
@@ -618,7 +610,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                  for newdim in newdims[::-1]:
                      odims.insert(concatax, newdim)
              
-             newvaro = outf.createVariable(vark, varo.dtype, odims)
+             newvaro = outf.copyVariable(varo, key = vark, dimensions = odims, withdata = False)
              for pk in varo.ncattrs():
                  setattr(newvaro, pk, getattr(varo, pk))
              if anyisarray and needsfancy:
@@ -739,29 +731,41 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         dim = self.dimensions[name] = PseudoNetCDFDimension(self, name, length)
         return dim
     
-    def copyVariable(self, var, newkey = None, withdata = True):
+    def copyVariable(self, var, key = None, dtype = None, dimensions = None, fill_value = None, withdata = True):
         """
         Copy var into self as vark
         
         Parameters
         ----------
         var : netCDF4.Variable-like object (must have ncattrs and setncatts
-        newkey : key for variable in self (can be omitted if var has name,
-                 standard_name, or long_name)
+        key : key for variable in self (can be omitted if var has name,
+              standard_name, or long_name)
+        dtype : change the data type to dtype
+        dimensions : change the dimensions to dimensions
+        fill_value : change the fill_value to
         withdata : default True, copies data
         
         Returns
         -------
         myvar : copy of var
         """
-        if newkey is None:
+        if key is None:
             for propk in ['name', 'standard_name', 'long_name']:
                 if hasattr(var, propk):
-                    newkey = getattr(var, propk)
+                    key = getattr(var, propk)
             else:
                 raise AttributeError('varkey must be supplied because var has no name, standard_name or long_name')
         
-        myvar = self.createVariable(newkey, var.dtype, var.dimensions)
+        if dtype is None:
+            dtype = var.dtype
+        if dimensions is None:
+            dimensions = var.dimensions
+        if fill_value is None:
+            for pk in ('fill_value', 'missing_value', '_FillValue'):
+                fill_value = getattr(var, pk, None)
+                if not fill_value is None: break
+        
+        myvar = self.createVariable(key, dtype, dimensions, fill_value = fill_value)
         attrs = OrderedDict()
         for propk in var.ncattrs():
             attrs[propk] = getattr(var, propk)
@@ -769,7 +773,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         if withdata: myvar[:] = var[:]
         return myvar
      
-    def createVariable(self, name, type, dimensions, **properties):
+    def createVariable(self, name, type, dimensions, fill_value = None, **properties):
         """
         Create a variable
         
@@ -785,8 +789,13 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         var : new variable
         """
         import numpy as np
+        
+        if fill_value is None:
+            for pk in 'missing_value _FillValue'.split():
+                fill_value = properties.get(pk, None)
+                if not fill_value is None: break
         if type == 'S': type = 'c'
-        if isinstance(properties.get('values', 1), np.ma.MaskedArray) or 'fill_value' in properties:
+        if isinstance(properties.get('values', 1), np.ma.MaskedArray) or not fill_value is None:
             var = self.variables[name] = PseudoNetCDFMaskedVariable(self, name, type, dimensions, **properties)
         else:
             var = self.variables[name] = PseudoNetCDFVariable(self, name, type, dimensions, **properties)
