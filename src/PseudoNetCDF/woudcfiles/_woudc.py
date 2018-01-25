@@ -1,6 +1,10 @@
 import pandas as pd
 import numpy as np
+import re
+import io
 from PseudoNetCDF import PseudoNetCDFFile
+from PseudoNetCDF.pncwarn import warn
+from datetime import datetime
 
 _units = dict(
           Pressure = 'hPa', O3PartialPressure = 'mPa',
@@ -21,38 +25,56 @@ class woudcsonde(PseudoNetCDFFile):
         """Adds metavariables for next two lines"""
         metalines = myf.readline()
         nmetalines = 2
+        newblock = ''
         while True:
             nextline = myf.readline()
+            nstrip = nextline.strip()
             nmetalines += 1
-            if nextline.strip() == '': break
-            elif nextline.strip().startswith('*'): break
+            if nstrip == '': break
+            elif nstrip.startswith('*'): break
+            elif nstrip.startswith('#PROFILE'):
+                newblock = nstrip[1:] + '_'
+                break
+            elif nstrip.startswith('#'):
+                nmetalines -= 1
+                newblock = nstrip.upper()[1:] + '_'
+                nlines, newblock = self._addmetavars(myf, key = newblock)
+                nmetalines += nlines
+                break
             else: metalines += nextline
-        import io
+        
+        #try:
+        #    locdata = np.recfromcsv(io.BytesIO((metalines).encode()), case_sensitive = True)
+        #except ValueError as e:
         try:
-            locdata = np.recfromcsv(io.BytesIO((metalines).encode()), case_sensitive = True)
-        except:
+            locdata = pd.read_csv(io.BytesIO((metalines).encode()))
+        except Exception as e:
+            warn(key + ': ' + str(e))
             return nmetalines
-        self.createDimension('site', 1)
-        self.createDimension('STRLEN', 64)
-        for colkey in locdata.dtype.names:
+        if key in ('PLATFORM_', 'LOCATION_'):
+            dim1 = 'site'
+        else:
+            dim1 = 'flight'
+        for colkey in locdata.columns:#dtype.names:
             val = locdata[colkey]
             varkey = key + colkey 
             dt = val.dtype.char
-            dim = {'c': ('site', 'STRLEN'), 'S': ('site', 'STRLEN')}.get(dt, ('site',))
+            odt = {'O': 'c'}.get(dt, dt)
+            dim = {'c': (dim1, 'STRLEN'), 'S': (dim1, 'STRLEN')}.get(odt, (dim1,))
             if val.size > 1:
-                if not key in self.dimensions:
-                    self.createDimension(key, val.size)
-                dim = dim + (key,)
-            var = self.createVariable(varkey, dt, dim)
+                if not key[:-1] in self.dimensions:
+                    self.createDimension(key[:-1], val.size)
+                dim = dim + (key[:-1],)
+            var = self.createVariable(varkey, odt, dim)
             var.units = _units.get(colkey, 'unknown')
             var.long_name = colkey
-            if dt in ('c', 'S'):
+            if odt in ('c', 'S'):
                 var[:] = np.array([val]).astype('S64').view('S1')
             else:
                 var[:] = val
-        return nmetalines
+        return nmetalines, newblock
         
-    def __init__(self, path, debug = False):
+    def __init__(self, path, debug = False, na_values = ['\s+', '*', '99999']):
         """
         path - path or file-like object.
         """
@@ -63,62 +85,99 @@ class woudcsonde(PseudoNetCDFFile):
         
         meta = ''
         li = 0
+        self.createDimension('site', 1)
+        self.createDimension('flight', 1)
+        self.createDimension('STRLEN', 64)
         for l in myf:
             key = l.strip().upper()
             if key == '#PROFILE':
                 break
             elif key.startswith('#'):
                 if debug: print(key)
-                lines = self._addmetavars(myf, key[1:] + '_')
+                lines, newblock = self._addmetavars(myf, key[1:] + '_')
                 li += lines
+                if newblock == 'PROFILE_':
+                    li -= 1
+                    break
             else:
                 meta += l
                 li += 1
         
         # after #PROFILE loop is broken
         myf.close()
-        data = pd.read_csv(path, sep = ',', skiprows = li + 1)
-        indkey = data.columns[0]
+        readopts = dict(sep = '\s*,', skiprows = li + 1, engine = 'python', na_values = na_values, comment = '*')
+        data = pd.read_csv(path, **readopts)
+        #indkey = data.columns[0]
+        indkey = 'level'
         self.createDimension(indkey, len(data))
         self.metadata = meta
         for key  in data.columns:
-            values = data[key]
-            var = self.createVariable(key, 'f', ('site', indkey,))
-            var.units = _units.get(key, 'unknown')
-            var.long_name = key
-            var[:] = values
+            try:
+                values = data[key]
+                var = self.createVariable(key, 'f', ('flight', indkey,))
+                var.units = _units.get(key, 'unknown')
+                var.long_name = key
+                var[:] = values
+            except Exception as e:
+                warn(str(e) + '; ' + key + ' will not be written')
+        
+        date = self.variables['TIMESTAMP_Date'].view('S64')[0,0].decode().strip()
+        time = self.variables['TIMESTAMP_Time'].view('S64')[0,0].decode().strip()
+        z = self.variables['TIMESTAMP_UTCOffset'].view('S64')[0,0].decode().strip()
+        if z.startswith('+'): z = z[:3] + '00'
+        elif z.startswith('-'): z = z[:3] + '00'
+        else: z = '+' + z[:2] + '00'
+        datestr = '{} {}{}'.format(date, time, z)
+        rdatestr = '1970-01-01 00:00:00+0000'
+        rdate = datetime.strptime(rdatestr, '%Y-%m-%d %H:%M:%S%z')
+        outdate = datetime.strptime(datestr, '%Y-%m-%d %H:%M:%S%z')
+        dt = (outdate - rdate).total_seconds()
+        tvar = self.createVariable('time', 'd', ('flight',))
+        tvar.long_name = 'time'
+        tvar.units = 'seconds since ' + rdatestr
+        tvar[...] = dt
     
-    def avgSigma(self, vglvls, vgtop, inplace = False, copyall = True):
+    def avgSigma(self, vglvls = None, vgtop = None, hyai = None, hybi = None, inplace = False, copyall = True, levelname = 'LAY'):
         """
         vglvls - sigma coordinate
         vgtop - top in Pa
+
+        hyai - hybrid eta-component hPa
+        hybi - hybrid sigma-component
         """
         if inplace:
             outf = self
         else:
             outf = self.copy(props = True, dimensions = True, variables = copyall, data = copyall)
-        nlvls = vglvls.size - 1
-        outf.createDimension('LAY', nlvls)
-        myp = self.variables['Pressure'][:] * 100 # hPa -> Pa
-        myo = self.variables['O3PartialPressure'][:] * 1e3 # mPa -> uPa
+        myp = self.variables['Pressure'][:] # hPa
+        myo = self.variables['O3PartialPressure'][:] * 1e1 # mPa -> cPa
         psfc = myp[0, 0]
-        ptop = vgtop
-        mysigma =  (myp - ptop) / (psfc - ptop)
-        abovebottom = mysigma[0, :, None] <= vglvls[None, :-1]
-        belowtop = mysigma[0, :, None] > vglvls[None, 1:]
+        if not vglvls is None:
+            outpress_edges = vglvls * (psfc - vgtop / 100) + vgtop / 100
+            nlvls = vglvls.size - 1
+        elif not hyai is None:
+            outpress_edges = hyai + hybi * psfc
+            nlvls = hyai.size - 1
+        outf.createDimension(levelname, nlvls)
+        abovebottom = myp[0, :, None] <= outpress_edges[None, :-1]
+        belowtop = myp[0, :, None] > outpress_edges[None, 1:]
         invglvl = abovebottom & belowtop
         out = np.ma.masked_all((1, nlvls), dtype = 'd')
         for li in range(nlvls):
             idx = invglvl[:, li]
             if not idx.any(): continue
-            lp = myp[:, idx].sum(-1)
-            lop = myo[:, idx].sum(-1)
+            lps = myp[:, idx]
+            lops = np.ma.masked_invalid(myo[:, idx])
+            lopsmask = np.ma.getmaskarray(lops)
+            lp = np.ma.masked_where(lopsmask, lps).sum(-1)
+            lop = lops.sum(-1)
             out[:, li] = lop / lp
-        outv = outf.createVariable('O3', 'f', ('site', 'LAY'))
+        outv = outf.createVariable('O3', 'f', ('flight', levelname), fill_value = -999)
         outv.units = 'ppm'
+        outv.missing_value = -999
         outv.description = 'Pressure-weighted average vmr in ppm'
         outv[:] = out[:]
         return outf
-        
+
 if __name__ == "__main__":
     f = woudcsonde('20150813.ECC.1Z.1Z27925.JMA.csv')
