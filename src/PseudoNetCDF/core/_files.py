@@ -350,7 +350,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         call interface may change.
         """
         outf = self._newlike()
-        if props: outf.setncatts(self.getncatts())
+        if props:
+            for pk in self.ncattrs():
+                setattr(outf, pk, getattr(self, pk))
         if dimensions:
             for dk, dv in self.dimensions.items():
                 newdl = len(dv)
@@ -737,7 +739,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         
         Parameters
         ----------
-        var : netCDF4.Variable-like object (must have ncattrs and setncatts
+        var : netCDF4.Variable-like object (must have ncattrs and setncatts)
         key : key for variable in self (can be omitted if var has name,
               standard_name, or long_name)
         dtype : change the data type to dtype
@@ -903,6 +905,12 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
     flush = close
 
 class netcdf(NetCDFFile, PseudoNetCDFFile):
+    def _newlike(self):
+        """
+        Internal function to return a file of the same class if a PsueoNetCDFFile
+        """
+        outf = PseudoNetCDFFile()
+        return outf
     @classmethod
     def isMine(cls, path, *args, **kwds):
         """
