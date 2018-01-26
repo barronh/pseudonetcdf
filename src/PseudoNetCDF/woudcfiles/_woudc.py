@@ -46,8 +46,10 @@ class woudcsonde(PseudoNetCDFFile):
         #try:
         #    locdata = np.recfromcsv(io.BytesIO((metalines).encode()), case_sensitive = True)
         #except ValueError as e:
+        if key == 'TIMESTAMP_': dtype = 'S64'
+        else: dtype = None
         try:
-            locdata = pd.read_csv(io.BytesIO((metalines).encode()))
+            locdata = pd.read_csv(io.BytesIO((metalines).encode()), dtype = dtype)
         except Exception as e:
             warn(key + ': ' + str(e))
             return nmetalines
@@ -121,8 +123,10 @@ class woudcsonde(PseudoNetCDFFile):
             except Exception as e:
                 warn(str(e) + '; ' + key + ' will not be written')
         
-        date = self.variables['TIMESTAMP_Date'].view('S64')[0,0].decode().strip()
-        time = self.variables['TIMESTAMP_Time'].view('S64')[0,0].decode().strip()
+        date = '-'.join(['%02d' % int(v) for v in self.variables['TIMESTAMP_Date'].view('S64')[0,0].decode().strip().split('-')])
+        time = (self.variables['TIMESTAMP_Time'].view('S64')[0,0].decode().strip() + ':00')[:8]
+        if time == ':00':
+            time = '00:00:00'
         z = self.variables['TIMESTAMP_UTCOffset'].view('S64')[0,0].decode().strip()
         if z.startswith('+'): z = z[:3] + '00'
         elif z.startswith('-'): z = z[:3] + '00'
