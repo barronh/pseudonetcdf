@@ -31,7 +31,7 @@ class PseudoNetCDFType(type):
         pieces = str(cls).split('\'')[1].split('.')
         longname = '.'.join([p for p in pieces[1:-1]  if '_' != p[0] and p not in ('core',)] + [pieces[-1]])
         if len(cls.mro()) > 2:
-            if name not in ('PseudoNetCDFFile', 'PseudoNetCDFFileMemmap', 'WrapPnc'):
+            if name not in ('PseudoNetCDFFile', 'WrapPnc'):
                 shortl = registerreader(name, cls)
                 longl = registerreader(longname, cls)
                 if not (shortl or longl):
@@ -185,14 +185,30 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
             outf = PseudoNetCDFFile()
         return outf
         
-    def renameVariable(self, newkey, oldkey, inplace = False, copyall = False):
+    def renameVariable(self, oldkey, newkey, inplace = False, copyall = True):
         """
         Rename variable (oldkey)
         
         Parameters
         ----------
-        oldkey ; variable to be renamed
+        oldkey : variable to be renamed
         newkey : new dame for variable
+        inplace : create the new variable in this netcdf file (default False)
+        copyall : if not inplace, should all variables be copied to new file
+        
+        Returns
+        -------
+        outf : PseudoNetCDFFile instance with renamed variable (this file if inplace = True)
+        """
+        return self.renameVariables(**{oldkey: newkey})
+    
+    def renameVariables(self, inplace = False, copyall = True, **newkeys):
+        """
+        Rename variables for each oldkey: newkey dictionary item
+        
+        Parameters
+        ----------
+        newkeys : dictionary where key is the oldkey and varlue is the newkey
         inplace : create the new variable in this netcdf file (default False)
         copyall : if not inplace, should all variables be copied to new file
         
@@ -203,12 +219,15 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         if inplace:
             outf = self
         else:
-            if copyall: outf = self.copy()
-            else: outf = self._copywith(props = True, dimensions = True)
-        outf.variables[newkey] = outf.variables[oldkey]
-        del outf.variables[oldkey]
+            outf = self._copywith(props = True, dimensions = True, variables = copyall, data = copyall)
+        
+        for oldkey, newkey in newkeys.items():
+            outf.copyVariable(self.variables[oldkey], key = newkey)
+            if oldkey in outf.variables:
+                del outf.variables[oldkey]
+        
         return outf
-    
+            
     def renameDimension(self, oldkey, newkey, inplace = False):
         """
         Rename dimension (oldkey) in dimensions and in all variables
@@ -223,16 +242,36 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         -------
         outf : PseudoNetCDFFile instance with renamed variable (this file if inplace = True)
         """
+        return self.renameDimensions(**{oldkey: newkey})
+    
+    def renameDimensions(self, inplace = False, **newkeys):
+        """
+        Rename dimension (oldkey) in dimensions and in all variables
+        
+        Parameters
+        ----------
+        newkeys : dictionary where key is the oldkey and varlue is the newkey
+        inplace : create the new variable in this netcdf file (default False)
+        
+        Returns
+        -------
+        outf : PseudoNetCDFFile instance with renamed variable (this file if inplace = True)
+        """
         if inplace:
             outf = self
         else:
             outf = self.copy()
-         
-        outf.dimensions[newkey] = outf.dimensions[oldkey]
-        del outf.dimensions[oldkey]
+        
+        for oldkey, newkey in newkeys.items():
+            outf.dimensions[newkey] = outf.dimensions[oldkey]
+
         for k, v in outf.variables.items():
-            if oldkey in v.dimensions:
-                v.dimensions = tuple([newkey if d == oldkey else d for d in v.dimensions])
+            olddims = v.dimensions
+            newdims = tuple([newkeys.get(dk, dk) for dk in olddims])
+            if newdims != olddims:
+                v.dimensions = newdims
+        for oldkey, newkey in newkeys.items():
+            del outf.dimensions[oldkey]
         
         return outf
     
@@ -430,7 +469,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                          newvals = getattr(newvals, dfunc)(axis = di, keepdims = True)
                      else:
                          newvals = np.apply_along_axis(dfunc, di, newvals)
-             newvaro = outf.copyVariable(vv, key = vk, withdata = False)
+             newvaro = outf.copyVariable(varo, key = vark, withdata = False)
              newvaro[...] = newvals
         
         return outf
@@ -524,7 +563,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         
         return outf
      
-    def subsetVariables(self, varkeys, inplace = False):    
+    def subsetVariables(self, varkeys, inplace = False, exclude = False):
         """
         Return a PseudoNetCDFFile with only varkeys
         
@@ -532,11 +571,14 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         ----------
         varkeys : iterable of keys to keep
         inplace : if true (default false), then remove other variable from this file
+        exclude : if True (default False), then remove just these variables
         
         Returns
         -------
         outf : PseudoNetCDFFile instance with variables
         """
+        if exclude:
+            varkeys = list(set(list(self.variables)).difference(varkeys))
         if inplace:
             outf = self
             for varkey in list(outf.variables):
@@ -904,13 +946,35 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
     sync = close
     flush = close
 
-class netcdf(NetCDFFile, PseudoNetCDFFile):
+class netcdf(PseudoNetCDFFile, NetCDFFile):
+    def createDimension(self, *args, **kwds):
+        return NetCDFFile.createDimension(self, *args, **kwds)
+    
+    def createVariable(self, *args, **kwds):
+        return NetCDFFile.createVariable(self, *args, **kwds)
+    
+    def __setattr__(self, k, v):
+        NetCDFFile.__setattr__(self, k, v)
+        
+    def __delattr__(self, k):
+        NetCDFFile.__delattr__(self, k)
+    
+    def __new__(cls, *args, **kwds):
+        return NetCDFFile.__new__(cls, *args, **kwds)
+    
+    def __init__(self, *args, **kwds):
+        NetCDFFile.__init__(self, *args, **kwds)
+    
+    def ncattrs(self):
+        return NetCDFFile.ncattrs(self)
+    
     def _newlike(self):
         """
         Internal function to return a file of the same class if a PsueoNetCDFFile
         """
         outf = PseudoNetCDFFile()
         return outf
+    
     @classmethod
     def isMine(cls, path, *args, **kwds):
         """
@@ -938,17 +1002,6 @@ class netcdf(NetCDFFile, PseudoNetCDFFile):
 
 registerreader('nc', netcdf)
 registerreader('ncf', netcdf)
-
-class PseudoNetCDFFileMemmap(PseudoNetCDFFile):
-    """
-    Provides basic PseudoNetCDFFile functionality, but
-    does not require that variables be created in memmory
-    """
-    def createVariable(self, name, type, dimensions, map, keep = True):
-        var = PseudoNetCDFVariableMemmap(self, name, type, dimensions, map)
-        if keep:
-            self.variables[name] = var
-        return var
 
 class PseudoNetCDFVariables(OrderedDefaultDict):
     """
@@ -1003,48 +1056,126 @@ class PseudoNetCDFVariables(OrderedDefaultDict):
 class PseudoNetCDFTest(unittest.TestCase):
     def setUp(self):
         self.tncf = PseudoNetCDFFile()
-        
-    def testNetCDFFileInit(self):
+    
+    def _makencf(self):
         from numpy import arange
-        tncf = self.tncf
-        self.assert_(tncf.variables == {})
-        self.assert_(tncf.dimensions == {})
+        tncf = self.tncf  = PseudoNetCDFFile()
 
         tncf.createDimension('TIME', 24)
         tncf.createDimension('LAY', 4)
         tncf.createDimension('ROW', 5)
         tncf.createDimension('COL', 6)
 
-        self.assert_(len(tncf.dimensions['TIME']) == 24)
-        self.assert_(len(tncf.dimensions['LAY']) == 4)
-        self.assert_(len(tncf.dimensions['ROW']) == 5)
-        self.assert_(len(tncf.dimensions['COL']) == 6)
+        o3 = tncf.createVariable('O3', 'f', ('TIME', 'LAY', 'ROW', 'COL'))
+
+        o3[:] = arange(24 * 4 * 5 * 6).reshape(24, 4, 5, 6)
+        o3.units = 'ppbv'
+        return tncf
+
+    def testCopyVariable(self):
+        tncf = self._makencf()
+        var = tncf.copyVariable(tncf.variables['O3'], key = 'O3_PPB', withdata = True)
+        self.assertEqual(True, (var[:] == tncf.variables['O3_PPB']).all())
+        
+    def testSubsetVariables(self):
+        tncf = self._makencf()
+        var = tncf.copyVariable(tncf.variables['O3'], key = 'O3_PPB', withdata = True)
+        var[:] *= 1e3
+        var = tncf.copyVariable(tncf.variables['O3'], key = 'O3_PPT', withdata = True)
+        var[:] *= 1e6
+        sncf = tncf.subsetVariables(['O3_PPT'])
+        self.assertEqual(len(sncf.variables), 1)
+        self.assertEqual(set(sncf.variables), set(['O3_PPT']))
+        sncf = tncf.subsetVariables(['O3_PPT'], exclude = True)
+        self.assertEqual(len(sncf.variables), 2)
+        self.assertEqual(set(sncf.variables), set(['O3', 'O3_PPB']))
+        # I'm here BHH
+
+    def testRenameVariables(self):
+        tncf = self._makencf()
+        sncf = tncf.renameVariables(O3 = 'O3_PPM')
+        self.assertEqual(len(sncf.variables), 1)
+        self.assertEqual(set(sncf.variables), set(['O3_PPM']))
+        
+    def testRenameDimensions(self):
+        tncf = self._makencf()
+        sncf = tncf.renameDimensions(TIME = 'TSTEP')
+        self.assertEqual(len(sncf.dimensions), len(tncf.dimensions))
+        self.assertEqual(set(sncf.dimensions), set(['TSTEP', 'LAY', 'ROW', 'COL']))
+        
+    def testSliceDimension(self):
+        tncf = self._makencf()
+        o3 = tncf.variables['O3'][:]
+        sncf = tncf.sliceDimensions(TIME = 0)
+        self.assertEqual(len(sncf.dimensions['TIME']), 1)
+        self.assertEqual(True, (sncf.variables['O3'][:] == tncf.variables['O3'][0]).all())
+        sncf = tncf.sliceDimensions(TIME = [0])
+        self.assertEqual(len(sncf.dimensions['TIME']), 1)
+        self.assertEqual(True, (sncf.variables['O3'][:] == tncf.variables['O3'][0]).all())
+        sncf = tncf.sliceDimensions(TIME = [0, 8])
+        self.assertEqual(len(sncf.dimensions['TIME']), 2)
+        self.assertEqual(True, (sncf.variables['O3'][:] == tncf.variables['O3'][[0, 8]]).all())
+        sncf = tncf.sliceDimensions(TIME = [0, 8], ROW = 2, COL = 3)
+        self.assertEqual(len(sncf.dimensions['TIME']), 2)
+        self.assertEqual(len(sncf.dimensions['ROW']), 1)
+        self.assertEqual(len(sncf.dimensions['COL']), 1)
+        self.assertEqual(True, (sncf.variables['O3'][:] == o3[[0, 8], :, 2, 3][:, :, None, None]).all())
+        i = np.arange(4)
+        sncf = tncf.sliceDimensions(TIME = i, LAY = i, ROW = i, COL = i)
+        self.assertEqual(len(sncf.dimensions['POINTS']), 4)
+        self.assertEqual(True, (sncf.variables['O3'][:] == o3[i, i, i, i]).all())
+        
+    def testApplyAlongDimensions(self):
+        tncf = self._makencf()
+        o3 = tncf.variables['O3'][:]
+        ancf = tncf.applyAlongDimensions(LAY = 'min')
+        self.assertEqual(True, (ancf.variables['O3'][:] == o3.min(1, keepdims = True)).all())
+        # Testing convolution; useful for mda8
+        ancf = tncf.applyAlongDimensions(TIME = lambda x: np.convolve(x, np.ones(2, dtype = 'f') / 2., mode = 'valid'))
+        co3 = (o3[1:] + o3[:-1]) / 2
+        self.assertEqual(True, (ancf.variables['O3'][:] == co3).all())
+        ancf = tncf.applyAlongDimensions(TIME = lambda x: np.convolve(x, np.ones(2, dtype = 'f') / 2., mode = 'valid')).applyAlongDimensions(TIME = np.max)
+        mco3 = co3.max(0, keepdims = True)
+        self.assertEqual(True, (ancf.variables['O3'][:] == mco3).all())
+        
+        
+    def testNetCDFFileNew(self):
+        t = PseudoNetCDFFile.__new__(PseudoNetCDFFile)
+        self.assertEqual(t.variables, {})
+        self.assertEqual(t.dimensions, {})
+        self.assertEqual(t.ncattrs(), ())
+        
+    def testNetCDFFileInit(self):
+        from numpy import arange
+        self._makencf()
+        tncf = self.tncf
+        self.assertEqual(len(tncf.dimensions['TIME']), 24)
+        self.assertEqual(len(tncf.dimensions['LAY']), 4)
+        self.assertEqual(len(tncf.dimensions['ROW']), 5)
+        self.assertEqual(len(tncf.dimensions['COL']), 6)
+
         
         tncf.fish = 2
         setattr(tncf, 'FROG-DOG', 'HAPPY')
 
-        o3 = tncf.createVariable('O3', 'f', ('TIME', 'LAY', 'ROW', 'COL'))
-        self.assert_(tncf.variables.keys() == ['O3'])
+        self.assertEqual(set(tncf.variables.keys()), set(['O3']))
+        o3 = tncf.variables['O3']
+        self.assertEqual(True, (o3 == arange(24 * 4 * 5 * 6).reshape(24, 4, 5, 6)).all())
         
-        o3[:] = arange(24 * 4 * 5 * 6).reshape(24, 4, 5, 6)
-        o3.units = 'ppbv'
-        self.assert_((o3 == arange(24 * 4 * 5 * 6).reshape(24, 4, 5, 6)).all())
-        self.assert_((tncf.variables['O3'] == arange(24 * 4 * 5 * 6).reshape(24, 4, 5, 6)).all())
-        
-        self.assert_(o3.typecode() == 'f')
+        self.assertEqual(o3.typecode(), 'f')
 
-        filedims = tncf.dimensions.keys()
+        filedims = list(tncf.dimensions)
         filedims.sort()
         vardims = list(o3.dimensions)
         vardims.sort()
 
-        self.assert_(filedims == vardims)
+        self.assertEqual(filedims, vardims)
         from PseudoNetCDF.pncgen import Pseudo2NetCDF
         n = Pseudo2NetCDF().convert(tncf)
-        self.assertEqual(n.variables.keys(), ['O3'])
+        self.assertEqual(set(n.variables.keys()), set(['O3']))
         self.assertEqual(dict([(k, len(v)) for k, v in n.dimensions.items()]), {'TIME': 24, 'LAY': 4, 'ROW': 5, 'COL': 6})
-        self.assert_((n.variables['O3'][...] == tncf.variables['O3'][...]).all())
-        self.assert_(n.variables['O3'].units == 'ppbv')
+        self.assertEqual(True, (n.variables['O3'][...] == tncf.variables['O3'][...]).all())
+        self.assertEqual(n.variables['O3'].units, 'ppbv')
         self.assertEqual(n.fish, 2)
         self.assertEqual(getattr(n, 'FROG-DOG'), 'HAPPY')
         
@@ -1058,7 +1189,7 @@ class PseudoNetCDFTest(unittest.TestCase):
 
         const = lambda *args, **kwds: PseudoNetCDFVariable(tncf, args[0], 'f', ('TIME', 'LAY', 'ROW', 'COL'), values = arange(24 * 4 * 5 * 6).reshape((24, 4, 5, 6)))
         tncf.variables = PseudoNetCDFVariables(const, ['NO', 'O3'])
-        self.assert_((tncf.variables['O3'] == arange(24 * 4 * 5 * 6).reshape(24, 4, 5, 6)).all())
+        self.assertEqual(True, (tncf.variables['O3'] == arange(24 * 4 * 5 * 6).reshape(24, 4, 5, 6)).all())
         
         
     def runTest(self):
