@@ -545,10 +545,22 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         from datetime import datetime, timedelta
         if 'time' in self.variables.keys():
             time = self.variables['time']
+            calendar = getattr(time, 'calendar', 'gregorian')
             if 'since' in time.units:
                 unit, base = time.units.strip().split(' since ')
                 sdate = _parse_ref_date(base)
-                out = sdate + np.array([timedelta(**{unit: float(i)}) for i in time[:]])
+                daysinyear = {'noleap': 365, '365_day': 365, 'all_leap': 366, '366_day': 366}
+                if calendar in daysinyear:
+                    yeardays = daysinyear[calendar]
+                    warn('Dates shown in standard calendar with leap year, but calculated with %d days' % yeardays)
+                    year = sdate.year
+                    month = sdate.month
+                    day = sdate.day
+                    yearincrs = time[:] / {'days': yeardays, 'hours': yeardays*24, 'minutes': yeardays*24*60, 'seconds': yeardays*24*60}[unit]
+                    out = np.array([datetime(year + int(yearinc), month, day) + timedelta(days = (yearinc % 1) * yeardays) for yearinc in yearincrs])
+                else:
+                    out = sdate + np.array([timedelta(**{unit: float(i)}) for i in time[:]])
+                    
                 return out
             else:
                 return time
