@@ -208,7 +208,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         
         Parameters
         ----------
-        newkeys : dictionary where key is the oldkey and varlue is the newkey
+        newkeys : dictionary where key is the oldkey and value is the newkey
         inplace : create the new variable in this netcdf file (default False)
         copyall : if not inplace, should all variables be copied to new file
         
@@ -250,7 +250,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         
         Parameters
         ----------
-        newkeys : dictionary where key is the oldkey and varlue is the newkey
+        newkeys : dictionary where key is the oldkey and value is the newkey
         inplace : create the new variable in this netcdf file (default False)
         
         Returns
@@ -273,6 +273,65 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         for oldkey, newkey in newkeys.items():
             del outf.dimensions[oldkey]
         
+        return outf
+    
+    def insertDimension(self, newonly = True, multionly = False, before = None, inplace = False, **newdims):
+        """
+        Insert dimensions with keys and lengths from newdims
+        
+        
+        Parameters
+        ----------
+        newdims   : dictionary where key is the new dimension and value is the length
+        newonly   : Only add dimension to variables that do not already have it,
+                    default True
+        multionly : Only add dimension if there are already more than one (good for 
+                    ignoring coordinate dimensions)
+        before    : if variable has this dimension, insert the new dimension before 
+                    it. Otherwise, add to the beginning.
+                        
+        inplace   : create the new variable in this netcdf file (default False)
+        
+        Returns
+        -------
+        outf : PseudoNetCDFFile instance will new dimension in dimensions and variables
+        
+        Notes
+        -----
+        
+        1. Adding a non unity dimension will cause the data to be repeated
+           along the new axis.
+        2. If order of addition matters, use multiple calls. newdimsuse
+           will be a non-ordered dictionary
+        """
+        if inplace:
+            outf = self
+        else:
+            outf = self.copy(variables = False)
+        
+        for dk, dv in newdims.items():
+            if not dk in outf.dimensions:
+                ndv = outf.createDimension(dk, dv)
+                
+            for vk, vv in self.variables.items():
+                vdims = list(vv.dimensions)
+                if (newonly and dk in vdims) or (multionly and len(vdims) == 1):
+                    outf.copyVariable(vv, key = vk, withdata = True)
+                    continue
+                if before is None:
+                    ndims = tuple([dk] + vdims)
+                    bi = 0
+                else:
+                    ndims = vdims
+                    if before in vdims:
+                        bi = vdims.index(before)
+                    else:
+                        outf.copyVariable(vv, key = vk, withdata = True)
+                        continue
+                    ndims.insert(bi, dk)
+                var = outf.copyVariable(vv, key = vk, dimensions = ndims, withdata = False)
+                
+                var[...] = np.expand_dims(self.variables[vk][...], axis = bi)
         return outf
     
     def eval(self, expr, inplace = False, copyall = False):
@@ -1331,6 +1390,15 @@ class PseudoNetCDFTest(unittest.TestCase):
         tncf.delncattr('test')
         self.assertEqual(False, hasattr(tncf, 'test'))
     
+    def testInsertDimension(self):
+        tncf = self.testncf.copy()
+        nncf = tncf.insertDimension(TEST = 2, before = 'LAY')
+        self.assertEqual(True, (nncf.variables['O3'][:,0] == nncf.variables['O3'][:,1]).all())
+        nncf = tncf.insertDimension(TEST = 2)
+        self.assertEqual(True, (nncf.variables['O3'][0,:] == nncf.variables['O3'][1,:]).all())
+        
+        
+        
     def testNetCDFFileNew(self):
         t = PseudoNetCDFFile.__new__(PseudoNetCDFFile)
         self.assertEqual(t.variables, {})
