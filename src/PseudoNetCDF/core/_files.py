@@ -902,6 +902,35 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
     sync = close
     flush = close
 
+class netcdf(NetCDFFile, PseudoNetCDFFile):
+    @classmethod
+    def isMine(cls, path, *args, **kwds):
+        """
+        True if this file or object can be identified
+        for use by this class. Useful to override for
+        classes that can be initialized from disk.
+        """
+        tmpf = open(path, 'rb')
+        tmpf.seek(0,0)
+        cdftest = tmpf.read(3)
+        tmpf.seek(1, 0)
+        hdftest = tmpf.read(3)
+        tmpf.close()
+        if cdftest == b'CDF':
+            return True
+        elif hdftest == b'HDF':
+            try:
+                f = cls(path, *args, **kwds)
+                return True
+            except:
+                return False
+        else:
+            return False
+
+
+registerreader('nc', netcdf)
+registerreader('ncf', netcdf)
+
 class PseudoNetCDFFileMemmap(PseudoNetCDFFile):
     """
     Provides basic PseudoNetCDFFile functionality, but
