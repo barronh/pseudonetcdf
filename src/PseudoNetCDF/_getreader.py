@@ -5,7 +5,7 @@ import os
 from warnings import warn
 from PseudoNetCDF.netcdf import NetCDFFile
 
-_readers = [('netcdf', NetCDFFile)]
+_readers = []
 def testreader(reader, *args, **kwds):
     try:
         reader(*args, **kwds)
@@ -26,6 +26,17 @@ def getreader(*args, **kwds):
     
     if format is None:
         _myreaders = _readers
+        # Try to give preferential treatment based on suffix
+        try:
+            if len(args) > 0:
+                ext = os.path.splitext(args[0])[1][1:]
+            else:
+                ext = os.path.splitext(kwds['path'])[1][1:]
+            rdict = getreaderdict()
+            if ext in rdict:
+                _myreaders.insert(0, (ext, rdict[ext]))
+        except:
+            pass
     else:
         _myreaders = [(k, v) for k, v in _readers if format == k]
     
@@ -48,7 +59,7 @@ def pncopen(*args, **kwds):
     Open any PNC supported format using args and kwds, which
     are format specific. format is not passed to the reader
     
-    format = None, addcf = True, 
+    format = None, addcf = False, 
     args - arguments for opening file
     kwds - keywords for file opener and optional format and addcf
     format - name of reader (not passed to reader)
@@ -56,7 +67,7 @@ def pncopen(*args, **kwds):
     diskless - boolean to add CF conventions (not passed to reader; default: False)
     """
     format = kwds.pop('format', None)
-    addcf = kwds.pop('addcf', True)
+    addcf = kwds.pop('addcf', False)
     diskless = kwds.pop('diskless', False)
     if format is None:
         reader =  getreader(*args, format = format, **kwds)
