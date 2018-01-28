@@ -275,7 +275,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         
         return outf
     
-    def insertDimension(self, newonly = True, multionly = False, before = None, inplace = False, **newdims):
+    def insertDimension(self, newonly = True, multionly = False, before = None, after = None, inplace = False, **newdims):
         """
         Insert dimensions with keys and lengths from newdims
         
@@ -288,6 +288,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         multionly : Only add dimension if there are already more than one (good for 
                     ignoring coordinate dimensions)
         before    : if variable has this dimension, insert the new dimension before 
+                    it. Otherwise, add to the beginning. (before take precedence
+
+        after     : if variable has this dimension, insert the new dimension after 
                     it. Otherwise, add to the beginning.
                         
         inplace   : create the new variable in this netcdf file (default False)
@@ -318,17 +321,17 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                 if (newonly and dk in vdims) or (multionly and len(vdims) == 1):
                     outf.copyVariable(vv, key = vk, withdata = True)
                     continue
-                if before is None:
-                    ndims = tuple([dk] + vdims)
-                    bi = 0
-                else:
-                    ndims = vdims
-                    if before in vdims:
-                        bi = vdims.index(before)
-                    else:
+                ndims = [_dk for _dk in vdims]
+                if before in vdims:
+                    bi = vdims.index(before)
+                elif after in vdims:
+                    bi = vdims.index(after) + 1
+                elif not (before is None and after is None):
                         outf.copyVariable(vv, key = vk, withdata = True)
                         continue
-                    ndims.insert(bi, dk)
+                else:
+                    bi = 0
+                ndims.insert(bi, dk)
                 var = outf.copyVariable(vv, key = vk, dimensions = ndims, withdata = False)
                 
                 var[...] = np.expand_dims(self.variables[vk][...], axis = bi)
@@ -533,35 +536,69 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         
         return outf
     
-    def getTimes(self):
+    def getTimes(self, datetype = 'datetime'):
         """
         Get an array of datetime objects
         
+        Parameters
+        ----------
+        datetype : 'datetime' or numpy.dtype
+        
+        Returns
+        -------
+        array : array of datetime objects or array of numpy's datetype type
         Notes
         -----
         self must have a time or TFLAG variable
         """
         from PseudoNetCDF.coordutil import _parse_ref_date
-        from datetime import datetime, timedelta
+        from datetime import date, datetime, timedelta, timezone
+        utc = timezone.utc
+
+        _calendaryearlike = {'noleap': 1970, '365_day': 1970, 'all_leap': 1972, '366_day': 1972}
+               
         if 'time' in self.variables.keys():
             time = self.variables['time']
-            calendar = getattr(time, 'calendar', 'gregorian')
+            calendar = getattr(time, 'calendar', 'gregorian').lower()
             if 'since' in time.units:
                 unit, base = time.units.strip().split(' since ')
-                sdate = _parse_ref_date(base)
-                daysinyear = {'noleap': 365, '365_day': 365, 'all_leap': 366, '366_day': 366}
-                if calendar in daysinyear:
-                    yeardays = daysinyear[calendar]
-                    warn('Dates shown in standard calendar with leap year, but calculated with %d days' % yeardays)
-                    year = sdate.year
-                    month = sdate.month
-                    day = sdate.day
-                    yearincrs = time[:] / {'days': yeardays, 'hours': yeardays*24, 'minutes': yeardays*24*60, 'seconds': yeardays*24*60}[unit]
-                    out = np.array([datetime(year + int(yearinc), month, day) + timedelta(days = (yearinc % 1) * yeardays) for yearinc in yearincrs])
-                else:
-                    out = sdate + np.array([timedelta(**{unit: float(i)}) for i in time[:]])
+                # Get the reference date
+                refdate = _parse_ref_date(base)
+                
+                if calendar in _calendaryearlike:
+                    refyear = refdate.year
+                    # Get a year for relative day calculations
+                    yearlike = _calendaryearlike[calendar]
+                    # In that year, how many seconds and days are there
+                    yearseconds = (date(yearlike + 1, 1, 1) - date(yearlike, 1, 1)).total_seconds()
+                    yeardays = yearseconds / 3600 / 24
                     
-                return out
+                    # Get a new reference date in yearlike
+                    crefdate = datetime(yearlike, 1 ,1, tzinfo = utc)
+                    if refdate.month != 1 or refdate.day != 1:
+                        # Get start date in yearlike
+                        refcdate = datetime(yearlike, refdate.month, refdate.day, tzinfo = utc)
+                        # Calculate delta in years
+                        addyears = (crefdate - refcdate).total_seconds() / yearseconds
+                    else:
+                        addyears = 0
+                    # Convert time to fractional years, including change in reference
+                    fracyearincrs = time[:] / {'years': 1, 'days': yeardays, 'hours': yeardays*24, 'minutes': yeardays*24*60, 'seconds': yeardays*24*60}[unit] + addyears
+                    # Split into years and days
+                    yearincrs = np.array(fracyearincrs // 1).astype('i')
+                    dayincrs = (fracyearincrs % 1) * yeardays
+                    # Add days to the calendar year reference
+                    cdays = [crefdate + timedelta(days = dayinc) for dayinc in dayincrs]
+                    try:
+                        # Combine calendar specific month and day with new year
+                        out = np.array([datetime(refyear + yearinc, cday.month, cday.day, tzinfo = utc) for yearinc, cday in zip(yearincrs, cdays)])
+                    except:
+                        warn('Years calculated from %d day year, but month/days calculated for actual year. Usually means data has Feb 29th in a non leap year' % yeardays)
+                        out = np.array([datetime(refyear + yearinc, 1, 1, tzinfo = utc) + timedelta(days = float(dayinc)) for yearinc, dayinc in zip(yearincrs, dayincrs)])
+
+                else:
+                    out = refdate + np.array([timedelta(**{unit: float(i)}) for i in time[:]])
+                    
             else:
                 return time
         elif 'TFLAG' in self.variables.keys():
@@ -573,14 +610,25 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
             minutes = times % 10000 // 100
             seconds = times % 100
             days = jjj + (hours + minutes / 60. + seconds / 3600.) / 24.
-            out = np.array([datetime(yyyy, 1, 1) + timedelta(days = day - 1) for yyyy, day in zip(yyyys, days)])
-            return out
+            out = np.array([datetime(yyyy, 1, 1, tzinfo = utc) + timedelta(days = day - 1) for yyyy, day in zip(yyyys, days)])
+        elif hasattr(self, 'SDATE') and hasattr(self, 'STIME') and \
+             hasattr(self, 'TSTEP') and 'TSTEP' in self.dimensions:
+            refdate = datetime.strptime('%07d %06d+0000' % (self.SDATE, self.STIME), '%Y%j %H%M%S%z')
+            tstepstr = '%06d' % self.TSTEP
+            timeincr = timedelta(seconds = int(tstepstr[-2:])) + \
+                       timedelta(minutes = int(tstepstr[-4:-2])) + \
+                       timedelta(hours   = int(tstepstr[:-4]))
+            timeincrs = timeincr * np.arange(len(self.dimensions['TSTEP']))
+            out = refdate + timeincrs
         elif 'tau0' in self.variables.keys():
-            out = datetime(1985, 1, 1, 0) + np.array([timedelta(hours =i) for i in self.variables['tau0'][:]])
-            return out
+            out = datetime(1985, 1, 1, 0, tzinfo = utc) + np.array([timedelta(hours =i) for i in self.variables['tau0'][:]])
         else:
             raise ValueError('cannot understand time for file')
-    
+        if datetype == 'datetime':
+            return out
+        else:
+            return np.array(out, dtype = datetype)
+
     def stack(self, other, stackdim):
         """
         Concatenates all variables on stackdim
