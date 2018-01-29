@@ -571,3 +571,69 @@ def getmap(ifile, resolution = 'i'):
         m = Basemap(**kwds)
     return m
 
+def getinterpweights(xs, nxs, kind = 'linear', fill_value = 'extrapolate', extrapolate = False):
+    """
+    Get weights for interpolation by matrix multiplication
+    
+    Parameters
+    ----------
+    xs : old input coordinates
+    nxs : new output coordinates
+    extrapolate : allow extrapolation beyond bounds, default False
+    fill_value : set fill value (e.g, nan) to prevent extrapolation or edge 
+                 continuation
+        
+    Returns
+    -------
+    weights : numpy array shape = (old, new)
+    
+    Notes
+    -----
+    When extrapolate is false, the edge values are used for points beyond
+    the inputs.
+    Particularly useful when interpolating many values
+    
+    Example
+    -------
+    xs = np.arange(10, 100, 10)
+    ys = xs
+    nxs = np.arange(0, 100, 5)
+    weights = getinterpweights(a, b)
+    nys = (weights * xs[:, None]).sum(0)
+    
+    """
+    from scipy.interpolate import interp1d
+    # identity matrix
+    ident = np.identity(xs.size)
+    # weight function; use bounds outside
+    weight_func = interp1d(xs, ident, axis = -1, kind = 'linear', bounds_error = False, fill_value = 'extrapolate')
+    # calculate weights, which can be reused
+    weights = weight_func(nxs)
+    
+    # If not extrapolating, force weights to
+    # no more than one at the edges
+    if not extrapolate:
+        weights = np.maximum(0, weights)
+        weights /= weights.sum(0)
+    return weights
+
+def sigma2coeff(fromvglvls, tovglvls):
+    """
+    Calculate fraction of pressure from each layer in fromfile
+    that is in each layer in tofile and return matrix
+    """
+    edges = np.interp(tovglvls[::-1], fromvglvls[::-1], np.arange(fromvglvls.size)[::-1])[::-1].repeat(2,0)[1:-1].reshape(-1, 2).astype('d')
+    coeff = np.zeros((fromvglvls.size - 1, tovglvls.size - 1), dtype = 'd')
+    for li, (b, t) in enumerate(edges):
+        ll = np.floor(b).astype('i')
+        ul = np.ceil(t).astype('i')
+        for lay in range(ll, ul):
+            bf = max(b - lay, 0)
+            tf = min(t - lay, 1)
+            myf = min(bf, tf)
+            myf = tf - bf
+            coeff[lay, li] = myf
+            #if li == 12:
+            #    print(li, b, t, ll, ul, lay, bf, tf, min(bf, tf))
+    return coeff
+

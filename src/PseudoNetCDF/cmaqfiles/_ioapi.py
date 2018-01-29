@@ -29,26 +29,6 @@ _i['UPNAM'] = "MAKEIOAPI       "
 _i['FILEDESC'] = "".ljust(80)
 _i['HISTORY'] = ""
 
-def _sigma2coeff(fromvglvls, tovglvls):
-    """
-    Calculate fraction of pressure from each layer in fromfile
-    that is in each layer in tofile and return matrix
-    """
-    edges = np.interp(tovglvls[::-1], fromvglvls[::-1], np.arange(fromvglvls.size)[::-1])[::-1].repeat(2,0)[1:-1].reshape(-1, 2).astype('d')
-    coeff = np.zeros((fromvglvls.size - 1, tovglvls.size - 1), dtype = 'd')
-    for li, (b, t) in enumerate(edges):
-        ll = np.floor(b).astype('i')
-        ul = np.ceil(t).astype('i')
-        for lay in range(ll, ul):
-            bf = max(b - lay, 0)
-            tf = min(t - lay, 1)
-            myf = min(bf, tf)
-            myf = tf - bf
-            coeff[lay, li] = myf
-            #if li == 12:
-            #    print(li, b, t, ll, ul, lay, bf, tf, min(bf, tf))
-    return coeff
-
 class ioapi_base(PseudoNetCDFFile):
     def __getattributte__(self, *args, **kwds):
         return getattr(self, *args, **kwds)
@@ -229,32 +209,18 @@ class ioapi_base(PseudoNetCDFFile):
         
         
         if interptype == 'linear':
-            from scipy.interpolate import interp1d
-            # identity matrix
-            ident = np.identity(zs.size)
-            # weight function; use bounds outside
-            weight_func = interp1d(zs, ident, kind = 'linear', bounds_error = False, fill_value = 'extrapolate')
-            # calculate weights, which can be reused
-            weights = weight_func(nzs)
-            
-            # If not extrapolating, force weights to
-            # no more than one at the edges
-            if not extrapolate:
-                weights = np.maximum(0, weights)
-                weights /= weights.sum(0)
-            
+            from ..coordutil import getinterpweights
+            weights = getinterpweights(zs, nzs, kind = interptype, fill_value = fill_value, extrapolate = extrapolate)
             # Create a function for interpolation
             def interpsigma(data):
-                if data.ndim == 1:
-                    newdata = (weights * data[:, None]).sum(0)
-                else:
-                    newdata = (weights[None, :, :, None, None] * data[:, :, None]).sum(1)
+                newdata = (weights * data[:, None]).sum(0)
                 return newdata
             
         elif interptype == 'conserve':
+            from ..coordutil import sigma2coeff
             # Calculate a weighting matrix using mass conserving
             # methods
-            coeff = _sigma2coeff(myvglvls, vglvls) # (Nold, Nnew)
+            coeff = sigma2coeff(myvglvls, vglvls) # (Nold, Nnew)
             # Calculate input mass fractions
             dp_in = -np.diff(myvglvls.astype('d'))[:, None]
             
@@ -268,7 +234,9 @@ class ioapi_base(PseudoNetCDFFile):
             def interpsigma(data):
                 nvals = (data[:, None] * fdp).sum(0) / ndp
                 return nvals
-        
+        else:
+            raise ValueError('interptype only implemented for "linear" and "conserve"')
+
         # Apply function on LAY
         outf = self.applyAlongDimensions(LAY = interpsigma)
         

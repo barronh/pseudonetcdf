@@ -427,6 +427,58 @@ coordkeys = 'time latitude longitude layer time_bounds latitude_bounds longitude
 metakeys = ['VOL', 'AREA', 'tau0', 'tau1'] + coordkeys
 
 class bpch_base(PseudoNetCDFFile):
+    def interpSigma(self, vglvls, vgtop = None, interptype = 'linear', extrapolate = False, fill_value = 'extrapolate', approach = 'eta'):
+        """
+        Parameters
+        ----------
+        self : the file to interpolate from must have VGLVLS
+        vglvls : the new vglvls (edges)
+        vgtop : Converting to new vgtop (Pascals)
+        interptype : 'linear' or 'conserve'
+             linear : uses a linear interpolation
+             conserve : uses a mass conserving interpolation
+        extrapolate : allow extrapolation beyond bounds with linear, default False
+        fill_value : set fill value (e.g, nan) to prevent extrapolation or edge 
+                     continuation
+        approach :
+             eta : use simple eta coordinates to calculate sigma and interpolate
+             pressure : requires surface pressure
+        Returns
+        -------
+        outf - ioapi_base PseudoNetCDFFile with al variables interpolated
+        
+        Notes
+        -----
+        When extrapolate is false, the edge values are used for points beyond
+        the inputs.
+        """
+        etai = self.variables['etai_pressure'] * 100
+        # grab input sigma coordinates
+        myvglvls = (etai - vgtop) / (etai[0] - vgtop)
+                
+        # Use midpoint for sigmas in inputs and outputs
+        zs = (myvglvls[:-1]+myvglvls[1:])/2.
+        nzs = (vglvls[:-1]+vglvls[1:])/2.
+        
+        
+        if interptype == 'linear':
+            from ..coordutil import getinterpweights
+            weights = getinterpweights(zs, nzs, kind = interptype, fill_value = fill_value, extrapolate = extrapolate)
+            # Create a function for interpolation
+            def interpsigma(data):
+                if data.ndim == 1:
+                    newdata = (weights * data[:, None]).sum(0)
+                else:
+                    newdata = (weights[None, :, :, None, None] * data[:, :, None]).sum(1)
+                return newdata
+        else:
+            raise ValueError('interptype only implemented for "linear"')
+        
+        # Apply function on LAY
+        outf = self.applyAlongDimensions(LAY = interpsigma)
+        
+        return outf
+        
     def subsetVariables(self, varkeys, inplace = False):
         varkeys = [key for key in coordkeys if not key in varkeys and key in self.variables] + varkeys
         return PseudoNetCDFFile.subsetVariables(self, varkeys, inplace = inplace)

@@ -480,7 +480,78 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         outf : PseudoNetCDFFile instance
         """
         return self._copywith(props = props, dimensions = dimensions, variables = variables, data = data)
+    
+    def interpDimension(self, dimkey, newdimvals, coordkey = None, **interpkwds):
+        """
+        Parameters
+        ----------
+        self : the file to interpolate from must have VGLVLS
+        dimkey : the new dimension for interpolation
+        newdimvals : the new values to interpolate to
+        coordkey : the variable to use as the old coordinate values
+        interptype : 'linear' or 'conserve'
+             linear : uses a linear interpolation
+             conserve : uses a mass conserving interpolation
+        extrapolate : allow extrapolation beyond bounds with linear, default False
+        fill_value : set fill value (e.g, nan) to prevent extrapolation or edge 
+                     continuation
         
+        Returns
+        -------
+        outf - ioapi_base PseudoNetCDFFile with al variables interpolated
+        
+        Notes
+        -----
+        When extrapolate is false, the edge values are used for points beyond
+        the inputs.
+        """
+        from ..coordutil import getinterpweights
+
+        if coordkey is None:
+            olddimvals = self.variables[dimkey]
+        else:
+            olddimvals = self.variables[coordkey]
+        if olddimvals.ndim == 1 and newdimvals.ndim == 1:
+            weights = getinterpweights(olddimvals, newdimvals, **interpkwds)
+            def interpd(data):
+                if data.ndim == 1:
+                    newdata = (weights * data[:, None]).sum(0)
+                else:
+                    newdata = (weights[None, :, :, None, None] * data[:, :, None]).sum(1)
+                return newdata
+            outf = self.applyAlongDimensions(**{dimkey: interpd})
+        else:
+            outf = self.copy(props = True, dimensions = False, variables = False)
+            olddim = olddimvals.dimensions
+            newdim = newdimvals.dimensions
+            if olddim != newdim:
+                raise ValueError('Can only interpolate if coordinate variable have the same named dimensions')
+            dimaxis = olddim.index(dimkey)
+            ndl = newdimvals.shape[dimaxis]
+            for dk, dv in self.dimensions.items():
+                if dk == dimkey:
+                    dl = ndl
+                else:
+                    dl = len(dv)
+                ndv = outf.createDimension(dk, dl)
+                ndv.setunlimited(dv.isunlimited())
+            
+            for vk, vv in self.variables.items():
+                nvv = outf.copyVariable(vv, key = vk, withdata = False)
+            
+            
+            Ni, Nk = olddimvals.shape[:dimaxis], olddimvals.shape[dimaxis+1:]
+            s_ = np.s_
+            for ii in np.ndindex(Ni):
+                for kk in np.ndindex(Nk):
+                    od = olddimvals[ii + s_[:,] + kk]
+                    nd = newdimvals[ii + s_[:,] + kk]
+                    weights = getinterpweights(od, nd, **interpkwds)
+                    for nvk, nvv in outf.variables.items():
+                        vv = self.variables[nvk]
+                        nvv[ii + s_[...,] + kk] = (weights * vv[ii + s_[:,] + kk][:, None]).sum(0)
+        return outf
+            
     def applyAlongDimensions(self, **dimfuncs):
         """
         Similar to numpy.apply_along_axis, but for damed dimensions and 
@@ -503,6 +574,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
             if dk in dimfuncs:
                 if dk in self.variables:
                     dvar = self.variables[dk]
+                    if dvar.ndim != 1:
+                        dvar = np.arange(len(dv))
                 else:
                     dvar = np.arange(len(dv))
                 if isinstance(df, str):
@@ -1457,7 +1530,37 @@ class PseudoNetCDFTest(unittest.TestCase):
         nncf = tncf.insertDimension(TEST = 2)
         self.assertEqual(True, (nncf.variables['O3'][0,:] == nncf.variables['O3'][1,:]).all())
         
-        
+    def testInterpDimension(self):
+        f1 = PseudoNetCDFFile()
+        f1.createDimension('time', 2)
+        f1.createDimension('layer', 3)
+        f1.createDimension('latitude', 4)
+        f1.createDimension('longitude', 5)
+        lay = f1.createVariable('layer', 'f', ('layer',))
+        lay[:] = np.arange(0, 3)
+        simple = f1.createVariable('simple', 'f', ('time', 'layer', 'latitude', 'longitude'))
+        simple[0] = np.arange(3*4*5).reshape(3,4,5)
+        simple[1] = np.arange(3*4*5).reshape(3,4,5)
+
+        f2 = f1.applyAlongDimensions(layer = lambda x: (x[1:] + x[:-1]) * .5)
+        f3 = f1.interpDimension('layer', f2.variables['layer'])
+        self.assertEqual(True, np.allclose(f2.variables['simple'][:], f3.variables['simple'][:]))
+        f4 = PseudoNetCDFFile()
+        f4.createDimension('time', 2)
+        f4.createDimension('layer', 3)
+        f4.createDimension('latitude', 4)
+        f4.createDimension('longitude', 5)
+        lay = f4.createVariable('layer', 'f', ('time', 'layer', 'latitude', 'longitude'))
+        lay[:] = np.arange(0, 3)[None, :, None, None]
+        simple = f4.createVariable('simple', 'f', ('time', 'layer', 'latitude', 'longitude'))
+        simple[0] = np.arange(3*4*5).reshape(3,4,5)
+        simple[1] = np.arange(3*4*5).reshape(3,4,5)
+
+        f5 = f4.applyAlongDimensions(layer = lambda x: (x[1:] + x[:-1]) * .5)
+        lay[1] += .25
+        f6 = f4.interpDimension('layer', f5.variables['layer'])  
+        self.assertEqual(True, np.allclose(f5.variables['simple'][0], f6.variables['simple'][0]))
+        self.assertEqual(False, np.allclose(f5.variables['simple'][1], f6.variables['simple'][1]))
         
     def testNetCDFFileNew(self):
         t = PseudoNetCDFFile.__new__(PseudoNetCDFFile)
