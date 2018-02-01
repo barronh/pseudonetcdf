@@ -1,11 +1,11 @@
-__all__ = ['arlpdump']
+__all__ = ['arlpardump']
 from PseudoNetCDF import PseudoNetCDFFile
 import numpy as np
-class arlpdump(PseudoNetCDFFile):
+class arlpardump(PseudoNetCDFFile):
     @classmethod
     def isMine(cls, path):
         try:
-            f = arlpdump(path)
+            f = arlpardump(path)
             return True
         except:
             return False
@@ -16,43 +16,43 @@ class arlpdump(PseudoNetCDFFile):
         mass = self._data['data']['f1']
         loc = self._data['data']['f4']
         meta = self._data['data']['f7']
-        self.createDimension('PARTICLES', self.NPARTICLES)
-        self.createDimension('POLLUTANTS', self.NPOLLUTANTS)
-        pvar = self.createVariable('PARTICLE_MASS', 'f', ('PARTICLES', 'POLLUTANTS'), values = mass)
-        pvar.units = 'mass'
+        self.createDimension('particles', self.NPARTICLES)
+        self.createDimension('pollutants', self.NPOLLUTANTS)
+        pvar = self.createVariable('particle_mass', 'f', ('particles', 'pollutants'), values = mass)
+        pvar.units = 'arbitrary'
         pvar.long_name = 'PARTICLE_MASS'
-        var = self.createVariable('latitude', 'f', ('PARTICLES',), values = loc[:,0])
+        var = self.createVariable('latitude', 'f', ('particles',), values = loc[:,0])
         var.units = 'degrees_north'
         var.long_name = 'latitude'
-        var = self.createVariable('longitude', 'f', ('PARTICLES',), values = loc[:,1])
+        var = self.createVariable('longitude', 'f', ('particles',), values = loc[:,1])
         var.units = 'degrees_east'
         var.long_name = 'latitude'
-        var = self.createVariable('height', 'f', ('PARTICLES',), values = loc[:,2])
+        var = self.createVariable('height', 'f', ('particles',), values = loc[:,2])
         var.units = 'meters'
-        var.long_name = 'height'
-        var = self.createVariable('sigma_u', 'f', ('PARTICLES',), values = loc[:,3])
+        var.long_name = 'HEIGHT'
+        var = self.createVariable('sigma_u', 'f', ('particles',), values = loc[:,3])
         var.units = 'sigma'
         var.long_name = 'SIGMA-U'
-        var = self.createVariable('sigma_v', 'f', ('PARTICLES',), values = loc[:,4])
+        var = self.createVariable('sigma_v', 'f', ('particles',), values = loc[:,4])
         var.units = 'sigma'
         var.long_name = 'SIGMA-V'
-        var = self.createVariable('sigma_x', 'f', ('PARTICLES',), values = loc[:,5])
+        var = self.createVariable('sigma_x', 'f', ('particles',), values = loc[:,5])
         var.units = 'sigma'
         var.long_name = 'SIGMA-X'
-        var = self.createVariable('AGE', 'i', ('PARTICLES',), values = meta[:,0])
-        var.units = 'seconds?'
+        var = self.createVariable('age', 'i', ('particles',), values = meta[:,0])
+        var.units = 'minutes since release'
         var.long_name = 'AGE'
-        var = self.createVariable('DISTRIBUTION', 'i', ('PARTICLES',), values = meta[:,1])
-        var.units = 'unknown'
+        var = self.createVariable('distribution', 'i', ('particles',), values = meta[:,1])
+        var.units = '---'
         var.long_name = 'DISTRIBUTION'
-        var = self.createVariable('POLLUTANT', 'i', ('PARTICLES',), values = meta[:,2])
-        var.units = 'unknown'
+        var = self.createVariable('pollutant', 'i', ('particles',), values = meta[:,2])
+        var.units = '---'
         var.long_name = 'POLLUTANT'
-        var = self.createVariable('METEO_GRID', 'i', ('PARTICLES',), values = meta[:,3])
-        var.units = 'unknown'
+        var = self.createVariable('meteo_grid', 'i', ('particles',), values = meta[:,3])
+        var.units = '---'
         var.long_name = 'METEO-GRID'
-        var = self.createVariable('SORT_INDEX', 'i', ('PARTICLES',), values = meta[:,4])
-        var.units = 'none'
+        var = self.createVariable('sort_index', 'i', ('particles',), values = meta[:,4])
+        var.units = '---'
         var.long_name = 'SORT-INDEX'
     
     def _read(self):
@@ -81,4 +81,4 @@ class arlpdump(PseudoNetCDFFile):
     
 if __name__ == '__main__':
     from PseudoNetCDF import pncopen
-    f = pncopen('PARDUMP_143', format = 'arlpdump')
+    f = pncopen('PARDUMP_143', format = 'arlpardump')
