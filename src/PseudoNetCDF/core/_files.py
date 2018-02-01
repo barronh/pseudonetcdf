@@ -1,6 +1,6 @@
 import unittest
 from PseudoNetCDF._getreader import registerreader
-from PseudoNetCDF.netcdf import NetCDFFile
+from PseudoNetCDF.netcdf import NetCDFFile, NetCDFVariable
 from collections import OrderedDict
 from ._dimensions import PseudoNetCDFDimension
 from ._variables import PseudoNetCDFVariable, PseudoNetCDFMaskedVariable
@@ -119,7 +119,17 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         """
         return self.getproj()(lon, lat)
     
-    def ll2ij(self, lon, lat):
+    def _getydim(self):
+        for dk in 'latitude lat south_north ROW y'.split():
+            if dk in self.dimensions:
+                 return dk
+    
+    def _getxdim(self):
+        for dk in 'longitude long west_east COL x'.split():
+            if dk in self.dimensions:
+                 return dk
+    
+    def ll2ij(self, lon, lat, bounds = 'ignore'):
         """
         Converts lon/lat to 0-based indicies (0,M), (0,N)
         
@@ -127,6 +137,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         ----------
         lon : scalar or iterable of longitudes in decimal degrees
         lat : scalar or iterable of latitudes in decimal degrees
+        bounds : ignore, error, warn if i,j are out of domain
         
         Returns
         -------
@@ -137,6 +148,23 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         x, y = p(lon, lat)
         i = np.asarray(x).astype('i')
         j = np.asarray(y).astype('i')
+        if bounds == 'ignore':
+            pass
+        else:
+            nx = len(self.dimensions[self._getxdim()])
+            ny = len(self.dimensions[self._getydim()])
+            lowi = (i < 0)
+            lowj = (j < 0)
+            highi = (i >= nx)
+            highj = (j >= ny)
+            outb = (lowi | lowj | highi | highj)
+            nout = outb.sum()
+            if nout > 0:
+                message ='{} Points out of bounds; {}'.format(nout, np.where(outb))
+                if bounds == 'error':
+                    raise ValueError(message)
+                else:
+                    pncwarn(message)
         return i, j
     
     def xy2ll(self, x, y):
@@ -367,7 +395,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
             key = symbol.get_name()
             if key in vardict:
                 tmpvar = vardict[key]
-                break
+                if isinstance(tmpvar, (PseudoNetCDFVariable, NetCDFVariable)):
+                    break
         else:
             key = 'N/A'
             tmpvar = PseudoNetCDFVariable(None, 'temp', 'f', ())
@@ -381,6 +410,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
             try: del outf.variables[key]
             except: pass
         propd = dict([(k, getattr(tmpvar, k)) for k in tmpvar.ncattrs()])
+        propd['expression'] = expr
         dimt = tmpvar.dimensions
         vardict['outf'] = self
 
@@ -537,7 +567,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                 ndv.setunlimited(dv.isunlimited())
             
             for vk, vv in self.variables.items():
-                nvv = outf.copyVariable(vv, key = vk, withdata = False)
+                nvv = outf.copyVariable(vv, key = vk, withdata = vv.dimensions != newdim)
             
             
             Ni, Nk = olddimvals.shape[:dimaxis], olddimvals.shape[dimaxis+1:]
@@ -548,6 +578,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                     nd = newdimvals[ii + s_[:,] + kk]
                     weights = getinterpweights(od, nd, **interpkwds)
                     for nvk, nvv in outf.variables.items():
+                        if nvv.dimensions != newdim: continue
                         vv = self.variables[nvk]
                         nvv[ii + s_[...,] + kk] = (weights * vv[ii + s_[:,] + kk][:, None]).sum(0)
         return outf
