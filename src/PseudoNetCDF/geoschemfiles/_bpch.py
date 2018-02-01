@@ -479,8 +479,8 @@ class bpch_base(PseudoNetCDFFile):
         
         return outf
         
-    def subsetVariables(self, varkeys, inplace = False):
-        varkeys = [key for key in coordkeys if not key in varkeys and key in self.variables] + varkeys
+    def subsetVariables(self, varkeys, inplace = False, keepcoords = True):
+        if keepcoords: varkeys = [key for key in coordkeys if not key in varkeys and key in self.variables] + varkeys
         return PseudoNetCDFFile.subsetVariables(self, varkeys, inplace = inplace)
             
     def xy2ll(self, x, y):
@@ -502,9 +502,19 @@ class bpch_base(PseudoNetCDFFile):
         lon = np.asarray(self.variables['longitude'])
         return lon[i], lat[j]
         
-    def ll2ij(self, lon, lat):
+    def ll2ij(self, lon, lat, bounds = 'error'):
         """
-        lon and lat may be scalars or vectors, but matrices will crash
+        Converts lon/lat to 0-based indicies (0,M), (0,N)
+
+        Parameters
+        ----------
+        lon : scalar or iterable of longitudes in decimal degrees
+        lat : scalar or iterable of latitudes in decimal degrees
+        bounds : ignore, error, warn if i,j are out of domain
+
+        Returns
+        -------
+        i, j : indices (0-based) for variables
         """
         late = np.asarray(self.variables['latitude_bounds'])
         lone = np.asarray(self.variables['longitude_bounds'])
