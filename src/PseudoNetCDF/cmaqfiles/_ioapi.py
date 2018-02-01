@@ -142,7 +142,7 @@ class ioapi_base(PseudoNetCDFFile):
         
         # If lay was subset, subset VGLVLS too
         if 'LAY' in kwds:
-            outf = outf.VGLVLS[kwds['LAY']]
+            outf.VGLVLS = outf.VGLVLS[kwds['LAY']]
         
         # If subsetting replaces ('ROW', 'COL') ... for example with ('PERIM',)
         # remove the dimensions
@@ -248,7 +248,7 @@ class ioapi_base(PseudoNetCDFFile):
     
     def _add2Varlist(self, varkeys):
         varliststr = getattr(self, 'VAR-LIST', '')
-        keys = varliststr.split()
+        keys = [k for k in varliststr.split() if k in self.variables]
         newkeys = set(varkeys).difference(keys + ['TFLAG'])
         for varkey in varkeys:
             if varkey in newkeys:
@@ -275,8 +275,8 @@ class ioapi_base(PseudoNetCDFFile):
             varliststr_old = ''
             varlist = ''.join([k.ljust(16) for k, v in self.variables.items() if v.dimensions[:2] == ('TSTEP', 'LAY')])
         else:
-            varliststr_old = getattr(self, 'VAR-LIST').split()
-            varlist = [vk for vk in varliststr_old if vk in self.variables]
+            varliststr_old = getattr(self, 'VAR-LIST')
+            varlist = [vk for vk in varliststr_old.split() if vk in self.variables]
         varliststr_new = ''.join([vk.ljust(16) for vk in varlist])
         if update and varliststr_new != varliststr_old:
             setattr(self, 'VAR-LIST', varliststr_new)
