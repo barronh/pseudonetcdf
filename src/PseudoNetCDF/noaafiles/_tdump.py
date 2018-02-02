@@ -166,26 +166,29 @@ class arltrajdump(PseudoNetCDFFile):
         mytimes = _timefromnoaa(data['year'], data['month'], data['day'],
                                 data['hour'], data['minute'])
         unique_times = np.sort(np.unique(mytimes))
-        self.createDimension('time', len(unique_times))
+        ntimes = len(unique_times)
+        self.createDimension('time', ntimes)
         utraj = data['trajid'].unique()
         mytraj = data['trajid'].values
         myage = data['age'].values
         trajidx = (utraj[:, None] == mytraj[None,:]).argmax(0)
         timeidx = (unique_times[:, None] == mytimes[None,:]).argmax(0)
         
+        tmpv = np.ma.masked_all((ntimes, ntrajs), dtype = 'f')
         for k in data.columns:
-            v = self.createVariable(k, 'f', ('time', 'trajectory'))
+            v = self.createVariable(k, 'f', ('time', 'trajectory'), fill_value = -999.)
             v.long_name = k
             v.units = _units.get(k, 'unknown')
+            v[:] = tmpv
             v[timeidx, trajidx] = data[k].values
         #self._data = data
         
     def getTimes(self):
-        year = (self.variables['year']).max(0).astype('l')
-        month = self.variables['month'].max(0).ravel().astype('l')
-        day = self.variables['day'].max(0).astype('l')
-        hour = self.variables['hour'].max(0).astype('l')
-        minute = self.variables['minute'].max(0).astype('l')
+        year = (self.variables['year']).max(1).astype('l')
+        month = self.variables['month'].max(1).ravel().astype('l')
+        day = self.variables['day'].max(1).astype('l')
+        hour = self.variables['hour'].max(1).astype('l')
+        minute = self.variables['minute'].max(1).astype('l')
         return _timefromnoaa(year, month, day, hour, minute)
 
 if __name__ == '__main__':
