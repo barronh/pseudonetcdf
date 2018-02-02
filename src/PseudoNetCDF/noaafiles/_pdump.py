@@ -1,6 +1,7 @@
 __all__ = ['arlpardump']
 from PseudoNetCDF import PseudoNetCDFFile
 import numpy as np
+from datetime import datetime
 class arlpardump(PseudoNetCDFFile):
     @classmethod
     def isMine(cls, path):
@@ -18,6 +19,8 @@ class arlpardump(PseudoNetCDFFile):
         meta = self._data['data']['f7']
         self.createDimension('particles', self.NPARTICLES)
         self.createDimension('pollutants', self.NPOLLUTANTS)
+        startdstr = '{:02d}{:02d}{:02d}{:02d}{:02d}+0000'.format(self.YEAR, self.MONTH, self.DAY, self.HOUR, self.MINUTES)
+        startd = datetime.strptime(startdstr, '%y%m%d%H%M%z')
         pvar = self.createVariable('particle_mass', 'f', ('particles', 'pollutants'), values = mass)
         pvar.units = 'arbitrary'
         pvar.long_name = 'PARTICLE_MASS'
@@ -40,7 +43,7 @@ class arlpardump(PseudoNetCDFFile):
         var.units = 'sigma'
         var.long_name = 'SIGMA-X'
         var = self.createVariable('age', 'i', ('particles',), values = meta[:,0])
-        var.units = 'minutes since release'
+        var.units = 'minutes since {}'.format(startd.strftime('%Y-%m-%d %H:%M:%S%z'))
         var.long_name = 'AGE'
         var = self.createVariable('distribution', 'i', ('particles',), values = meta[:,1])
         var.units = '---'
@@ -73,7 +76,9 @@ class arlpardump(PseudoNetCDFFile):
         self.MINUTES = hdr[6]
         assert(rec1['f0'] == rec1['f2'])
         self._fmt = np.dtype([('header', '>i,>7i,>i'), ('data', '>i,>({},)f,>i,>i,>6f,>i,>i,>5i,>i'.format(self.NPOLLUTANTS), (self.NPARTICLES,))]);
-        self._data = np.fromfile(self._path, dtype = self._fmt, count = 1)[0]
+        data = np.fromfile(self._path, dtype = self._fmt)
+        assert(data.shape[0] == 1)
+        self._data = data[0]
         db = self._data['data']
         assert((db['f0'] == db['f2']).all())
         assert((db['f3'] == db['f5']).all())
