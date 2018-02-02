@@ -1,5 +1,4 @@
 __all__ = ['l100']
-import pandas as pd
 from datetime import datetime
 from PseudoNetCDF import PseudoNetCDFFile
 import numpy as np
@@ -46,6 +45,10 @@ class l100(PseudoNetCDFFile):
         return lines
         
     def __init__(self, path):
+        try:
+            import pandas as pd
+        except:
+            raise ImportError('ceilometerl2 requires pandas; install pandas (e.g., pip install pandas)')
         self._path = path
         metalines = l100._getmeta(path)
         datastartline = len(metalines)

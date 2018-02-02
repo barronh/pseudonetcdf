@@ -1,7 +1,6 @@
 from __future__ import print_function
 from PseudoNetCDF.sci_var import PseudoNetCDFFile
 import numpy as np
-import pandas
 from datetime import datetime, timedelta
 
 def getbdate(x):
@@ -33,6 +32,10 @@ class aqsraw(PseudoNetCDFFile):
         sampleval - Defaults to "Sample Measurement" for hourly and "Arithmetic Mean" for daily
         verbose - level of verbosity
         """
+        try:
+            import pandas as pd
+        except:
+            raise ImportError('ceilometerl2 requires pandas; install pandas (e.g., pip install pandas)')
         if not wktpolygon is None:
             from shapely.wkt import loads
             from shapely.prepared import prep

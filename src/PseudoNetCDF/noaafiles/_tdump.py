@@ -1,6 +1,6 @@
 from PseudoNetCDF import PseudoNetCDFFile
 import numpy as np
-import pandas as pd
+
 _units = dict(trajid = '---',
               metgridid = '---',
               year = 'year',
@@ -136,6 +136,10 @@ class arltrajdump(PseudoNetCDFFile):
         1X,F8.1 - position height in meters above ground
         n(1X,F8.1) - n diagnostic output variables (1st to be output is always pressure)
         """
+        try:
+            import pandas as pd
+        except:
+            raise ImportError('ceilometerl2 requires pandas; install pandas (e.g., pip install pandas)')
         data = pd.read_csv(f, delimiter = '\s+', names = 'trajid metgridid year month day hour minute forecast_hour age latitude longitude altitude'.split() + diagnostics[1:])#, parse_dates = ['YEAR MONTH DAY HOUR MINUTE'.split()])
         uage = data['age'].unique()
         utraj = data['trajid'].unique()

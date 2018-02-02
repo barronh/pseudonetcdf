@@ -46,6 +46,7 @@ from . import units
 from . import icarttfiles
 from . import aermodfiles
 from . import textfiles
+from . import ceilometerfiles
 from . import coordutil
 from . import test
 from ._getreader import anyfile, pncopen

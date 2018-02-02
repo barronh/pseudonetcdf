@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 import re
 import io
@@ -23,6 +22,10 @@ class woudcsonde(PseudoNetCDFFile):
     
     def _addmetavars(self, myf, key = ''):
         """Adds metavariables for next two lines"""
+        try:
+            import pandas as pd
+        except:
+            raise ImportError('ceilometerl2 requires pandas; install pandas (e.g., pip install pandas)')
         metalines = myf.readline()
         nmetalines = 2
         newblock = ''
@@ -80,6 +83,10 @@ class woudcsonde(PseudoNetCDFFile):
         """
         path - path or file-like object.
         """
+        try:
+            import pandas as pd
+        except:
+            raise ImportError('ceilometerl2 requires pandas; install pandas (e.g., pip install pandas)')
         if hasattr(path, 'readline'):
             myf = path
         else:
