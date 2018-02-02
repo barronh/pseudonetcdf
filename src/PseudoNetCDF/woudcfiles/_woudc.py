@@ -25,7 +25,7 @@ class woudcsonde(PseudoNetCDFFile):
         try:
             import pandas as pd
         except:
-            raise ImportError('ceilometerl2 requires pandas; install pandas (e.g., pip install pandas)')
+            raise ImportError('woudcsonde requires pandas; install pandas (e.g., pip install pandas)')
         metalines = myf.readline()
         nmetalines = 2
         newblock = ''
@@ -86,7 +86,7 @@ class woudcsonde(PseudoNetCDFFile):
         try:
             import pandas as pd
         except:
-            raise ImportError('ceilometerl2 requires pandas; install pandas (e.g., pip install pandas)')
+            raise ImportError('woudcsonde requires pandas; install pandas (e.g., pip install pandas)')
         if hasattr(path, 'readline'):
             myf = path
         else:

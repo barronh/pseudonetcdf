@@ -35,7 +35,7 @@ class aqsraw(PseudoNetCDFFile):
         try:
             import pandas as pd
         except:
-            raise ImportError('ceilometerl2 requires pandas; install pandas (e.g., pip install pandas)')
+            raise ImportError('aqsraw requires pandas; install pandas (e.g., pip install pandas)')
         if not wktpolygon is None:
             from shapely.wkt import loads
             from shapely.prepared import prep

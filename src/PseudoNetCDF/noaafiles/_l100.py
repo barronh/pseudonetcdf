@@ -48,7 +48,7 @@ class l100(PseudoNetCDFFile):
         try:
             import pandas as pd
         except:
-            raise ImportError('ceilometerl2 requires pandas; install pandas (e.g., pip install pandas)')
+            raise ImportError('l100 sonde files requires pandas; install pandas (e.g., pip install pandas)')
         self._path = path
         metalines = l100._getmeta(path)
         datastartline = len(metalines)

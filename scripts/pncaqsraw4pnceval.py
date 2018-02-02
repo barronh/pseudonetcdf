@@ -12,7 +12,7 @@ import numpy as np
 try:
     import pandas
 except:
-    raise ImportError('ceilometerl2 requires pandas; install pandas (e.g., pip install pandas)')
+    raise ImportError('pncaqsraw4pnceval requires pandas; install pandas (e.g., pip install pandas)')
 from shapely.wkt import loads
 from shapely.geometry import Point, Polygon
 from shapely.prepared import prep

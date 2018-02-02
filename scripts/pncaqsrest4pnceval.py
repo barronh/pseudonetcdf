@@ -76,7 +76,7 @@ def hourly_parser(*args):
 try:
     import pandas
 except:
-    raise ImportError('ceilometerl2 requires pandas; install pandas (e.g., pip install pandas)')
+    raise ImportError('pncaqsrest4pnceval.py requires pandas; install pandas (e.g., pip install pandas)')
 data = pandas.read_csv(args.downout, skip_footer = 2, parse_dates = [[12, 13]], date_parser = hourly_parser, converters = {'State Code': str, 'County Code': str, 'Site Num': str}, index_col = False, engine = 'python')
 
 hourly = data.groupby(['Parameter Code', 'AQS Parameter Desc', 'Unit of Measure', 'Sample Duration', 'Date GMT_24 Hour GMT', 'State Code', 'County Code', 'Site Num'], as_index = False).aggregate(np.mean).sort(['Parameter Code', 'AQS Parameter Desc', 'Unit of Measure', 'Sample Duration', 'Date GMT_24 Hour GMT', 'State Code', 'County Code', 'Site Num'])

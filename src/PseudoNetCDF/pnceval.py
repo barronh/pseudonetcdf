@@ -420,7 +420,7 @@ def pnceval(args):
             import pandas
             import pandas as pd
         except:
-            raise ImportError('ceilometerl2 requires pandas; install pandas (e.g., pip install pandas)')
+            raise ImportError('pnceval requires pandas; install pandas (e.g., pip install pandas)')
         output = OrderedDict()
     for k in args.funcs:
         console.locals[k] = func = eval(k)
