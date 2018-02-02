@@ -65,6 +65,7 @@ class WrapDict(OrderedDict):
         return outf.__str__()
     
 class WrapPNC(PseudoNetCDFFile):
+    @classmethod
     def isMine(path):
         return False
     
