@@ -18,6 +18,18 @@ _units = dict(trajid = '---',
               relhumid = '%',
               terr_msl = 'm',
               sun_flux = 'W/m**2',)
+
+def _timefromnoaa(year, month, day, hour, minute):
+    from datetime import datetime, timezone
+    datei = (year.astype('l') * 100000000 +
+             month.astype('l') * 1000000 +
+             day.astype('l') * 10000 +
+             hour.astype('l') * 100 +
+             minute.astype('l'))
+    datestrs = np.char.decode(np.char.add(datei.astype('S16'), b'+0000'))
+    dates = np.array([datetime.strptime(d, '%y%m%d%H%M%z') for d in datestrs])
+    return dates
+
 def _year(year):
     if np.floor(np.log10(year)) == 1.:
        if year < 70:
@@ -30,6 +42,14 @@ def _year(year):
 _vyear = np.vectorize(_year)
 
 class arltrajdump(PseudoNetCDFFile):
+    @classmethod
+    def isMine(cls, path):
+        try:
+            f = arltrajdump(path)
+            return True
+        except:
+            return False
+        
     def __init__(self, path):
         self._path = path
         f = self._file = open(path)
@@ -87,34 +107,36 @@ class arltrajdump(PseudoNetCDFFile):
         """
         trajmeta = np.array([f.readline().strip().split() for i in range(ntrajs)], dtype = 'f')
         self.createDimension('trajectory', ntrajs)
-        v = self.createVariable('traj_year', 'i', ('metgrid', 'trajectory'))
+        v = self.createVariable('traj_year', 'i', ('trajectory',))
         v.units = 'year'
         v.long_name = 'year'
         v[:] = trajmeta[:, 0].astype('i')
-        v = self.createVariable('traj_month', 'i', ('metgrid', 'trajectory'))
+        v = self.createVariable('traj_month', 'i', ('trajectory',))
         v.units = 'month'
         v.long_name = 'month of the year'
         v[:] = trajmeta[:, 1].astype('i')
-        v = self.createVariable('trajectory_day', 'i', ('metgrid', 'trajectory'))
+        v = self.createVariable('trajectory_day', 'i', ('trajectory',))
         v.units = 'day'
         v.long_name = 'day of the month'
         v[:] = trajmeta[:, 2].astype('i')
-        v = self.createVariable('trajectory_hour', 'i', ('metgrid','trajectory'))
+        v = self.createVariable('trajectory_hour', 'i', ('trajectory',))
         v.units = 'hour'
         v.long_name = 'hour of the day (GMT)'
         v[:] = trajmeta[:, 3].astype('i')
-        v = self.createVariable('trajectory_init_latitude', 'i', ('metgrid','trajectory'))
+        v = self.createVariable('trajectory_init_latitude', 'i', ('trajectory',))
         v.units = 'degrees_north'
         v.long_name = 'initial latitude'
         v[:] = trajmeta[:, 4]
-        v = self.createVariable('trajectory_init_longitude', 'i', ('metgrid','trajectory'))
+        v = self.createVariable('trajectory_init_longitude', 'i', ('trajectory',))
         v.units = 'degrees_east'
         v.long_name = 'initial longitude'
         v[:] = trajmeta[:, 5]
-        v = self.createVariable('trajectory_init_height', 'i', ('metgrid','trajectory'))
+        v = self.createVariable('trajectory_init_height', 'i', ('trajectory',))
         v.units = 'meters agl'
         v.long_name = 'initial altitude'
         v[:] = trajmeta[:, 6]
+        # Starting time
+        self._starttimes = _timefromnoaa(trajmeta[:, 0], trajmeta[:, 1], trajmeta[:, 2], trajmeta[:, 3], trajmeta[:, 3]*0)
         """
         Record #5
 
@@ -139,33 +161,32 @@ class arltrajdump(PseudoNetCDFFile):
         try:
             import pandas as pd
         except:
-            raise ImportError('ceilometerl2 requires pandas; install pandas (e.g., pip install pandas)')
+            raise ImportError('arltrajdump requires pandas; install pandas (e.g., pip install pandas)')
         data = pd.read_csv(f, delimiter = '\s+', names = 'trajid metgridid year month day hour minute forecast_hour age latitude longitude altitude'.split() + diagnostics[1:])#, parse_dates = ['YEAR MONTH DAY HOUR MINUTE'.split()])
-        uage = data['age'].unique()
+        mytimes = _timefromnoaa(data['year'], data['month'], data['day'],
+                                data['hour'], data['minute'])
+        unique_times = np.sort(np.unique(mytimes))
+        self.createDimension('time', len(unique_times))
         utraj = data['trajid'].unique()
-        self.createDimension('age', uage.size)
         mytraj = data['trajid'].values
         myage = data['age'].values
         trajidx = (utraj[:, None] == mytraj[None,:]).argmax(0)
-        ageidx = (uage[:, None] == myage[None,:]).argmax(0)
+        timeidx = (unique_times[:, None] == mytimes[None,:]).argmax(0)
+        
         for k in data.columns:
-            v = self.createVariable(k, 'f', ('age', 'trajectory'))
+            v = self.createVariable(k, 'f', ('time', 'trajectory'))
             v.long_name = k
             v.units = _units.get(k, 'unknown')
-            v[ageidx, trajidx] = data[k].values
+            v[timeidx, trajidx] = data[k].values
         #self._data = data
         
     def getTimes(self):
-        from datetime import datetime, timezone
-        year = (self.variables['YEAR']).max(0).astype('l')
-        month = self.variables['MONTH'].max(0).ravel().astype('l')
-        day = self.variables['DAY'].max(0).astype('l')
-        hour = self.variables['HOUR'].max(0).astype('l')
-        minute = self.variables['MINUTE'].max(0).astype('l')
-        datei = (year*100000000+month*1000000+ day*10000 + hour*100 + minute).array()
-        datestrs = np.char.decode(np.char.add(datei.astype('S16'), b'+0000'))
-        dates = np.array([datetime.strptime(d, '%y%m%d%H%M%z') for d in datestrs])
-        return dates
+        year = (self.variables['year']).max(0).astype('l')
+        month = self.variables['month'].max(0).ravel().astype('l')
+        day = self.variables['day'].max(0).astype('l')
+        hour = self.variables['hour'].max(0).astype('l')
+        minute = self.variables['minute'].max(0).astype('l')
+        return _timefromnoaa(year, month, day, hour, minute)
 
 if __name__ == '__main__':
     f = arltrajdump('tdump_008')
