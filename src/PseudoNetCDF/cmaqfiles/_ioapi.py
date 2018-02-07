@@ -29,6 +29,25 @@ _i['UPNAM'] = "MAKEIOAPI       "
 _i['FILEDESC'] = "".ljust(80)
 _i['HISTORY'] = ""
 
+def ioapi_sort_meta(infile):
+    mydimensions = infile.dimensions.copy()
+    outvars = getattr(infile, 'VAR-LIST', '').split()
+    allvars = outvars + [k for k in list(infile.variables) if not k in outvars and k != 'TFLAG']
+    infile.NVARS = len(outvars)
+    infile.dimensions = OrderedDict()
+    for dk in 'TSTEP DATE-TIME LAY VAR ROW COL'.split():
+        dv = mydimensions[dk]
+        if dk == 'VAR':
+            dl = infile.NVARS
+        else:
+            dl = len(dv)
+        ndv = infile.createDimension(dk, dl)
+        ndv.setunlimited(dv.isunlimited())
+    myvariables = infile.variables
+    infile.variables = OrderedDict()
+    for vk in ['TFLAG'] + allvars:
+        infile.variables[vk] = myvariables[vk]
+
 class ioapi_base(PseudoNetCDFFile):
     def __getattributte__(self, *args, **kwds):
         return getattr(self, *args, **kwds)
@@ -49,7 +68,7 @@ class ioapi_base(PseudoNetCDFFile):
                 self.WTIME = int(t.strftime('%H%M%S'))
         except Exception as e:
             warn('Time could not be updated; ' + str(e))
-        
+    
     def setncatts(self, attdict):
         """
         Wrapper on PseudoNetCDF.setncatts that updates WDATE, and WTIME
@@ -142,8 +161,16 @@ class ioapi_base(PseudoNetCDFFile):
         
         # If lay was subset, subset VGLVLS too
         if 'LAY' in kwds:
-            outf.VGLVLS = outf.VGLVLS[kwds['LAY']]
-        
+            nlvls = outf.VGLVLS.size
+            tmpvglvls = outf.VGLVLS[kwds['LAY']]
+            endi = np.arange(outf.VGLVLS.size)[kwds['LAY']].take(-1) + 1
+            if endi != nlvls:
+                try:
+                    endl = outf.VGLVLS[endi]
+                    tmpvglvls = np.append(tmpvglvls, endl)
+                    outf.VGLVLS = tmpvglvls
+                except:
+                    warn('VGLVLS could not be diagnosed; update manually')
         # If subsetting replaces ('ROW', 'COL') ... for example with ('PERIM',)
         # remove the dimensions
         if deleterowcol:
@@ -290,8 +317,7 @@ class ioapi_base(PseudoNetCDFFile):
                 self.createDimension('VAR', self.NVARS)
 
         return varlist
-        
-    def updatemeta(self, **attdict):
+    def updatemeta(self, attdict = {}, sortmeta = False):
         """
         Parameters
         ----------
@@ -315,14 +341,14 @@ class ioapi_base(PseudoNetCDFFile):
             if not td.isunlimited():
                 td.setunlimited(True)
         
-        if 'LAY' in self.dimensions: self.NLAYS = len(self.dimensions['LAY'])
-        if 'COL' in self.dimensions: self.NCOLS = len(self.dimensions['COL'])
-        if 'ROW' in self.dimensions: self.NCOLS = len(self.dimensions['ROW'])
+        if not 'DATE-TIME' in self.dimensions:
+            self.createDimension('DATE-TIME', 2)
         
         self.getVarlist()
         
-        if not 'DATE-TIME' in self.dimensions:
-            self.createDimension('DATE-TIME', 2)
+        if 'LAY' in self.dimensions: self.NLAYS = len(self.dimensions['LAY'])
+        if 'COL' in self.dimensions: self.NCOLS = len(self.dimensions['COL'])
+        if 'ROW' in self.dimensions: self.NCOLS = len(self.dimensions['ROW'])
         
         self._updatetime()
         try:
@@ -342,13 +368,15 @@ class ioapi_base(PseudoNetCDFFile):
         if not 'TFLAG' in self.variables:
             dotflag = True
             tvar = self.createVariable('TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
-            tvar.units = '<YYYYDDD, HHMMSS>'.ljust(16)
+            tvar.units = '<YYYYDDD,HHMMSS>'.ljust(16)
             tvar.long_name = 'TFLAG'.ljust(16)
             tvar.var_desc = "Timestep-valid flags:  (1) YYYYDDD or (2) HHMMSS                                "
         else:
             tvar = self.variables['TFLAG']
             dotflag = ~((self.SDATE == tvar[0,0,0]) and (self.STIME == tvar[0,0,1]))
             
+        if sortmeta:
+            ioapi_sort_meta(self)
         
         if dotflag:
             yyyyjjj = np.array([int(t.strftime('%Y%j')) for t in times])
@@ -358,9 +386,147 @@ class ioapi_base(PseudoNetCDFFile):
             tvar[:, :, 1] = hhmmss[:, None]
         
     def applyAlongDimensions(self, *args, **kwds):
+        """
+        Wrapper PseudoNetCDFFile.applyAlongDimensions that corrects ROW, COL,
+        LAY and TIME meta-data according to the ioapi format
+        
+        Parameters
+        ----------
+        see PseudoNetCDFFile.applyAlongDimensions
+        """
         outf = PseudoNetCDFFile.applyAlongDimensions(self, *args, **kwds)
         outf.updatemeta()
         return outf
+    
+    def eval(self, *args, **kwds):
+        """
+        Wrapper PseudoNetCDFFile.eval that corrects VAR-LIST
+        and TFLAG meta-data according to the ioapi format
+        
+        Parameters
+        ----------
+        see PseudoNetCDFFile.eval
+        """
+        oldkeys = set(self.variables)
+        out = PseudoNetCDFFile.eval(self, *args, **kwds)
+        outkeys = set(out.variables)
+        newkeys = outkeys.difference(oldkeys)
+        byekeys = oldkeys.difference(outkeys)
+        out._add2Varlist(newkeys)
+        return out
+    
+    def getMap(self, maptype = 'basemap_auto', **kwds):
+        """
+        Wrapper PseudoNetCDFFile.getMap that uses NCOLS, XCELL
+        NROWS, and YCELL to calculate map bounds if basemap_auto
+        
+        Parameters
+        ----------
+        see PseudoNetCDFFile.getMap
+        """
+        if maptype.endswith('_auto'):
+            lllon, lllat = self.xy2ll(0, 0)
+            urlon, urlat = self.xy2ll(self.NCOLS*self.XCELL, self.NROWS*self.YCELL)
+            kwds.setdefault('llcrnrlon', lllon)
+            kwds.setdefault('llcrnrlat',  lllat)
+            kwds.setdefault('urcrnrlon', urlon)
+            kwds.setdefault('urcrnrlat',  urlat)
+            maptype = maptype[:-5]
+        
+        return PseudoNetCDFFile.getMap(self, maptype = maptype, **kwds)
+    
+    def plot(self, varkey, plottype = 'longitude-latitude', ax_kw = {}, plot_kw = {}, cbar_kw = {}, dimreduction = 'mean'):
+        """
+        Parameters
+        ----------
+        self : the ioapi file instance
+        varkey : the variable to plot
+        plottype : longitude-latitude, latitude-pressure, longitude-pressure, vertical-profile,
+                   time-longitude, time-latitude, time-pressure, default, longitude-latitude
+        ax_kw : keywords for the axes to be created
+        plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be created
+        cbar_kw : keywords for the colorbar
+        """
+        import matplotlib.pyplot as plt
+        from ..coordutil import getbounds
+        apply2dim = {}
+        var = self.variables[varkey]
+        varunit = varkey
+        if hasattr(var, 'units'):
+            varunit += var.units.strip()
+        dimlens = dict([(dk, len(self.dimensions[dk])) for dk in var.dimensions])
+        dimpos = dict([(dk, di) for di, dk in enumerate(var.dimensions)])
+        raw_xkey, raw_ykey = plottype.split('-')
+        d2d = {'time': 'TSTEP', 'latitude': 'ROW',
+               'longitude': 'COL', 'pressure': 'LAY'}
+        xkey = d2d.get(raw_xkey, raw_xkey)
+        ykey = d2d.get(raw_ykey, raw_ykey)
+        if not ykey == 'profile':
+            for dimkey in list(dimlens):
+                if not dimkey in (xkey, ykey) and dimlens.get(dimkey, 1) > 1:
+                    apply2dim[dimkey] = dimreduction
+        
+        if len(apply2dim) > 0:
+           myf = self.applyAlongDimensions(**apply2dim)
+           var = myf.variables[varkey]
+           dimlens = dict([(dk, len(self.dimensions[dk])) for dk in var.dimensions])
+        else:
+           myf = self
+        if ykey in ('profile',):
+           vaxi = var.dimensions.index(xkey)
+           vsize = var.shape[vaxi]
+           vals = np.rollaxis(var[:], layaxi).reshape(laysize, -1)
+        else:
+           vals = var[:].squeeze()
+        
+        if xkey == 'TSTEP':
+            xm = myf.getTimes()
+            dx = np.diff(xm)[-1]
+            x = np.append(xm, xm[-1] + dx)
+            x = plt.matplotlib.dates.date2num(x)
+        else:
+            x = getbounds(myf, xkey)
+        
+        ax = plt.gca(**ax_kw)
+        if ykey in ('profile',):
+            y = getbounds(myf, xkey)
+            x0 = vals[:].min(0)
+            xm = vals[:].mean(0)
+            x1 = vals[:].max(0)
+            ax.fill_betweenx(y = y, x0 = x0, x1 = x1, label = varkey + '(min, max)')
+            ax.plot(xm, y, label = varkey, **plot_kw)
+            ax.set_ylabel(xkey)
+            ax.set_xlabel(varunit)
+            return ax
+             
+        if ykey == 'TSTEP':
+            ym = myf.getTimes()
+            dy = np.diff(ym)[-1]
+            y = np.append(ym, ym[-1] + dy)
+            y = plt.matplotlib.dates.date2num(y)
+        else:
+            y = getbounds(myf, ykey)
+        
+        if dimpos[xkey] < dimpos[ykey]:
+            vals = vals.T
+        p = ax.pcolormesh(x, y, vals, **plot_kw)
+        ax.figure.colorbar(p, label = varunit, **cbar_kw)
+        if xkey == 'TSTEP':
+            ax.xaxis.set_major_formatter(plt.matplotlib.dates.AutoDateFormatter(plt.matplotlib.dates.AutoDateLocator()))
+        if ykey == 'TSTEP':
+            ax.yaxis.set_major_formatter(plt.matplotlib.dates.AutoDateFormatter(plt.matplotlib.dates.AutoDateLocator()))
+        if plottype == 'longitude-latitude':
+            try:
+                bmap = myf.getMap()
+                bmap.drawcoastlines(ax = ax)
+                bmap.drawcountries(ax = ax)
+            except:
+                pass
+        else:
+            ax.set_xlabel(xkey)
+            ax.set_ylabel(ykey)
+        return ax
+
 
 class ioapi(Dataset, ioapi_base):
     def __getattribute__(self, *args, **kwds):
