@@ -3,6 +3,32 @@ from PseudoNetCDF import warn
 import numpy as np
 from collections import OrderedDict
 
+def getbounds(ifile, dimkey):
+    dim = ifile.dimensions[dimkey]
+    dimboundkey = dimkey + '_bounds'
+    dimbndkey = dimkey + '_bnds'
+    if dimboundkey in ifile.variables:
+        db = ifile.variables[dimboundkey]
+    elif dimbndkey in ifile.variables:
+        db = ifile.variables[dimbndkey]
+    elif dimkey in ifile.variables:
+        d = ifile.variables[dimkey]
+        dd = np.diff(d)
+        ddm = dd.mean()
+        if not (ddm == dd).all():
+            warn('Bounds is an approximation assuming %s variable is cell centers' % dimkey)
+        else:
+            db = (d[:-1] + d[1:])/2.
+            db = np.append(np.append(d[0] - dd[0] / 2., db), d[-1] + dd[-1] / 2)
+            return db
+    else:
+        return np.arange(0, len(dim))
+    if len(dim) == db.shape[0] and db.shape[1] == 2:
+        return np.append(db[:, 0], db[-1, 1])
+    elif db.ndim == 1:
+        return db
+    else:
+        return db[:, 0]
 def getlonlatcoordstr(ifile, makemesh = None):
     """
     ifile - file with latitude and longitude variables
@@ -407,6 +433,8 @@ def basemap_options_from_proj4(proj4, **kwds):
 def basemap_from_proj4(proj4, **kwds):
     from mpl_toolkits.basemap import Basemap
     basemap_options = basemap_options_from_proj4(proj4, **kwds)
+    if basemap_options['projection'] in ('lonlat', 'longlat'):
+        basemap_options['projection'] = 'cyl'
     bmap = Basemap(**basemap_options)
     return bmap
     

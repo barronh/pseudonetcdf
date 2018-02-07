@@ -68,9 +68,26 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                 # Get edges for bounding
                 lonb = self.variables['longitude_bounds']
                 latb = self.variables['latitude_bounds']
-
-                edges = dict(llcrnrlon = lonb[0, 0, 0], llcrnrlat = latb[0, 0, 0],
-                             urcrnrlon = lonb[-1, -1, 2], urcrnrlat = latb[-1, -1, 2])
+                if lonb.ndim == 3:
+                    llcrnrlon = lonb[0, 0, 0]
+                    urcrnrlon = lonb[-1, -1, 2]
+                elif lonb.ndim == 2:
+                    llcrnrlon = lonb[0, 0]
+                    urcrnrlon = lonb[-1, -1]
+                elif lonb.ndim == 1:
+                    llcrnrlon = lonb[0]
+                    urcrnrlon = lonb[-1]
+                if latb.ndim == 3:
+                    llcrnrlat = latb[0, 0, 0]
+                    urcrnrlat = latb[-1, -1, 2]
+                elif latb.ndim == 2:
+                    llcrnrlat = latb[0, 0]
+                    urcrnrlat = latb[-1, -1]
+                elif latb.ndim == 1:
+                    llcrnrlat = latb[0]
+                    urcrnrlat = latb[-1]
+                edges = dict(llcrnrlon = llcrnrlon, llcrnrlat = llcrnrlat,
+                             urcrnrlon = urcrnrlon, urcrnrlat = urcrnrlat)
                 kwds.update(edges)
             return basemap_from_proj4(self.getproj(withgrid = True, projformat = 'proj4'), **kwds)
         elif maptype == 'cartopy':
@@ -429,6 +446,95 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
         return outf
     
+    def plot(self, varkey, plottype = 'longitude-latitude', ax_kw = {}, plot_kw = {}, cbar_kw = {}, dimreduction = 'mean'):
+        """
+        Parameters
+        ----------
+        self : the PseudoNetCDF file instance
+        varkey : the variable to plot
+        plottype : longitude-latitude, latitude-pressure, longitude-pressure, vertical-profile,
+                   time-longitude, time-latitude, time-pressure, default, longitude-latitude
+        ax_kw : keywords for the axes to be created
+        plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be created
+        cbar_kw : keywords for the colorbar
+        """
+        import matplotlib.pyplot as plt
+        from ..coordutil import getbounds
+        apply2dim = {}
+        var = self.variables[varkey]
+        varunit = varkey
+        if hasattr(var, 'units'):
+            varunit += var.units.strip()
+        
+        dimlens = dict([(dk, len(self.dimensions[dk])) for dk in var.dimensions])
+        dimpos = dict([(dk, di) for di, dk in enumerate(var.dimensions)])
+        xkey, ykey = plottype.split('-')
+        if not ykey == 'profile':
+            for dimkey in list(dimlens):
+                if not dimkey in (xkey, ykey) and dimlens.get(dimkey, 1) > 1:
+                    apply2dim[dimkey] = dimreduction
+        
+        if len(apply2dim) > 0:
+           myf = self.applyAlongDimensions(**apply2dim)
+           var = myf.variables[varkey]
+           dimlens = dict([(dk, len(self.dimensions[dk])) for dk in var.dimensions])
+        else:
+           myf = self
+        if ykey in ('profile',):
+           vaxi = var.dimensions.index(xkey)
+           vsize = var.shape[vaxi]
+           vals = np.rollaxis(var[:], layaxi).reshape(laysize, -1)
+        else:
+           vals = var[:].squeeze()
+        
+        if xkey == 'time':
+            xm = myf.getTimes()
+            dx = np.diff(xm)[-1]
+            x = np.append(xm, xm[-1] + dx)
+            x = plt.matplotlib.dates.date2num(x)
+        else:
+            x = getbounds(myf, xkey)
+        
+        ax = plt.gca(**ax_kw)
+        if ykey in ('profile',):
+            y = getbounds(myf, xkey)
+            x0 = vals[:].min(0)
+            xm = vals[:].mean(0)
+            x1 = vals[:].max(0)
+            ax.fill_betweenx(y = y, x0 = x0, x1 = x1, label = varkey + '(min, max)')
+            ax.plot(xm, y, label = varkey, **plot_kw)
+            ax.set_ylabel(xkey)
+            ax.set_xlabel(varunit)
+            return ax
+             
+        if ykey == 'time':
+            ym = myf.getTimes()
+            dy = np.diff(ym)[-1]
+            y = np.append(ym, ym[-1] + dy)
+            y = plt.matplotlib.dates.date2num(y)
+        else:
+            y = getbounds(myf, ykey)
+        
+        if dimpos[xkey] < dimpos[ykey]:
+            vals = vals.T
+        p = ax.pcolormesh(x, y, vals, **plot_kw)
+        ax.figure.colorbar(p, label = varunit, **cbar_kw)
+        if xkey == 'time':
+            ax.xaxis.set_major_formatter(plt.matplotlib.dates.AutoDateFormatter(plt.matplotlib.dates.AutoDateLocator()))
+        if ykey == 'time':
+            ax.yaxis.set_major_formatter(plt.matplotlib.dates.AutoDateFormatter(plt.matplotlib.dates.AutoDateLocator()))
+        if plottype == 'longitude-latitude':
+            try:
+                bmap = myf.getMap()
+                bmap.drawcoastlines(ax = ax)
+                bmap.drawcountries(ax = ax)
+            except:
+                pass
+        else:
+            ax.set_xlabel(xkey)
+            ax.set_ylabel(ykey)
+        return ax
+    
     def setncatts(self, attdict):
         """
         Set ncattrs from attdict keys and values
@@ -640,13 +746,14 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         
         return outf
     
-    def getTimes(self, datetype = 'datetime'):
+    def getTimes(self, datetype = 'datetime', bounds = False):
         """
         Get an array of datetime objects
         
         Parameters
         ----------
         datetype : 'datetime' or numpy.dtype
+        bounds : get time boundaries
         
         Returns
         -------
@@ -663,9 +770,10 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                
         if 'time' in self.variables.keys():
             time = self.variables['time']
+            timeunits = time.units.strip()
             calendar = getattr(time, 'calendar', 'gregorian').lower()
-            if 'since' in time.units:
-                unit, base = time.units.strip().split(' since ')
+            if 'since' in timeunits:
+                unit, base = timeunits.split(' since ')
                 # Get the reference date
                 refdate = _parse_ref_date(base)
                 
@@ -722,7 +830,10 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
             timeincr = timedelta(seconds = int(tstepstr[-2:])) + \
                        timedelta(minutes = int(tstepstr[-4:-2])) + \
                        timedelta(hours   = int(tstepstr[:-4]))
-            timeincrs = timeincr * np.arange(len(self.dimensions['TSTEP']))
+            ntimes = len(self.dimensions['TSTEP'])
+            if bounds:
+                ntimes += 1
+            timeincrs = timeincr * np.arange(ntimes)
             out = refdate + timeincrs
         elif 'tau0' in self.variables.keys():
             out = datetime(1985, 1, 1, 0, tzinfo = utc) + np.array([timedelta(hours =i) for i in self.variables['tau0'][:]])
