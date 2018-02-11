@@ -945,7 +945,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         outf : PseudoNetCDFFile instance with variables and dimensions sliced
         """
         outf = self._copywith(props = True, dimensions = True)
-        isarray = {dk: not np.isscalar(dv) for dk, dv in dimslices.items()}
+        isarray = {dk: not np.isscalar(dv) and not isinstance(dv, slice) for dk, dv in dimslices.items()}
         anyisarray = np.sum(list(isarray.values())) > 1
         
         if anyisarray:
