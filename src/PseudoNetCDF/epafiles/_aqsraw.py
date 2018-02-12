@@ -33,7 +33,7 @@ class aqsraw(PseudoNetCDFFile):
         verbose - level of verbosity
         """
         try:
-            import pandas as pd
+            import pandas
         except:
             raise ImportError('aqsraw requires pandas; install pandas (e.g., pip install pandas)')
         if not wktpolygon is None:
