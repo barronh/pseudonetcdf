@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
+import getpass
+from urllib.parse import urlencode
+from urllib.request import urlopen, Request
+
 import time
 from datetime import datetime
 import os
@@ -13,8 +17,8 @@ def getdate(x):
     return datetime.strptime(x, '%Y-%m-%d').strftime('%Y%m%d')
 
 parser = argparse.ArgumentParser("AQS Mart for pnceval")
-parser.add_argument('-u', '--user', required = True, type = str, help = "User name for EPA's AQS Data Mart \"Query Air Data\" application at https://ofmext.epa.gov/AQDMRS/aqdmrs.html")
-parser.add_argument('-p', '--password', required = True, type = str, help = "User name for EPA's AQS Data Mart \"Query Air Data\" application at https://ofmext.epa.gov/AQDMRS/aqdmrs.html")
+parser.add_argument('-u', '--username', required = True, type = str, help = "User name for EPA's AQS Data Mart \"Query Air Data\" application at https://ofmext.epa.gov/AQDMRS/aqdmrs.html")
+parser.add_argument('-p', '--password', required = False, type = str, help = "Password for EPA's AQS Data Mart \"Query Air Data\" application at https://ofmext.epa.gov/AQDMRS/aqdmrs.html")
 parser.add_argument('-s', '--start-date', required = True, dest = 'bdate', type = getdate, help = 'Start date (inclusive) YYYYMMDD')
 parser.add_argument('-e', '--end-date', required = True, dest = 'edate', type = getdate, help = 'Start date (inclusive) YYYYMMDD')
 parser.add_argument('--param', type = str, default = '44201', nargs = '?', help = "Must exist as an AQS parameter")
@@ -22,35 +26,49 @@ parser.add_argument('--frmonly', type = str, choices = ['Y', 'N'], nargs = '?', 
 parser.add_argument('-d', '--download-output', dest = 'downout', type = str, nargs = '?', default = 'AQSREST_DATA.csv', help = 'Path for downloaded output.')
 parser.add_argument('-o', '--output', type = str, dest = 'outpath', nargs = '?', default = 'AQSREST_DATA.nc', help = 'Path for output.')
 parser.add_argument('-O', '--overwrite', dest = 'overwrite', default = False, action = 'store_true', help = 'Ovewrite if output already exists.')
-parser.add_argument('GRIDCRO2D', help = 'CMAQ MCIP GRIDCRO2D file or any file that has LAT and LON variables')
+spacegroup = parser.add_mutually_exclusive_group(required = True)
+spacegroup.add_argument('--gridcro2d', help = 'CMAQ MCIP GRIDCRO2D file or any file that has LAT and LON variables')
+spacegroup.add_argument('--bbox', help = 'minlon,minlat,maxlon,maxlat in degrees east and north or 0N, 0E')
+
 
 args = parser.parse_args()
 
+if args.password is None:
+    args.password = getpass.getpass(prompt='AQS DATA Mart password: ', stream=None)
 
-f = Dataset(args.GRIDCRO2D)
-lon = f.variables['LON'][0, 0]
-lat = f.variables['LAT'][0, 0]
-args.minlon = llcrnrlon = lon[:, 0].max()
-args.maxlon = urcrnrlon = lon[:, -1].min()
-args.minlat = llcrnrlat = lat[0, :].max()
-args.maxlat = urcrnrlat = lat[-1, :].min()
+#authvalues = dict(username = args.username, password = args.password)
+#auth = urlencode(authvalues).encode()
+
+if not args.gridcro2d is None:
+    f = Dataset(args.GRIDCRO2D)
+    lon = f.variables['LON'][0, 0]
+    lat = f.variables['LAT'][0, 0]
+    args.minlon = llcrnrlon = lon[:, 0].max()
+    args.maxlon = urcrnrlon = lon[:, -1].min()
+    args.minlat = llcrnrlat = lat[0, :].max()
+    args.maxlat = urcrnrlat = lat[-1, :].min()
+if not args.bbox is None:
+    args.minlon, args.minlat, args.maxlon, args.maxlat = [float(c) for c in args.bbox.split(',')]
+
 print(args.minlon, args.maxlon)
 print(args.minlat, args.maxlat)
-timezone = lon.mean() // 15.
+#timezone = lon.mean() // 15.
 if os.path.exists(args.outpath) and not args.overwrite:
     raise IOError('Path already exists: %s' % args.outpath)
     
 
 def getrest():
-    urlrequest = "https://ofmext.epa.gov/AQDMRS/ws/rawDataNotify?user=%(user)s&pw=%(password)s&format=DMCSV&param=%(param)s&bdate=%(bdate)s&edate=%(edate)s&minlat=%(minlat)s&maxlat=%(maxlat)s&minlon=%(minlon)s&maxlon=%(maxlon)s&dur=1&frmonly=%(frmonly)s" % dict(args._get_kwargs())
+    url = "https://aqs.epa.gov/api/rawDataNotify?format=DMCSV&user=%(username)s&password=%(password)s&param=%(param)s&bdate=%(bdate)s&edate=%(edate)s&minlat=%(minlat)s&maxlat=%(maxlat)s&minlon=%(minlon)s&maxlon=%(maxlon)s&dur=1&frmonly=%(frmonly)s" % dict(args._get_kwargs())
+    urlrequest = Request(url)#, data = auth)
 
-
-    import urllib2
-    print(urlrequest)
-    dataid = urllib2.urlopen(urlrequest).read()
-    urlstatus = 'https://ofmext.epa.gov/AQDMRS/ws/status?id=' + dataid
+    print(urlrequest, type(urlrequest))
+    import pdb; pdb.set_trace()
+    dataid = urlopen(urlrequest).read()
+    print(dataid)
+    urlstatus = urlencode('https://aqs.epa.gov/api/status?id=' + dataid)
     while True:
         status = urllib2.urlopen(urlstatus).read().strip()
+        print(status)
         print(status, dataid)
         if status in ('Submitted', 'Processing'):
             time.sleep(3)
@@ -60,12 +78,11 @@ def getrest():
             break
         else:
             raise ValueError('AQS Mart returned unknown status (%s). Expected Submitted, Processing, Completed or Error.')
-
-    urldata = 'https://ofmext.epa.gov/AQDMRS/ws/retrieve?id=' + dataid
+    urldata = 'https://aqs.epa.gov/api/retrieve?id=' + dataid
     stmt = ('wget --no-check-certificate -O %s "%s"' % (args.downout, urldata))
     os.system(stmt)
 
-#getrest()
+getrest()
 #data = np.recfromtxt(args.downout, skip_footer = 2, delimiter = ",", names = True)
 def hourly_parser(*args):
     import dateutil
