@@ -28,7 +28,7 @@ parser.add_argument('--username', default = None, help = 'MADIS username')
 parser.add_argument('--password', default = None, help = 'MADIS password')
 parser.add_argument('--cache', default = False, action = 'store_true', help = 'cache MADIS files')
 parser.add_argument('--type', choices = ["sao"   , "metar"  , "maritime", "mesonet", "raob"  , "acarsProfiles"  , "profiler", "profiler", "hydro" ], help = 'MADIS data types')
-spacegroup = parser.add_mutually_exclusive_group(required = True)
+spacegroup = parser.add_mutually_exclusive_group(required = False)
 spacegroup.add_argument('--gridcro2d', dest = 'GRIDCRO2D', help = 'CMAQ MCIP GRIDCRO2D file or any file that has LAT and LON variables')
 spacegroup.add_argument('--wktpolygon')
 parser.add_argument('--START_DATE', type = lambda x: datetime.datetime.strptime(x, '%Y-%m-%d %H:%M'), help = 'YYYY-MM-DD HH:MM')
@@ -48,10 +48,13 @@ if not args.GRIDCRO2D is None:
     llcrnrlat = lat[0, :].max()
     urcrnrlat = lat[-1, :].min()
     bounds = Polygon([(llcrnrlon, llcrnrlat), (llcrnrlon, urcrnrlat), (urcrnrlon, urcrnrlat), (urcrnrlon, llcrnrlat)])
-else:
+    prep_bounds = prep(bounds)
+elif not args.wktpolygon is None:
     bounds = loads(args.wktpolygon)
-
-prep_bounds = prep(bounds)
+    prep_bounds = prep(bounds)
+else:
+    bounds = None
+    prep_bounds = None
 
 level1 = dict(zip(("sao"   , "metar"  , "maritime", "mesonet", "raob"  , "acarsProfiles"  , "profiler", "profiler", "hydro"), ("point" , "point"  , "point"   , "LDAD"   , "point" , "point"          ,  "point"  , "LDAD"    , "LDAD")))[args.type]
 level3 = dict(zip(("sao"   , "metar"  , "maritime", "mesonet", "raob"  , "acarsProfiles"  , "profiler", "profiler", "hydro"), ("netcdf", "netcdf" , "netcdf"  , "netCDF" , "netcdf", "netcdf"         ,  "netcdf" , "netCDF"  , "netCDF")))[args.type]
@@ -118,15 +121,18 @@ ncff = MFDataset([inf.name for inf in infiles], 'r')
 lat = ncff.variables['latitude'][:]
 lon = ncff.variables['longitude'][:]
 points = zip(lon, lat)
-found_point_ids = []
-for pi, point in enumerate(points):
-    isin = prep_bounds.contains(Point(*point))
-    if isin:
-        found_point_ids.append(pi)
-        if args.verbose > 1:
-            print(point, isin)
-    elif args.verbose > 2:
-            print(point, isin)
+if prep_bounds is None:
+    found_point_ids = range(len(points))
+else:
+    found_point_ids = []
+    for pi, point in enumerate(points):
+        isin = prep_bounds.contains(Point(*point))
+        if isin:
+            found_point_ids.append(pi)
+            if args.verbose > 1:
+                print(point, isin)
+        elif args.verbose > 2:
+                print(point, isin)
 
 varkeys = ['temperature', 'windDir', 'windSpeed', 'dewpoint', 'altimeter']
 vardds = [k + 'DD' for k in varkeys]
