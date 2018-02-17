@@ -13,5 +13,6 @@ dependencies:
   - pandas
   - scipy
   - toolz
+  - pyyaml
   - pip:
     - git+https://github.com/Unidata/netcdf4-python.git
