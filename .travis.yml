@@ -1,0 +1,40 @@
+language: python
+matrix:
+  fast_finish: true
+  include:
+  - python: 3.6
+    env: CONDA_ENV=py36-netcdf4-dev
+    addons:
+      apt_packages:
+        - libhdf5-serial-dev
+        - netcdf-bin
+        - libnetcdf-dev
+
+before_install:
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget http://repo.continuum.io/miniconda/Miniconda-3.16.0-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget http://repo.continuum.io/miniconda/Miniconda3-3.16.0-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
+  - conda update -q conda
+  - conda info -a
+
+install:
+  - if [[ "$CONDA_ENV" == "docs" ]]; then
+      conda env create -n test_env --file doc/environment.yml;
+    else
+      conda env create -n test_env --file ci/requirements-$CONDA_ENV.yml;
+    fi
+  - source activate test_env
+  - conda list
+  - pip install --no-deps -e .
+
+script:
+  - python -OO -c "import PseudoNetCDF";
+  - python PseudoNetCDF.test;
+
+  
