@@ -35,6 +35,6 @@ install:
 
 script:
   - python -OO -c "import PseudoNetCDF";
-  - python PseudoNetCDF.test;
+  - python -m PseudoNetCDF.test;
 
   
