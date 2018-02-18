@@ -21,6 +21,9 @@ import PseudoNetCDF as pnc
 inpath = '<path-to-input>'
 outpath = '<path-for-output>'
 infile = pnc.pncopen(inpath, format = '<choose-format-below>')
+# Print CDL representation - good for learning dimensions, variables, and properties
+print(infile)
+# Optionally, add dimension slicing
 # infile = infile.sliceDimensions(<layer-dim-name> = 0)
 # infile = infile.applyAlongDimenions(<time-dim-name> = 'mean')
 # patches = infile.plot('<varkey>', plottype = 'longitude-latitude')
