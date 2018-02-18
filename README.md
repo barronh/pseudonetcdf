@@ -54,6 +54,10 @@ $ pncload -f <choose-format-below> <path-to-input>
 | geoschemfiles.flightlogs | flightlogs |
 | geoschemfiles.geos | geos |
 | noaafiles.arlpackedbit | arlpackedbit |
+| noaafiles.arlconcdump | arlconcdump |
+| noaafiles.arlpackedbit | arlpackedbit |
+| noaafiles.arlpardump | arlpardump |
+| noaafiles.arltrajdump | arltrajdump |
 | textfiles.csv | csv |
 | cmaqfiles.profile.bcon_profile | bcon_profile |
 | cmaqfiles.profile.icon_profile | icon_profile |
