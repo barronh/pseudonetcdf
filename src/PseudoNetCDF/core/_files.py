@@ -1479,37 +1479,80 @@ class PseudoNetCDFTest(unittest.TestCase):
         self.assertEqual(len(sncf.dimensions), len(tncf.dimensions))
         self.assertEqual(set(sncf.dimensions), set(['TIME', 'LAY', 'ROW', 'COL', 'nv']))
         
-    def testSliceDimension(self):
+    def testSliceDimensionInt(self):
         tncf = self.testncf
         o3 = tncf.variables['O3'][:]
         sncf = tncf.sliceDimensions(TSTEP = 0)
         self.assertEqual(len(sncf.dimensions['TSTEP']), 1)
         self.assertEqual(True, (sncf.variables['O3'][:] == tncf.variables['O3'][0]).all())
+        
+    def testSliceDimensionList(self):
+        tncf = self.testncf
+        o3 = tncf.variables['O3'][:]
         sncf = tncf.sliceDimensions(TSTEP = [0])
         self.assertEqual(len(sncf.dimensions['TSTEP']), 1)
         self.assertEqual(True, (sncf.variables['O3'][:] == tncf.variables['O3'][0]).all())
         sncf = tncf.sliceDimensions(TSTEP = [0, 8])
         self.assertEqual(len(sncf.dimensions['TSTEP']), 2)
         self.assertEqual(True, (sncf.variables['O3'][:] == tncf.variables['O3'][[0, 8]]).all())
+    
+    def testSliceDimensionComboListInt(self):
+        tncf = self.testncf
+        o3 = tncf.variables['O3'][:]
         sncf = tncf.sliceDimensions(TSTEP = [0, 8], ROW = 2, COL = 3)
         self.assertEqual(len(sncf.dimensions['TSTEP']), 2)
         self.assertEqual(len(sncf.dimensions['ROW']), 1)
         self.assertEqual(len(sncf.dimensions['COL']), 1)
         self.assertEqual(True, (sncf.variables['O3'][:] == o3[[0, 8], :, 2, 3][:, :, None, None]).all())
+
+    def testSliceDimensionMultiArray(self):
+        tncf = self.testncf
+        o3 = tncf.variables['O3'][:]
         i = np.arange(4)
         sncf = tncf.sliceDimensions(TSTEP = i, LAY = i, ROW = i, COL = i)
         self.assertEqual(len(sncf.dimensions['POINTS']), 4)
         self.assertEqual(True, (sncf.variables['O3'][:] == o3[i, i, i, i]).all())
+
+    def testSliceDimensionSlice(self):
+        tncf = self.testncf
+        o3 = tncf.variables['O3'][:]
+        sncf = tncf.sliceDimensions(ROW = slice(0, 3))
+        self.assertEqual(len(sncf.dimensions['ROW']), 3)
+        self.assertEqual(True, (sncf.variables['O3'][:] == o3[:, :, 0:3, :]).all())
+    
+    def testSliceDimensionMultiSlice(self):
+        tncf = self.testncf
+        o3 = tncf.variables['O3'][:]
+        sncf = tncf.sliceDimensions(LAY = slice(0, 3), ROW = slice(0, 3), COL = slice(0,3))
+        self.assertEqual(len(sncf.dimensions['LAY']), 3)
+        self.assertEqual(len(sncf.dimensions['ROW']), 3)
+        self.assertEqual(len(sncf.dimensions['COL']), 3)
+        self.assertEqual(True, (sncf.variables['O3'][:] == o3[:, 0:3, 0:3, 0:3]).all())
         
-    def testApplyAlongDimensions(self):
+    def testApplyAlongDimensionsNamed(self):
         tncf = self.testncf
         o3 = tncf.variables['O3'][:]
         ancf = tncf.applyAlongDimensions(LAY = 'min')
         self.assertEqual(True, (ancf.variables['O3'][:] == o3.min(1, keepdims = True)).all())
-        # Testing convolution; useful for mda8
+
+    def testApplyAlongDimensionsMultiNamed(self):
+        tncf = self.testncf
+        o3 = tncf.variables['O3'][:]
+        ancf = tncf.applyAlongDimensions(LAY = 'min', ROW = 'max')
+        self.assertEqual(True, (ancf.variables['O3'][:] == o3.min(1, keepdims = True).max(2, keepdims = True)).all())
+
+    def testApplyAlongDimensionsConvolve(self):
+        tncf = self.testncf
+        o3 = tncf.variables['O3'][:]
         ancf = tncf.applyAlongDimensions(TSTEP = lambda x: np.convolve(x, np.ones(2, dtype = 'f') / 2., mode = 'valid'))
         co3 = (o3[1:] + o3[:-1]) / 2
         self.assertEqual(True, (ancf.variables['O3'][:] == co3).all())
+    
+    def testApplyAlongDimensionsConvolveWithMax(self):
+        tncf = self.testncf
+        o3 = tncf.variables['O3'][:]
+        co3 = (o3[1:] + o3[:-1]) / 2
+        # Testing convolution; useful for mda8
         ancf = tncf.applyAlongDimensions(TSTEP = lambda x: np.convolve(x, np.ones(2, dtype = 'f') / 2., mode = 'valid')).applyAlongDimensions(TSTEP = np.max)
         mco3 = co3.max(0, keepdims = True)
         self.assertEqual(True, (ancf.variables['O3'][:] == mco3).all())
