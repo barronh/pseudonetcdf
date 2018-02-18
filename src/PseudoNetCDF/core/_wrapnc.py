@@ -1,8 +1,8 @@
 from ._files import PseudoNetCDFFile
 from collections import OrderedDict
 
-class WrapDict():
-    def __init__(self, other):
+class WrapDict(OrderedDict):
+    def __init__(self, other = {}):
         self._other = other
         self._mine = OrderedDict()
     
@@ -65,7 +65,8 @@ class WrapDict():
         return outf.__str__()
     
 class WrapPNC(PseudoNetCDFFile):
-    def isMine(path):
+    @classmethod
+    def isMine(cls, path):
         return False
     
     def __init__(self, *args, **kwds):

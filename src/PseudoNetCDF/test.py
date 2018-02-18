@@ -3,6 +3,9 @@ test_suite = TestSuite()
 def addTestCasesFromModule(module):
     test_suite.addTests(findTestCases(module))
 
+from .core import _files
+addTestCasesFromModule(_files)
+
 from . import sci_var
 addTestCasesFromModule(sci_var)
 

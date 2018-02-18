@@ -14,7 +14,7 @@ from .geoschemfiles import *
 from .noaafiles import *
 from .conventions.ioapi import *
 from .aermodfiles import *
-from PseudoNetCDF import PseudoNetCDFFile
+from PseudoNetCDF import PseudoNetCDFFile, netcdf
 from PseudoNetCDF.netcdf import NetCDFFile
 
 allreaders = getreaderdict()
@@ -28,7 +28,7 @@ _writernames.sort()
 _writernames = [k for c, k in _writernames]
 
 try:
-    from netCDF4 import Dataset as netcdf, MFDataset
+    from netCDF4 import MFDataset
 except:
     pass
 

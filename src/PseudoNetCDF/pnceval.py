@@ -416,7 +416,11 @@ def pnceval(args):
     np.seterr(divide = 'ignore', invalid = 'ignore')
     if args.csv:
         from collections import OrderedDict
-        import pandas
+        try:
+            import pandas
+            import pandas as pd
+        except:
+            raise ImportError('pnceval requires pandas; install pandas (e.g., pip install pandas)')
         output = OrderedDict()
     for k in args.funcs:
         console.locals[k] = func = eval(k)

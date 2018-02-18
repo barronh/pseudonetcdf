@@ -85,9 +85,12 @@ def getvarpnc(f, varkeys, coordkeys = [], copy = True):
             warn('Skipping %s' % ', '.join(skipping))
         varkeys = newvarkeys
 
-    outf = PseudoNetCDFFile._newlike(f)
-    for propkey in f.ncattrs():
-        setattr(outf, propkey, getattr(f, propkey))
+    if hasattr(f, 'copy'):
+        outf = f.copy(props = True, dimensions = False, variables = False, data = False)
+    else:
+        from PseudoNetCDF.sci_var import WrapPNC
+        outf = WrapPNC(f).copy(props = True, dimensions = False, variables = False, data = False)
+    
     for varkey in varkeys:
         try:
             var = eval(varkey, None, f.variables)
@@ -604,13 +607,7 @@ def pncbo(op, ifile1, ifile2, coordkeys = [], verbose = 0):
     
     op can be any valid operator (e.g., +, -, /, *, **, &, ||)
     """
-    from PseudoNetCDF.sci_var import Pseudo2NetCDF
-    # Copy infile1 to a temporary PseudoNetCDFFile
-    p2p = Pseudo2NetCDF()
-    p2p.verbose = verbose
-    tmpfile = PseudoNetCDFFile()
-    p2p.addGlobalProperties(ifile1, tmpfile)
-    p2p.addDimensions(ifile1, tmpfile)
+    tmpfile = ifile1.copy(props = True, dimensions = True, variables = False, data = False)
     
     # For each variable, assign the new value
     # to the tmpfile variables.
@@ -618,7 +615,7 @@ def pncbo(op, ifile1, ifile2, coordkeys = [], verbose = 0):
         in1var = ifile1.variables[k]
         if k not in ifile2.variables.keys() or k in coordkeys:
             warn('%s not found in ifile2' % k)
-            p2p.addVariable(ifile1, tmpfile, k)
+            tmpfile.copyVariable(in1var, newkey = k)
         else:
             in2var = ifile2.variables[k]
             propd = dict([(ak, getattr(in1var, ak)) for ak in in1var.ncattrs()])
@@ -627,6 +624,7 @@ def pncbo(op, ifile1, ifile2, coordkeys = [], verbose = 0):
             propd['units'] = '(%s) %s (%s)' % (unit1, op, unit2)
             outval = np.ma.masked_invalid(eval('in1var[...] %s in2var[...]' % op).view(np.ndarray))
             outvar = tmpfile.createVariable(k, in1var.dtype.char, in1var.dimensions, fill_value = -999, values = outval)
+            outvar.setncatts(propd)
     return tmpfile
 
 def pncbfunc(func, ifile1, ifile2, coordkeys = [], verbose = 0):

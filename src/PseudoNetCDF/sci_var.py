@@ -13,7 +13,7 @@ are attached and the arrays implement the Scientific.IO.NetCDF.NetCDFVariable
 interfaces.
 """
 
-__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFDimension', 'PseudoNetCDFVariableConvertUnit', 'PseudoNetCDFFileMemmap', 'PseudoNetCDFVariable', 'PseudoNetCDFMaskedVariable', 'PseudoIOAPIVariable', 'PseudoNetCDFVariables', 'Pseudo2NetCDF', 'reduce_dim', 'slice_dim', 'getvarpnc', 'interpvars', 'extract', 'pncbo', 'seqpncbo', 'pncexpr']
+__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFDimension', 'PseudoNetCDFVariableConvertUnit', 'PseudoNetCDFVariable', 'PseudoNetCDFMaskedVariable', 'PseudoIOAPIVariable', 'PseudoNetCDFVariables', 'Pseudo2NetCDF', 'reduce_dim', 'slice_dim', 'getvarpnc', 'interpvars', 'extract', 'pncbo', 'seqpncbo', 'pncexpr']
 
 HeadURL="$HeadURL$"
 ChangeDate = "$LastChangedDate$"
@@ -21,7 +21,7 @@ RevisionNum= "$LastChangedRevision$"
 ChangedBy  = "$LastChangedBy$"
 __version__ = RevisionNum
 
-from .core._files import PseudoNetCDFFile, PseudoNetCDFFileMemmap, PseudoNetCDFVariables, OrderedDict
+from .core._files import PseudoNetCDFFile, PseudoNetCDFVariables, OrderedDict
 from .core._wrapnc import WrapPNC
 from .core._dimensions import PseudoNetCDFDimension
 from .core._variables import PseudoNetCDFVariable, PseudoNetCDFMaskedVariable, PseudoIOAPIVariable

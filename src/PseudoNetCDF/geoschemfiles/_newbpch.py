@@ -252,26 +252,36 @@ class bpch2(bpch_base):
         self.modelres = tmpvar._header['modelres'][0]
         self.halfpolar = tmpvar._header['halfpolar'][0]
         self.center180 = tmpvar._header['center180'][0]
-        for key in outpos:
-            tmpvar = tmpvariables[key]
-            longitudes.append(tmpvar.nlongitudes)
-            latitudes.append(tmpvar.nlatitudes)
-            levels.append(tmpvar.nlevels)
-            if nogroup:
-                tmpkey = str(tmpvar.shortname)
-            else:
-                tmpkey = tmpvar.category + str('_') + tmpvar.shortname
-            var = self.createVariable(tmpkey, tmpvar.dtype.char, ('time', 'layer%d' % tmpvar.nlevels, 'latitude', 'longitude'), values = tmpvar)
-            for k in tmpvar.ncattrs():
-                setattr(var, k, getattr(tmpvar, k))
-        tmpvar = list(tmpvariables.values())[0]
-        self.createDimension('time', max([len(pos) for pos in outpos.values()]))
+        ntimes = [tmpvar.shape[0] for tmpkey, tmpvar in tmpvariables.items()]
+        levels = [tmpvar.nlevels for tmpkey, tmpvar in tmpvariables.items()]
+        latitudes = [tmpvar.nlatitudes for tmpkey, tmpvar in tmpvariables.items()]
+        longitudes = [tmpvar.nlongitudes for tmpkey, tmpvar in tmpvariables.items()]
+        maxntimes = max(ntimes)
+        self.createDimension('time', maxntimes)
+        for time in set(levels):
+            if time != 1: self.createDimension('time%d' % time, time)
         self.createDimension('layer', min(max(levels), self.Ap.size - 1))
-        for layer in levels:
+        for layer in set(levels):
             self.createDimension('layer%d' % layer, layer)
         self.createDimension('latitude', max(latitudes)) 
         self.createDimension('longitude', max(longitudes)) 
         self.createDimension('nv', 2)
+        for key in outpos:
+            tmpvar = tmpvariables[key]
+            if nogroup:
+                tmpkey = str(tmpvar.shortname)
+            else:
+                tmpkey = tmpvar.category + str('_') + tmpvar.shortname
+            if tmpvar.shape[0] == maxntimes:
+                outdims = ('time', 'layer%d' % tmpvar.nlevels, 'latitude', 'longitude')
+                tmpvals = tmpvar
+            elif tmpvar.shape[0] == 1:
+                outdims = ('layer%d' % tmpvar.nlevels, 'latitude', 'longitude')
+                tmpvals = tmpvar[0]
+            var = self.createVariable(tmpkey, tmpvar.dtype.char, outdims, values = tmpvar)
+            for k in tmpvar.ncattrs():
+                setattr(var, k, getattr(tmpvar, k))
+        tmpvar = list(tmpvariables.values())[0]
         add_lat(self, 'latitude', tmpvar)
         add_lat(self, 'latitude_bounds', tmpvar)
         add_lon(self, 'longitude', tmpvar)

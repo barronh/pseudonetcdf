@@ -427,8 +427,187 @@ coordkeys = 'time latitude longitude layer time_bounds latitude_bounds longitude
 metakeys = ['VOL', 'AREA', 'tau0', 'tau1'] + coordkeys
 
 class bpch_base(PseudoNetCDFFile):
-    def subsetVariables(self, varkeys, inplace = False):
-        varkeys = [key for key in coordkeys if not key in varkeys and key in self.variables] + varkeys
+    """
+    Binary Punch File reader
+    """
+    def getTimes(self, bounds = False):
+        from datetime import datetime, timedelta
+        from ..coordutil import _parse_ref_date
+        if bounds:
+            timeb = self.variables['time_bounds']
+            timeunit = timeb.units.strip()
+            time = np.append(timeb[:, 0], timeb[-1, -1])
+        else:
+            time = self.variables['time']
+            timeunit = time.units.strip()
+        if 'since' in timeunit:
+            unit, base = timeunit.split(' since ')
+            sdate = _parse_ref_date(base)
+            out = sdate + np.array([timedelta(**{unit: float(i)}) for i in time[:]])
+            return out
+        else:
+            return time
+    def plot(self, varkey, plottype = 'longitude-latitude', ax_kw = {}, plot_kw = {}, cbar_kw = {}, dimreduction = 'mean', laykey = None):
+        """
+        Parameters
+        ----------
+        self : the bpch file
+        varkey : the variable to plot
+        plottype : longitude-latitude, latitude-pressure, longitude-pressure, vertical-profile,
+                   time-longitude, time-latitude, time-pressure, default, longitude-latitude
+        ax_kw : keywords for the axes to be created
+        plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be created
+        cbar_kw : keywords for the colorbar
+        dimreduction : default function for removing dimensions
+        laykey : name of the layer dimension (e.g., layer47)
+        """
+        import matplotlib.pyplot as plt
+        from ..coordutil import getbounds
+        apply2dim = {}
+        var = self.variables[varkey]
+        varunit = varunit = varkey + ' (' + getattr(var, 'units', None) + ')'
+        dimlens = dict([(dk, len(self.dimensions[dk])) for dk in var.dimensions])
+        dimpos = dict([(dk, di) for di, dk in enumerate(var.dimensions)])
+        if laykey is None:
+             for k in list(dimlens):
+                 if k.startswith('layer'):
+                     laykey = k
+                     break
+        xkey, ykey = plottype.split('-')
+        for dimkey in 'longitude latitude time'.split():
+            if dimkey in var.dimensions:
+                if not dimkey in (xkey, ykey) and dimlens.get(dimkey, 1) > 1:
+                    apply2dim[dimkey] = dimreduction
+        
+        if not 'pressure' in (xkey, ykey) and dimlens.get(laykey, 1) > 1:
+            apply2dim[laykey] = dimreduction
+        
+        if len(apply2dim) > 0:
+           myf = self.applyAlongDimensions(**apply2dim)
+           var = myf.variables[varkey]
+           dimlens = dict([(dk, len(self.dimensions[dk])) for dk in var.dimensions])
+        else:
+           myf = self
+        if ykey in ('profile',):
+            if xkey == 'pressure':
+                vaxi = var.dimensions.index(laykey)
+            else:
+                vaxi = var.dimensions.index(xkey)
+            vsize = var.shape[vaxi]
+            vals = np.rollaxis(var[:], vaxi).reshape(vsize, -1)
+        else:
+            vals = var[:].squeeze()
+        
+        ax = plt.gca(**ax_kw)
+        if ykey in ('profile',):
+            if xkey == 'pressure':
+                y = myf.variables['etam_pressure'] 
+            else:
+                y = getbounds(myf, xkey)
+            
+            x0 = vals[:].min(0)
+            xm = vals[:].mean(0)
+            x1 = vals[:].max(0)
+            ax.fill_betweenx(y = y, x0 = x0, x1 = x1, label = varkey + '(min, max)')
+            ax.plot(xm, y, label = varkey, **plot_kw)
+            ax.set_ylabel(xkey)
+            ax.set_xlabel(varunit)
+            return ax
+        
+        if xkey == 'time':
+            x = myf.getTimes(bounds = True)
+            x = plt.matplotlib.dates.date2num(x)
+        elif xkey == 'pressure':
+            x = myf.variables['etai_pressure'][:dimlens[laykey]+1]
+        else:
+            x = getbounds(myf, xkey)
+        if ykey == 'time':
+            y = myf.getTimes(bounds = True)
+            y = plt.matplotlib.dates.date2num(y)
+        elif ykey == 'pressure':
+            y = myf.variables['etai_pressure'][:dimlens[laykey]+1]
+        else:
+            y = getbounds(myf, ykey)
+        
+        if dimpos[xkey] < dimpos[ykey]:
+            vals = vals.T
+        p = ax.pcolormesh(x, y, vals, **plot_kw)
+        ax.figure.colorbar(p, label = varunit, **cbar_kw)
+        if ykey == 'pressure':
+            ax.set_ylim(y.max(), y.min())
+        dfmt = plt.matplotlib.dates.AutoDateFormatter(plt.matplotlib.dates.AutoDateLocator(interval_multiples  = True))
+        dfmt.scaled[365] = '%F'
+        dfmt.scaled[30] = '%F'
+        if xkey == 'time':
+            ax.xaxis.set_major_formatter(dfmt)
+        if ykey == 'time':
+            ax.yaxis.set_major_formatter(dfmt)
+        if plottype == 'longitude-latitude':
+            try:
+                bmap = myf.getMap()
+                bmap.drawcoastlines(ax = ax)
+                bmap.drawcountries(ax = ax)
+            except:
+                pass
+        else:
+            ax.set_xlabel(xkey)
+            ax.set_ylabel(ykey)
+        return ax
+    
+    def interpSigma(self, vglvls, vgtop = None, interptype = 'linear', extrapolate = False, fill_value = 'extrapolate', approach = 'eta'):
+        """
+        Parameters
+        ----------
+        self : the file to interpolate from must have VGLVLS
+        vglvls : the new vglvls (edges)
+        vgtop : Converting to new vgtop (Pascals)
+        interptype : 'linear' or 'conserve'
+             linear : uses a linear interpolation
+             conserve : uses a mass conserving interpolation
+        extrapolate : allow extrapolation beyond bounds with linear, default False
+        fill_value : set fill value (e.g, nan) to prevent extrapolation or edge 
+                     continuation
+        approach :
+             eta : use simple eta coordinates to calculate sigma and interpolate
+             pressure : requires surface pressure
+        Returns
+        -------
+        outf - ioapi_base PseudoNetCDFFile with al variables interpolated
+        
+        Notes
+        -----
+        When extrapolate is false, the edge values are used for points beyond
+        the inputs.
+        """
+        etai = self.variables['etai_pressure'] * 100
+        # grab input sigma coordinates
+        myvglvls = (etai - vgtop) / (etai[0] - vgtop)
+                
+        # Use midpoint for sigmas in inputs and outputs
+        zs = (myvglvls[:-1]+myvglvls[1:])/2.
+        nzs = (vglvls[:-1]+vglvls[1:])/2.
+        
+        
+        if interptype == 'linear':
+            from ..coordutil import getinterpweights
+            weights = getinterpweights(zs, nzs, kind = interptype, fill_value = fill_value, extrapolate = extrapolate)
+            # Create a function for interpolation
+            def interpsigma(data):
+                if data.ndim == 1:
+                    newdata = (weights * data[:, None]).sum(0)
+                else:
+                    newdata = (weights[None, :, :, None, None] * data[:, :, None]).sum(1)
+                return newdata
+        else:
+            raise ValueError('interptype only implemented for "linear"')
+        
+        # Apply function on LAY
+        outf = self.applyAlongDimensions(LAY = interpsigma)
+        
+        return outf
+        
+    def subsetVariables(self, varkeys, inplace = False, keepcoords = True):
+        if keepcoords: varkeys = [key for key in coordkeys if not key in varkeys and key in self.variables] + varkeys
         return PseudoNetCDFFile.subsetVariables(self, varkeys, inplace = inplace)
             
     def xy2ll(self, x, y):
@@ -450,9 +629,19 @@ class bpch_base(PseudoNetCDFFile):
         lon = np.asarray(self.variables['longitude'])
         return lon[i], lat[j]
         
-    def ll2ij(self, lon, lat):
+    def ll2ij(self, lon, lat, bounds = 'error'):
         """
-        lon and lat may be scalars or vectors, but matrices will crash
+        Converts lon/lat to 0-based indicies (0,M), (0,N)
+
+        Parameters
+        ----------
+        lon : scalar or iterable of longitudes in decimal degrees
+        lat : scalar or iterable of latitudes in decimal degrees
+        bounds : ignore, error, warn if i,j are out of domain
+
+        Returns
+        -------
+        i, j : indices (0-based) for variables
         """
         late = np.asarray(self.variables['latitude_bounds'])
         lone = np.asarray(self.variables['longitude_bounds'])
