@@ -14,5 +14,5 @@ dependencies:
   - scipy
   - toolz
   - pyyaml
-  - pip:
-    - git+https://github.com/Unidata/netcdf4-python.git
+  - hdf5
+  - netcdf4
