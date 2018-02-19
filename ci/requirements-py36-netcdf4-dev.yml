@@ -16,5 +16,4 @@ dependencies:
   - pyyaml
   - hdf5
   - netcdf4
-  - pyproj
   
