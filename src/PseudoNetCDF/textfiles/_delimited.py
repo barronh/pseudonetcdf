@@ -103,7 +103,7 @@ def ncf2csv(ifile, outpath, delimiter = ',', coordkeys = "time time_bounds TFLAG
 from PseudoNetCDF._getwriter import registerwriter
 registerwriter('csv', ncf2csv)
 import unittest
-class TestMemmaps(unittest.TestCase):
+class TestCsv(unittest.TestCase):
     def setUp(self):
         import sys
         from PseudoNetCDF import PseudoNetCDFFile

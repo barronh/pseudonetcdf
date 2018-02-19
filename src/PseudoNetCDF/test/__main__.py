@@ -3,16 +3,16 @@ test_suite = TestSuite()
 def addTestCasesFromModule(module):
     test_suite.addTests(findTestCases(module))
 
-from .core import _files
+from ..core import _files
 addTestCasesFromModule(_files)
 
-from . import sci_var
+from .. import sci_var
 addTestCasesFromModule(sci_var)
 
-from . import ArrayTransforms
+from .. import ArrayTransforms
 addTestCasesFromModule(ArrayTransforms)
 
-from . import camxfiles
+from .. import camxfiles
 addTestCasesFromModule(camxfiles.wind.Memmap)
 addTestCasesFromModule(camxfiles.humidity.Memmap)
 addTestCasesFromModule(camxfiles.temperature.Memmap)
@@ -30,26 +30,26 @@ addTestCasesFromModule(camxfiles.irr.Memmap)
 addTestCasesFromModule(camxfiles.FortranFileUtil)
 addTestCasesFromModule(camxfiles.timetuple)
 
-from . import net_balance
+from .. import net_balance
 addTestCasesFromModule(net_balance)
 
-from . import geoschemfiles
+from .. import geoschemfiles
 addTestCasesFromModule(geoschemfiles._bpch)
 addTestCasesFromModule(geoschemfiles._newbpch)
 addTestCasesFromModule(geoschemfiles._geos)
 
-from . import textfiles
+from .. import textfiles
 addTestCasesFromModule(textfiles._delimited)
 
-from . import icarttfiles
+from .. import icarttfiles
 addTestCasesFromModule(icarttfiles.ffi1001)
 
-from . import _getreader
+from .. import _getreader
 addTestCasesFromModule(_getreader)
 
-def test():
+def test_all():
 	TextTestRunner(verbosity=2).run(test_suite)
 
 if __name__=='__main__':
-	test()
+	test_all()
 

@@ -287,8 +287,7 @@ class TestRead(unittest.TestCase):
         pass
         
     def testIPR(self):
-        emissfile=ipr('../../../../testdata/ei/camx_cb4_ei_lo.20000825.hgb8h.base1b.psito2n2.hgbpa_04km')
-        self.assert_(1==2)
+        warn('Test not implemented; data too big for distribution')
         
 if __name__ == '__main__':
     unittest.main()

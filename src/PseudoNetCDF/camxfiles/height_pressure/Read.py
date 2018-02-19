@@ -120,7 +120,7 @@ class height_pressure(PseudoNetCDFFile):
         self.start_time,self.start_date=self.rffile.read(self.id_fmt)
         self.record_size=self.rffile.record_size
         self.padded_size=self.record_size+8
-        self.cell_count=(self.record_size-self.id_size)/struct.calcsize(self.data_fmt)
+        self.cell_count=(self.record_size-self.id_size)//struct.calcsize(self.data_fmt)
         self.record_fmt=self.id_fmt+self.data_fmt*(self.cell_count)
         
     def __gettimestep(self):
@@ -244,8 +244,8 @@ class height_pressure(PseudoNetCDFFile):
         a=zeros((self.time_step_count,len(self.dimensions['LAY']),len(self.dimensions['ROW']),len(self.dimensions['COL'])),'f')
             
         for ti,(d,t) in enumerate(self.timerange()):
-            for ki,k in enumerate(xrange(1,self.nlayers+1)):
-                self.seekandreadinto(a[ti,ki,...,...],d,t,k,hp)
+            for ki,k in enumerate(range(1,self.nlayers+1)):
+                self.seekandreadinto(a[ti,ki,...],d,t,k,hp)
         return a
     
     def timerange(self):
@@ -259,15 +259,9 @@ class TestRead(unittest.TestCase):
         pass
 
     def testHP(self):
-        hpfile=height_pressure('../../../../testdata/met/camx_zp.20000825.hgbpa_04km.TCEQuh1_eta.v43',65,83)
-        self.assert_((hpfile.variables['HGHT'].mean(0).mean(1).mean(1)==array([    33.890625  ,     84.93463135,    170.56620789,    256.90753174,
-          343.97067261,    431.7701416 ,    520.31616211,    609.62701416,
-          699.71228027,    790.59112549,    928.42340088,   1068.12695312,
-         1209.74743652,   1353.35302734,   1597.25683594,   1847.13049316,
-         2103.29101562,   2366.0949707 ,   2690.75830078,   3026.26611328,
-         3373.41748047,   4106.40332031,   4898.45361328,   5836.37402344,
-         6961.35107422,   9166.87207031,  13057.72558594,  15177.14160156],dtype='f')).all())
-
+        import PseudoNetCDF.testcase
+        hpfile=height_pressure(PseudoNetCDF.testcase.camxfiles_paths['height_pressure'],4,5)
+        self.assert_((hpfile.variables['HGHT']==array([  3.38721924e+01, 3.40657959e+01, 3.41392822e+01, 3.42358398e+01, 3.42543945e+01, 3.38868408e+01, 3.40622559e+01, 3.42358398e+01, 3.44768066e+01, 3.46112061e+01, 3.37558594e+01, 3.39323730e+01, 3.42663574e+01, 3.46854248e+01, 3.48144531e+01, 3.39472656e+01, 3.41900635e+01, 3.46160889e+01, 3.48209229e+01, 3.47874756e+01, 6.78652344e+01, 6.82532959e+01, 6.84020996e+01, 6.85950928e+01, 6.86304932e+01, 6.78945312e+01, 6.82465820e+01, 6.85941162e+01, 6.90783691e+01, 6.93474121e+01, 6.76313477e+01, 6.79859619e+01, 6.86558838e+01, 6.94960938e+01, 6.97552490e+01, 6.80159912e+01, 6.85028076e+01, 6.93570557e+01, 6.97674561e+01, 6.97009277e+01, 1.01980713e+02, 1.02563843e+02, 1.02787109e+02, 1.03077759e+02, 1.03131104e+02, 1.02022949e+02, 1.02553101e+02, 1.03076904e+02, 1.03804565e+02, 1.04208984e+02, 1.01628662e+02, 1.02162842e+02, 1.03169922e+02, 1.04433838e+02, 1.04823120e+02, 1.02206909e+02, 1.02940186e+02, 1.04224609e+02, 1.04841797e+02, 1.04740723e+02, 3.38721924e+01, 3.40657959e+01, 3.41392822e+01, 3.42358398e+01, 3.42543945e+01, 3.38868408e+01, 3.40622559e+01, 3.42358398e+01, 3.44768066e+01, 3.46112061e+01, 3.37558594e+01, 3.39323730e+01, 3.42663574e+01, 3.46854248e+01, 3.48144531e+01, 3.39472656e+01, 3.41900635e+01, 3.46160889e+01, 3.48209229e+01, 3.47874756e+01, 6.78652344e+01, 6.82532959e+01, 6.84020996e+01, 6.85950928e+01, 6.86304932e+01, 6.78945312e+01, 6.82465820e+01, 6.85941162e+01, 6.90783691e+01, 6.93474121e+01, 6.76313477e+01, 6.79859619e+01, 6.86558838e+01, 6.94960938e+01, 6.97552490e+01, 6.80159912e+01, 6.85028076e+01, 6.93570557e+01, 6.97674561e+01, 6.97009277e+01, 1.01980713e+02, 1.02563843e+02, 1.02787109e+02, 1.03077759e+02, 1.03131104e+02, 1.02022949e+02, 1.02553101e+02, 1.03076904e+02, 1.03804565e+02, 1.04208984e+02, 1.01628662e+02, 1.02162842e+02, 1.03169922e+02, 1.04433838e+02, 1.04823120e+02, 1.02206909e+02, 1.02940186e+02, 1.04224609e+02, 1.04841797e+02, 1.04740723e+02],dtype='f').reshape(2, 3, 4, 5)).all())
         
 if __name__ == '__main__':
     unittest.main()

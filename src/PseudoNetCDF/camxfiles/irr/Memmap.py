@@ -204,7 +204,7 @@ class TestMemmap(unittest.TestCase):
         pass
         
     def testIRR(self):
-        warn('Test not implemented')
+        warn('Test not implemented; data too big for distribution')
        
 if __name__ == '__main__':
     unittest.main()

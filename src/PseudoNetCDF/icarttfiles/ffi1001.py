@@ -302,7 +302,7 @@ from PseudoNetCDF._getwriter import registerwriter
 registerwriter('ffi1001', ncf2ffi1001)    
 
 import unittest
-class TestMemmaps(unittest.TestCase):
+class TestFfi1001(unittest.TestCase):
     def setUp(self):
         from PseudoNetCDF.testcase import icarttfiles_paths
         self.ffi1001path=icarttfiles_paths['ffi1001']

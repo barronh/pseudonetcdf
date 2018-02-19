@@ -321,7 +321,7 @@ def Int2Asc(mspec):
     """
     spcname=""
     for c in mspec:
-        spcname+= chr((((c-32)/256-32)/256-32)/256)
+        spcname+= chr((((c-32)//256-32)//256-32)//256)
     return spcname
 
 def Asc2Int(spcname):
