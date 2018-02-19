@@ -4,11 +4,6 @@ matrix:
   include:
   - python: 3.6
     env: CONDA_ENV=py36-netcdf4-dev
-    addons:
-      apt_packages:
-        - libhdf5-serial-dev
-        - netcdf-bin
-        - libnetcdf-dev
 
 before_install:
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
