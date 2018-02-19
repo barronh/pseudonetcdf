@@ -1,3 +1,7 @@
+# PseudoNetCDF like NetCDF except for many scientific format backends
+
+[![Build Status](https://travis-ci.org/barronh/pseudonetcdf.svg?branch=master)](https://travis-ci.org/barronh/pseudonetcdf)
+
 # Overview
 
 PseudoNetCDF provides read, plot, and sometimes write capabilities for atmospheric science data formats including:
