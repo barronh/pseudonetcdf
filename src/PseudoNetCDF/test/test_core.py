@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoNetCDFVariable
+from . import requires_basemap, requires_pyproj
 
 class PseudoNetCDFFileTest(unittest.TestCase):
     def setUp(self):
@@ -170,14 +171,17 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         mco3 = co3.max(0, keepdims = True)
         self.assertEqual(True, (ancf.variables['O3'][:] == mco3).all())
         
+    @requires_basemap
     def testGetMap(self):
         tncf = self.testncf
         m = tncf.getMap(maptype = 'basemap_auto')
 
+    @requires_pyproj
     def testGetproj(self):
         tncf = self.testncf
         p = tncf.getproj(withgrid = False, projformat = 'pyproj')
 
+    @requires_pyproj
     def testLl2xy(self):
         tncf = self.testncf
         crs = tncf.variables['lambert_conformal_conic']
@@ -187,6 +191,7 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         x0t, y0t = tncf.ll2xy(lon0, lat0)
         self.assertEqual((x0, y0), (x0t, y0t))
 
+    @requires_pyproj
     def testLl2ij(self):
         tncf = self.testncf
         crs = tncf.variables['lambert_conformal_conic']
@@ -197,6 +202,7 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         self.assertEqual(0, i0)
         self.assertEqual(0, j0)
 
+    @requires_pyproj
     def testXy2ll(self):
         tncf = self.testncf
         crs = tncf.variables['lambert_conformal_conic']
@@ -209,6 +215,7 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         self.assertEqual(True, np.allclose(lon0, tncf.variables['longitude_bounds'][0, 0, 0]))
         self.assertEqual(True, np.allclose(lat0, tncf.variables['latitude_bounds'][0, 0, 0]))
         
+    @requires_pyproj
     def testIj2ll(self):
         tncf = self.testncf
         lon0, lat0 = tncf.ij2ll(0, 0)
