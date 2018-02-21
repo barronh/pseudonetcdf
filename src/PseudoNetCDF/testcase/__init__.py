@@ -1,6 +1,6 @@
 __all__ = ['camxfiles_paths', 'net_balance_paths', 'geoschemfiles_paths', 'icarttfiles_paths', 'all_paths', 'self_described_paths']
 
-from os.path import join
+from os.path import join, realpath, abspath
 
 camxfiles_paths = dict(wind = 'camxfiles/wind/test.wind',
                  landuse = 'camxfiles/landuse/test.landuse',
@@ -14,7 +14,7 @@ camxfiles_paths = dict(wind = 'camxfiles/wind/test.wind',
                  lateral_boundary = 'camxfiles/lateral_boundary/test.lateral_boundary')
 
 for key, val in camxfiles_paths.items():
-    camxfiles_paths[key] = join(*__path__ + val.split('/'))
+    camxfiles_paths[key] = abspath(join(*__path__ + val.split('/')))
 
 net_balance_paths = dict(
                  mrg_file = 'net_balance/test.mrg_file',

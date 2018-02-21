@@ -265,7 +265,7 @@ class TestMemmap(unittest.TestCase):
         pass
         
     def testIPR(self):
-        warn('Test not implemented')
+        warn('Test not implemented; data too big for distribution')
        
 if __name__ == '__main__':
     unittest.main()

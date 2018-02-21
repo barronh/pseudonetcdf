@@ -111,22 +111,3 @@ class osat(PseudoNetCDFFile):
         v.VAR_NAMES=''.join([nm.ljust(16) for nm in var_id_names])
         #v.VAR_NAME_DESCS=''.join([nm.ljust(16) for nm in var_nm_names])
         return v
-
-class TestMemmap(unittest.TestCase):
-    def runTest(self):
-        pass
-    def setUp(self):
-        pass
-    def testOSAT(self):
-        from pyPA.testcase import CAMxOSATInst
-        warn("OSAT test is not implemented: review output for reasonabilty")
-        o=osat(CAMxOSATInst)
-        k='NOX__'
-        
-        v=o.variables[k]
-        print(k,v.VAR_NAMES)
-        print(v.sum(),v.min(),v.mean(),v.max())
-        keys=[k for k in o._osat__child.variables.keys() if k[:3]=='NOX']
-        for k in keys:
-            v=o.variables[k]
-            print(k,v.sum(),v.min(),v.mean(),v.max())

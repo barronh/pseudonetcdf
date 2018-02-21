@@ -182,7 +182,7 @@ class point_source(PseudoNetCDFFile):
         self.start_date,self.start_time,end_date,end_time=self.rffile.read(self.time_hdr_fmt)
         
         self.time_step=timediff((self.start_date,self.start_time),(end_date,end_time))
-        self.end_time += self.time_step
+        #self.end_time += self.time_step
         self.time_step_count=int(timediff((self.start_date,self.start_time),(self.end_date,self.end_time),(2400,24)[int(self.time_step % 2)])/self.time_step)
         
         self.stk_time_prop_fmt=""+("iiiff"*self.nstk)
@@ -202,7 +202,8 @@ class point_source(PseudoNetCDFFile):
     
     def __gettimeprops(self):
         self.stk_time_props=[]
-        for ti,(d,t) in enumerate(timerange((self.start_date,self.start_time),(self.end_date,self.end_time),self.time_step,(2400,24)[int(self.time_step % 2)])):
+        dates = timerange((self.start_date,self.start_time),(self.end_date,self.end_time),self.time_step,(2400,24)[int(self.time_step % 2)])
+        for ti,(d,t) in enumerate(dates):
             tmpprop=zeros((len(self.stk_time_prop_fmt)),'f')
             tmpprop[...]=self.seekandread(d,t,1,True,self.stk_time_prop_fmt)
             tmpprop=tmpprop.reshape(self.nstk,5)
@@ -217,7 +218,7 @@ class point_source(PseudoNetCDFFile):
         Calculate the number of records to increment to reach time (d,t)
         """
         d, t = dt
-        nsteps=timediff((self.start_date,self.start_time),(d,t),(2400,24)[int(self.time_step % 2)])
+        nsteps=int(timediff((self.start_date,self.start_time),(d,t),(2400,24)[int(self.time_step % 2)]))
         nspec=self.__spcrecords(self.nspec+1)
         return nsteps*(nspec)
         
@@ -238,7 +239,7 @@ class point_source(PseudoNetCDFFile):
         spc - integer
         """
         ntime=self.__timerecords((date,time))
-        nhdr=((ntime/self.__spcrecords(self.nspec+1))+1)
+        nhdr=((ntime//self.__spcrecords(self.nspec+1))+1)
         nspc=self.__spcrecords(spc)
         noffset=-abs(int(offset))
         byte=self.data_start_byte
@@ -257,8 +258,8 @@ class point_source(PseudoNetCDFFile):
         #    raise KeyError("Point emission file includes (%i,%6.1f) thru (%i,%6.1f); you requested (%i,%6.1f)" % (self.start_date,self.start_time,self.end_date,self.end_time,date,time))
         #if chkvar and spc<1 or spc>self.nspec:
         #    raise KeyError("Point emission file include species 1 thru %i; you requested %i" % (self.nspec,spc))
-
-        self.rffile._newrecord(self.__recordposition(date,time,spc,offset))
+        seekto = self.__recordposition(date,time,spc,offset)
+        self.rffile._newrecord(seekto)
     
     def read(self,fmt=None):
         """
@@ -323,8 +324,10 @@ class TestRead(unittest.TestCase):
         pass
         
     def testPT(self):
-        emissfile=point_source('../../../../testdata/ei/camx_cb4_ei_lo.20000825.hgb8h.base1b.psito2n2.hgbpa_04km')
-        self.assert_(1==2)
+        import PseudoNetCDF.testcase
+        emissfile=point_source(PseudoNetCDF.testcase.camxfiles_paths['point_source'])
+        v = emissfile.variables['NO2']
+        self.assert_((v[:] == array([  0.00000000e+00, 3.12931000e+02, 1.23599997e+01, 0.00000000e+00, 5.27999992e+01, 0.00000000e+00, 3.12931000e+02, 1.23599997e+01, 0.00000000e+00, 5.27999992e+01], dtype = 'f').reshape(2,5)).all())
        
 if __name__ == '__main__':
     unittest.main()

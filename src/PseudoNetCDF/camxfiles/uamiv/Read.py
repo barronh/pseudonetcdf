@@ -107,16 +107,20 @@ class uamiv(PseudoNetCDFFile):
         self.createDimension('TSTEP', self.time_step_count)
         self.createDimension('DATE-TIME', 2)
             
-        self.variables=PseudoNetCDFVariables(self.__var_get,map(str.strip,self.spcnames))
+        self.variables=PseudoNetCDFVariables(self.__var_get,[sn.strip() for sn in self.spcnames])
 
     def __var_get(self,key):
         units = get_uamiv_units(self.name, key, self._aerosol_names)
-        spcnames = map(str.strip, self.spcnames)
+        spcnames = [sn.strip() for sn in self.spcnames]
         if self.name=='EMISSIONS ':
             constr=lambda spc: self.getArray(nspec=spcnames.index(spc)).squeeze()[:,newaxis,:,:]
             decor=lambda spc: dict(units=units, var_desc=spc, long_name=spc.ljust(16))
         else:
-            constr=lambda spc: self.getArray(nspec=spcnames.index(spc)).squeeze().reshape(map(len, (self.dimensions['TSTEP'],self.dimensions['LAY'],self.dimensions['ROW'],self.dimensions['COL'])))
+            ntimes = len(self.dimensions['TSTEP'])
+            nlays = len(self.dimensions['LAY'])
+            nrows = len(self.dimensions['ROW'])
+            ncols = len(self.dimensions['COL'])
+            constr=lambda spc: self.getArray(nspec=spcnames.index(spc)).squeeze().reshape(ntimes, nlays, nrows, ncols)
             decor=lambda spc: dict(units=units, var_desc=spc.ljust(16), long_name=spc.ljust(16))
 
         values=constr(key)
@@ -173,7 +177,7 @@ class uamiv(PseudoNetCDFFile):
             self.start_date = self.end_date
         self.record_size=self.rffile.record_size
         self.padded_size=self.record_size+8
-        self.cell_count=(self.record_size-struct.calcsize("i10i"))/struct.calcsize(self.data_fmt)
+        self.cell_count=(self.record_size-struct.calcsize("i10i"))//struct.calcsize(self.data_fmt)
         self.record_fmt=("i10i")+self.data_fmt*(self.cell_count)
         
     def __gettimestep(self):
@@ -188,7 +192,7 @@ class uamiv(PseudoNetCDFFile):
         """
         Calculate the number of records to increment to reach time (d,t)
         """
-        dt = d, t
+        d, t = dt
         nsteps=int(timediff((self.start_date,self.start_time),(d,t))/self.time_step)
         nspec=self.__spcrecords(self.nspec+1)
         return nsteps*nspec
@@ -214,7 +218,7 @@ class uamiv(PseudoNetCDFFile):
         """
         ntime=self.__timerecords((date,time))
         nk=self.__layerrecords(k)
-        nid=ntime/self.nspec/self.nlayers
+        nid=ntime//self.nspec//self.nlayers
         nspec=0
         if spc!=0:
             nid+=1
@@ -303,143 +307,21 @@ class uamiv(PseudoNetCDFFile):
         a=zeros(
            (
             self.time_step_count,
-            len(xrange(*nspec.indices(self.nspec))),
-            len(xrange(*krange.indices(self.nlayers+1))),
+            len(range(*nspec.indices(self.nspec))),
+            len(range(*krange.indices(self.nlayers+1))),
             self.ny,
             self.nx)
             ,'f')
         
         for ti,(d,t) in enumerate(self.timerange()):
-           for sidx,spc in enumerate(xrange(*nspec.indices(self.nspec))):
-               for kidx,k in enumerate(xrange(*krange.indices(self.nlayers+1))):
-                    self.seekandreadinto(a[ti,sidx,kidx,...,...],d,t,spc,k)
+           for sidx,spc in enumerate(range(*nspec.indices(self.nspec))):
+               for kidx,k in enumerate(range(*krange.indices(self.nlayers+1))):
+                    self.seekandreadinto(a[ti,sidx,kidx,...],d,t,spc,k)
                   
-        return a[...,...,...,ny,nx]
+        return a[...,ny,nx]
 
     def timerange(self):
         return timerange((self.start_date,self.start_time),(self.end_date,self.end_time),self.time_step,24)
-
-class uamiv_new(PseudoNetCDFFile):
-    def __init__(self,path):
-        self.__file=open(path,'r')
-        self.__readheader()
-        self.__setglobalprops()
-        self.__setprivateprops()
-        self.__setdimensions()
-        self.__settimeprops()
-        self.variables=PseudoNetCDFVariables(self.__readonespc,self.__spc_names)
-        
-    def __readheader(self):
-        global_hdr_fmt=dtype([('SPAD1', '>i'), \
-                              ('NAME', '>10S4'), \
-                              ('NOTE', '>60S4'), \
-                              ('IONE', '>i'), \
-                              ('NSPEC', '>i'), \
-                              ('IBDATE', '>i'), \
-                              ('BTIME', '>f'), \
-                              ('IEDATE', '>i'), \
-                              ('ETIME', '>f'), \
-                              ('EPAD1', '>i'), \
-                              ('SPAD2', '>i'), \
-                              ('RDUM1', '>f'), \
-                              ('RDUM2', '>f'), \
-                              ('IUTM', '>i'), \
-                              ('XORG', '>f'), \
-                              ('YORG', '>f'), \
-                              ('DELX', '>f'), \
-                              ('DELY', '>f'), \
-                              ('NX', '>i'), \
-                              ('NY', '>i'), \
-                              ('NZ', '>i'), \
-                              ('IDUM1', '>i'), \
-                              ('IDUM2', '>i'), \
-                              ('RDUM3', '>f'), \
-                              ('RDUM4', '>f'), \
-                              ('RDUM5', '>f'), \
-                              ('EPAD2', '>i'), \
-                              ('SPAD3', '>i'), \
-                              ('IONE1', '>i'), \
-                              ('IONE2', '>i'), \
-                              ('NX2', '>i'), \
-                              ('NY2', '>i'), \
-                              ('EPAD3', '>i')])
-        self.__global_header=fromfile(self.__file,global_hdr_fmt,1)
-
-        spc_fmts=[('SPC%d' % spc, '>10S4') for spc in range(self.__global_header['NSPEC'])]
-        spc_hdr_fmt=dtype([('SPAD','>i')]+spc_fmts+[('EPAD','>i')])
-        self.__spc_header=fromfile(self.__file,spc_hdr_fmt,1)
-
-    def __setglobalprops(self):
-        self.NVARS=nspec=self.__global_header['NSPEC']
-        self.NCOLS=nx=self.__global_header['NX']
-        self.NROWS=ny=self.__global_header['NY']
-        self.NLAYS=nz=max(self.__global_header['NZ'],1)
-        self.NAME=self.__global_header['NAME'].reshape(10).view('S1').reshape(10,4)[:,0].tostring()
-        self.NOTE=self.__global_header['NOTE'].reshape(60).view('S1').reshape(60,4)[:,0].tostring()
-        self.XORIG=self.__global_header['XORG']
-        self.YORIG=self.__global_header['YORG']
-        self.XCELL=self.__global_header['DELX']
-        self.YCELL=self.__global_header['DELY']
-        self.SDATE=self.__global_header['IBDATE']+2000000
-        self.STIME=self.__global_header['BTIME']*100
-        species_name_list=[self.__spc_header['SPC%d' % i].reshape(10).view('S1').reshape(10,4)[:,0].tostring() for i in range(self.NVARS)]
-        setattr(self,'VAR-LIST',''.join([spc.ljust(16) for spc in species_name_list]))
-
-    def __setprivateprops(self):
-        self.__spc_names=[spc.strip() for spc in array(getattr(self,'VAR-LIST'),ndmin=1).view('S16')]
-        self.__spc_ids=dict([(spc,i) for i,spc in enumerate(self.__spc_names)])
-        record_buffers=2
-        spc_name=10 #10 string4
-
-        self.__date_block=4+record_buffers #4 integer32 + 2 float32
-        self.__time_spc_layer_slice=self.NCOLS*self.NROWS+1+spc_name+record_buffers
-        self.__time_spc_slice=self.__time_spc_layer_slice*self.NLAYS
-        self.__time_slice=self.__time_spc_slice*self.NVARS
-        
-        self.__time_block=self.__date_block+self.__time_slice
-        
-        self.__inc=(self.__time_block-self.__time_spc_slice)*4
-        self.__data_start=self.__file.tell()
-        self.__file.seek(0,2)
-        self.__flen=self.__file.tell()
-
-    def __settimeprops(self):
-        ntimes=(self.__flen-self.__data_start)/4./self.__time_block
-        self.createDimension('TSTEP',ntimes)
-        self.NSTEPS=ntimes
-    
-    def __spcstart(self,nspc):
-        return self.__data_start+(self.__date_block+nspc*self.__time_spc_slice)*4
-
-    def __seektospc(self,spc):
-        start=self.__spcstart(self.__spc_ids[spc.strip()])
-        self.__file.seek(start,0)
-    
-    def __readonespc(self,spc):
-        self.__file.seek(0,2)
-        #print(self.__file.tell())
-        self.__seektospc(spc)
-        #print(self.__file.tell())
-        vals=zeros((self.NSTEPS,self.__time_spc_slice),'>f')
-        for hri in range(self.NSTEPS):
-            vals[hri,:]=fromfile(self.__file,'>f',self.__time_spc_slice)
-            self.__file.seek(self.__inc,1)
-        
-        vals=vals.reshape(self.NSTEPS,self.NLAYS,self.__time_spc_layer_slice)
-        vals=vals[:,:,12:-1]
-        vals=vals.reshape(self.NSTEPS,self.NLAYS,self.NROWS,self.NCOLS)
-        units={'AVERAGE   ':'ppm','AIRQUALITY':'ppm','EMISSIONS ':'mol'}[self.NAME].ljust(16)
-        vals=PseudoIOAPIVariable(self,spc,'f',('TSTEP','LAY','ROW','COL'),values=vals, units = units)
-
-        return vals
-
-    def __setdimensions(self):
-        self.dimensions={}
-        self.createDimension('LAY',self.NLAYS)
-        self.createDimension('ROW',self.NROWS)
-        self.createDimension('COL',self.NCOLS)
-
-    
 
         
 
@@ -450,21 +332,10 @@ class TestuamivRead(unittest.TestCase):
         pass
         
     def testGE(self):
-        emissfile=uamiv('../../../../testdata/ei/camx_cb4_ei_lo.20000825.hgb8h.base1b.psito2n2.hgbpa_04km')
-        self.assert_((emissfile.variables['NO'].mean(1).mean(1).mean(1)==array([  52.05988312,   51.58646774,   51.28796387,   55.63090134,
-         63.95315933,  105.3456192 ,  158.26776123,  152.04057312,
-         147.32403564,  154.80661011,  164.03274536,  171.88658142,
-         174.36567688,  180.03359985,  173.81938171,  180.50257874,
-         178.56637573,  161.35736084,  110.38669586,   97.90225983,
-         89.08138275,   81.10474396,   73.36611938,   58.82622528],dtype='f')).all())
-    def testGENew(self):
-        emissfile=uamiv_new('../../../../testdata/ei/camx_cb4_ei_lo.20000825.hgb8h.base1b.psito2n2.hgbpa_04km')
-        self.assert_((emissfile.variables['NO'].mean(1).mean(1).mean(1)==array([  52.05988312,   51.58646774,   51.28796387,   55.63090134,
-         63.95315933,  105.3456192 ,  158.26776123,  152.04057312,
-         147.32403564,  154.80661011,  164.03274536,  171.88658142,
-         174.36567688,  180.03359985,  173.81938171,  180.50257874,
-         178.56637573,  161.35736084,  110.38669586,   97.90225983,
-         89.08138275,   81.10474396,   73.36611938,   58.82622528],dtype='f')).all())
+        import PseudoNetCDF.testcase
+        emissfile=uamiv(PseudoNetCDF.testcase.camxfiles_paths['uamiv'])
+        v=emissfile.variables['NO2']
+        self.assert_((v==array([ 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.24175494e-04, 2.79196858e-04, 1.01672206e-03, 4.36782313e-04, 0.00000000e+00, 1.54810550e-04, 3.90250643e-04, 6.18023798e-04, 3.36963218e-04, 0.00000000e+00, 1.85579920e-04, 1.96825975e-04, 2.16468165e-04, 2.19882189e-04], dtype='f').reshape(1, 1, 4, 5)).all())
        
 if __name__ == '__main__':
     unittest.main()
