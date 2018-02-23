@@ -36,7 +36,7 @@ _translator = {'-': '_', '$': 'S', ' ': '_', '+': '_add_', '(': '', ')': ''}
 
 def manglenames(f, translator = _translator):
     outf = getvarpnc(f, None)
-    varkeys = outf.variables.items()
+    varkeys = list(outf.variables.items())
     for k, var in varkeys:
         nk = k
         for olds, news in _translator.items():
