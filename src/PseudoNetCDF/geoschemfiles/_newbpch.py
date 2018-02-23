@@ -258,8 +258,8 @@ class bpch2(bpch_base):
         longitudes = [tmpvar.nlongitudes for tmpkey, tmpvar in tmpvariables.items()]
         maxntimes = max(ntimes)
         self.createDimension('time', maxntimes)
-        for time in set(levels):
-            if time != 1: self.createDimension('time%d' % time, time)
+        for time in set(ntimes):
+            if time != maxntimes: self.createDimension('time%d' % time, time)
         self.createDimension('layer', min(max(levels), self.Ap.size - 1))
         for layer in set(levels):
             self.createDimension('layer%d' % layer, layer)
@@ -278,7 +278,7 @@ class bpch2(bpch_base):
             elif tmpvar.shape[0] == 1:
                 outdims = ('layer%d' % tmpvar.nlevels, 'latitude', 'longitude')
                 tmpvals = tmpvar[0]
-            var = self.createVariable(tmpkey, tmpvar.dtype.char, outdims, values = tmpvar)
+            var = self.createVariable(tmpkey, tmpvar.dtype.char, outdims, values = tmpvals)
             for k in tmpvar.ncattrs():
                 setattr(var, k, getattr(tmpvar, k))
         tmpvar = list(tmpvariables.values())[0]
