@@ -1,6 +1,7 @@
 import importlib
 import unittest
 
+
 def _importorskip(modname, minversion=None):
     try:
         mod = importlib.import_module(modname)
@@ -16,6 +17,7 @@ def _importorskip(modname, minversion=None):
     # xref: xarray#1531, implemented in xarray #1557.
     func = unittest.skipUnless(has, reason='requires {}'.format(modname))
     return has, func
+
 
 has_pyproj, requires_pyproj = _importorskip('pyproj')
 has_basemap, requires_basemap = _importorskip('mpl_toolkits.basemap')

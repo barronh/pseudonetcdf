@@ -3,7 +3,8 @@ from PseudoNetCDF.plotutil.vertprofile import vertprofileplot, add_vertprofile_o
 from PseudoNetCDF.pncparse import pncparse, getparser
 
 if __name__ == '__main__':
-    vertparser = getparser(has_ofile = True, plot_options = True, interactive = False)
+    vertparser = getparser(
+        has_ofile=True, plot_options=True, interactive=False)
     add_vertprofile_options(vertparser)
-    ifiles, args = pncparse(has_ofile = True, parser = vertparser)
+    ifiles, args = pncparse(has_ofile=True, parser=vertparser)
     vertprofileplot(ifiles, args)

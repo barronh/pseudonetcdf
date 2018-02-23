@@ -1,4 +1,4 @@
-__all__=['vertical_diffusivity_center_time']
+__all__ = ['vertical_diffusivity_center_time']
 __doc__ = """
 .. _Write
 :mod:`Write` -- CAMx vertical/diffusivity variable transformations
@@ -18,6 +18,6 @@ from PseudoNetCDF.MetaNetCDF import add_derived, time_avg_new_unit
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoNetCDFVariable
 from .Memmap import vertical_diffusivity as reg_vertical_diffusivity
 
+
 class vertical_diffusivity_center_time(time_avg_new_unit):
-    __reader__=reg_vertical_diffusivity
-    
+    __reader__ = reg_vertical_diffusivity

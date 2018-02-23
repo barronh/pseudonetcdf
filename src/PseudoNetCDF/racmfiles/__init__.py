@@ -10,6 +10,6 @@ __doc__ = """
               PseudoNetCDF.sci_var.PseudoNetCDFFile for interface details.
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-__all__=['boxmodel']
+__all__ = ['boxmodel']
 
 from . import boxmodel

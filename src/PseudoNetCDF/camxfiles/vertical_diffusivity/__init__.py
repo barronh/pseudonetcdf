@@ -9,7 +9,7 @@ __doc__ = """
    based file interfaces for CAMx vertical diffusivity files.
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-__all__=['Memmap','Read','Transforms','Write']
+__all__ = ['Memmap', 'Read', 'Transforms', 'Write']
 
 from . import Memmap
 from . import Read
@@ -19,10 +19,11 @@ from . import Transforms
 if __name__ == '__main__':
     from PseudoNetCDF.camxfiles.vertical_diffusivity.Memmap import vertical_diffusivity
     from PseudoNetCDF.pncdump import pncdump_parser, \
-                                    dump_from_cmd_line
+        dump_from_cmd_line
     parser = pncdump_parser()
     parser.add_argument("cols", int)
     parser.add_argument("rows", int)
     (file_path, options, extra_args_dict) = parser.parse_args()
 
-    dump_from_cmd_line(file_path, options, lambda path: vertical_diffusivity(path, **extra_args_dict))
+    dump_from_cmd_line(
+        file_path, options, lambda path: vertical_diffusivity(path, **extra_args_dict))

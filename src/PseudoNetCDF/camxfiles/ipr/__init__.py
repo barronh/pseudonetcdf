@@ -9,7 +9,7 @@ __doc__ = """
    based file interfaces for CAMx ipr files.
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-__all__=['Memmap','Read']
+__all__ = ['Memmap', 'Read']
 
 from . import Memmap
 from . import Read
@@ -17,7 +17,7 @@ from . import Read
 if __name__ == '__main__':
     from PseudoNetCDF.camxfiles.ipr.Memmap import ipr
     from PseudoNetCDF.pncdump import pncdump_parser, \
-                                    dump_from_cmd_line
+        dump_from_cmd_line
     parser = pncdump_parser()
     (file_path, options, extra_args_dict) = parser.parse_args()
 

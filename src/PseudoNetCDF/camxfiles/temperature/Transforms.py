@@ -1,4 +1,4 @@
-__all__=['temperature_center_time']
+__all__ = ['temperature_center_time']
 __doc__ = """
 .. _Write
 :mod:`Write` -- CAMx temperature variable transformations
@@ -18,6 +18,6 @@ from PseudoNetCDF.MetaNetCDF import add_derived, time_avg_new_unit
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoNetCDFVariable
 from .Memmap import temperature as reg_temperature
 
+
 class temperature_center_time(time_avg_new_unit):
-    __reader__=reg_temperature
-    
+    __reader__ = reg_temperature

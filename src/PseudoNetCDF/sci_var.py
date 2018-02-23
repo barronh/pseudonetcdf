@@ -13,12 +13,13 @@ are attached and the arrays implement the Scientific.IO.NetCDF.NetCDFVariable
 interfaces.
 """
 
-__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFDimension', 'PseudoNetCDFVariableConvertUnit', 'PseudoNetCDFVariable', 'PseudoNetCDFMaskedVariable', 'PseudoIOAPIVariable', 'PseudoNetCDFVariables', 'Pseudo2NetCDF', 'reduce_dim', 'slice_dim', 'getvarpnc', 'interpvars', 'extract', 'pncbo', 'seqpncbo', 'pncexpr']
+__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFDimension', 'PseudoNetCDFVariableConvertUnit', 'PseudoNetCDFVariable', 'PseudoNetCDFMaskedVariable',
+           'PseudoIOAPIVariable', 'PseudoNetCDFVariables', 'Pseudo2NetCDF', 'reduce_dim', 'slice_dim', 'getvarpnc', 'interpvars', 'extract', 'pncbo', 'seqpncbo', 'pncexpr']
 
-HeadURL="$HeadURL$"
+HeadURL = "$HeadURL$"
 ChangeDate = "$LastChangedDate$"
-RevisionNum= "$LastChangedRevision$"
-ChangedBy  = "$LastChangedBy$"
+RevisionNum = "$LastChangedRevision$"
+ChangedBy = "$LastChangedBy$"
 __version__ = RevisionNum
 
 from .core._files import PseudoNetCDFFile, PseudoNetCDFVariables, OrderedDict

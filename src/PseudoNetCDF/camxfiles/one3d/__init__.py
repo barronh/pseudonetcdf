@@ -9,7 +9,7 @@ __doc__ = """
    based file interfaces for CAMx one variable 3d files.
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-__all__=['Memmap','Read','Write']
+__all__ = ['Memmap', 'Read', 'Write']
 
 from . import Memmap
 from . import Read

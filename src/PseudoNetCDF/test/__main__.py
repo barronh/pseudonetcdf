@@ -1,7 +1,10 @@
 from unittest import TestSuite, findTestCases, TextTestRunner
 test_suite = TestSuite()
+
+
 def addTestCasesFromModule(module):
     test_suite.addTests(findTestCases(module))
+
 
 from ..core import _files
 addTestCasesFromModule(_files)
@@ -47,9 +50,10 @@ addTestCasesFromModule(icarttfiles.ffi1001)
 from .. import _getreader
 addTestCasesFromModule(_getreader)
 
+
 def test_all():
-	TextTestRunner(verbosity=2).run(test_suite)
+    TextTestRunner(verbosity=2).run(test_suite)
 
-if __name__=='__main__':
-	test_all()
 
+if __name__ == '__main__':
+    test_all()

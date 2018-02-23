@@ -5,7 +5,7 @@ NetCDF and manipulating or extending existing NetCDF
 like files
 """
 
-__all__ = ['sci_var', 
+__all__ = ['sci_var',
            'MetaNetCDF',
            'units',
            'ArrayTransforms',
@@ -26,9 +26,12 @@ import sys
 import os
 from PseudoNetCDF.pncwarn import warn
 
+
 def makequite():
     global _quiet
     _quiet = True
+
+
 from PseudoNetCDF import sci_var
 from .sci_var import *
 __all__ += sci_var.__all__

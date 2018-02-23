@@ -43,23 +43,28 @@ Oltmans solution correction = Yes
    Geo alt anchoring method = First/Launch Row Set to Launch Altitude
 
       Time,     Press,      Praw,       Alt,     Tcorr,      Temp,      Traw,     Theta,        RH,     RHraw,     TFp V,     IPW V,    TVaisI, O3 Cell I,      O3 P,     O3 Mr,    T Pump,     O3Bat,    I Pump,     Total Column O3,  Total w/ Extrap O3"""
-      
+
 
 from PseudoNetCDF import PseudoNetCDFFile
 import re
 import numpy as np
 spaces = re.compile(r',\s{0,1000}')
+
+
 def skysonde1sec(inpath):
     datafile = open(inpath, 'r')
     datalines = datafile.read().split('\n')
     nmeta = int(datalines[1].split(' = ')[1])
-    meta = dict([[w.strip() for w in l.split(' = ')] for l in datalines[1:nmeta-2] if l != ''])
+    meta = dict([[w.strip() for w in l.split(' = ')]
+                 for l in datalines[1:nmeta-2] if l != ''])
     varline, unitline = datalines[nmeta-2:nmeta]
     varnames = [vn.strip() for vn in spaces.split(varline)]
     units = [u.strip()[1:-1].strip() for u in spaces.split(unitline)]
     print(units)
-    import pdb; pdb.set_trace()
-    data = np.fromstring(', '.join(datalines[nmeta:]), sep = ',').reshape(-1, len(varnames))
+    import pdb
+    pdb.set_trace()
+    data = np.fromstring(
+        ', '.join(datalines[nmeta:]), sep=',').reshape(-1, len(varnames))
     outf = PseudoNetCDFFile()
     outf.createDimension('time', data.shape[0])
     for varname, unit, vals in zip(varnames, units, data.T):
@@ -67,8 +72,9 @@ def skysonde1sec(inpath):
         var.units = unit
         var.standard_name = varname
         var[:] = np.ma.masked_values(vals[:], 99999)
-    
+
     return outf
-    
+
+
 if __name__ == '__main__':
     f = skysonde1sec('/Users/barronh/Downloads/skysonde1sec.txt')

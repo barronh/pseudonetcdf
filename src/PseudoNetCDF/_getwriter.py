@@ -4,6 +4,8 @@ import os
 from warnings import warn
 
 _writers = []
+
+
 def testwriter(writer, *args, **kwds):
     try:
         writer(*args, **kwds)
@@ -11,12 +13,15 @@ def testwriter(writer, *args, **kwds):
     except:
         return False
 
+
 def registerwriter(name, writer):
     global _writers
     _writers.insert(0, (name, writer))
 
+
 def getwriterdict():
     return dict(_writers)
+
 
 def pncwrite(*args, **kwds):
     """See PseudoNetCDF.pncgen.pncgen"""
