@@ -18,7 +18,7 @@ class WrapDict(OrderedDict):
 
     def items(self):
         for k, v in self._other.items():
-            if not k in self._mine:
+            if k not in self._mine:
                 yield k, v
 
         for k, v in self._mine.items():
@@ -26,7 +26,7 @@ class WrapDict(OrderedDict):
 
     def keys(self):
         for k in self._other.keys():
-            if not k in self._mine:
+            if k not in self._mine:
                 yield k
 
         for k in self._mine.keys():
@@ -74,7 +74,7 @@ class WrapPNC(PseudoNetCDFFile):
         return False
 
     def __init__(self, *args, **kwds):
-        #from PseudoNetCDF import pncopen
+        # from PseudoNetCDF import pncopen
         self._file = args[0]  # pncopen(*args, **kwds)
         for k in self._file.ncattrs():
             setattr(self, k, getattr(self._file, k))
@@ -83,6 +83,5 @@ class WrapPNC(PseudoNetCDFFile):
 
 
 if __name__ == '__main__':
-    from netCDF4 import Dataset
     cpath = 'CONC/CCTM_CONC_v52_hdifupdate_intel17.0_HEMIS_cb6_20160101'
     wfile = WrapPNC(cpath)

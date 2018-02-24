@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 from tempfile import NamedTemporaryFile as tnf
 
 from ._files import PseudoNetCDFFile
-from PseudoNetCDF.netcdf import NetCDFFile
 
 
 def get_ncf_object(path_or_object, mode, format='NETCDF4_CLASSIC'):

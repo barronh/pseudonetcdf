@@ -1,3 +1,4 @@
+__all__ = ['mda8', 'daymax', 'daymin', 'daymean', 'daystd', 'dayvar']
 import numpy as np
 
 

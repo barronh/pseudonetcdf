@@ -1,4 +1,10 @@
 from __future__ import print_function, unicode_literals
+
+__all__ = ['pncrename', 'manglenames', 'removesingleton', 'getvarpnc',
+           'interpvars', 'extract_from_file', 'extract_lonlat', 'mask_vals',
+           'slice_dim', 'reduce_dim', 'pncfunc', 'pncbo',
+           'pncbfunc', 'pncexpr', 'seqpncbo', 'mesh_dim',
+           'add_attr', 'convolve_dim', 'merge', 'stack_files', 'splitdim']
 import sys
 from warnings import warn
 import numpy as np
@@ -9,7 +15,7 @@ from ._files import PseudoNetCDFFile
 from ._variables import PseudoNetCDFMaskedVariable, PseudoNetCDFVariable
 
 # Functions to be available for pncexpr
-from ..userfuncs import *
+from ..userfuncs import mda8, daymax, daymin, daymean, daystd, dayvar
 import datetime
 
 if sys.version_info.major == 2:

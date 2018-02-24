@@ -1,3 +1,4 @@
+__all__ = ['PseudoNetCDFFile', 'netcdf', 'PseudoNetCDFVariables']
 import unittest
 from PseudoNetCDF._getreader import registerreader
 from PseudoNetCDF.netcdf import NetCDFFile, NetCDFVariable

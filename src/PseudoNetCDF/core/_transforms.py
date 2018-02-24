@@ -5,7 +5,7 @@ from PseudoNetCDF.units import convert
 
 def PseudoNetCDFVariableConvertUnit(var, outunit):
     """
-    Convert the unit of var and update the 
+    Convert the unit of var and update the
     associated IOAPI metadata
     """
     do = PseudoNetCDFFile()

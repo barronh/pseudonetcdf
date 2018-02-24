@@ -1,3 +1,6 @@
+__all__ = ['PseudoNetCDFDimension']
+
+
 class PseudoNetCDFDimension(object):
     """
     Dimension object responds like that of netcdf4-python

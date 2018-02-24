@@ -95,11 +95,11 @@ Notes:
         out = ""
         indent = "    "
         startindent = ""
-        out += startindent + 1*indent+("%s %s%s; // shape: %s\n" % (var_type, var_name, str(
+        out += startindent + 1 * indent + ("%s %s%s; // shape: %s\n" % (var_type, var_name, str(
             self.dimensions).replace('u\'', '').replace('\'', '').replace(',)', ')'), str(self.shape)))
         for prop_name in self.ncattrs():
             prop = getattr(self, prop_name)
-            out += startindent + 2*indent + \
+            out += startindent + 2 * indent + \
                 ("%s:%s = %s ;\n" %
                  (var_name, prop_name, repr(prop).replace("'", '"')))
 
@@ -118,7 +118,7 @@ Notes:
         Set attributes (aka properties) and identify user-defined attributes.
         """
         if k[:1] != '_' and \
-           not k in ('dimensions', 'typecode'):
+           k not in ('dimensions', 'typecode'):
             if k not in self._ncattrs:
                 self._ncattrs += (k, )
         object.__setattr__(self, k, v)
@@ -303,7 +303,7 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
         out = np.ma.MaskedArray.__getitem__(self, item)
         try:
             out._fill_value = self._fill_value
-        except:
+        except Exception:
             pass
         out = out.view(PseudoNetCDFMaskedVariable)
         if np.isscalar(out):
@@ -322,7 +322,7 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
         Set attributes (aka properties) and identify user-defined attributes.
         """
         if k[:1] != '_' and \
-           not k in ('dimensions', 'typecode'):
+           k not in ('dimensions', 'typecode'):
             if k not in self._ncattrs:
                 self._ncattrs += (k, )
         np.ma.MaskedArray.__setattr__(self, k, v)
@@ -377,14 +377,14 @@ def PseudoIOAPIVariable(parent, name, typecode, dimensions, **kwds):
 
     retval = PseudoNetCDFVariable(parent, name, typecode, dimensions, **kwds)
 
-    if not 'units' in kwds:
+    if 'units' not in kwds:
         warn('IOAPI variables must have units; %s has been initialized with "None" units')
         retval.units = 'None'
 
-    if not 'long_name' in kwds:
+    if 'long_name' not in kwds:
         retval.long_name = name.ljust(16)
 
-    if not 'var_desc' in kwds:
+    if 'var_desc' not in kwds:
         retval.var_desc = name.ljust(80)
 
     return retval
