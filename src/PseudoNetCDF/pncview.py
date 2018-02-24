@@ -5,10 +5,12 @@ __all__ = ['mapplot', 'profile', 'tileplot',
 
 from warnings import warn
 import os
-from types import MethodType
-import pylab as pl
 
 import numpy as np
+
+import PseudoNetCDF.coordutil as cu
+
+
 _pre_code = 'pl.close(); pl.rcParams["image.cmap"] = "jet"'
 _before_code = 'pl.figure(); pl.interactive(True); '
 _after_code = 'ax.set_title(varkey); pl.draw()'
@@ -17,8 +19,6 @@ _coastlines_opt = True
 _countries_opt = True
 _states_opt = True
 _counties_opt = False
-
-from PseudoNetCDF.coordutil import *
 
 
 class OptionDict(dict):
@@ -49,11 +49,11 @@ defaultoption = OptionDict(outpath='pncview')
 class TkApp:
     def __init__(self, ncffile, options):
         try:
-            from Tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar, Text, DISABLED, PhotoImage, LEFT, E, W
-        except:
+            from Tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar, Text, DISABLED, LEFT
+        except Exception:
             try:
-                from tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar, Text, DISABLED, PhotoImage, LEFT, E, W
-            except:
+                from tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar, Text, DISABLED, LEFT
+            except Exception:
                 warn('tkinter unavailable')
 
         master = self.root = Tk()
@@ -174,10 +174,6 @@ class TkApp:
         except ImportError:
             from io import StringIO
         pdump = StringIO("")
-        try:
-            name = ', '.join(options.ifile)
-        except:
-            name = 'ifile'
         pncdump(self.ncffile, header=True, outfile=pdump, )
         pdump.seek(0, 0)
         self.meta.insert(END, pdump.read())
@@ -198,7 +194,7 @@ class TkApp:
         items = list.curselection()
         try:
             items = map(int, items)
-        except:
+        except Exception:
             pass
         items = [self.vars[i] for i in items]
         return items
@@ -210,7 +206,7 @@ class TkApp:
         items = self.method_list.curselection()
         try:
             items = map(int, items)
-        except:
+        except Exception:
             pass
         items = [self.methods[i] for i in items]
         return items
@@ -255,8 +251,7 @@ def pncview(ifile, options):
 
 def gettime(ifile):
     from PseudoNetCDF import PseudoNetCDFVariable
-    from pylab import date2num
-    from datetime import datetime
+    from datetime import datetime, timedelta
     if 'time' in ifile.variables:
         time = ifile.variables['time']
         unit = time.units
@@ -337,10 +332,10 @@ def plot(ifile, varkey, options, before='', after=''):
 
 
 def pressx(ifile, varkey, options, before='', after=''):
-    import pylab as pl
+    import matplotlib.pyplot as plt
     from matplotlib.colors import Normalize, LogNorm
     outpath = getattr(options, 'outpath', '.')
-    vert = getpresbnds(ifile)
+    vert = cu.getpresbnds(ifile)
     var = ifile.variables[varkey]
     dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
     if len(dims) > 2:
@@ -351,30 +346,30 @@ def pressx(ifile, varkey, options, before='', after=''):
     else:
         norm = Normalize()
     exec(before)
-    ax = pl.gca()
+    ax = plt.gca()
     print(varkey, end='')
     vals = var[:].squeeze()
     x = np.arange(vals.shape[1])
     patches = ax.pcolor(x, vert, vals, norm=norm)
     # ax.set_xlabel(X.units.strip())
     # ax.set_ylabel(Y.units.strip())
-    pl.colorbar(patches)
+    plt.colorbar(patches)
     ax.set_ylim(vert.max(), vert.min())
     ax.set_xlim(x.min(), x.max())
     fmt = 'png'
     figpath = os.path.join(outpath + '_PRESX_' + varkey + '.' + fmt)
     exec(after)
-    pl.savefig(figpath)
+    plt.savefig(figpath)
     print('Saved fig', figpath)
     return figpath
 
 
 def presslat(ifile, varkey, options, before='', after=''):
-    import pylab as pl
+    import matplotlib.pyplot as plt
     from matplotlib.colors import Normalize, LogNorm
     outpath = getattr(options, 'outpath', '.')
-    vert = getpresbnds(ifile)
-    lat, latunit = getlatbnds(ifile)
+    vert = cu.getpresbnds(ifile)
+    lat, latunit = cu.getlatbnds(ifile)
     lat = np.append(lat.squeeze()[..., :2].mean(
         1), lat.squeeze()[-1, 2:].mean(0))
     var = ifile.variables[varkey]
@@ -387,12 +382,12 @@ def presslat(ifile, varkey, options, before='', after=''):
     else:
         norm = Normalize()
     exec(before)
-    ax = pl.gca()
+    ax = plt.gca()
     print(varkey, end='')
     patches = ax.pcolor(lat, vert, var[:].squeeze(), norm=norm)
     # ax.set_xlabel(X.units.strip())
     # ax.set_ylabel(Y.units.strip())
-    cbar = pl.colorbar(patches)
+    cbar = plt.colorbar(patches)
     vunit = getattr(var, 'units', 'unknown').strip()
     cbar.set_label(varkey + ' (' + vunit + ')')
     cbar.ax.text(.5, 1, '%.2g' % var[:].max(
@@ -404,17 +399,17 @@ def presslat(ifile, varkey, options, before='', after=''):
     fmt = 'png'
     figpath = os.path.join(outpath + '_PRESSLAT_' + varkey + '.' + fmt)
     exec(after)
-    pl.savefig(figpath)
+    plt.savefig(figpath)
     print('Saved fig', figpath)
     return figpath
 
 
 def presslon(ifile, varkey, options, before='', after=''):
-    import pylab as pl
+    import matplotlib.pyplot as plt
     from matplotlib.colors import Normalize, LogNorm
     outpath = getattr(options, 'outpath', '.')
-    vert = getpresbnds(ifile)
-    lon, lonunit = getlonbnds(ifile)
+    vert = cu.getpresbnds(ifile)
+    lon, lonunit = cu.getlonbnds(ifile)
     lon = np.append(lon.squeeze()[..., [0, 3]].mean(
         1), lon.squeeze()[-1, [1, 2]].mean(0))
     var = ifile.variables[varkey]
@@ -427,12 +422,12 @@ def presslon(ifile, varkey, options, before='', after=''):
     else:
         norm = Normalize()
     exec(before)
-    ax = pl.gca()
+    ax = plt.gca()
     print(varkey, end='')
     patches = ax.pcolor(lon, vert, var[:].squeeze(), norm=norm)
     # ax.set_xlabel(X.units.strip())
     # ax.set_ylabel(Y.units.strip())
-    cbar = pl.colorbar(patches)
+    cbar = plt.colorbar(patches)
     vunit = getattr(var, 'units', 'unknown').strip()
     cbar.set_label(varkey + ' (' + vunit + ')')
     cbar.ax.text(.5, 1, '%.2g' % var[:].max(
@@ -445,13 +440,13 @@ def presslon(ifile, varkey, options, before='', after=''):
     fmt = 'png'
     figpath = os.path.join(outpath + '_PRESLON_' + varkey + '.' + fmt)
     exec(after)
-    pl.savefig(figpath)
+    plt.savefig(figpath)
     print('Saved fig', figpath)
     return figpath
 
 
 def tileplot(ifile, varkey, options, before='', after=''):
-    import pylab as pl
+    import matplotlib.pyplot as plt
     from matplotlib.colors import Normalize, LogNorm
     outpath = getattr(options, 'outpath', '.')
     var = ifile.variables[varkey]
@@ -460,7 +455,7 @@ def tileplot(ifile, varkey, options, before='', after=''):
     else:
         norm = Normalize()
     exec(before)
-    ax = pl.gca()
+    ax = plt.gca()
     print(varkey, end='')
     dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
     if len(dims) > 2:
@@ -473,7 +468,7 @@ def tileplot(ifile, varkey, options, before='', after=''):
     ax.set_ylabel(dims[0][0])
     # ax.set_xlabel(X.units.strip())
     # ax.set_ylabel(Y.units.strip())
-    cbar = pl.colorbar(patches)
+    cbar = plt.colorbar(patches)
     vunit = getattr(var, 'units', 'unknown').strip()
     cbar.set_label(varkey + ' (' + vunit + ')')
     cbar.ax.text(.5, 1, '%.2g' % var[:].max(
@@ -483,7 +478,7 @@ def tileplot(ifile, varkey, options, before='', after=''):
     fmt = 'png'
     figpath = os.path.join(outpath + '_2D_' + varkey + '.' + fmt)
     exec(after)
-    pl.savefig(figpath)
+    plt.savefig(figpath)
     print('Saved fig', figpath)
     return figpath
 
@@ -515,14 +510,14 @@ def minmaxmean(ax, vals, vertcrd, **kwds):
 
 
 def profile(ifile, varkey, options, before='', after=''):
-    import pylab as pl
+    import matplotlib.pyplot as plt
     print(varkey, end='')
     outpath = getattr(options, 'outpath', '.')
     try:
-        vert = getpresmid(ifile)
+        vert = cu.getpresmid(ifile)
         vunit = 'Pa'
-    except:
-        vert = getsigmamid(ifile)
+    except Exception:
+        vert = cu.getsigmamid(ifile)
         vunit = r'\sigma'
     var = ifile.variables[varkey]
 
@@ -537,9 +532,9 @@ def profile(ifile, varkey, options, before='', after=''):
     units = var.units.strip()
     vals = np.rollaxis(var[:], vidx, start=0).view(
         np.ma.MaskedArray).reshape(vert.size, -1)
-    ax = pl.gca()
+    ax = plt.gca()
     minmaxmean(ax, vals, vert)
-    ax.set_xlabel(varkey + ' ('+units+')')
+    ax.set_xlabel(varkey + ' (' + units + ')')
     ax.set_ylabel(vunit)
     ax.set_ylim(vert.max(), vert.min())
     if options.logscale:
@@ -547,7 +542,7 @@ def profile(ifile, varkey, options, before='', after=''):
     fmt = 'png'
     figpath = os.path.join(outpath + '_profile_' + varkey + '.' + fmt)
     exec(after)
-    pl.savefig(figpath)
+    plt.savefig(figpath)
     print('Saved fig', figpath)
     return figpath
 
@@ -556,31 +551,31 @@ def mapplot(ifile, varkey, options, before='', after=''):
     """
     ifile - a pseudonetcdf file
     varkey - the variable to plot
-    options - 
+    options - argparse name space with mapping options
     """
-    import pylab as pl
+    import matplotlib.pyplot as plt
     from matplotlib.colors import Normalize, LogNorm
     outpath = getattr(options, 'outpath', '.')
-    map = getmap(ifile)
+    map = cu.getmap(ifile)
     if map.projection == 'cyl':
-        latb, latunit = getlatbnds(ifile)[:]
-        lonb, lonunit = getlonbnds(ifile)[:]
+        latb, latunit = cu.getlatbnds(ifile)[:]
+        lonb, lonunit = cu.getlonbnds(ifile)[:]
     else:
-        latb, latunit = getybnds(ifile)[:]
-        lonb, lonunit = getxbnds(ifile)[:]
+        latb, latunit = cu.getybnds(ifile)[:]
+        lonb, lonunit = cu.getxbnds(ifile)[:]
     if latb.ndim == lonb.ndim and lonb.ndim == 2:
         LON, LAT = lonb, latb
     else:
         LON, LAT = np.meshgrid(lonb, latb)
 
-    ax = pl.gca()
+    ax = plt.gca()
     if options.logscale:
         norm = LogNorm()
     else:
         norm = Normalize()
     var = ifile.variables[varkey]
     exec(before)
-    ax = pl.gca()
+    ax = plt.gca()
     vunit = getattr(var, 'units', 'unknown').strip()
     print(varkey, end='')
     try:
@@ -592,7 +587,7 @@ def mapplot(ifile, varkey, options, before='', after=''):
             map.drawstates(ax=ax)
         if options.counties:
             map.drawcounties(ax=ax)
-    except:
+    except Exception:
         print('nomap')
         pass
     patches = map.pcolor(LON, LAT, var[:].squeeze(), norm=norm, ax=ax)
@@ -610,7 +605,7 @@ def mapplot(ifile, varkey, options, before='', after=''):
         orientation = 'horizontal'
     else:
         orientation = 'vertical'
-    cbar = pl.gcf().colorbar(patches, orientation=orientation)
+    cbar = plt.gcf().colorbar(patches, orientation=orientation)
     cbar.set_label(varkey + ' (' + vunit + ')')
     if orientation == 'vertical':
         cbar.ax.text(.5, 1, '%.2g' % var[:].max(
@@ -625,19 +620,19 @@ def mapplot(ifile, varkey, options, before='', after=''):
     try:
         cbar.formatter.set_scientific(True)
         cbar.formatter.set_powerlimits((-3, 3))
-    except:
+    except Exception:
         pass
     cbar.update_ticks()
     fmt = 'png'
     figpath = os.path.join(outpath + '_map_' + varkey + '.' + fmt)
     exec(after)
-    pl.savefig(figpath)
+    plt.savefig(figpath)
     print('Saved fig', figpath)
     return figpath
 
 
 def main():
-    import pylab as pl
+    import matplotlib.pyplot as plt
     from .pncparse import pncparse
     ifiles, options = pncparse(
         has_ofile=True, plot_options=True, interactive=False)
@@ -645,7 +640,7 @@ def main():
         raise IOError(
             'pncview can operate on only 1 file; user requested %d' % len(ifiles))
     ifile, = ifiles
-    pl.interactive(True)
+    plt.interactive(True)
     for method_vars in options.plotcommands:
         pieces = method_vars.split(',')
         plotargs = [p for p in pieces if '=' not in p]
@@ -656,7 +651,7 @@ def main():
                            (options.outpath, ','.join(plotkwds)))
         print(plotoptions.logscale)
         plotwithopts(ifile, method, vars, plotoptions)
-    pl.interactive(False)
+    plt.interactive(False)
     if len(options.plotcommands) == 0:
         pncview(ifile, options)
 

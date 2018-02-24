@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 __doc__ = r"""
 .. _units
 :mod:`units` -- Functions for converting units
@@ -18,8 +20,6 @@ ChangeDate = "$LastChangedDate$"
 RevisionNum = "$LastChangedRevision$"
 ChangedBy = "$LastChangedBy$"
 __version__ = RevisionNum
-
-from collections import defaultdict
 
 
 def s2min(a):

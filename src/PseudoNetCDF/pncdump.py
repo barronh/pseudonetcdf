@@ -11,12 +11,15 @@ __doc__ = r"""
 """
 
 __all__ = ['pncdump', ]
-from numpy import float32, float64, int16, int32, int64, ndindex, ndenumerate, nan, savetxt, isscalar, ndarray, ma, prod, set_printoptions, get_printoptions, array2string, inf
+from numpy import ndindex
+from numpy import savetxt, isscalar, ndarray, ma, prod, set_printoptions
+from numpy import get_printoptions, array2string, inf
 from warnings import warn
 from collections import defaultdict
 from PseudoNetCDF import PseudoNetCDFMaskedVariable
 
 import sys
+import textwrap
 if sys.version_info.major == 3:
     from io import BytesIO as StringIO
     commaspace = u', '
@@ -26,8 +29,6 @@ else:
     commaspace = ', '
     semicolon = ';'
     BrokenPipeError = None
-import textwrap
-import operator
 
 
 def exception_handler(e, outfile):
@@ -37,7 +38,7 @@ def exception_handler(e, outfile):
     try:
         outfile.flush()
         outfile.close()
-    except:
+    except Exception:
         pass
     if isinstance(e, KeyboardInterrupt) or isinstance(e, BrokenPipeError) or (isinstance(e, IOError) and e.strerror == 'Broken pipe'):
         exit()
@@ -52,7 +53,7 @@ def pncdump(f, name='unknown', header=False, variables=[], line_length=80, full_
     of the NetCDF ncdump binary.
 
     f         - a PseudoNetCDFFile object
-    name      - string name for the file 
+    name      - string name for the file
                 (equivalent to ncdump -n name)
     header    - boolean value for display of header only
                 (equivalent to ncdump -h)
@@ -69,9 +70,9 @@ def pncdump(f, name='unknown', header=False, variables=[], line_length=80, full_
                           float=double_fmt,
                           float64=double_fmt,
                           float32=float_fmt,
-                          int32="%i",
-                          uint32="%i",
-                          int64="%i",
+                          int32=int_fmt,
+                          uint32=int_fmt,
+                          int64=int_fmt,
                           str="%s",
                           bool="%s",
                           string8="'%s'")
@@ -79,11 +80,11 @@ def pncdump(f, name='unknown', header=False, variables=[], line_length=80, full_
     # float = lambda x: double_fmt % x)    # initialize indentation as 8 characters
     funcs = dict()
     # based on ncdump
-    indent = 8*" "
+    indent = 8 * " "
     if isgroup:
-        startindent = 4*" "
+        startindent = 4 * " "
     else:
-        startindent = 4*""
+        startindent = 4 * ""
 
     # First line of CDL
     if not isgroup:
@@ -95,10 +96,10 @@ def pncdump(f, name='unknown', header=False, variables=[], line_length=80, full_
     outfile.write(startindent + "dimensions:\n")
     for dim_name, dim in f.dimensions.items():
         if dim.isunlimited():
-            outfile.write(startindent + 1*indent +
+            outfile.write(startindent + 1 * indent +
                           ("%s = UNLIMITED // (%s currently) \n" % (dim_name, len(dim))))
         else:
-            outfile.write(startindent + 1*indent +
+            outfile.write(startindent + 1 * indent +
                           ("%s = %s ;\n" % (dim_name, len(dim))))
 
     ###################################
@@ -115,12 +116,12 @@ def pncdump(f, name='unknown', header=False, variables=[], line_length=80, full_
                         bool='bool',
                         string8='char',
                         string80='char').get(var.dtype.name, var.dtype.name)
-        outfile.write(startindent + 1*indent+("%s %s%s;\n" % (var_type, var_name, str(
+        outfile.write(startindent + 1 * indent + ("%s %s%s;\n" % (var_type, var_name, str(
             var.dimensions).replace('u\'', '').replace('\'', '').replace(',)', ')'))))
         for prop_name in var.ncattrs():
             prop = getattr(var, prop_name)
-            outfile.write(startindent + 2*indent+("%s:%s = %s ;\n" %
-                                                  (var_name, prop_name, repr(prop).replace("'", '"'))))
+            outfile.write(startindent + 2 * indent + ("%s:%s = %s ;\n" %
+                                                      (var_name, prop_name, repr(prop).replace("'", '"'))))
 
     ################################
     # CDL Section 3: global metadata
@@ -128,8 +129,8 @@ def pncdump(f, name='unknown', header=False, variables=[], line_length=80, full_
     outfile.write("\n\n// global properties:\n")
     for prop_name in f.ncattrs():
         prop = getattr(f, prop_name)
-        outfile.write(startindent + 2*indent+(":%s = %s ;\n" %
-                                              (prop_name, repr(prop).replace("'", '"'))))
+        outfile.write(startindent + 2 * indent + (":%s = %s ;\n" %
+                                                  (prop_name, repr(prop).replace("'", '"'))))
 
     if hasattr(f, 'groups'):
         for group_name, group in f.groups.items():
@@ -166,9 +167,9 @@ def pncdump(f, name='unknown', header=False, variables=[], line_length=80, full_
                             outfile.write(
                                 startindent + '  ' + str(row.filled().astype(ndarray)) + ';\n')
                             return
-                        #old = get_printoptions()
-                        #set_printoptions(threshold = inf, linewidth = line_length)
-                        #tmpstr =  startindent + '    ' + array2string(row, separator = commaspace, formatter = funcs).replace('\n', '\n' + startindent + '    ')[1:-1].replace('--', '_')
+                        # old = get_printoptions()
+                        # set_printoptions(threshold = inf, linewidth = line_length)
+                        # tmpstr =  startindent + '    ' + array2string(row, separator = commaspace, formatter = funcs).replace('\n', '\n' + startindent + '    ')[1:-1].replace('--', '_')
                         # if last:
                         #    tmpstr += ';'
                         # else:
@@ -208,16 +209,10 @@ def pncdump(f, name='unknown', header=False, variables=[], line_length=80, full_
                         tmpstr = startindent + '    ' + \
                             array2string(row, separator=commaspace, formatter=funcs).replace(
                                 '\n', '\n' + startindent + '    ')[1:-1]
-                        #tmpstr = StringIO()
-                        #savetxt(tmpstr, row, fmt, delimiter = commaspace, newline =commaspace)
                         if last:
                             tmpstr += ';'
-                            #tmpstr.seek(-2, 1)
-                            # tmpstr.write(semicolon)
                         else:
                             tmpstr += commaspace
-                        #tmpstr.seek(0, 0)
-                        #outfile.write(textwrap.fill(str(tmpstr.read()), line_length, initial_indent = startindent + '  ', subsequent_indent = startindent + '    '))
                         set_printoptions(**old)
                         try:
                             outfile.write(tmpstr)
@@ -225,7 +220,7 @@ def pncdump(f, name='unknown', header=False, variables=[], line_length=80, full_
                         except Exception as e:
                             exception_handler(e, outfile)
 
-                outfile.write(startindent + 1*indent+("%s =\n" % var_name))
+                outfile.write(startindent + 1 * indent + ("%s =\n" % var_name))
                 if var_name in ('time', 'time_bounds') and timestring:
                     from PseudoNetCDF.coordutil import gettimes, gettimebnds
                     if var_name == 'time':
@@ -238,7 +233,7 @@ def pncdump(f, name='unknown', header=False, variables=[], line_length=80, full_
                         if ma.is_masked(val):
                             array_str = '_'
                         else:
-                            array_str = startindent + 2*indent + str(val)
+                            array_str = startindent + 2 * indent + str(val)
 
                         if i == tuple(map(lambda x_: x_ - 1, var.shape)):
                             array_str += ";"
@@ -252,7 +247,7 @@ def pncdump(f, name='unknown', header=False, variables=[], line_length=80, full_
                         except Exception as e:
                             exception_handler(e, outfile)
                 elif full_indices is not None:
-                    id_display = {'f': lambda idx: str(tuple([idx[i]+1 for i in range(len(idx)-1, -1, -1)])),
+                    id_display = {'f': lambda idx: str(tuple([idx[i] + 1 for i in range(len(idx) - 1, -1, -1)])),
                                   'c': lambda idx: str(idx)}[full_indices]
 
                     # for i, val in ndenumerate(var):
@@ -261,7 +256,7 @@ def pncdump(f, name='unknown', header=False, variables=[], line_length=80, full_
                         if ma.is_masked(val):
                             array_str = '_'
                         else:
-                            fmt = startindent + 2*indent + \
+                            fmt = startindent + 2 * indent + \
                                 formats[var.dtype.name]
                             array_str = fmt % val
 
@@ -282,7 +277,7 @@ def pncdump(f, name='unknown', header=False, variables=[], line_length=80, full_
                         second_dim = dimensions[-1]
                         shape = [first_dim, second_dim]
                     else:
-                        shape = [1]+dimensions
+                        shape = [1] + dimensions
                     var2d = var[...].reshape(*shape)
                     fmt = ', '.join(shape[-1] * [formats[var.dtype.name]])
                     fmt = formats[var.dtype.name]

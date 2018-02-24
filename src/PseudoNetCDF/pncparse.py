@@ -3,19 +3,31 @@ import os
 import sys
 from warnings import warn
 from argparse import ArgumentParser, Action, RawDescriptionHelpFormatter
-from .cmaqfiles import *
-from .camxfiles.Memmaps import *
-from .camxfiles.Readers import irr as irr_read, ipr as ipr_read
-from .net_balance import mrgaloft, sum_reader, net_reader, ctb_reader
-from ._getreader import anyfile, getreaderdict
+from ._getreader import getreaderdict, pncopen
 from ._getwriter import getwriterdict
-from .icarttfiles.ffi1001 import ffi1001, ncf2ffi1001
-from .geoschemfiles import *
-from .noaafiles import *
-from .conventions.ioapi import *
-from .aermodfiles import *
-from PseudoNetCDF import PseudoNetCDFFile, netcdf
+from .conventions.ioapi import add_ioapi_from_cf
+from .conventions.ioapi import add_cf_from_wrfioapi, add_cf_from_ioapi
+from PseudoNetCDF import PseudoNetCDFFile
 from PseudoNetCDF.netcdf import NetCDFFile
+try:
+    from netCDF4 import MFDataset
+except ImportError:
+    pass
+
+
+from .sci_var import reduce_dim, mesh_dim, slice_dim, getvarpnc, extract
+from .sci_var import mask_vals, seqpncbo, pncexpr, stack_files, add_attr
+from .sci_var import convolve_dim, manglenames, removesingleton, merge
+from .sci_var import extract_from_file, pncrename, WrapPNC
+
+
+from argparse import SUPPRESS
+
+
+conv2conv = {}
+conv2conv[('ioapi', 'cf')] = add_cf_from_ioapi
+conv2conv[('wrfioapi', 'cf')] = add_cf_from_wrfioapi
+conv2conv[('cf', 'ioapi')] = add_ioapi_from_cf
 
 allreaders = getreaderdict()
 allwriters = getwriterdict()
@@ -27,16 +39,6 @@ _readernames = [k for c, k in _readernames]
 _writernames = [(k.count('.'), k) for k in getwriterdict().keys()]
 _writernames.sort()
 _writernames = [k for c, k in _writernames]
-
-try:
-    from netCDF4 import MFDataset
-except:
-    pass
-
-from .sci_var import reduce_dim, mesh_dim, slice_dim, getvarpnc, extract, mask_vals, seqpncbo, pncexpr, stack_files, add_attr, convolve_dim, manglenames, removesingleton, merge, extract_from_file, pncrename, WrapPNC
-
-
-from argparse import SUPPRESS
 
 
 class PNCArgumentParser(ArgumentParser):
@@ -159,7 +161,7 @@ def add_basic_options(parser):
     try:
         parser.add_argument(
             "--help", dest="help", action=_HelpAction, default=False, help="Displays help")
-    except:
+    except Exception:
         pass
 
     parser.add_argument('--pnc', action='append', default=[],
@@ -179,6 +181,9 @@ def add_basic_options(parser):
 
     parser.add_argument("--inherit", dest="inherit", action="store_true", default=False,
                         help="Allow subparsed sections (separated with -- and --sep) to inherit from global options (-f, --format is always inherited).")
+
+    parser.add_argument("--diskless", dest="diskless", action="store_true",
+                        default=False, help="Load file into memory; useful for subsequent processing")
 
     parser.add_argument("--mangle", dest="mangle", action="store_true",
                         default=False, help="Remove non-standard ascii from names")
@@ -321,7 +326,7 @@ def add_interactive_options(parser):
     try:
         parser.add_argument("-i", "--interactive", dest="interactive",
                             action='store_true', default=False, help="Use interactive mode")
-    except:
+    except Exception:
         pass
 
 
@@ -384,7 +389,7 @@ def getparser2(actions=False):
     parent_parser = PNCArgumentParser(description="PseudoNetCDF",
                                       formatter_class=RawDescriptionHelpFormatter, add_help=False, prog='PNC')
     if actions:
-        subs = add_action_commands(
+        add_action_commands(
             parent_parser, withbasic=True, add_help=False)
     else:
         add_basic_options(parent_parser)
@@ -446,14 +451,14 @@ plot_options : boolean, optional
                Processes matplotlib options before loading matplotlib
                (preprocessing important for backend), default is False.
 interactive : boolean, optional
-              Only relevant if parser is not provided (see getparser), 
+              Only relevant if parser is not provided (see getparser),
               default is False.
 args : list or string, optional
        args are usually taken from the command-line, but can be provided
        in a function call, default is None.
 parser : AgumentParser object, optional
-         pncparser parser, default getparser(has_ofile, 
-                                             plot_options = plot_options, 
+         pncparser parser, default getparser(has_ofile,
+                                             plot_options = plot_options,
                                              interactive = interactive)
 
 Returns
@@ -561,7 +566,7 @@ def add_action_commands(parser, withbasic=False, add_help=True):
 
 
 def do_actions(outargs):
-    if not 'subcommand' in outargs:
+    if 'subcommand' not in outargs:
         return
     if outargs.subcommand == 'dump':
         from .pncdump import pncdump
@@ -613,18 +618,18 @@ Returns:
 
 Example:
     # Single File
-    out = PNC('--format=netcdf', inpath)    
+    out = PNC('--format=netcdf', inpath)
     infile = out.ifiles[0]
     O3 = infile.variables['O3']
 
     # Multiple Files
-    out = PNC('--format=netcdf', inpath1, inpath2)    
+    out = PNC('--format=netcdf', inpath1, inpath2)
     infile1, infile2 = out.ifiles
     O3_1 = infile1.variables['O3']
     O3_2 = infile2.variables['O3']
 
     # With Actions
-    out = PNC('dump', '--variables=O3', '--format=netcdf', inpath)    
+    out = PNC('dump', '--variables=O3', '--format=netcdf', inpath)
 PseudoNetCDF.icarttfiles.ffi1001.ffi1001 icartt/dc3-mrg60-dc8_merge_20120518_R7_thru20120622.ict {
 dimensions:
         POINTS = 6817 ;
@@ -698,7 +703,7 @@ def split_positionals(parser, args):
 
 
 def pncprep(args):
-    #nifiles = len(args.ifiles) - has_ofile
+    # nifiles = len(args.ifiles) - has_ofile
     ipaths = args.ifiles[:]
     fs = getfiles(ipaths, args)
     fs = subsetfiles(fs, args)
@@ -712,7 +717,7 @@ def pncprep(args):
     if getattr(args, 'cdlname', None) is None:
         try:
             args.cdlname = args.ipath[0]
-        except:
+        except Exception:
             args.cdlname = 'unknown'
     return fs, args
 
@@ -757,7 +762,7 @@ def getfiles(ipaths, args):
             try:
                 allreaders = getreaderdict()
                 if file_format in allreaders:
-                    f = allreaders[file_format](ipath, **format_options)
+                    f = pncopen(ipath, **format_options)
                 else:
                     f = eval(file_format)(ipath, **format_options)
             except Exception as e:
@@ -771,28 +776,30 @@ def getfiles(ipaths, args):
         history = getattr(f, 'history', getattr(f, 'HISTORY', ''))
         history += ' '.join(args.inputargs) + ';'
         laddconv = args.fromconv is not None and args.toconv is not None
-        lslice = len(args.slice + args.reduce) > 0
-        lexpr = len(args.expressions) > 0
+        # Need to add backward compatibility
+        # lslice = len(args.slice + args.reduce) > 0
+        # lexpr = len(args.expressions) > 0
         if args.variables is not None:
             f = getvarpnc(f, args.variables, coordkeys=args.coordkeys)
-        # elif laddconv or lslice or lexpr:
-        #    f = getvarpnc(f, None)
+        elif args.diskless:
+            f = getvarpnc(f, None)
         for opts in args.attribute:
             add_attr(f, opts)
         for opts in args.masks:
             f = mask_vals(f, opts, metakeys=args.coordkeys)
         if laddconv:
-            f = WrapPNC(f)
+            if not args.diskless:
+                f = WrapPNC(f)
             try:
-                eval('add_%s_from_%s' % (args.toconv, args.fromconv))(
+                conv2conv[args.fromconv, args.toconv](
                     f, coordkeys=args.coordkeys)
-            except Exception as e:
+            except KeyError as e:
                 warn('Cannot add %s from %s; %s' %
                      (args.toconv, args.fromconv, str(e)))
 
         try:
             setattr(f, 'history', history)
-        except:
+        except Exception:
             pass
         if args.mangle:
             f = manglenames(f)

@@ -70,7 +70,7 @@ def pncopen(*args, **kwds):
     args - arguments for opening file
     kwds - keywords for file opener and optional format and addcf
     format - name of reader (not passed to reader)
-    addcf - boolean to add CF conventions (not passed to reader; default: True)
+    addcf - boolean to add CF conventions (not passed to reader; default: False)
     diskless - boolean to add CF conventions (not passed to reader; default: False)
     """
     format = kwds.pop('format', None)

@@ -13,19 +13,18 @@ __doc__ = r"""
 __all__ = ['add_derived', 'time_avg_new_unit', 'window',
            'newresolution', 'MetaNetCDF', 'WindowFromFile', 'file_master']
 
+from numpy import array, logical_or, repeat, sum
+# This Package modules
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
+from PseudoNetCDF.sci_var import PseudoNetCDFVariables, PseudoNetCDFDimension
+from PseudoNetCDF.sci_var import PseudoNetCDFVariableConvertUnit
+from PseudoNetCDF.ArrayTransforms import CenterTime
+
 HeadURL = "$HeadURL$"
 ChangeDate = "$LastChangedDate$"
 RevisionNum = "$LastChangedRevision$"
 ChangedBy = "$LastChangedBy$"
 __version__ = RevisionNum
-
-from numpy import array, where, logical_or, repeat, mean, sum, zeros
-# This Package modules
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, \
-    PseudoNetCDFVariable, \
-    PseudoNetCDFVariables, \
-    PseudoNetCDFVariableConvertUnit
-from PseudoNetCDF.ArrayTransforms import CenterTime
 
 
 class add_derived(PseudoNetCDFFile):
@@ -34,7 +33,7 @@ class add_derived(PseudoNetCDFFile):
 
     create a new class with the following modifications:
     overwrite __childclass__ with the base class
-    overwrite __addvars__ with a list of keys for variable names you 
+    overwrite __addvars__ with a list of keys for variable names you
                           intend to derive
     for each key name, create a key interface funciton (e.g. key = DEPTH, interface = __DEPTH__)
     """
@@ -107,7 +106,7 @@ class time_avg_new_unit(PseudoNetCDFFile):
     def __variables(self, k):
         outunit = self.__outunit.get(k, None)
         var = self.__file.variables[k]
-        if outunit == None:
+        if outunit is None:
             outunit = var.units
         return PseudoNetCDFVariableConvertUnit(self.__decorator(var, PseudoNetCDFVariable(self, k, var.typecode(), var.dimensions, values=CenterTime(var))), outunit)
 
@@ -146,17 +145,17 @@ class window(PseudoNetCDFFile):
         any_non_time_key = [
             k for k in self.__file.variables.keys() if 'TFLAG' not in k][0]
         self.dimensions['TSTEP'], self.dimensions['LAY'], self.dimensions['ROW'], self.dimensions['COL'] \
-            = map(lambda x: PseudoNetCDFDimension(None,  None, x), self.__file.variables[any_non_time_key][self.__idx].shape)
+            = map(lambda x: PseudoNetCDFDimension(None, None, x), self.__file.variables[any_non_time_key][self.__idx].shape)
         self.variables = PseudoNetCDFVariables(
             self.__variables, self.__file.variables.keys())
 
     def __variables(self, k):
+        from PseudoNetCDF.sci_var import Pseudo2NetCDF
         if 'TFLAG' in k:
             return self.__file.variables[k]
 
         ov = self.__file.variables[k]
         nv = ov[self.__idx]
-        from PseudoNetCDF.sci_var import Pseudo2NetCDF
         Pseudo2NetCDF().addVariableProperties(nv, ov)
         return nv
 
@@ -181,6 +180,7 @@ class newresolution(PseudoNetCDFFile):
     """
 
     def __init__(self, ncffile, dimension, oldres, newres, repeat_method=repeat, condense_method=sum, nthick=0):
+        from PseudoNetCDF.sci_var import Pseudo2NetCDF
         PseudoNetCDFFile.__init__(self)
         self.__dimension = array(dimension, ndmin=1)
         oldres = array(oldres, ndmin=1)
@@ -197,9 +197,9 @@ class newresolution(PseudoNetCDFFile):
         Pseudo2NetCDF().addDimensions(self.__file, self)
         any_non_time_key = [
             k for k in self.__file.variables.keys() if 'TFLAG' not in k][0]
-        for dk, dfactor in zip(self.__dimension, 1./self.__mesh):
+        for dk, dfactor in zip(self.__dimension, 1. / self.__mesh):
             dimo = self.dimensions[dk]
-            ndimo = self.createDimension(str(dk), len(dimo)*dfactor)
+            ndimo = self.createDimension(str(dk), len(dimo) * dfactor)
             ndimo.setunlimited(dimo.isunlimited())
         v = self.__file.variables[any_non_time_key]
         v = self.__method(v)
@@ -214,19 +214,22 @@ class newresolution(PseudoNetCDFFile):
             axisi = list(a.dimensions).index(dimension)
             newshape = list(a.shape)
             if mesh < 1:
-                def method(a): return self.__repeat(a, (1./mesh), axisi)
+                def method(a):
+                    return self.__repeat(a, (1. / mesh), axisi)
                 newshape[axisi] = newshape[axisi] * mesh
             else:
                 newshape[axisi:axisi +
                          1] = int(newshape[axisi] // mesh), int(mesh)
 
-                def method(a): return self.__condense(
-                    a.reshape(newshape), axisi + 1)
+                def method(a):
+                    return self.__condense(
+                        a.reshape(newshape), axisi + 1)
             a = method(a)
 
         return a
 
     def __variables(self, k):
+        from PseudoNetCDF.sci_var import Pseudo2NetCDF
         if 'TFLAG' in k and (self.__axis != 0).any():
             raise KeyError("Tflag is off limits")
         else:
@@ -282,7 +285,7 @@ class MetaNetCDF(PseudoNetCDFFile):
             for f in self.__files:
                 try:
                     return getattr(f, k)
-                except:
+                except Exception:
                     pass
             raise AttributeError("%s not found" % k)
 

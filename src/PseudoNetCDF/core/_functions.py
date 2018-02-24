@@ -1,21 +1,22 @@
 from __future__ import print_function, unicode_literals
 import sys
-if sys.version_info.major == 2:
-    def bytes(x, enc): return str(x)
-else:
-    unicode = str
-
 from warnings import warn
-import re
 import numpy as np
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict
 
 
 from ._files import PseudoNetCDFFile
 from ._variables import PseudoNetCDFMaskedVariable, PseudoNetCDFVariable
-from ..userfuncs import *
 
+# Functions to be available for pncexpr
+from ..userfuncs import *
 import datetime
+
+if sys.version_info.major == 2:
+    def bytes(x, enc):
+        return str(x)
+else:
+    unicode = str
 
 
 def pncrename(ifile, type_old_new):
@@ -103,7 +104,7 @@ def getvarpnc(f, varkeys, coordkeys=[], copy=True):
     for varkey in varkeys:
         try:
             var = eval(varkey, None, f.variables)
-        except:
+        except Exception:
             var = f.variables[varkey]
         for dimk, dimv in zip(var.dimensions, var.shape):
             if dimk not in outf.dimensions:
@@ -132,7 +133,7 @@ def getvarpnc(f, varkeys, coordkeys=[], copy=True):
             propd['pvalues'] = propd['values']
             del propd['values']
         if 'name' in propd:
-            if not 'standard_name' in propd:
+            if 'standard_name' not in propd:
                 propd['standard_name'] = propd['name']
             del propd['name']
         vals = var[...]
@@ -240,7 +241,6 @@ def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn', passthrou
                   ('x' in f.dimensions and 'y' in f.dimensions)
     if isinstance(lonlat, (str, )):
         lonlat = [lonlat]
-    lonlatin = lonlat
     lonlatout = []
     for ll in lonlat:
         if isinstance(ll, (str, )):
@@ -325,7 +325,7 @@ def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn', passthrou
         points = np.array([longitude.ravel(), latitude.ravel()]).T
 
         def extractfunc(v, thiscoords):
-            if not 'latitude' in thiscoords or not 'longitude' in thiscoords:
+            if 'latitude' not in thiscoords or 'longitude' not in thiscoords:
                 return v
             newshape = [dl if d not in (
                 'latitude', 'longitude') else -1 for di, (d, dl) in enumerate(zip(thiscoords, v.shape))]
@@ -364,7 +364,7 @@ def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn', passthrou
     for k, v in f.variables.items():
         try:
             coords = v.coordinates.split()
-        except:
+        except Exception:
             # special case for ioapi
             coords = [{'ROW': 'latitude', 'COL': 'longitude'}.get(
                 tempdk, tempdk) for tempdk in v.dimensions]
@@ -373,7 +373,7 @@ def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn', passthrou
         if passthrough or 'longitude' in coords or 'latitude' in coords:
             try:
                 del outf.variables[k]
-            except:
+            except Exception:
                 pass
             newdims = []
             if len(dims) != len(coords):
@@ -409,7 +409,7 @@ def mask_vals(f, maskdef, metakeys='time layer level latitude longitude time_bou
     mval = ','.join(maskdef.split(',')[1:])
     if mtype == 'where':
         maskexpr = 'np.ma.masked_where(mask, var[:].view(np.ndarray))'
-        mask = eval(mval, None, f.variables)
+        # mask = eval(mval, None, f.variables)
     else:
         maskexpr = 'np.ma.masked_%s(var[:], %s)' % (mtype, mval)
     for varkey, var in f.variables.items():
@@ -425,7 +425,7 @@ def mask_vals(f, maskdef, metakeys='time layer level latitude longitude time_bou
 
 def slice_dim(f, slicedef, fuzzydim=True):
     """
-    variables have dimensions (e.g., time, layer, lat, lon), which can be subset using 
+    variables have dimensions (e.g., time, layer, lat, lon), which can be subset using
         slice_dim(f, 'dim,start,stop,stride')
 
     e.g., slice_dim(f, 'layer,0,47,5') would sample every fifth layer starting at 0
@@ -509,6 +509,7 @@ def reduce_dim(f, reducedef, fuzzydim=True, metakeys='time layer level latitude 
 
     Weighting is not fully functional.
     """
+    from PseudoNetCDF.sci_var import Pseudo2NetCDF
     inf = f
     metakeys = [k for k in metakeys if k in inf.variables.keys()]
     historydef = "reduce_dim(f, %s, fuzzydim = %s, metakeys = %s); " % (
@@ -547,15 +548,14 @@ def reduce_dim(f, reducedef, fuzzydim=True, metakeys='time layer level latitude 
         warn('%s not in file' % dimkey)
         return inf
 
-    from PseudoNetCDF.sci_var import Pseudo2NetCDF
     p2p = Pseudo2NetCDF(verbose=0)
     outf = PseudoNetCDFFile()
     p2p.addDimensions(inf, outf)
     del outf.dimensions[dimkey]
     p2p.addGlobalProperties(inf, outf)
 
-    #unlimited = inf.dimensions[dimkey].isunlimited()
-    #outf.createDimension(dimkey, 1)
+    # unlimited = inf.dimensions[dimkey].isunlimited()
+    # outf.createDimension(dimkey, 1)
     # if unlimited:
     #    outf.dimensions[dimkey].setunlimited(True)
 
@@ -569,14 +569,14 @@ def reduce_dim(f, reducedef, fuzzydim=True, metakeys='time layer level latitude 
         # def addunitydim(var):
         #    return var[(slice(None),) * (axis + 1) + (None,)]
         vreshape = var[slice(None)]
-        #vreshape = addunitydim(var)
-        if not varkey in metakeys:
+        # vreshape = addunitydim(var)
+        if varkey not in metakeys:
             if numweightkey is None:
                 vout = _getfunc(vreshape, func)(axis=axis, keepdims=True)
             elif denweightkey is None:
                 wvar = var * \
                     np.array(numweight, ndmin=var.ndim)[
-                        (slice(None),)*axis + (slice(0, var.shape[axis]),)]
+                        (slice(None),) * axis + (slice(0, var.shape[axis]),)]
                 vout = getattr(
                     wvar[(slice(None),) * (axis + 1) + (None,)], func)(axis=axis)
                 vout.units = vout.units.strip() + ' * ' + numweight.units.strip()
@@ -585,9 +585,9 @@ def reduce_dim(f, reducedef, fuzzydim=True, metakeys='time layer level latitude 
             else:
                 nwvar = var * \
                     np.array(numweight, ndmin=var.ndim)[
-                        (slice(None),)*axis + (slice(0, var.shape[axis]),)]
+                        (slice(None),) * axis + (slice(0, var.shape[axis]),)]
                 vout = getattr(nwvar[(slice(None),) * (axis + 1) + (None,)], func)(axis=axis) / getattr(np.array(
-                    denweight, ndmin=var.ndim)[(slice(None),)*axis + (slice(0, var.shape[axis]), None)], func)(axis=axis)
+                    denweight, ndmin=var.ndim)[(slice(None),) * axis + (slice(0, var.shape[axis]), None)], func)(axis=axis)
         else:
             if '_bounds' not in varkey and '_bnds' not in varkey:
                 vout = _getfunc(vreshape, func)(axis=axis, keepdims=True)
@@ -599,7 +599,7 @@ def reduce_dim(f, reducedef, fuzzydim=True, metakeys='time layer level latitude 
                     try:
                         vout[..., [0, 3]] = vmin[..., [0, 3]]
                         vout[..., [1, 2]] = vmax[..., [1, 2]]
-                    except:
+                    except Exception:
                         vout[..., [0, 1]] = vmin[0, 0], vmax[0, 1]
                 elif 'lat' in varkey:
                     nmin = vout.shape[-1] // 2
@@ -743,15 +743,14 @@ def pncexpr(expr, ifile, verbose=0):
     Evaluate an arbitrary expression in the context of ifile.variables
     and add the result to the file with appropriate units.
     """
-    from PseudoNetCDF.sci_var import Pseudo2NetCDF
     from PseudoNetCDF.sci_var import WrapPNC
     from symtable import symtable
 
     # Copy file to temporary PseudoNetCDF file
     comp = compile(expr, 'none', 'exec')
 
-    #varkeys = [key for key in comp.co_names if key in ifile.variables]
-    #getvarpnc(ifile, varkeys)
+    # varkeys = [key for key in comp.co_names if key in ifile.variables]
+    # getvarpnc(ifile, varkeys)
     varpnc = tmpfile = WrapPNC(ifile, None)
 
     # Get NetCDF variables as a dictionary with
@@ -779,15 +778,15 @@ def pncexpr(expr, ifile, verbose=0):
     vardict['np'] = np
     exec('from scipy.constants import *', None, vardict)
     for k in ifile.ncattrs():
-        if not k in vardict:
+        if k not in vardict:
             vardict[k] = getattr(ifile, k)
-    oldkeys = set(vardict.keys())
+    # oldkeys = set(vardict.keys())
 
     # Assign expression to new variable.
     exec(comp, None, vardict)
 
-    #newkeys = set(vardict.keys())
-    #assignedkeys = [k for k in newkeys.difference(oldkeys) if k[:1] != '_']
+    # newkeys = set(vardict.keys())
+    # assignedkeys = [k for k in newkeys.difference(oldkeys) if k[:1] != '_']
     assignedkeys = [s.get_name() for s in symbols if s.is_assigned()]
     assignedkeys = [k for k in assignedkeys if k in vardict]
     for key in assignedkeys:
@@ -817,14 +816,16 @@ def mesh_dim(f, mesh_def):
     dimkey, meshfactor, aggfunc = mesh_def.split(',')
     meshfactor = float(meshfactor)
 
-    def spread(a, n, axis): return a.repeat(n, axis) * meshfactor
+    def spread(a, n, axis):
+        return a.repeat(n, axis) * meshfactor
+
     try:
         aggfunc = eval(aggfunc)
-    except:
+    except Exception:
         aggfunc = getattr(np, aggfunc)
     if meshfactor < 1.:
-        oldres = int(1./meshfactor)
-        assert(1./meshfactor == oldres)
+        oldres = int(1. / meshfactor)
+        assert(1. / meshfactor == oldres)
         newres = 1
     elif meshfactor > 1.:
         newres = int(meshfactor)
@@ -895,10 +896,10 @@ def merge(fs):
     outf = getvarpnc(fs[0], None)
     for f in fs[1:]:
         for p in f.ncattrs():
-            if not p in outf.ncattrs():
+            if p not in outf.ncattrs():
                 setattr(outf, p, getattr(f, p))
         for d, v in f.dimensions.items():
-            if not d in outf.dimensions:
+            if d not in outf.dimensions:
                 nv = outf.createDimension(d, len(v))
                 nv.setunlimited(v.isunlimited())
         for k, v in f.variables.items():
@@ -907,7 +908,7 @@ def merge(fs):
                     warn('%s already in output' % k)
             else:
                 propd = dict([(p, getattr(v, p)) for p in v.ncattrs()])
-                var = outf.createVariable(
+                outf.createVariable(
                     k, v.dtype.char, v.dimensions, values=v, **propd)
 
     return outf
@@ -941,15 +942,15 @@ def stack_files(fs, stackdim, coordkeys=[]):
     p2p.addGlobalProperties(tmpf, f)
     for tmpf in fs:
         for varkey, var in tmpf.variables.items():
-            if not stackdim in var.dimensions:
+            if stackdim not in var.dimensions:
                 if varkey in f.variables:
-                    if not varkey in coordkeys:
+                    if varkey not in coordkeys:
                         warn(
                             'Got duplicate variables for %s without stackable dimension; first value retained' % varkey)
                 else:
                     p2p.addVariable(tmpf, f, varkey, data=True)
             else:
-                if not varkey in f.variables.keys():
+                if varkey not in f.variables.keys():
                     axisi = list(var.dimensions).index(stackdim)
                     values = np.ma.concatenate(
                         [f_.variables[varkey][:] for f_ in fs], axis=axisi)
