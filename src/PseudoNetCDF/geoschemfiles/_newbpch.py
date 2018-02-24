@@ -279,8 +279,8 @@ class bpch2(bpch_base):
                       tmpvar in tmpvariables.items()]
         maxntimes = max(ntimes)
         self.createDimension('time', maxntimes)
-        for time in set(levels):
-            if time != 1:
+        for time in set(ntimes):
+            if time != maxntimes:
                 self.createDimension('time%d' % time, time)
         self.createDimension('layer', min(max(levels), self.Ap.size - 1))
         for layer in set(levels):
