@@ -40,7 +40,7 @@ class PseudoNetCDFType(type):
 
 PseudoNetCDFSelfReg = PseudoNetCDFType('pnc', (object,), dict(__doc__ = 'Test'))
 
-class PseudoNetCDFFile(PseudoNetCDFSelfReg):
+class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
     """
     PseudoNetCDFFile provides an interface and standard set of
     methods that a file should present to act like a netCDF file
@@ -1380,6 +1380,10 @@ class PseudoNetCDFVariables(OrderedDefaultDict):
     def keys(self):
         return tuple(self.__keys + [k for k in dict.keys(self) if k not in self.__keys])
 
+    def __iter__(self):
+        for k in self.keys():
+            yield k
+    
     def __len__(self):
         return len([k for k  in self.keys()])
     
