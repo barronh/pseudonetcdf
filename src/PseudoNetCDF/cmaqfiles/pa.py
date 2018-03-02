@@ -26,7 +26,7 @@ def mrgidx(ipr_paths, irr_paths, idx):
         rr_keys = [(int(rr.split('_')[1]), rr) for rr in rr_keys]
         rr_keys.sort()
         rr_keys = [rr[1] for rr in rr_keys]
-    except:
+    except Exception:
         warn("Cannot sort reaction keys")
 
     # Processes are predicated by a delimiter
@@ -47,7 +47,7 @@ def mrgidx(ipr_paths, irr_paths, idx):
     outf.createDimension("SPECIES", len(spcs))
     outf.createDimension("RXN", len(rr_keys))
     outf.createDimension("TSTEP", pr_tmp[:, 0, 0, 0].shape[0])
-    outf.createDimension("TSTEP_STAG", len(outf.dimensions["TSTEP"])+1)
+    outf.createDimension("TSTEP_STAG", len(outf.dimensions["TSTEP"]) + 1)
     outf.createDimension("ROW", 1)
     outf.createDimension("LAY", 1)
     outf.createDimension("COL", 1)
@@ -83,12 +83,11 @@ def mrgidx(ipr_paths, irr_paths, idx):
 
 if __name__ == '__main__':
     from PseudoNetCDF.pncdump import pncdump
-    from PseudoNetCDF.cmaqfiles.pa import mrgidx
     import sys
 
     x = ', '.join(sys.argv[1:])
     try:
         pncdump(eval('mrgidx(%s)' % (x,)), name=mrgidx)
-    except:
+    except Exception:
         print(
             "\nUsage: python -m PseudoNetCDF.cmaqfiles.pa \"ipr_paths, irr_paths, idx\"\n  ipr_paths - a single string or list of strings\n  irr_paths - a single string or list of strings\n  idx - 4D numpy slice indexes a time series\n\n\nExample:\n  $ python -m PseudoNetCDF.cmaqfiles.pa \"['CMAQ_IPR1.nc','CMAQ_IPR2.nc'], 'CMAQ_IRR.nc', (slice(None),0,1,1)\"", file=sys.stderr)

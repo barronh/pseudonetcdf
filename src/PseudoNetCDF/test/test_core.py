@@ -114,7 +114,7 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         sncf = tncf.sliceDimensions(TSTEP=0)
         self.assertEqual(len(sncf.dimensions['TSTEP']), 1)
         self.assertEqual(
-            True, (sncf.variables['O3'][:] == tncf.variables['O3'][0]).all())
+            True, (sncf.variables['O3'][:] == o3[0]).all())
 
     def testSliceDimensionList(self):
         tncf = self.testncf
@@ -122,11 +122,11 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         sncf = tncf.sliceDimensions(TSTEP=[0])
         self.assertEqual(len(sncf.dimensions['TSTEP']), 1)
         self.assertEqual(
-            True, (sncf.variables['O3'][:] == tncf.variables['O3'][0]).all())
+            True, (sncf.variables['O3'][:] == o3[0]).all())
         sncf = tncf.sliceDimensions(TSTEP=[0, 8])
         self.assertEqual(len(sncf.dimensions['TSTEP']), 2)
         self.assertEqual(
-            True, (sncf.variables['O3'][:] == tncf.variables['O3'][[0, 8]]).all())
+            True, (sncf.variables['O3'][:] == o3[[0, 8]]).all())
 
     def testSliceDimensionComboListInt(self):
         tncf = self.testncf
@@ -201,12 +201,12 @@ class PseudoNetCDFFileTest(unittest.TestCase):
     @requires_basemap
     def testGetMap(self):
         tncf = self.testncf
-        m = tncf.getMap(maptype='basemap_auto')
+        tncf.getMap(maptype='basemap_auto')
 
     @requires_pyproj
     def testGetproj(self):
         tncf = self.testncf
-        p = tncf.getproj(withgrid=False, projformat='pyproj')
+        tncf.getproj(withgrid=False, projformat='pyproj')
 
     @requires_pyproj
     def testLl2xy(self):
@@ -221,7 +221,6 @@ class PseudoNetCDFFileTest(unittest.TestCase):
     @requires_pyproj
     def testLl2ij(self):
         tncf = self.testncf
-        crs = tncf.variables['lambert_conformal_conic']
         y0 = 0
         x0 = 0
         lon0, lat0 = tncf.xy2ll(x0, y0)
@@ -309,7 +308,7 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         to3 = tncf.variables['O3'][:]
         no3 = sncf.variables['O3'][:]
         origlen = len(tncf.dimensions['TSTEP'])
-        self.assertEqual(origlen*2, len(sncf.dimensions['TSTEP']))
+        self.assertEqual(origlen * 2, len(sncf.dimensions['TSTEP']))
         self.assertEqual(True, np.allclose(to3, no3[:origlen]))
         self.assertEqual(True, np.allclose(to3, no3[origlen:]))
 
@@ -377,8 +376,8 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         lay[:] = np.arange(0, 3)
         simple = f1.createVariable(
             'simple', 'f', ('time', 'layer', 'latitude', 'longitude'))
-        simple[0] = np.arange(3*4*5).reshape(3, 4, 5)
-        simple[1] = np.arange(3*4*5).reshape(3, 4, 5)
+        simple[0] = np.arange(3 * 4 * 5).reshape(3, 4, 5)
+        simple[1] = np.arange(3 * 4 * 5).reshape(3, 4, 5)
 
         f2 = f1.applyAlongDimensions(layer=lambda x: (x[1:] + x[:-1]) * .5)
         f3 = f1.interpDimension('layer', f2.variables['layer'])
@@ -394,8 +393,8 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         lay[:] = np.arange(0, 3)[None, :, None, None]
         simple = f4.createVariable(
             'simple', 'f', ('time', 'layer', 'latitude', 'longitude'))
-        simple[0] = np.arange(3*4*5).reshape(3, 4, 5)
-        simple[1] = np.arange(3*4*5).reshape(3, 4, 5)
+        simple[0] = np.arange(3 * 4 * 5).reshape(3, 4, 5)
+        simple[1] = np.arange(3 * 4 * 5).reshape(3, 4, 5)
 
         f5 = f4.applyAlongDimensions(layer=lambda x: (x[1:] + x[:-1]) * .5)
         lay[1] += .25
@@ -457,8 +456,10 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         tncf.createDimension('ROW', 5)
         tncf.createDimension('COL', 6)
 
-        const = lambda *args, **kwds: PseudoNetCDFVariable(tncf, args[0], 'f', (
-            'TSTEP', 'LAY', 'ROW', 'COL'), values=arange(24 * 4 * 5 * 6).reshape((24, 4, 5, 6)))
+        def const(*args, **kwds):
+            vals = arange(24 * 4 * 5 * 6).reshape((24, 4, 5, 6))
+            dims = ('TSTEP', 'LAY', 'ROW', 'COL')
+            return PseudoNetCDFVariable(tncf, args[0], 'f', dims, values=vals)
         tncf.variables = PseudoNetCDFVariables(const, ['NO', 'O3'])
         self.assertEqual(True, (tncf.variables['O3'] == arange(
             24 * 4 * 5 * 6).reshape(24, 4, 5, 6)).all())

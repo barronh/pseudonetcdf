@@ -5,7 +5,7 @@ __all__ = ['cdtoms']
 from PseudoNetCDF import PseudoNetCDFFile
 from re import compile
 from numpy import array, arange
-from datetime import datetime
+# from datetime import datetime
 dayre = compile(
     ' Day:\s+(?P<jday>\d+) (?P<daystring>.{12})\s+EP/TOMS CORRECTED OZONE GEN:\d+\.\d+\sV\d ALECT:\s+\d+:\d+ [AP]M ')
 lonre = compile(
@@ -18,14 +18,14 @@ def cdtoms(path):
     outfile = PseudoNetCDFFile()
     inlines = open(path, 'rU').readlines()
     dayline = dayre.match(inlines[0]).groupdict()
-    date = datetime.strptime(dayline['daystring'], '%b %d, %Y')
+    # date = datetime.strptime(dayline['daystring'], '%b %d, %Y')
     lonline = lonre.match(inlines[1]).groupdict()
     latline = latre.match(inlines[2]).groupdict()
     for propdict in [dayline, lonline, latline]:
         for k, v in propdict.items():
             try:
                 v = eval(v)
-            except:
+            except Exception:
                 pass
             setattr(outfile, k, v)
     blat, bsn = outfile.blat.split()
@@ -56,16 +56,16 @@ def cdtoms(path):
     var = outfile.createVariable('ozone', 'f', ('LAT', 'LON'))
     var.units = 'matm-cm'
     var.long_name = var.var_desc = 'ozone'.ljust(16)
-    var[:] = array([[eval(s[n*i:n*i+n]) for i in range(len(s)/n)]
+    var[:] = array([[eval(s[n * i:n * i + n]) for i in range(len(s) / n)]
                     for s in datalines if s.strip() != ''], 'f')
 
     var = outfile.createVariable('lat', 'f', ('LAT',))
     var.units = 'degrees N'
-    var[:] = arange(blat, elat+outfile.latbinsize, outfile.latbinsize)
+    var[:] = arange(blat, elat + outfile.latbinsize, outfile.latbinsize)
 
     var = outfile.createVariable('lon', 'f', ('LON',))
     var.units = 'degrees E'
-    var[:] = arange(blon, elon+outfile.lonbinsize, outfile.lonbinsize)
+    var[:] = arange(blon, elon + outfile.lonbinsize, outfile.lonbinsize)
 
     return outfile
 

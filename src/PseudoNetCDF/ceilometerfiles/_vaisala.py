@@ -18,7 +18,7 @@ class ceilometerl2(PseudoNetCDFFile):
         """
         try:
             import pandas as pd
-        except:
+        except Exception:
             raise ImportError(
                 'ceilometerl2 requires pandas; install pandas (e.g., pip install pandas)')
         self._path = path
@@ -31,7 +31,7 @@ class ceilometerl2(PseudoNetCDFFile):
             ''.join(self._data['BS_PROFILE']), dtype='c').reshape(-1, nlays, 5)
         BS_PROFILE = (np.vectorize(int)(data, 16) *
                       16**np.arange(5)[::-1]).sum(2)
-        #BS_PROFILE = np.vectorize(lambda x: eval(b'0x' + x))(data.view('S5')[:,:,0])
+        # BS_PROFILE = np.vectorize(lambda x: eval(b'0x' + x))(data.view('S5')[:,:,0])
         self.createDimension('time', data.shape[0])
         self.createDimension('altitude_tops', nlays)
         self.createDimension('altitude_edges', nlays + 1)

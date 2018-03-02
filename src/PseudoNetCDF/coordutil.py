@@ -19,7 +19,7 @@ def getbounds(ifile, dimkey):
         if not (ddm == dd).all():
             warn('Bounds is an approximation assuming %s variable is cell centers' % dimkey)
         else:
-            db = (d[:-1] + d[1:])/2.
+            db = (d[:-1] + d[1:]) / 2.
             db = np.append(
                 np.append(d[0] - dd[0] / 2., db), d[-1] + dd[-1] / 2)
             return db
@@ -94,7 +94,7 @@ def _parse_ref_date(base):
         # try using netcdftime
         try:
             import netcdftime
-            ut = netcdftime.netcdftime.utime(time.units.strip())
+            ut = netcdftime.netcdftime.utime(base.strip())
             sdate = ut.num2date(0.)
             return sdate
         except Exception as e:
@@ -263,9 +263,6 @@ def getlatbnds(ifile):
         latb = np.apply_along_axis(np.convolve, 0, latb, [0.5, 0.5])
         latb[0] *= 2
         latb[-1] *= 2
-        #latb = np.concatenate([latb, latb[[-1]]], axis = 0) - .5 * np.concatenate([latdiff[:], latdiff[[-1]], -latdiff[[-1]]], axis = 0)
-        #latb = np.minimum(90, latb)
-        #latb = np.maximum(-90, latb)
         if latb.ndim == 2:
             latb = np.append(latb, latb[:, [-1]], axis=1)
 
@@ -285,7 +282,7 @@ def getybnds(ifile):
             len(ifile.dimensions['ROW']) + 1) * getattr(ifile, 'YCELL', 1)
     elif 'south_north' in ifile.dimensions:
         unit = 'y (m)'
-        lonb = np.arange(
+        latb = np.arange(
             len(ifile.dimensions['south_north']) + 1) * getattr(ifile, 'DY', 1)
     else:
         raise KeyError('latitude bounds not found')
@@ -353,7 +350,7 @@ def getcdo(ifile):
 
     def wrapper(first, instr):
         outstr = "\n".join(textwrap.wrap(
-            instr, width=72, subsequent_indent=' '*12, initial_indent=first))
+            instr, width=72, subsequent_indent=' ' * 12, initial_indent=first))
         return outstr
 
     outdict = {}
@@ -462,7 +459,6 @@ def basemap_options_from_proj4(proj4, **kwds):
         width=None, height=None,
     """
     excluded = ('proj', 'a', 'b', 'x_0', 'y_0', 'to_meter')
-    dexpr = ''
     proj4_options = OrderedDict()
     for seg in proj4.split():
         if '=' in seg:
@@ -632,7 +628,7 @@ def getmap(ifile, resolution='i'):
                         llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlat=urcrnrlat, urcrnrlon=urcrnrlon, resolution=resolution, suppress_ticks=False)
         elif ifile.GDTYP == 6:
             p = getproj(ifile, withgrid=True)
-            lclon, lclat = p(ifile.NCOLS/2., 0, inverse=True)
+            lclon, lclat = p(ifile.NCOLS / 2., 0, inverse=True)
             lllon, lllat = p(0, 0, inverse=True)
             urlon, urlat = p(ifile.NCOLS, ifile.NROWS, inverse=True)
             print(lclon, lclat)
@@ -645,7 +641,7 @@ def getmap(ifile, resolution='i'):
             mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (
                 semi_major_axis, semi_major_axis, ifile.XCENT)
             p = pyproj.Proj(mapstr)
-            #p = Proj(proj='merc',rsphere = (semi_major_axis, semi_major_axis), lat_ts = ifile.P_ALP, lat_0 = ifile.YCENT, lon_0 = ifile.XCENT)
+            # p = Proj(proj='merc',rsphere = (semi_major_axis, semi_major_axis), lat_ts = ifile.P_ALP, lat_0 = ifile.YCENT, lon_0 = ifile.XCENT)
             llcrnrlon, llcrnrlat = p(llcrnrx, llcrnry, inverse=True)
             urcrnrlon, urcrnrlat = p(urcrnrx, urcrnry, inverse=True)
             m = Basemap(projection='merc', rsphere=(semi_major_axis, semi_major_axis), lon_0=ifile.XCENT, lat_ts=0, llcrnrlon=llcrnrlon,
@@ -677,7 +673,7 @@ def getinterpweights(xs, nxs, kind='linear', fill_value='extrapolate', extrapola
     xs : old input coordinates
     nxs : new output coordinates
     extrapolate : allow extrapolation beyond bounds, default False
-    fill_value : set fill value (e.g, nan) to prevent extrapolation or edge 
+    fill_value : set fill value (e.g, nan) to prevent extrapolation or edge
                  continuation
 
     Returns

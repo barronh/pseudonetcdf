@@ -12,7 +12,7 @@ def testreader(reader, *args, **kwds):
     try:
         reader(*args, **kwds)
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -39,7 +39,7 @@ def getreader(*args, **kwds):
             rdict = getreaderdict()
             if ext in rdict:
                 _myreaders.insert(0, (ext, rdict[ext]))
-        except:
+        except Exception:
             pass
     else:
         _myreaders = [(k, v) for k, v in _readers if format == k]
@@ -54,7 +54,7 @@ def getreader(*args, **kwds):
 
 def registerreader(name, reader):
     global _readers
-    if not name in [k for k, v in _readers]:
+    if name not in [k for k, v in _readers]:
         _readers.insert(0, (name, reader))
         return True
     else:
@@ -66,7 +66,7 @@ def pncopen(*args, **kwds):
     Open any PNC supported format using args and kwds, which
     are format specific. format is not passed to the reader
 
-    format = None, addcf = False, 
+    format = None, addcf = False,
     args - arguments for opening file
     kwds - keywords for file opener and optional format and addcf
     format - name of reader (not passed to reader)
@@ -116,10 +116,10 @@ class TestPNCOPEN(unittest.TestCase):
         import PseudoNetCDF.testcase
         for format, path in PseudoNetCDF.testcase.self_described_paths.items():
             print('Test open with ', format, path)
-            f = pncopen(path, format=format)
+            pncopen(path, format=format)
 
     def testPNCOPENNOFMT(self):
         import PseudoNetCDF.testcase
         for format, path in PseudoNetCDF.testcase.self_described_paths.items():
             print('Test open unspecified ', path)
-            f = pncopen(path)
+            pncopen(path)

@@ -35,7 +35,7 @@ def ioapi_sort_meta(infile):
     outvars = getattr(infile, 'VAR-LIST', '').split()
     allvars = outvars + \
         [k for k in list(infile.variables)
-         if not k in outvars and k != 'TFLAG']
+         if k not in outvars and k != 'TFLAG']
     infile.NVARS = len(outvars)
     infile.dimensions = OrderedDict()
     for dk in 'TSTEP DATE-TIME LAY VAR ROW COL'.split():
@@ -133,7 +133,7 @@ class ioapi_base(PseudoNetCDFFile):
             varkey in varkeys) != exclude]
         outf = PseudoNetCDFFile.subsetVariables(
             self, varkeys, inplace=inplace, exclude=exclude)
-        if not 'TFLAG' in outf.variables and 'TFLAG' in self.variables:
+        if 'TFLAG' not in outf.variables and 'TFLAG' in self.variables:
             outf.copyVariable(self.variables['TFLAG'], key='TFLAG')
         sliceo = np.array(
             [vi for vi, varkey in enumerate(varlist) if varkey in newvarlist])
@@ -159,7 +159,7 @@ class ioapi_base(PseudoNetCDFFile):
 
         # Identify array indices and the need for fancy indexing
         isarray = {dk: not np.isscalar(dv) for dk, dv in dimslices.items()}
-        anyisarray = np.sum(list(isarray.values())) > 1
+        # anyisarray = np.sum(list(isarray.values())) > 1
 
         # Check if COL or ROW was used
         hascol = 'COL' in dimslices
@@ -179,7 +179,7 @@ class ioapi_base(PseudoNetCDFFile):
                     endl = outf.VGLVLS[endi]
                     tmpvglvls = np.append(tmpvglvls, endl)
                     outf.VGLVLS = tmpvglvls
-                except:
+                except Exception:
                     warn('VGLVLS could not be diagnosed; update manually')
         # If subsetting replaces ('ROW', 'COL') ... for example with ('PERIM',)
         # remove the dimensions
@@ -220,7 +220,7 @@ class ioapi_base(PseudoNetCDFFile):
              linear : uses a linear interpolation
              conserve : uses a mass conserving interpolation
         extrapolate : allow extrapolation beyond bounds with linear, default False
-        fill_value : set fill value (e.g, nan) to prevent extrapolation or edge 
+        fill_value : set fill value (e.g, nan) to prevent extrapolation or edge
                      continuation
 
         Returns
@@ -236,14 +236,14 @@ class ioapi_base(PseudoNetCDFFile):
         myvglvls = self.VGLVLS
 
         # If needed, recalculate this files SIGMA
-        if not vgtop is None and not vgtop == self.VGTOP:
+        if vgtop is not None and not vgtop == self.VGTOP:
             dp0 = 101325. - self.VGTOP
             dp1 = 101325. - vgtop
             myvglvls = (myvglvls * dp0 + self.VGTOP - vgtop) / dp1
 
         # Use midpoint for sigmas in inputs and outputs
-        zs = (myvglvls[:-1]+myvglvls[1:])/2.
-        nzs = (vglvls[:-1]+vglvls[1:])/2.
+        zs = (myvglvls[:-1] + myvglvls[1:]) / 2.
+        nzs = (vglvls[:-1] + vglvls[1:]) / 2.
 
         if interptype == 'linear':
             from ..coordutil import getinterpweights
@@ -328,7 +328,7 @@ class ioapi_base(PseudoNetCDFFile):
                 if self.NVARS != len(self.dimensions['VAR']):
                     try:
                         self.createDimension('VAR', self.NVARS)
-                    except:
+                    except Exception:
                         pass
             else:
                 self.createDimension('VAR', self.NVARS)
@@ -359,7 +359,7 @@ class ioapi_base(PseudoNetCDFFile):
             if not td.isunlimited():
                 td.setunlimited(True)
 
-        if not 'DATE-TIME' in self.dimensions:
+        if 'DATE-TIME' not in self.dimensions:
             self.createDimension('DATE-TIME', 2)
 
         self.getVarlist()
@@ -374,7 +374,7 @@ class ioapi_base(PseudoNetCDFFile):
         self._updatetime()
         try:
             times = self.getTimes()
-        except:
+        except Exception:
             return
 
         if not hasattr(self, 'SDATE'):
@@ -387,7 +387,7 @@ class ioapi_base(PseudoNetCDFFile):
                 warn('New time is unstructured')
             self.TSTEP = int(
                 (datetime.datetime(1900, 1, 1, 0) + dt[0]).strftime('%H%M%S'))
-        if not 'TFLAG' in self.variables:
+        if 'TFLAG' not in self.variables:
             dotflag = True
             tvar = self.createVariable(
                 'TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
@@ -435,7 +435,7 @@ class ioapi_base(PseudoNetCDFFile):
         out = PseudoNetCDFFile.eval(self, *args, **kwds)
         outkeys = set(out.variables)
         newkeys = outkeys.difference(oldkeys)
-        byekeys = oldkeys.difference(outkeys)
+        # byekeys = oldkeys.difference(outkeys)
         out._add2Varlist(newkeys)
         return out
 
@@ -451,11 +451,11 @@ class ioapi_base(PseudoNetCDFFile):
         if maptype.endswith('_auto'):
             lllon, lllat = self.xy2ll(0, 0)
             urlon, urlat = self.xy2ll(
-                self.NCOLS*self.XCELL, self.NROWS*self.YCELL)
+                self.NCOLS * self.XCELL, self.NROWS * self.YCELL)
             kwds.setdefault('llcrnrlon', lllon)
-            kwds.setdefault('llcrnrlat',  lllat)
+            kwds.setdefault('llcrnrlat', lllat)
             kwds.setdefault('urcrnrlon', urlon)
-            kwds.setdefault('urcrnrlat',  urlat)
+            kwds.setdefault('urcrnrlat', urlat)
             maptype = maptype[:-5]
 
         return PseudoNetCDFFile.getMap(self, maptype=maptype, **kwds)
@@ -489,7 +489,7 @@ class ioapi_base(PseudoNetCDFFile):
         ykey = d2d.get(raw_ykey, raw_ykey)
         if not ykey == 'profile':
             for dimkey in list(dimlens):
-                if not dimkey in (xkey, ykey) and dimlens.get(dimkey, 1) > 1:
+                if dimkey not in (xkey, ykey) and dimlens.get(dimkey, 1) > 1:
                     apply2dim[dimkey] = dimreduction
 
         if len(apply2dim) > 0:
@@ -502,7 +502,7 @@ class ioapi_base(PseudoNetCDFFile):
         if ykey in ('profile',):
             vaxi = var.dimensions.index(xkey)
             vsize = var.shape[vaxi]
-            vals = np.rollaxis(var[:], layaxi).reshape(laysize, -1)
+            vals = np.rollaxis(var[:], vaxi).reshape(vsize, -1)
         else:
             vals = var[:].squeeze()
 
@@ -549,7 +549,7 @@ class ioapi_base(PseudoNetCDFFile):
                 bmap = myf.getMap()
                 bmap.drawcoastlines(ax=ax)
                 bmap.drawcountries(ax=ax)
-            except:
+            except Exception:
                 pass
         else:
             ax.set_xlabel(xkey)
@@ -580,5 +580,5 @@ class ioapi(Dataset, ioapi_base):
             for pk in ['XORIG', 'XCELL', 'YCELL', 'YORIG', 'SDATE', 'STIME']:
                 assert(pk in attrlist)
             return True
-        except:
+        except Exception:
             return False

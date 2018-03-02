@@ -2,10 +2,15 @@ from __future__ import print_function
 import sys
 from warnings import warn
 from types import MethodType
-from PseudoNetCDF.netcdf import NetCDFFile, NetCDFVariable
+from PseudoNetCDF.netcdf import NetCDFVariable
 from .sci_var import PseudoNetCDFFile
 from .sci_var import get_ncf_object
 import numpy as np
+from PseudoNetCDF.camxfiles import Writers as CAMxWriters
+import PseudoNetCDF.geoschemfiles as geoschemwriters
+import PseudoNetCDF.icarttfiles.ffi1001 as icarttwriters
+
+
 if sys.version_info > (3,):
     long = int
 
@@ -69,7 +74,7 @@ class Pseudo2NetCDF:
         nfile.sync()
 
     def addGlobalProperties(self, pfile, nfile):
-        for k in [k for k in pfile.ncattrs() if k not in self.ignore_global_properties and self.ignore_global_re.match(k) == None]:
+        for k in [k for k in pfile.ncattrs() if k not in self.ignore_global_properties and self.ignore_global_re.match(k) is None]:
             value = getattr(pfile, k)
             if not isinstance(value, MethodType):
                 try:
@@ -83,7 +88,7 @@ class Pseudo2NetCDF:
                     warn("Could not add %s to file; %s: %s" % (k, type(e), e))
 
     def addVariableProperties(self, pvar, nvar):
-        for a in [k for k in pvar.ncattrs() if (k not in self.ignore_variable_properties and self.ignore_variable_re.match(k) == None) or k in self.special_properties]:
+        for a in [k for k in pvar.ncattrs() if (k not in self.ignore_variable_properties and self.ignore_variable_re.match(k) is None) or k in self.special_properties]:
             value = getattr(pvar, a)
             if isinstance(nvar, NetCDFVariable) and a == '_FillValue':
                 continue
@@ -94,7 +99,6 @@ class Pseudo2NetCDF:
                 except TypeError as e:
                     if isinstance(value, bool):
                         nvar.setncattr(a, np.int8(value))
-                        #setattr(nvar, a, np.int8(value))
                     else:
                         raise e
                 except Exception as e:
@@ -109,7 +113,7 @@ class Pseudo2NetCDF:
         pvar = pfile.variables[k]
         try:
             typecode = pvar.typecode()
-        except:
+        except Exception:
             typecode = pvar[...].dtype.char
 
         create_variable_kwds = self.create_variable_kwds.copy()
@@ -128,13 +132,13 @@ class Pseudo2NetCDF:
         nfile.sync()
         try:
             nfile.flush()
-        except:
+        except Exception:
             pass
         del pvar, nvar
 
     def addVariableData(self, pfile, nfile, k):
         from numpy.ma import MaskedArray
-        from numpy import ndarray, isscalar
+        from numpy import isscalar
         nvar = nfile.variables[k]
         pvar = pfile.variables[k]
         if isscalar(nvar) or nvar.ndim == 0:
@@ -159,13 +163,6 @@ class Pseudo2NetCDF:
                     print("Populating", k, file=sys.stdout)
                 self.addVariableData(pfile, nfile, k)
             nfile.sync()
-
-
-from PseudoNetCDF.camxfiles import Writers as CAMxWriters
-import PseudoNetCDF.geoschemfiles as geoschemwriters
-import PseudoNetCDF.icarttfiles.ffi1001 as icarttwriters
-
-from PseudoNetCDF.textfiles import ncf2csv
 
 
 def pywriter(ifile, outpath, data=True):
@@ -243,7 +240,7 @@ def pncgen(ifile, outpath, inmode='r', outmode='w', format='NETCDF4_CLASSIC', ve
     else:
         for writers in [CAMxWriters, geoschemwriters, icarttwriters]:
             writer = getattr(writers, 'ncf2%s' % format, None)
-            if not writer is None:
+            if writer is not None:
                 return writer(ifile, outpath)
                 break
         else:

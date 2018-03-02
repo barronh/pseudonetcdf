@@ -1,13 +1,11 @@
 from __future__ import print_function
 __all__ = ['bcon_profile', 'icon_profile']
-from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariables
 from ._ioapi import ioapi_base
 from matplotlib.mlab import csv2rec
 try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
-from datetime import datetime
 import numpy as np
 
 
@@ -32,10 +30,10 @@ class icon_profile(ioapi_base):
         nlay, nspc = [int(_v) for _v in header[:2]]
         sigmas = [float(_v) for _v in header[2:]]
         nsigmas = len(sigmas)
-        try:
-            dateo = datetime.strptime(lines[4].strip(), '%Y-%m-%d')
-        except:
-            date, time = [int(_v) for _v in lines[4].split()]
+        # try:
+        #     dateo = datetime.strptime(lines[4].strip(), '%Y-%m-%d')
+        # except Exception:
+        #     date, time = [int(_v) for _v in lines[4].split()]
         starts = [5]
         ends = [s + nspc for s in starts]
         keys = ['all']
@@ -44,7 +42,6 @@ class icon_profile(ioapi_base):
                                  converterd=dict(names=lambda x: str(x).strip()))) for k, s, e in zip(keys, starts, ends)])
         profile_spcs = np.char.strip(data[keys[0]]['name'])
         data_type = data[keys[0]].dtype
-        data_shape = data[keys[0]].shape
         self.createDimension('sigma', nsigmas)
         self.createDimension('LAY', nsigmas - 1)
         self.createVariable('sigma', 'f', ('sigma',),
@@ -113,19 +110,18 @@ class bcon_profile(ioapi_base):
         nlay, nspc = [int(_v) for _v in header[:2]]
         sigmas = [float(_v) for _v in header[2:]]
         nsigmas = len(sigmas)
-        try:
-            dateo = datetime.strptime(lines[4].strip(), '%Y-%m-%d')
-        except:
-            date, time = [int(_v) for _v in lines[4].split()]
+        # try:
+        #     dateo = datetime.strptime(lines[4].strip(), '%Y-%m-%d')
+        # except Exception:
+        #     date, time = [int(_v) for _v in lines[4].split()]
         starts = [5 + i + i * nspc for i in range(4)]
         ends = [s + 1 + nspc for s in starts]
         keys = [lines[s].strip().lower() for s in starts]
         fieldnames = ('name',) + tuple(['s%f' % i for i in sigmas])
-        data = dict([(k, csv2rec(StringIO('\n'.join(lines[s+1:e])), delimiter=' ', names=fieldnames,
+        data = dict([(k, csv2rec(StringIO('\n'.join(lines[s + 1:e])), delimiter=' ', names=fieldnames,
                                  converterd=dict(names=lambda x: str(x).strip()))) for k, s, e in zip(keys, starts, ends)])
         profile_spcs = np.char.strip(data[keys[0]]['name'])
         data_type = data[keys[0]].dtype
-        data_shape = data[keys[0]].shape
         self.createDimension('sigma', nsigmas)
         self.createDimension('LAY', nsigmas - 1)
         self.createDimension('south_east_north_west', 4)
@@ -168,18 +164,18 @@ class bcon_profile(ioapi_base):
                 continue
             outv = outf.copyVariable(vv, key=vk, dtype='f', dimensions=(
                 'TSTEP', 'LAY', 'PERIM'), withdata=False)
-            s = start = 0
-            e = end = ncols + 1
-            outv[:, :, s:e] = vv[None, :, [0]]
-            s = e
-            e += nrows + 1
-            outv[:, :, s:e] = vv[None, :, [1]]
-            s = e
-            e += ncols + 1
-            outv[:, :, s:e] = vv[None, :, [2]]
-            s = e
-            e += nrows + 1
-            outv[:, :, s:e] = vv[None, :, [3]]
+            start = 0
+            end = ncols + 1
+            outv[:, :, start:end] = vv[None, :, [0]]
+            start = end
+            end += nrows + 1
+            outv[:, :, start:end] = vv[None, :, [1]]
+            start = end
+            end += ncols + 1
+            outv[:, :, start:end] = vv[None, :, [2]]
+            start = end
+            end += nrows + 1
+            outv[:, :, start:end] = vv[None, :, [3]]
             varlist.append(vk.ljust(16))
         outf.NVARS = len(varlist)
         setattr(outf, 'VAR-LIST', ''.join(varlist))
@@ -196,7 +192,7 @@ class bcon_profile(ioapi_base):
         try:
             nrows = len(ioapifile.dimensions['ROW'])
             ncols = len(ioapifile.dimensions['COL'])
-        except:
+        except Exception:
             nrows = ioapifile.NROWS
             ncols = ioapifile.NCOLS
         # interp to ioapi vglvls
@@ -212,7 +208,7 @@ class bcon_profile(ioapi_base):
 
 
 if __name__ == '__main__':
-    po = profile('testdata/profile.dat')
+    po = bcon_profile('testdata/profile.dat')
     from PseudoNetCDF.pncdump import pncdump
     pncdump(po)
     print(po.variables['ATOL1J'].shape)

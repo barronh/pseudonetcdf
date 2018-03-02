@@ -1,7 +1,7 @@
 __all__ = ['camxfiles_paths', 'net_balance_paths', 'geoschemfiles_paths',
            'icarttfiles_paths', 'all_paths', 'self_described_paths']
 
-from os.path import join, realpath, abspath
+from os.path import join, abspath
 
 camxfiles_paths = dict(wind='camxfiles/wind/test.wind',
                        landuse='camxfiles/landuse/test.landuse',

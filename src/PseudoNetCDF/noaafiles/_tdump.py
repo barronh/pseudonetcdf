@@ -21,7 +21,7 @@ _units = dict(trajid='---',
 
 
 def _timefromnoaa(year, month, day, hour, minute):
-    from datetime import datetime, timezone
+    from datetime import datetime
     datei = (year.astype('l') * 100000000 +
              month.astype('l') * 1000000 +
              day.astype('l') * 10000 +
@@ -49,9 +49,9 @@ class arltrajdump(PseudoNetCDFFile):
     @classmethod
     def isMine(cls, path):
         try:
-            f = arltrajdump(path)
+            arltrajdump(path)
             return True
-        except:
+        except Exception:
             return False
 
     def __init__(self, path):
@@ -144,7 +144,7 @@ class arltrajdump(PseudoNetCDFFile):
         v[:] = trajmeta[:, 6]
         # Starting time
         self._starttimes = _timefromnoaa(
-            trajmeta[:, 0], trajmeta[:, 1], trajmeta[:, 2], trajmeta[:, 3], trajmeta[:, 3]*0)
+            trajmeta[:, 0], trajmeta[:, 1], trajmeta[:, 2], trajmeta[:, 3], trajmeta[:, 3] * 0)
         """
         Record #5
 
@@ -153,7 +153,7 @@ class arltrajdump(PseudoNetCDFFile):
         """
         diagnostics = f.readline().strip().lower().split()
         ndiag = int(diagnostics[0])
-        assert(ndiag+1 == len(diagnostics))
+        assert((ndiag + 1) == len(diagnostics))
         """
         Record Loop #6 through the number of hours in the simulation
 
@@ -168,7 +168,7 @@ class arltrajdump(PseudoNetCDFFile):
         """
         try:
             import pandas as pd
-        except:
+        except Exception:
             raise ImportError(
                 'arltrajdump requires pandas; install pandas (e.g., pip install pandas)')
         # , parse_dates = ['YEAR MONTH DAY HOUR MINUTE'.split()])
@@ -181,7 +181,7 @@ class arltrajdump(PseudoNetCDFFile):
         self.createDimension('time', ntimes)
         utraj = data['trajid'].unique()
         mytraj = data['trajid'].values
-        myage = data['age'].values
+        # myage = data['age'].values
         trajidx = (utraj[:, None] == mytraj[None, :]).argmax(0)
         timeidx = (unique_times[:, None] == mytimes[None, :]).argmax(0)
 
@@ -193,7 +193,6 @@ class arltrajdump(PseudoNetCDFFile):
             v.units = _units.get(k, 'unknown')
             v[:] = tmpv
             v[timeidx, trajidx] = data[k].values
-        #self._data = data
 
     def getTimes(self):
         year = (self.variables['year']).max(1).astype('l')

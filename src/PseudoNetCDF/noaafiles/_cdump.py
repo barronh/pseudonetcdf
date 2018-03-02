@@ -8,11 +8,11 @@ class arlconcdump(PseudoNetCDFFile):
         try:
             cls(path, metaonly=True)
             return True
-        except:
+        except Exception:
             return False
 
     def __init__(self, path, metaonly=False):
-        self._infile = infile = open(path, 'rb')
+        self._infile = open(path, 'rb')
         self._infile.seek(0, 0)
         self._rec12345()
         if not metaonly:
@@ -25,14 +25,14 @@ class arlconcdump(PseudoNetCDFFile):
         CHAR*4 Meteorological MODEL Identification
         INT*4 Meteorological file starting time (YEAR, MONTH, DAY, HOUR, FORECAST-HOUR)
         INT*4 NUMBER of starting locations
-        INT*4 Concentration packing flag (0=no 1=yes) 
+        INT*4 Concentration packing flag (0=no 1=yes)
         """
         infile = self._infile
         rec1 = np.fromfile(
             infile, dtype='>i,>S4,>i,>i,>i,>i,>i,>i,>i,>i', count=1)[0]
         assert(rec1['f0'] == rec1['f9'])
         nloc = self.NSTARTLOCS = rec1['f7']
-        pack = rec1['f8'] == 1
+        rec1['f8'] == 1
         self.METMODEL = rec1['f1'].decode()
         self.MET_YEAR = rec1['f2']
         self.MET_MONTH = rec1['f3']
@@ -47,7 +47,7 @@ class arlconcdump(PseudoNetCDFFile):
 
         INT*4 Release starting time (YEAR, MONTH, DAY, HOUR)
         REAL*4 Starting location and height (LATITUDE, LONGITUDE, METERS)
-        INT*4 Release starting time (MINUTES) 
+        INT*4 Release starting time (MINUTES)
         """
         rec2 = np.fromfile(infile, dtype='>i,>4i,>3f,>i,>i', count=nloc)
         assert((rec2['f0'] == rec2['f4']).all())
@@ -76,13 +76,13 @@ class arlconcdump(PseudoNetCDFFile):
 
         INT*4 Number of (LATITUDE-POINTS, LONGITUDE-POINTS)
         REAL*4 Grid spacing (DELTA-LATITUDE,DELTA-LONGITUDE)
-        REAL*4 Grid lower left corner (LATITUDE, LONGITUDE) 
+        REAL*4 Grid lower left corner (LATITUDE, LONGITUDE)
         """
         rec3 = np.fromfile(infile, dtype='>i,>2i,>2i,>2f,>i', count=1)[0]
         assert(rec3['f0'] == rec3['f4'])
 
-        nlats = self.NLATS = rec3['f1'][0]
-        nlons = self.NLONS = rec3['f1'][1]
+        self.NLATS = rec3['f1'][0]
+        self.NLONS = rec3['f1'][1]
         self.DELTA_LAT = rec3['f2'][0]
         self.DELTA_LON = rec3['f2'][1]
         self.LLCRNR_LAT = rec3['f3'][0]
@@ -91,7 +91,7 @@ class arlconcdump(PseudoNetCDFFile):
         Record #4
 
         INT*4 NUMBER of vertical levels in concentration grid
-        INT*4 HEIGHT of each level (meters above ground) 
+        INT*4 HEIGHT of each level (meters above ground)
         """
         tmp = np.fromfile(infile, dtype='>i,>i', count=1)[0]
         nlays = self.NLAYS = tmp['f1']
@@ -108,7 +108,7 @@ class arlconcdump(PseudoNetCDFFile):
         Record #5
 
         INT*4 NUMBER of different pollutants in grid
-        CHAR*4 Identification STRING for each pollutant 
+        CHAR*4 Identification STRING for each pollutant
         """
         tmp = np.fromfile(infile, dtype='>i,>i', count=1)
         npols = self.NPOLS = tmp['f1'][0]
@@ -138,19 +138,19 @@ class arlconcdump(PseudoNetCDFFile):
         lays = []
         starts = []
         stops = []
-        ctmp = np.zeros((nlats, nlons), dtype='f')
+        # ctmp = np.zeros((nlats, nlons), dtype='f')
         while infile.tell() != total:
             """
             Record #6 Loop to record: Number of output times
 
-            INT*4 Sample start (YEAR MONTH DAY HOUR MINUTE FORECAST) 
+            INT*4 Sample start (YEAR MONTH DAY HOUR MINUTE FORECAST)
             """
             start = np.fromfile(infile, dtype=thdr, count=1)
             starts.append(start)
             """
             Record #7 Loop to record: Number of output times
 
-            INT*4 Sample stop (YEAR MONTH DAY HOUR MINUTE FORECAST) 
+            INT*4 Sample stop (YEAR MONTH DAY HOUR MINUTE FORECAST)
             """
             stop = np.fromfile(infile, dtype=thdr, count=1)
             stops.append(stop)
@@ -168,13 +168,13 @@ class arlconcdump(PseudoNetCDFFile):
             INT*4 Loop non-zero elements
             INT*2 First (I) index value
             INT*2 - Second (J) index value
-            REAL*4 - Concentration at (I,J)**_ 
+            REAL*4 - Concentration at (I,J)**_
             """
             for i in range(npols * nlays):
                 if pack:
                     forfmt = np.dtype('>i,>S4,>i,>i')
                     tmp = np.fromfile(infile, forfmt, count=1)
-                    myb = tmp['f0'][0]
+                    # myb = tmp['f0'][0]
                     myp = tmp['f1'][0]
                     myl = tmp['f2'][0]
                     pols.append(myp)
@@ -184,10 +184,10 @@ class arlconcdump(PseudoNetCDFFile):
                     c = np.zeros((nlats, nlons), dtype='f')
                     tmp = np.fromfile(infile, np.dtype([('f0', forfmt, 1), ('data', np.dtype(dict(
                         names='IJC', formats='>i2,>i2,>f'.split(','))), myc), ('f1', '>i', 1)]), count=1)
-                    J = tmp[0]['data']['J']
-                    I = tmp[0]['data']['I']
-                    C = tmp[0]['data']['C']
-                    c[J, I] = C
+                    Jidx = tmp[0]['data']['J']
+                    Iidx = tmp[0]['data']['I']
+                    Cval = tmp[0]['data']['C']
+                    c[Jidx, Iidx] = Cval
                 else:
                     c = np.fromfile(infile, dtype=nopackfmt, count=1)[0]
                 outs.append(c)

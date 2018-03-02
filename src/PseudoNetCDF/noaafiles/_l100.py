@@ -26,7 +26,7 @@ class l100(PseudoNetCDFFile):
                     return False
             else:
                 return True
-        except:
+        except Exception:
             return False
 
     @classmethod
@@ -48,7 +48,7 @@ class l100(PseudoNetCDFFile):
     def __init__(self, path):
         try:
             import pandas as pd
-        except:
+        except Exception:
             raise ImportError(
                 'l100 sonde files requires pandas; install pandas (e.g., pip install pandas)')
         self._path = path
@@ -106,10 +106,10 @@ class l100(PseudoNetCDFFile):
         myp = self.variables['Press'][:]  # hPa
         myo = self.variables['Ozone_mPa'][:] * 1e1  # mPa -> cPa
         psfc = myp[0, 0]
-        if not vglvls is None:
+        if vglvls is not None:
             outpress_edges = vglvls * (psfc - vgtop / 100) + vgtop / 100
             nlvls = vglvls.size - 1
-        elif not hyai is None:
+        elif hyai is not None:
             outpress_edges = hyai + hybi * psfc
             nlvls = hyai.size - 1
         outf.createDimension(levelname, nlvls)

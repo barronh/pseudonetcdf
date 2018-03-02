@@ -8,14 +8,10 @@
    :synopsis: Provides utilities for array shape and type manipulation.
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-__all__ = ['interior_vertex_func', 'CenterTime', 'CenterLay', 'CenterRow', 'CenterCol', 'CenterRowCol', 'CenterTimeRowCol',
-           'CenterCMAQWind', 'CenterCAMxWind', 'CenterCAMxU', 'CenterCAMxV', 'BoundToDiff', 'CAMxHeightToDepth', 'ConvertCAMxTime']
-
-HeadURL = "$HeadURL$"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy$"
-__version__ = RevisionNum
+__all__ = ['interior_vertex_func', 'CenterTime', 'CenterLay', 'CenterRow',
+           'CenterCol', 'CenterRowCol', 'CenterTimeRowCol', 'CenterCMAQWind',
+           'CenterCAMxWind', 'CenterCAMxU', 'CenterCAMxV', 'BoundToDiff',
+           'CAMxHeightToDepth', 'ConvertCAMxTime']
 
 import unittest
 from numpy import mean, array, sum, arange, zeros, newaxis
@@ -30,7 +26,7 @@ def interior_vertex_func(a, dims=(-1, -2), func=sum):
     if len(dims) not in (1, 2, 3, 4):
         warn("Function has only been tested with up to 4-D")
 
-    full_shape = array([slice(None)]*len(a.shape))
+    full_shape = array([slice(None)] * len(a.shape))
     out_array = array(a, copy=True)
 
     for dim in dims:
@@ -44,23 +40,28 @@ def interior_vertex_func(a, dims=(-1, -2), func=sum):
     return out_array
 
 
-def CenterTime(a): return interior_vertex_func(a, dims=(0,), func=mean)
+def CenterTime(a):
+    return interior_vertex_func(a, dims=(0,), func=mean)
 
 
-def CenterLay(a): return interior_vertex_func(a, dims=(1,), func=mean)
+def CenterLay(a):
+    return interior_vertex_func(a, dims=(1,), func=mean)
 
 
-def CenterRow(a): return interior_vertex_func(a, dims=(2,), func=mean)
+def CenterRow(a):
+    return interior_vertex_func(a, dims=(2,), func=mean)
 
 
-def CenterCol(a): return interior_vertex_func(a, dims=(3,), func=mean)
+def CenterCol(a):
+    return interior_vertex_func(a, dims=(3,), func=mean)
 
 
-def CenterRowCol(a): return interior_vertex_func(a, dims=(2, 3), func=mean)
+def CenterRowCol(a):
+    return interior_vertex_func(a, dims=(2, 3), func=mean)
 
 
-def CenterTimeRowCol(a): return interior_vertex_func(
-    a, dims=(0, 2, 3), func=mean)
+def CenterTimeRowCol(a):
+    return interior_vertex_func(a, dims=(0, 2, 3), func=mean)
 
 
 CenterCMAQWind = CenterTimeRowCol
@@ -88,12 +89,12 @@ def CenterCAMxV(a):
 
 
 def BoundToDiff(a, dim=-1):
-    top = [slice(None)]*len(a.shape)
+    top = [slice(None)] * len(a.shape)
     top[dim] = slice(1, None)
 
-    bottom = [slice(None)]*len(a.shape)
+    bottom = [slice(None)] * len(a.shape)
     bottom[dim] = slice(None, -1)
-    return a[top]-a[bottom]
+    return a[top] - a[bottom]
 
 
 def CAMxHeightToDepth(a):
@@ -121,7 +122,8 @@ def ConvertCAMxTime(date, time, nvars):
     while not (time == 0).all() and time.max() < 10000:
         time *= 100
     a = PseudoNetCDFVariable(
-        f, 'TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'), values=a[:, [0], :].repeat(nvars, 1))
+        f, 'TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'),
+        values=a[:, [0], :].repeat(nvars, 1))
     a.units = 'DATE-TIME'.ljust(16)
     a.long_name = 'TFLAG'.ljust(16)
     a.var_desc = a.long_name
@@ -133,9 +135,9 @@ class TestInteriorVertex(unittest.TestCase):
         self.A2D = arange(1, 17).reshape(4, 4)
         self.A3D = arange(1, 17).reshape(1, 4, 4).repeat(4, 0)
         self.A4D = arange(1, 17).reshape(1, 1, 4, 4).repeat(4, 0).repeat(4, 1)
-        self.mean2D = array([[3.5,   4.5,   5.5],
-                             [7.5,   8.5,   9.5],
-                             [11.5,  12.5,  13.5]])
+        self.mean2D = array([[3.5, 4.5, 5.5],
+                             [7.5, 8.5, 9.5],
+                             [11.5, 12.5, 13.5]])
 
         self.sum2D = array([[14, 18, 22],
                             [30, 34, 38],
@@ -153,44 +155,53 @@ class TestInteriorVertex(unittest.TestCase):
             self.A2D, dims=(-1, -2), func=mean) == self.mean2D).all())
 
     def test3D2DSum(self):
-        self.assert_((interior_vertex_func(self.A3D, dims=(-1, -2),
-                                           func=sum) == self.sum2D.reshape(1, 3, 3)).all())
+        newv = interior_vertex_func(self.A3D, dims=(-1, -2), func=sum)
+        checkv = self.sum2D.reshape(1, 3, 3)
+        self.assert_((newv == checkv).all())
 
     def test3D2DMean(self):
         self.assert_((interior_vertex_func(self.A3D, dims=(-1, -2),
                                            func=mean) == self.mean2D.reshape(1, 3, 3)).all())
 
     def test3D3DSum(self):
-        self.assert_((interior_vertex_func(self.A3D, dims=(-1, -2, -3),
-                                           func=sum) == (self.sum2D.reshape(1, 3, 3)*2)).all())
+        newv = interior_vertex_func(self.A3D, dims=(-1, -2, -3), func=sum)
+        checkv = (self.sum2D.reshape(1, 3, 3) * 2)
+        self.assert_((newv == checkv).all())
 
     def test3D3DMean(self):
-        self.assert_((interior_vertex_func(self.A3D, dims=(-1, -2, -3),
-                                           func=mean) == self.mean2D.reshape(1, 3, 3)).all())
+        newv = interior_vertex_func(self.A3D, dims=(-1, -2, -3), func=mean)
+        checkv = self.mean2D.reshape(1, 3, 3)
+        self.assert_((newv == checkv).all())
 
     def test4D2DSum(self):
-        self.assert_((interior_vertex_func(self.A4D, dims=(-1, -2),
-                                           func=sum) == self.sum2D.reshape(1, 1, 3, 3)).all())
+        newv = interior_vertex_func(self.A4D, dims=(-1, -2), func=sum)
+        checkv = self.sum2D.reshape(1, 1, 3, 3)
+        self.assert_((newv == checkv).all())
 
     def test4D2DMean(self):
-        self.assert_((interior_vertex_func(self.A4D, dims=(-1, -2),
-                                           func=mean) == self.mean2D.reshape(1, 1, 3, 3)).all())
+        newv = interior_vertex_func(self.A4D, dims=(-1, -2), func=mean)
+        checkv = self.mean2D.reshape(1, 1, 3, 3)
+        self.assert_((newv == checkv).all())
 
     def test4D3DSum(self):
-        self.assert_((interior_vertex_func(self.A4D, dims=(-1, -2, -3),
-                                           func=sum) == (self.sum2D.reshape(1, 1, 3, 3)*2)).all())
+        newv = interior_vertex_func(self.A4D, dims=(-1, -2, -3), func=sum)
+        checkv = self.sum2D.reshape(1, 1, 3, 3) * 2
+        self.assert_((newv == checkv).all())
 
     def test4D3DMean(self):
-        self.assert_((interior_vertex_func(self.A4D, dims=(-1, -2, -3),
-                                           func=mean) == self.mean2D.reshape(1, 1, 3, 3)).all())
+        newv = interior_vertex_func(self.A4D, dims=(-1, -2, -3), func=mean)
+        checkv = self.mean2D.reshape(1, 1, 3, 3)
+        self.assert_((newv == checkv).all())
 
     def test4D4DSum(self):
-        self.assert_((interior_vertex_func(self.A4D, dims=(-1, -2, -3, -4),
-                                           func=sum) == (self.sum2D.reshape(1, 1, 3, 3)*4)).all())
+        newv = interior_vertex_func(self.A4D, dims=(-1, -2, -3, -4), func=sum)
+        checkv = (self.sum2D.reshape(1, 1, 3, 3) * 4)
+        self.assert_((newv == checkv).all())
 
     def test4D4DMean(self):
-        self.assert_((interior_vertex_func(self.A4D, dims=(-1, -2, -3, -4),
-                                           func=mean) == self.mean2D.reshape(1, 1, 3, 3)).all())
+        newv = interior_vertex_func(self.A4D, dims=(-1, -2, -3, -4), func=mean)
+        checkv = self.mean2D.reshape(1, 1, 3, 3)
+        self.assert_((newv == checkv).all())
 
 
 if __name__ == '__main__':

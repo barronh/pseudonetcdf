@@ -8,9 +8,9 @@ class arlpardump(PseudoNetCDFFile):
     @classmethod
     def isMine(cls, path):
         try:
-            f = arlpardump(path)
+            arlpardump(path)
             return True
-        except:
+        except Exception:
             return False
 
     def __init__(self, path):

@@ -1,5 +1,6 @@
 import importlib
 import unittest
+from distutils.version import LooseVersion
 
 
 def _importorskip(modname, minversion=None):

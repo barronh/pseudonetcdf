@@ -19,8 +19,8 @@ def raob(inpath):
         outf.createVariable(k, 'f', ('level',), units=u, values=v)
         outf.createVariable(k + '_FIRST', 'f', ('level',), units=u, values=vs)
 
-    #np.savetxt(sys.stdout, (names, units), delimiter = ', ', fmt = '%7s')
-    #np.savetxt(sys.stdout, data, delimiter = ', ', fmt = '%7.1f')
+    # np.savetxt(sys.stdout, (names, units), delimiter = ', ', fmt = '%7s')
+    # np.savetxt(sys.stdout, data, delimiter = ', ', fmt = '%7.1f')
     return outf
 
 

@@ -27,7 +27,8 @@ from numpy import zeros, array, where, memmap, newaxis, dtype, nan
 # This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd
 from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, Int2Asc
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables, OrderedDict
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
+from collections import OrderedDict
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 # for use in identifying uncaught nan

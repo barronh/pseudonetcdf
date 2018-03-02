@@ -1,7 +1,6 @@
 #!/usr/bin/env python -i
 from __future__ import print_function
 
-import sys
 import re
 from warnings import warn
 from datetime import datetime
@@ -16,15 +15,17 @@ def MorphoIRRt(irrpath):
     try:
         jday = int(datetime.strptime([l for l in mrglines if 'Environment Tables for' in l][0].split(
             'Environment Tables for')[-1].strip(), '%d-%b-%y').strftime('%Y%j'))
-    except:
+    except Exception:
         warn('Could not find/parse date; using 1900001')
         jday = 1900001
 
     mrglines = [line for line in mrglines if line[:2]
                 not in ('//', '**') and line not in ('', '\n')]
     name_line = mrglines.pop(0)
-    name_line = ['N', 'T']+['IRR_%s' %
-                            name.replace('rt[', '').replace(']', '') for name in irrlabel.findall(name_line)]
+    irrlabel = re.compile(r'rt\[\S+\]')
+    rxn_names = ['IRR_%s' % name.replace('rt[', '').replace(']', '')
+                 for name in irrlabel.findall(name_line)]
+    name_line = ['N', 'T'] + rxn_names
     unit_line = mrglines.pop(0).split()
     unit_line = [unit for unit in unit_line]
     assert(all([eval(v) == 0. for v in mrglines.pop(0).split()][2:]))
@@ -36,7 +37,7 @@ def MorphoIRRt(irrpath):
     tflag = mrgfile.createVariable('TFLAG', 'f', ('TSTEP', 'VAR', 'DATE-TIME'))
     tflag.units = '<JDAY, MIN>'
     tflag.long_name = tflag.var_desc = 'TFLAG'
-    tflag[:, :, 0] = 1900001
+    tflag[:, :, 0] = jday
     for name in name_line:
         var = mrgfile.createVariable(name, 'f', ('TSTEP',))
         var.units = unit_dict[name]
@@ -60,8 +61,10 @@ def MorphoConc(concpath):
     conclines = [line for line in conclines if line[:2]
                  not in ('//', '**') and line not in ('', '\n')]
     name_line = conclines.pop(0)
-    name_line = ['N', 'T']+[name.replace('n[', '').replace(']', '')
-                            for name in conclabel.findall(name_line)]
+    conclabel = re.compile(r'n\[\S+\]')
+    conc_names = [name.replace('n[', '').replace(']', '')
+                  for name in conclabel.findall(name_line)]
+    name_line = ['N', 'T'] + conc_names
     unit_line = conclines.pop(0).split()
     unit_line = [unit for unit in unit_line]
     concfile = PseudoNetCDFFile()
@@ -96,24 +99,24 @@ def MorphoPERMM(concpath, irrtpath):
     return mrgf
 
 
-if __name__ == '__main__':
-    #from permm.guis.Simplewx import StartWx
-    import os
-    from permm.analyses.network.core import MakeCarbonTrace
-
-    concpath = sys.argv[1]
-    mrgpath = sys.argv[2]
-    irrtpath = sys.argv[3]
-    print(sys.argv[1:])
-    if os.path.exists('mech.yaml'):
-        cb05 = Mechanism('mech.yaml')
-    else:
-        cb05 = MorphoMrg(mrgpath, 'mech.yaml')
-    mrg = MorphoPERMM(concpath, irrtpath)
-    cb05.set_mrg(mrg)
-    cb05.globalize(globals())
-    n = MakeCarbonTrace(cb05, makes_larger=[PAR])
-    import networkx as nx
-    es = nx.dfs_edges(n)
-    #from permm.analyses.history import matrix
-    #history = matrix(cb05, [C2O3], [HC+Radical-OH-HO2-O1D], [])
+# if __name__ == '__main__':
+#     from permm.guis.Simplewx import StartWx
+#     import os
+#     from permm.analyses.network.core import MakeCarbonTrace
+#     from permm import Mechanism
+#     concpath = sys.argv[1]
+#     mrgpath = sys.argv[2]
+#     irrtpath = sys.argv[3]
+#     print(sys.argv[1:])
+#     if os.path.exists('mech.yaml'):
+#         cb05 = Mechanism('mech.yaml')
+#     else:
+#         cb05 = MorphoMrg(mrgpath, 'mech.yaml')
+#     mrg = MorphoPERMM(concpath, irrtpath)
+#     cb05.set_mrg(mrg)
+#     cb05.globalize(globals())
+#     n = MakeCarbonTrace(cb05, makes_larger=[PAR])
+#     import networkx as nx
+#     es = nx.dfs_edges(n)
+#     #from permm.analyses.history import matrix
+#     #history = matrix(cb05, [C2O3], [HC+Radical-OH-HO2-O1D], [])

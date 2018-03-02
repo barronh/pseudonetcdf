@@ -1,5 +1,5 @@
 
-__all__ = ['NetCDFFile']
+__all__ = ['NetCDFFile', 'NetCDFVariable']
 __doc__ = """
 .. _netcdf
 :mod:`netcdf` -- netcdf import point

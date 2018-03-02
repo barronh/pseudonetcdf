@@ -13,17 +13,17 @@ def add_derived_met(ifile, func, *args, **kwds):
 def wmr_ptd(p, td, gkg=False):
     """
     Inputs:
-       p = surface pressure in mb; 
-       Td = dew point in deg C; 
+       p = surface pressure in mb;
+       Td = dew point in deg C;
     Calculates
-       e = vapor pressure in mb; 
+       e = vapor pressure in mb;
 
     Returns
-       q = specific humidity in kg/kg. 
+       q = specific humidity in kg/kg.
     """
     dimensions = getattr(p, 'dimensions', getattr(td, 'dimensions', 'unknown'))
-    e = 6.112*np.ma.exp((17.67*td)/(td + 243.5))
-    q = (0.622 * e)/(p - (0.378 * e))
+    e = 6.112 * np.ma.exp((17.67 * td) / (td + 243.5))
+    q = (0.622 * e) / (p - (0.378 * e))
     if gkg:
         q *= 1000.
         units = 'g/kg'
@@ -49,11 +49,11 @@ def relhum_ttd(t, td, percent=False, add=True):
     dimensions = getattr(t, 'dimensions', getattr(
         td, 'dimensions', ('unknown',)))
     gc = 461.5                        # [j/{kg-k}]   gas constant water vapor
-    gc = gc/(1000.*4.186)             # [cal/{g-k}]  change units
+    gc = gc / (1000. * 4.186)             # [cal/{g-k}]  change units
     # lhv=latent heat vap
-    lhv = (597.3-0.57*(t-273.))      # dutton top p273 [empirical]
+    lhv = (597.3 - 0.57 * (t - 273.))      # dutton top p273 [empirical]
 
-    values = np.ma.exp((lhv/gc)*(1.0/t - 1.0/td))
+    values = np.ma.exp((lhv / gc) * (1.0 / t - 1.0 / td))
     if percent:
         values *= 100.
 
@@ -91,7 +91,7 @@ def wmrq_ptd(p, td, dry=False, kgkg=False):
 
     # mixing ratio (kg/kg)
     # the function wants hPA (mb) and degrees centigrade
-    WMR = wmr_skewt_pt(p*PA2MB, td - T0) * 0.001
+    WMR = wmr_skewt_pt(p * PA2MB, td - T0) * 0.001
 
     # if iswit=2 calculate specific humidity (kg/kg)
 
@@ -101,7 +101,7 @@ def wmrq_ptd(p, td, dry=False, kgkg=False):
     else:
         name = 'Q'
         long_name = 'mass of water per mass of air (dry+wet)'
-        WMR = WMR/(WMR + 1.0)
+        WMR = WMR / (WMR + 1.0)
 
     # if iswit < 0 then return g/kg
 
@@ -136,14 +136,14 @@ def wmr_skewt_pt(p, t):
     # but only for temperatures and pressures normally encountered in
     # in the atmosphere.
 
-    X = 0.02 * (t-12.5+7500./p)
-    WFW = 1. + 4.5e-06*p + 1.4e-03*X*X
-    FWESW = WFW*esw_skewt_t(t)
-    R = EPS*FWESW / (p-FWESW)
+    X = 0.02 * (t - 12.5 + 7500. / p)
+    WFW = 1. + 4.5e-06 * p + 1.4e-03 * X * X
+    FWESW = WFW * esw_skewt_t(t)
+    R = EPS * FWESW / (p - FWESW)
 
     # convert r from a dimensionless ratio to grams/kilogram.
 
-    return 1000.*R
+    return 1000. * R
 
 
 def esw_skewt_t(t):
@@ -166,11 +166,30 @@ def esw_skewt_t(t):
     """
     ES0 = 6.1078e0
 
-    POL = 0.99999683e0 + t * (-0.90826951e-02 +
-                              t * (0.78736169e-04+t * (-0.61117958e-06+t * (0.43884187e-08 +
-                                                                            t * (-0.29883885e-10+t * (0.21874425e-12+t * (-0.17892321e-14 +
-                                                                                                                          t * (0.11112018e-16+t * (-0.30994571e-19)))))))))
-    return ES0/POL**8
+    POL = (0.99999683e0 + t * (-0.90826951e-02 +
+                               t *
+                               (0.78736169e-04 +
+                                t *
+                                (-0.61117958e-06 +
+                                 t *
+                                 (0.43884187e-08 +
+                                  t * (-0.29883885e-10 +
+                                       t *
+                                       (0.21874425e-12 +
+                                        t *
+                                        (-0.17892321e-14 +
+                                         t * (0.11112018e-16 +
+                                              t * (-0.30994571e-19)
+                                              )
+                                         )
+                                        )
+                                       )
+                                  )
+                                 )
+                                )
+                               )
+           )
+    return ES0 / POL**8
 
 
 def uv_wswd(ws, wd, isradians=False):
@@ -184,8 +203,8 @@ def uv_wswd(ws, wd, isradians=False):
 
     https://www.eol.ucar.edu/projects/ceop/dm/documents/refdata_report/eqns.html
     """
-    dimensions = getattr(u, 'dimensions', getattr(
-        v, 'dimensions', ('unknown',)))
+    dimensions = getattr(ws, 'dimensions', getattr(
+        wd, 'dimensions', ('unknown',)))
     units = getattr(ws, 'units', 'unknown')
     if isradians:
         direction = wd
@@ -216,9 +235,9 @@ def wswd_uv(u, v, return_radians=False):
         v, 'dimensions', ('unknown',)))
     units = getattr(u, 'units', getattr(v, 'units', 'unknown'))
     wind_speed = np.sqrt(u**2 + v**2)
-    uvarctan = np.arctan(u/v)
-    wind_direction = np.where(v < 0, uvarctan*180. /
-                              np.pi, uvarctan * 180./np.pi + 180.)
+    uvarctan = np.arctan(u / v)
+    wind_direction = np.where(v < 0, uvarctan * 180. /
+                              np.pi, uvarctan * 180. / np.pi + 180.)
     if return_radians:
         wind_direction = np.radians(wind_direction)
     ws = PseudoNetCDFVariable(None, 'WS', wind_speed.dtype.char,

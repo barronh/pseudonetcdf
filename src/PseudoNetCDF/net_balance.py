@@ -3,17 +3,16 @@ import re
 import unittest
 
 # site-packages
-import yaml
 from numpy import array, zeros, newaxis
-from PseudoNetCDF.sci_var import PseudoNetCDFFile as pncf, PseudoNetCDFVariable as pncv
+from PseudoNetCDF.sci_var import PseudoNetCDFFile as pncf
 
 net_num_re = '(?<=\s)[-]?\d+[.]?\d+'
-net_output_re = re.compile('^\w+(\s+'+net_num_re+'){24}$')
+net_output_re = re.compile('^\w+(\s+' + net_num_re + '){24}$')
 net_name_re = re.compile(
     '[+]|source|termination|production|Source|Termination|Production|Oxidation|oxidation|Radical|radical')
 net_time_dim_re = re.compile('^Ending Hour')
 net_spc_name_re = re.compile('^\w+')
-net_time_re = re.compile(net_num_re+'|daily|Daily')
+net_time_re = re.compile(net_num_re + '|daily|Daily')
 net_num_re = re.compile(net_num_re)
 
 sum_num_pattern = '([-]?\d+[.]\d+)'
@@ -57,18 +56,18 @@ class sum_reader(pncf):
         lines = self.sumfile.readlines()
         for line in lines:
             line = line[:-1]
-            if net_time_dim_re.match(line) != None and time == []:
+            if net_time_dim_re.match(line) is not None and time == []:
                 time = list(set(line.split(' ')[2:]))[1:]
                 time.sort()
             sum_num_re = re.compile(
-                '(.*)\s+'+sum_num_sep.join([sum_num_pattern]*len(time)))
+                '(.*)\s+' + sum_num_sep.join([sum_num_pattern] * len(time)))
 
-            if time != [] and sum_num_re.match(line) == None and line != '':
+            if time != [] and sum_num_re.match(line) is None and line != '':
                 category = line
 
-            if time != [] and sum_num_re.match(line) != None:
+            if time != [] and sum_num_re.match(line) is not None:
                 grps = sum_num_re.match(line).groups()
-                var_names.append(category.strip()+': '+grps[0].strip())
+                var_names.append(category.strip() + ': ' + grps[0].strip())
                 values.append(map(float, grps[1:]))
 
         return time, var_names, values
@@ -86,9 +85,11 @@ def net_reaction(net_rxns, net_rxn, time='Daily'):
         elif v > 0:
             products.extend((v, spc))
         elif v < 0:
-            reactants.extend((-1*v, spc))
+            reactants.extend((-1 * v, spc))
 
-    return (" + ".join([tmp for i in reactants if type(i) == str])+" <-> "+" + ".join([tmp for i in products if type(i) == str])) % tuple(reactants + products)
+    return ((" + ".join([tmp for i in reactants if type(i) == str]) + " <-> " +
+             " + ".join([tmp for i in products if type(i) == str])) %
+            tuple(reactants + products))
 
 
 class ctb_reader(pncf):
@@ -118,7 +119,7 @@ class ctb_reader(pncf):
                 parameters.append(p)
                 daily.append(float(d))
                 hourly.append(float(h))
-            except:
+            except Exception:
                 break
         return parameters, daily, hourly
 
@@ -133,7 +134,6 @@ class net_reader(pncf):
         self.nrxns = []
         self.time = []
 
-        netdict = {}
         if type(infile) == str:
             infile = open(infile)
         lines = infile.readlines()
@@ -146,13 +146,13 @@ class net_reader(pncf):
 
     def parse(self, lines, fill=False):
         for l in lines:
-            if net_time_dim_re.match(l) != None and self.time == []:
+            if net_time_dim_re.match(l) is not None and self.time == []:
                 self.time = net_time_re.findall(l)
-            elif net_name_re.search(l) != None:
+            elif net_name_re.search(l) is not None:
                 netrxn = l.strip()
                 if netrxn not in self.nrxns:
                     self.nrxns.append(netrxn)
-            elif net_output_re.match(l) != None:
+            elif net_output_re.match(l) is not None:
                 spcn = net_spc_name_re.search(l).group()
                 if spcn not in self.spc:
                     self.spc.append(spcn)
@@ -167,8 +167,8 @@ class mrgaloft(pncf):
     # create regular expressions to read the input file..
     sci_not = '-?\d+.\d+[E,e][+,-]\d+'
     time_re = re.compile('Time =([0-9][0-9]0000)', re.IGNORECASE)
-    irr_re = re.compile('\{\s*(\d+)\}\s+('+sci_not+')', re.IGNORECASE)
-    ipr_re = re.compile('"\w+\s*"\s*('+sci_not+'\s+)+', re.IGNORECASE)
+    irr_re = re.compile('\{\s*(\d+)\}\s+(' + sci_not + ')', re.IGNORECASE)
+    ipr_re = re.compile('"\w+\s*"\s*(' + sci_not + '\s+)+', re.IGNORECASE)
     split_on_blanks_re = re.compile('[ ]+')
 
     @classmethod
@@ -245,7 +245,7 @@ class mrgaloft(pncf):
 
         # next line is first Time =
         ir_time = self.time_re.match(line).groups()[0]
-        if ir_time == None:
+        if ir_time is None:
             raise ValueError("ERROR:: in get_data read, did not find a time.")
         return int(ir_time)
 
@@ -262,7 +262,7 @@ class mrgaloft(pncf):
         # read the irr values
         while line[0] != ';':
             ir_value = self.irr_re.match(line).groups()[1]
-            if ir_value == None:    # if this is a { n} n.nnnn line ...
+            if ir_value is None:    # if this is a { n} n.nnnn line ...
                 raise ValueError(
                     "Expecting irr formatted line (i.e. { n} n.nnnn line ...)")
             else:
@@ -274,8 +274,8 @@ class mrgaloft(pncf):
         f = self.mrgfile
         # read in the ! Species      Initial conc. ... header
         line = f.readline()[15:]
-        r = range(len(line)//17)
-        ip_prc = [line[i*17:i*17+17].strip() for i in r]
+        r = range(len(line) // 17)
+        ip_prc = [line[i * 17:i * 17 + 17].strip() for i in r]
 
         #
         # ip_rates = [ [ip_values], [ip_values], [ip_values], ... ]
@@ -286,7 +286,7 @@ class mrgaloft(pncf):
         ip_spc = []
         while line[0] != ';':
             ir_set = self.ipr_re.match(line)
-            if ir_set != None:
+            if ir_set is not None:
                 ip_spc.append(line[1:9].strip())
                 ip_set = self.split_on_blanks_re.split(line[11:-1].strip())
                 ip_values = [float(v) for v in ip_set]
@@ -317,7 +317,7 @@ class TestReaders(unittest.TestCase):
         self.mrgfile = net_balance_paths['mrg_file']
 
     def testNet(self):
-        netfile = net_reader(open(self.netfile))
+        net_reader(open(self.netfile))
 
     def testMrg(self):
         mrgfile = mrgaloft(open(self.mrgfile))

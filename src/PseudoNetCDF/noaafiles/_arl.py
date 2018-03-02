@@ -1,8 +1,8 @@
 from __future__ import print_function
 import numpy as np
-from numpy import testing
 from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
 from PseudoNetCDF.coordutil import gettimes
+from PseudoNetCDF._getwriter import registerwriter
 from datetime import datetime
 from collections import OrderedDict
 dtype = np.dtype
@@ -207,7 +207,7 @@ def inqarlpackedbit(path):
     out['LENH'] = hlen = int(fheader['LENH'])
     out['NX'] = int(fheader['NX'])
     out['NY'] = int(fheader['NY'])
-    nz = out['NZ'] = int(fheader['NZ'])
+    out['NZ'] = int(fheader['NZ'])
     vheader = np.fromfile(f, count=1, dtype='>%dS' % hlen)[0]
     readvardef(vheader, out)
     return out
@@ -219,7 +219,7 @@ def getvgtxts(vglvls):
         if vglvl == 0:
             dp = 0
         else:
-            dp = np.floor(np.log10(vglvl)+1)
+            dp = np.floor(np.log10(vglvl) + 1)
         tmpl = '%%6.%df' % np.minimum(5, (5 - dp))
         vgtxt = (tmpl % vglvl)[-6:]
         if len(vgtxt) != 6:
@@ -232,7 +232,7 @@ def writearlpackedbit(infile, path):
     """
     path - path to existing arl packed bit file or location for new file
     infile - NetCDF-like file with
-        - vertical 2-D (surface) and 3-D (layers) variables 
+        - vertical 2-D (surface) and 3-D (layers) variables
           with 4 character names
         - a z variable with vertical coordinates
         - all properties from the first index record
@@ -260,7 +260,7 @@ def writearlpackedbit(infile, path):
 
     vglvls = np.append(float(infile.SFCVGLVL),
                        infile.variables['z'][:].array())
-    vgtxts = getvgtxts(vglvls)
+    # vgtxts = getvgtxts(vglvls)
     # plus one includes surface
     props['NZ'] = lvar.shape[1] + 1
     props['NY'] = lvar.shape[2]
@@ -285,7 +285,6 @@ def writearlpackedbit(infile, path):
     # assert(len(vardeftxt) == defsize)
     # vardefs[:] = vardeftxt
     YYMMDDHHFF = getattr(infile, 'YYMMDDHHFF', '0000000000')
-    YYMMDDHH = YYMMDDHHFF[:-2]
     FF = YYMMDDHHFF[-2:]
     times = gettimes(infile)
 
@@ -307,7 +306,7 @@ def writearlpackedbit(infile, path):
             varhead = var_time['head']
 
             for varpropk in varhead.dtype.names:
-                if not varpropk in ('YYMMDDHHFF', 'LEVEL', 'EXP', 'PREC', 'VAR1'):
+                if varpropk not in ('YYMMDDHHFF', 'LEVEL', 'EXP', 'PREC', 'VAR1'):
                     varhead[varpropk][ti] = getattr(invar, varpropk)
 
             indata = invar[ti]
@@ -326,7 +325,7 @@ def writearlpackedbit(infile, path):
             for li, var_time_lay in enumerate(var_time):
                 varhead = var_time_lay['head']
                 for varpropk in varhead.dtype.names:
-                    if not varpropk in ('YYMMDDHHFF', 'LEVEL', 'EXP', 'PREC', 'VAR1'):
+                    if varpropk not in ('YYMMDDHHFF', 'LEVEL', 'EXP', 'PREC', 'VAR1'):
                         varhead[varpropk] = getattr(invar, varpropk)
 
                 indata = invar[ti, li]
@@ -380,7 +379,6 @@ def maparlpackedbit(path, mode='r', shape=None, **props):
                 for laykey in laykeys:
                     1 rec of length recl (vhdtype + nx*ny bytes)
     """
-    #import pdb; pdb.set_trace()
     if props == {}:
         props = inqarlpackedbit(path)
     else:
@@ -392,7 +390,7 @@ def maparlpackedbit(path, mode='r', shape=None, **props):
     nx = props['NX']
     ny = props['NY']
     # minus 1 excludes surface
-    nz = props['NZ'] - 1
+    # nz = props['NZ'] - 1
     hlen = props['LENH']
     sfckeys = props['sfckeys']
     laykeys = props['laykeys']
@@ -414,11 +412,11 @@ def maparlpackedbit(path, mode='r', shape=None, **props):
 def unpack(bytes, VAR1, EXP):
     """
     bytes - nx by ny bytes
-    VAR1 - as read directly from LABEL as BYTES with dimension time 
-    EXP - EXP as read directly from LABEL as BYTES with dimension time 
+    VAR1 - as read directly from LABEL as BYTES with dimension time
+    EXP - EXP as read directly from LABEL as BYTES with dimension time
     """
     vold = VAR1.astype('f')
-    scale = np.float32(2.0)**np.float32(7-EXP.astype('i'))
+    scale = np.float32(2.0)**np.float32(7 - EXP.astype('i'))
     invscale = np.float32(1.) / scale
     data = (bytes.view('uint8') - np.float32(127.)) * invscale[..., None, None]
     data[..., 0, 0] += vold
@@ -437,15 +435,14 @@ def pack2d(RVARA, verbose=False):
     REAL,      INTENT(OUT) :: prec        ! precision of packed data array
     INTEGER,   INTENT(OUT) :: nexp        ! packing scaling exponent
     REAL,      INTENT(OUT) :: var1        ! value of real array at position (1,1)
-    INTEGER,   INTENT(OUT) :: ksum        ! rotating checksum of packed data 
+    INTEGER,   INTENT(OUT) :: ksum        ! rotating checksum of packed data
     """
-    MAX = np.maximum
+    # MAX = np.maximum
     FLOAT = np.float32
     INT = np.int32
-    ABS = np.abs
+    # ABS = np.abs
     LOG = np.log
     NY, NX = RVARA.shape
-    NXY = NX * NY
     CVAR = np.zeros(RVARA.shape, dtype='uint8')
     RVAR = RVARA.astype('f')
     VAR1 = RVAR[0, 0]
@@ -473,15 +470,15 @@ def pack2d(RVARA, verbose=False):
     SEXP = 0.0
     # compute the required scaling exponent
     if RMAX != 0.0:
-        SEXP = LOG(RMAX)/LOG(np.float32(2.))
+        SEXP = LOG(RMAX) / LOG(np.float32(2.))
 
     NEXP = INT(SEXP)
     # positive or whole number scaling round up for lower precision
     if SEXP >= 0.0 or (SEXP % 1.0) == 0.0:
-        NEXP = NEXP+1
+        NEXP = NEXP + 1
     # precision range is -127 to 127 or 254
-    PREC = np.float32((2.0**NEXP)/254.0)
-    SCEXP = np.float32(2.0**(7-NEXP))
+    PREC = np.float32((2.0**NEXP) / 254.0)
+    SCEXP = np.float32(2.0**(7 - NEXP))
 
     # START ORIGINAL SERIAL CODE
     # # initialize checksum
@@ -524,19 +521,19 @@ def pack2d(RVARA, verbose=False):
     for J in range(NY):
         ICVAL = INT((RVAR[J, 0] - ROLD) * SCEXP + 127.5)
         CVAR[J, 0] = ICVAL
-        ROLD = FLOAT(ICVAL-127)/SCEXP+ROLD
+        ROLD = FLOAT(ICVAL - 127) / SCEXP + ROLD
         ROLDS[J] = ROLD
 
     ROLD = ROLDS
     for I in range(1, NX):
-        ICVAL = INT((RVAR[:, I] - ROLD)*SCEXP+127.5)
+        ICVAL = INT((RVAR[:, I] - ROLD) * SCEXP + 127.5)
         CVAR[:, I] = ICVAL
-        ROLD = FLOAT(ICVAL - 127)/SCEXP+ROLD
+        ROLD = FLOAT(ICVAL - 127) / SCEXP + ROLD
     KSUM = INT(CVAR.sum()) % 255
     # END NUMPY VECTOR CODE
 
-    #assert((CVART == CVAR).all())
-    #assert(KSUM == KSUMT)
+    # assert((CVART == CVAR).all())
+    # assert(KSUM == KSUMT)
     return CVAR.view('>S1'), PREC, NEXP, VAR1, KSUM
 
 
@@ -584,11 +581,11 @@ class arlpackedbit(PseudoNetCDFFile):
     def __init__(self, path, shape=None):
         self._path = path
         self._f = f = open(path, 'r')
-        f.seek(0, 2)
-        fsize = f.tell()
+        # f.seek(0, 2)
+        # fsize = f.tell()
         f.seek(0, 0)
 
-        vord = np.vectorize(ord)
+        # vord = np.vectorize(ord)
 #        timesfc = []
 #        times = []
 #        tflag = []
@@ -636,10 +633,10 @@ class arlpackedbit(PseudoNetCDFFile):
             xe.standard_name = 'longitude_bounds'
             xe.units = 'degrees'
             x[:] = np.arange(0, nx) * float(self.REFLON) + float(self.SYNCHLON)
-            xe[:-1, 1] = x[:1] + np.diff(x)/2
-            xe[1:, 0] = x[1:] - np.diff(x)/2
-            xe[0, 0] = x[0] - np.diff(x)[0]/2
-            xe[1, 1] = x[1] + np.diff(x)[1]/2
+            xe[:-1, 1] = x[:1] + np.diff(x) / 2
+            xe[1:, 0] = x[1:] - np.diff(x) / 2
+            xe[0, 0] = x[0] - np.diff(x)[0] / 2
+            xe[1, 1] = x[1] + np.diff(x)[1] / 2
             y = self.createVariable('y', 'f', ('y',))
             y.standard_name = 'latitude'
             y.units = 'degrees'
@@ -647,10 +644,10 @@ class arlpackedbit(PseudoNetCDFFile):
             ye.standard_name = 'latitude_bounds'
             ye.units = 'degrees'
             y[:] = np.arange(0, ny) * float(self.REFLAT) + float(self.SYNCHLAT)
-            ye[:-1, 1] = y[:1] + np.diff(y)/2
-            ye[1:, 0] = y[1:] - np.diff(y)/2
-            ye[0, 0] = y[0] - np.diff(y)[0]/2
-            ye[1, 1] = y[1] + np.diff(y)[1]/2
+            ye[:-1, 1] = y[:1] + np.diff(y) / 2
+            ye[1:, 0] = y[1:] - np.diff(y) / 2
+            ye[0, 0] = y[0] - np.diff(y)[0] / 2
+            ye[1, 1] = y[1] + np.diff(y)[1] / 2
 
         times = [datetime.strptime(
             t.astype('S8').decode(), '%y%m%d%H') for t in tflag]
@@ -672,7 +669,7 @@ class arlpackedbit(PseudoNetCDFFile):
             vhead = datamap['surface'][varkey]['head']
             v11 = vhead['VAR1']
             EXP = vhead['EXP']
-            props = dict([(pk, vhead[pk][0]) for pk in vhead.dtype.names if not pk in (
+            props = dict([(pk, vhead[pk][0]) for pk in vhead.dtype.names if pk not in (
                 'YYMMDDHHFF', 'LEVEL')])
             bytes = datamap['surface'][varkey]['data']
             vdata = unpack(bytes, v11, EXP)
@@ -691,14 +688,13 @@ class arlpackedbit(PseudoNetCDFFile):
             v11 = vhead['VAR1']
             EXP = vhead['EXP']
             props = dict([(pk, vhead[pk][0, 0])
-                          for pk in vhead.dtype.names if not pk in ('YYMMDDHHFF', 'LEVEL')])
+                          for pk in vhead.dtype.names if pk not in ('YYMMDDHHFF', 'LEVEL')])
             props['LEVEL_START'] = vhead['LEVEL'][0, 0]
             props['LEVEL_END'] = vhead['LEVEL'][-1, -1]
             vdata = unpack(bytes, v11, EXP)
             return PseudoNetCDFVariable(self, varkey, 'f', ('time', 'z', 'y', 'x'), values=vdata, units=stdunit, standard_name=stdname, **props)
 
 
-from PseudoNetCDF._getwriter import registerwriter
 registerwriter('noaafiles.arlpackedbit', writearlpackedbit)
 registerwriter('arlpackedbit', writearlpackedbit)
 
