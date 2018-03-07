@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-from netCDF4 import Dataset
 import matplotlib.pyplot as plt
 from PseudoNetCDF.coordutil import gettimes
 import numpy as np
-import os
 
 
 def plotts(args):
@@ -19,15 +17,15 @@ def plotts(args):
         ax.set_ylabel(target + '(' + unit + ')')
         del ax.lines[:]
         nvars = len(vars)
-        varwidth = .8/nvars/1.1
-        po = np.arange(24) + 0.1 + varwidth/2
+        varwidth = .8 / nvars / 1.1
+        po = np.arange(24) + 0.1 + varwidth / 2
         for vi, (time, var) in enumerate(zip(times, vars)):
             vals = var[:]
             if args.squeeze:
                 vals = vals.squeeze()
             vardesc = getattr(var, 'description', None)
             varb = ax.plot(time, vals[:], label=vardesc)
-        #plt.setp(ax.xaxis.get_ticklabels(),rotation = 45)
+        # plt.setp(ax.xaxis.get_ticklabels(),rotation = 45)
         plt.legend()
         figpath = args.outpath + target + '.' + args.figformat
         for pc in args.plotcommands:

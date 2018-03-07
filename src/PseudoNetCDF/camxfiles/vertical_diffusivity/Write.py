@@ -1,4 +1,4 @@
-__all__ = ['ncf2kv']
+__all__ = ['ncf2vertical_diffusivity']
 __doc__ = """
 .. _Write
 :mod:`Write` -- CAMx vertical diffusivity  writer
@@ -7,7 +7,7 @@ __doc__ = """
 .. module:: Write
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` writer for CAMx vertical
-              diffusivity files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              diffusivity files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """

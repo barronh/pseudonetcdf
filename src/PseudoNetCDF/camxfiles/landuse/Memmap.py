@@ -2,33 +2,32 @@ __all__ = ['landuse']
 __doc__ = """
 .. _Memmap
 :mod:`Memmap` -- landuse Memmap interface
- ============================================ 
+ ============================================
 
 .. module:: Memmap
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx
-              landuse files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              landuse files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
+# Distribution packages
+import unittest
+import struct
+
+# Site-Packages
+from numpy import zeros, array, memmap, dtype
+
+# This Package modules
+from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile
+from PseudoNetCDF.sci_var import PseudoNetCDFFile
+
 HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxMemmap.py $"
 ChangeDate = "$LastChangedDate$"
 RevisionNum = "$LastChangedRevision$"
 ChangedBy = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
 
-# Distribution packages
-import unittest
-import struct
-
-# Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype, nan
-
-# This Package modules
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, Int2Asc
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
-from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 # for use in identifying uncaught nan
 listnan = struct.unpack('>f', b'\xff\xc0\x00\x00')[0]
@@ -70,7 +69,6 @@ class landuse(PseudoNetCDFFile):
         self._rffile = OpenRecordFile(rf)
         self._rffile.infile.seek(0, 2)
         self.__rf = rf
-        rflen = self._rffile.infile.tell()
         self._rffile._newrecord(0)
 
         self.createDimension('ROW', rows)
@@ -107,9 +105,6 @@ class landuse(PseudoNetCDFFile):
             self.__keys = ['LUCAT11']
 
     def __addvars(self):
-        nrows = len(self.dimensions['ROW'])
-        ncols = len(self.dimensions['COL'])
-        nland = len(self.dimensions['LANDUSE'])
         self._rffile.infile.seek(0, 2)
         rflen = self._rffile.infile.tell()
         fland_dtype = self.__fland_dtype

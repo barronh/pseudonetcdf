@@ -1,6 +1,6 @@
 __all__ = ['register_cmap', 'get_cmap', 'register_norm', 'get_norm']
 
-from matplotlib.colors import from_levels_and_colors, Colormap, Normalize
+from matplotlib.colors import from_levels_and_colors, Normalize
 from matplotlib.cm import register_cmap, get_cmap
 
 _registered_norms = {}

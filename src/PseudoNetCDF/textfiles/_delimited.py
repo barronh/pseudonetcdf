@@ -2,6 +2,8 @@ from __future__ import print_function  # , unicode_literals
 from PseudoNetCDF.sci_var import PseudoNetCDFFile
 import numpy as np
 from warnings import warn
+from PseudoNetCDF._getwriter import registerwriter
+import unittest
 
 
 class csv(PseudoNetCDFFile):
@@ -19,7 +21,7 @@ class csv(PseudoNetCDFFile):
             kwds['names'] = names
             kwds['delimiter'] = delimiter
             data = np.recfromtxt(path, **kwds)
-        except:
+        except Exception:
             import pandas
             del kwds['names']
             del kwds['delimiter']
@@ -32,7 +34,7 @@ class csv(PseudoNetCDFFile):
             data = odata.to_records(index=False)
 
         dimkeys = [dk for dk in coordkeys if dk in data.dtype.names]
-        varkeys = [vk for vk in data.dtype.names if not vk in coordkeys]
+        varkeys = [vk for vk in data.dtype.names if vk not in coordkeys]
         for dk in dimkeys:
             dv = np.unique(data[dk])
             dv.sort()
@@ -52,7 +54,6 @@ class csv(PseudoNetCDFFile):
             else:
                 var = self.createVariable(vk, vv.dtype.char, tuple(dimkeys))
 
-        varshape = var.shape
         bigidx = []
         bigidx = dict([(dk, (data[dk][:, None] == self.variables[dk]
                              [None, :]).argmax(1)) for dk in dimkeys])
@@ -86,7 +87,6 @@ def ncf2csv(ifile, outpath, delimiter=',', coordkeys="time time_bounds TFLAG ETF
             else:
                 outfile = outpath
 
-        dimdict = [(di, k) for di, k in enumerate(dim) if k in ifile.variables]
         dimheader = [k for k in dim if k in ifile.variables]
         header = dimsets[dim] = [
             k for k, v in ifile.variables.items() if v.dimensions == dim]
@@ -107,16 +107,12 @@ def ncf2csv(ifile, outpath, delimiter=',', coordkeys="time time_bounds TFLAG ETF
             print(outtext, file=outfile)
 
 
-from PseudoNetCDF._getwriter import registerwriter
 registerwriter('csv', ncf2csv)
-import unittest
 
 
 class TestCsv(unittest.TestCase):
     def setUp(self):
-        import sys
         from PseudoNetCDF import PseudoNetCDFFile
-        from PseudoNetCDF.pncgen import pncgen
         self.checkval = """time,layer,latitude,longitude,test
 0.0,0.0,0.0,0.0,0.0
 0.0,0.0,0.0,1.0,1.0
@@ -249,7 +245,7 @@ class TestCsv(unittest.TestCase):
             var[:] = np.arange(len(dv), dtype='f')
         var = testfile.createVariable(
             'test', 'f', ('time', 'layer', 'latitude', 'longitude'))
-        var[:] = np.arange(2*3*4*5).reshape(2, 3, 4, 5)
+        var[:] = np.arange(2 * 3 * 4 * 5).reshape(2, 3, 4, 5)
 
     def testNCF2CSV(self):
         from PseudoNetCDF.pncgen import pncgen

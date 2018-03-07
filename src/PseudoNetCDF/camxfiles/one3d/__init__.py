@@ -5,7 +5,7 @@ __doc__ = """
 
 .. module:: one3d
    :platform: Unix, Windows
-   :synopsis: Provides :ref:`PseudoNetCDF` memory map and random access read 
+   :synopsis: Provides :ref:`PseudoNetCDF` memory map and random access read
    based file interfaces for CAMx one variable 3d files.
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """

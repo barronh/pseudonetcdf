@@ -7,28 +7,28 @@ __doc__ = """
 .. module:: Memmap
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx generic
-              one 3d variable files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              one 3d variable files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
+# Distribution packages
+import unittest
+import struct
+
+# Site-Packages
+from numpy import zeros, array, where, memmap, newaxis
+
+# This Package modules
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
+from PseudoNetCDF.sci_var import PseudoNetCDFVariables
+from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
+
 HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxMemmap.py $"
 ChangeDate = "$LastChangedDate$"
 RevisionNum = "$LastChangedRevision$"
 ChangedBy = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
 
-# Distribution packages
-import unittest
-import struct
-
-# Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype, nan
-
-# This Package modules
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, Int2Asc
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
-from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 # for use in identifying uncaught nan
 listnan = struct.unpack('>f', b'\xff\xc0\x00\x00')[0]
@@ -74,12 +74,12 @@ class one3d(PseudoNetCDFFile):
     def isMine(cls, path):
         try:
             f = one3d(path)
-        except:
+        except Exception:
             return False
         return f._checkfile()
 
     def _checkfile(self):
-        if self.__memmap.size != (self.__records*self.__record_items):
+        if self.__memmap.size != (self.__records * self.__record_items):
             return False
         pad0 = self.__memmap.reshape(
             self.__records, self.__record_items).view('i')[:, 0]
@@ -100,12 +100,12 @@ class one3d(PseudoNetCDFFile):
         self.rffile = rf
 
         self.__memmap = memmap(self.rffile, '>f', 'r', offset=0)
-        if rows == None and cols == None:
+        if rows is None and cols is None:
             rows = 1
             cols = self.__memmap[[-1]].view('>i')[0] // 4 - 2
-        self.__record_items = rows*cols+4
+        self.__record_items = rows * cols + 4
 
-        self.__records = self.__memmap.shape[0]//self.__record_items
+        self.__records = self.__memmap.shape[0] // self.__record_items
 
         time_date = array(self.__memmap.reshape(
             self.__records, self.__record_items)[:, 1:3])
@@ -119,7 +119,7 @@ class one3d(PseudoNetCDFFile):
 
         self.__tflag = array(
             [dates[new_hour], times[new_hour]], dtype='>f').swapaxes(0, 1)
-        time_steps = self.__records/lays
+        time_steps = self.__records / lays
 
         self.createDimension('VAR', 1)
         self.createDimension('TSTEP', time_steps)

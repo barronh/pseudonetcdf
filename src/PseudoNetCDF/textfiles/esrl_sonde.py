@@ -33,7 +33,7 @@ Oltmans solution correction = Yes
   Time (sec) to pump 100 ml = 28.230
     Dry flowrate correction = 2.60
     Background current (uA) = 0.071
-               Coefficients = 
+               Coefficients =
        Pump coefficient pc0 = 0.5955
                         pc1 = 0.5125
                         pc2 = -0.2353
@@ -55,17 +55,19 @@ def skysonde1sec(inpath):
     datafile = open(inpath, 'r')
     datalines = datafile.read().split('\n')
     nmeta = int(datalines[1].split(' = ')[1])
-    meta = dict([[w.strip() for w in l.split(' = ')]
-                 for l in datalines[1:nmeta-2] if l != ''])
-    varline, unitline = datalines[nmeta-2:nmeta]
+    meta = dict([[w.strip() for w in line.split(' = ')]
+                 for line in datalines[1:nmeta - 2] if line != ''])
+
+    varline, unitline = datalines[nmeta - 2:nmeta]
     varnames = [vn.strip() for vn in spaces.split(varline)]
     units = [u.strip()[1:-1].strip() for u in spaces.split(unitline)]
     print(units)
-    import pdb
-    pdb.set_trace()
     data = np.fromstring(
         ', '.join(datalines[nmeta:]), sep=',').reshape(-1, len(varnames))
     outf = PseudoNetCDFFile()
+    for pk, pv in meta.items():
+        setattr(outf, pk, pv)
+
     outf.createDimension('time', data.shape[0])
     for varname, unit, vals in zip(varnames, units, data.T):
         var = outf.createVariable(varname.replace(' ', '_'), 'f', ('time',))

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
 # Run this script with pnc options
-import sys
 import os
 
 from PseudoNetCDF.pncload import PNCConsole
@@ -9,13 +8,16 @@ from PseudoNetCDF.coordutil import getmap, getlatbnds, getlonbnds, getybnds, get
 from PseudoNetCDF.sci_var import getvarpnc, slice_dim
 
 import warnings
-warn = warnings.warn
 import numpy as np
-from PseudoNetCDF.plotutil import *
+import matplotlib.pyplot as plt
+warn = warnings.warn
+pl = plt
+# from PseudoNetCDF.plotutil import *
 
 
 def makemaps(args):
     ifiles = args.ifiles
+    cbar = None
     ifile = ifiles[0]
     if args.iter != []:
         ifile, = ifiles
@@ -23,7 +25,7 @@ def makemaps(args):
         for dimk in args.iter:
             ifiles += [slice_dim(getvarpnc(ifile, None), '%s,%d' % (dimk, i))
                        for i in range(len(ifile.dimensions[dimk]))]
-    ax = pl.gca()
+    ax = plt.gca()
     map = getmap(ifile, resolution=args.resolution)
     if args.coastlines:
         map.drawcoastlines(ax=ax)
@@ -40,11 +42,11 @@ def makemaps(args):
         shapename = os.path.basename(shapepath)[:-3] + str(si)
         map.readshapefile(shapepath, shapename, ax=ax, **shapeoptdict)
     args.map = map
-    fig = pl.gcf()
+    fig = plt.gcf()
     if len(args.figure_keywords) > 0:
         plt.setp(fig, **args.figure_keywords)
 
-    ax = pl.gca()
+    ax = plt.gca()
     if len(args.axes_keywords) > 0:
         plt.setp(ax, **args.axes_keywords)
 
@@ -76,7 +78,7 @@ def makemaps(args):
             raise ValueError(
                 'Unable to heuristically determin plottable variables; use -v to specify variables for plotting')
         for varkey in variables:
-            ax = pl.gca()
+            ax = plt.gca()
 
             if not args.overlay:
                 del ax.collections[nborders:]
@@ -105,15 +107,15 @@ def makemaps(args):
             else:
                 norm = eval(args.normalize)
                 formatter = None
-            if not args.colorbarformatter is None:
+            if args.colorbarformatter is not None:
                 try:
                     formatter = eval(args.colorbarformatter)
-                except:
+                except Exception:
                     formatter = args.colorbarformatter
 
-            if not norm.vmin is None:
+            if norm.vmin is not None:
                 vmin = norm.vmin
-            if not norm.vmax is None:
+            if norm.vmax is not None:
                 vmax = norm.vmax
             varunit = getattr(var, 'units', 'unknown').strip()
             if args.verbose > 0:
@@ -145,11 +147,12 @@ def makemaps(args):
                 orientation = 'horizontal'
             else:
                 orientation = 'vertical'
-            try:
+            if cbar is None:
+                cax = None
+            else:
                 cax = cbar.ax
                 cax.cla()
-            except:
-                cax = None
+
             if vals.max() > vmax and vals.min() < vmin:
                 extend = 'both'
             elif vals.max() > vmax:
@@ -158,17 +161,18 @@ def makemaps(args):
                 extend = 'min'
             else:
                 extend = 'neither'
-            cbar = pl.gcf().colorbar(patches, orientation=orientation, cax=cax,
-                                     extend=extend, format=formatter, spacing='proportional')
+            cbar = plt.gcf().colorbar(patches, orientation=orientation,
+                                      cax=cax, extend=extend, format=formatter,
+                                      spacing='proportional')
             del cbar.ax.texts[:]
             cbar.set_label(
                 varkey + ' (' + varunit + '; min=%.3g; max=%.3g)' % (var[:].min(), var[:].max()))
- #           if orientation == 'vertical':
- #               cbar.ax.text(.5, 1.05, '%.3g' % var[:].max(), horizontalalignment = 'center', verticalalignment = 'bottom')
-#                cbar.ax.text(.5, -.06, '%.3g ' % var[:].min(), horizontalalignment = 'center', verticalalignment = 'top')
-#            else:
-#                cbar.ax.text(1.05, .5, ' %.3g' % var[:].max(), verticalalignment = 'center', horizontalalignment = 'left')
-#                cbar.ax.text(-.06, .5, '%.3g ' % var[:].min(), verticalalignment = 'center', horizontalalignment = 'right')
+            # if orientation == 'vertical':
+            #     cbar.ax.text(.5, 1.05, '%.3g' % var[:].max(), horizontalalignment = 'center', verticalalignment = 'bottom')
+            #     cbar.ax.text(.5, -.06, '%.3g ' % var[:].min(), horizontalalignment = 'center', verticalalignment = 'top')
+            # else:
+            #     cbar.ax.text(1.05, .5, ' %.3g' % var[:].max(), verticalalignment = 'center', horizontalalignment = 'left')
+            #     cbar.ax.text(-.06, .5, '%.3g ' % var[:].min(), verticalalignment = 'center', horizontalalignment = 'right')
             cbar.update_ticks()
             fmt = args.figformat
             outpath = args.outpath
@@ -185,6 +189,6 @@ def makemaps(args):
                 csl.interact()
             for cmd in args.plotcommands:
                 exec(cmd)
-            pl.savefig(figpath)
+            plt.savefig(figpath)
             if args.verbose > 0:
                 print('Saved fig', figpath)

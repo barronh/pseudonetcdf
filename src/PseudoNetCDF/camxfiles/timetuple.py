@@ -7,12 +7,13 @@ __doc__ = """
 
 .. module:: timetuple
    :platform: Unix, Windows
-   :synopsis: Time tuple provided a simple interface for handling 
+   :synopsis: Time tuple provided a simple interface for handling
               CAMx time representations.  It has been deprecated
               and all reliance should be removed
 .. moduleauthor:: Adam Hupp and Barron Henderson <barronh@unc.edu>
 """
 
+import unittest
 from warnings import warn
 warn(PendingDeprecationWarning(
     "Time tuple will be replaced by datetime and dateutil"))
@@ -38,15 +39,15 @@ def timerange(datetime1, datetime2, step=100, eod=2400.0):
         date1, time1 = timeadd((date1, time1), (0, step), eod)
 
 
-def timediff(datetime1, datetime2,  eod=2400.0):
+def timediff(datetime1, datetime2, eod=2400.0):
     """Compares date tuples and returns difference in
     a time tuple
     """
     (date1, time1) = datetime1
     (date2, time2) = datetime2
-    date3 = date2-date1
-    time3 = time2-time1
-    return date3*eod + time3
+    date3 = date2 - date1
+    time3 = time2 - time1
+    return date3 * eod + time3
 
 
 def timeadd(datetime1, datetime2, eod=2400.0):
@@ -86,8 +87,6 @@ def cmp_time(lhs, rhs):
 #
 # Test cases
 #
-import unittest
-
 
 class CompareTime(unittest.TestCase):
     def testCompare(self):

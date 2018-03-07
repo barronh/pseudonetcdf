@@ -7,13 +7,11 @@ __doc__ = """
 .. module:: Write
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` variable transformations
-              for CAMx wind files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              for CAMx wind files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-
-from numpy import array
-
+from warnings import warn
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoNetCDFVariable, PseudoNetCDFVariableConvertUnit
 from PseudoNetCDF.camxfiles.wind.Memmap import wind as reg_wind
 from PseudoNetCDF.ArrayTransforms import CenterTime, CenterCAMxU, CenterCAMxV
@@ -27,7 +25,7 @@ class wind_center_time_cell(PseudoNetCDFFile):
     def __init__(self, rffile, rows, cols, outunit='m/s', endhour=True, forcestaggered=False):
         self.__windfile = reg_wind(rffile, rows, cols)
 
-        self.createDimension('TSTEP', self.__windfile.dimensions['TSTEP']-1)
+        self.createDimension('TSTEP', self.__windfile.dimensions['TSTEP'] - 1)
         self.createDimension('LAY', self.__windfile.dimensions['LAY'])
         self.createDimension('ROW', self.__windfile.dimensions['ROW'])
         self.createDimension('COL', self.__windfile.dimensions['COL'])
@@ -69,6 +67,6 @@ class wind_center_time_cell(PseudoNetCDFFile):
                 self, k, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'), values=preproc(var))
             v.units = var.units
             v.long_name = k.ljust(16)
-            v.var_desc = (k+' at center').ljust(16)
+            v.var_desc = (k + ' at center').ljust(16)
             self.variables[k] = PseudoNetCDFVariableConvertUnit(
                 v, self.__outunit)

@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import sys
 import numpy as np
 from warnings import warn
-from netCDF4 import MFDataset, Dataset
+from netCDF4 import Dataset
 from collections import defaultdict
 from datetime import datetime, timedelta
 from glob import glob
-unitconvert = {('ppmV', 'ppb'): lambda x: x * 1000.}
 
-from PseudoNetCDF.pncparse import getparser, AggCommaString
+from PseudoNetCDF.pncparse import AggCommaString
+
+unitconvert = {('ppmV', 'ppb'): lambda x: x * 1000.}
 
 
 def add_vertprofile_options(vertparser):
@@ -45,12 +45,12 @@ def add_vertprofile_options(vertparser):
     vertparser.add_argument("--edges", dest="edges", default=False, action="store_true",
                             help="Plot S,E,N,W edges instead of a single plot.")
 
-#vertparser = getparser(has_ofile = True, plot_options = True, interactive = False)
+# vertparser = getparser(has_ofile = True, plot_options = True, interactive = False)
 # add_vertprofile_options(vertparser)
 # vertparser.epilog = """
 # Example:
-#$ pncvertprofile.py outputs/ts20120301.bpch.BCON.nc test_profile -v O3  --edges #--minmaxq .5,99.5 --tes-paths=~/Data/test/*
-#"""
+# $ pncvertprofile.py outputs/ts20120301.bpch.BCON.nc test_profile -v O3  --edges #--minmaxq .5,99.5 --tes-paths=~/Data/test/*
+# """
 
 
 def maskfilled(v):
@@ -103,7 +103,7 @@ def plot_omi(ax, lon_bnds, lat_bnds, omipaths, key='O3Profile', airden=None, air
                 path, lons.min(), lons.max(), lats.min(), lats.max(), lon_bnds.min(), lon_bnds.max(), lat_bnds.min(), lat_bnds.max()))
 
     if len(allx) == 0:
-        print('*' * 80 + '\n\nNo OMI DATA FOUND AT ALL\n\n' + '*'*80)
+        print('*' * 80 + '\n\nNo OMI DATA FOUND AT ALL\n\n' + '*' * 80)
         return None, None
 
     var = np.ma.masked_values(np.ma.concatenate(ally, axis=0), -999.) * 1e9
@@ -117,7 +117,7 @@ def plot_omi(ax, lon_bnds, lat_bnds, omipaths, key='O3Profile', airden=None, air
 
 
 def matchspace(lons, lats, lon_bnds, lat_bnds):
-    slicer = [slice(None, None)] + [None]*(lon_bnds.ndim-1)
+    slicer = [slice(None, None)] + [None] * (lon_bnds.ndim - 1)
     inlon = np.logical_and(
         lons[slicer] >= lon_bnds[None, ..., 0], lons[slicer] <= lon_bnds[None, ..., 1])
     inlat = np.logical_and(
@@ -127,7 +127,6 @@ def matchspace(lons, lats, lon_bnds, lat_bnds):
 
 
 def plot_tes(ax, lon_bnds, lat_bnds, tespaths):
-    from netCDF4 import Dataset
     allx = []
     ally = []
     lon_bnds = lon_bnds[:]
@@ -197,9 +196,8 @@ def vertprofileplot(ifiles, args):
         raise ValueError('User must specify variable(s) to plot:\n%s' %
                          '\n\t'.join(ifiles[0].variables.keys()))
     from PseudoNetCDF.coordutil import getsigmamid, getpresmid, gettimes
-    import pylab as pl
-    from pylab import figure, NullFormatter, close, rcParams
-    rcParams['text.usetex'] = False
+    import matplotlib.pyplot as plt
+    plt.rcParams['text.usetex'] = False
     from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm, LogNorm
     scale = args.scale
     minmax = eval(args.minmax)
@@ -212,7 +210,7 @@ def vertprofileplot(ifiles, args):
     edges = args.edges
     try:
         f, = ifiles
-    except:
+    except Exception:
         raise ValueError(
             'curtain plot expects one file when done. Try stack time --stack=time to concatenate')
 
@@ -223,7 +221,7 @@ def vertprofileplot(ifiles, args):
             from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
             f = getvarpnc(f, None)
             add_cf_from_ioapi(f)
-        except:
+        except Exception:
             pass
     if sigma:
         vertcrd = getsigmamid(f)
@@ -235,7 +233,7 @@ def vertprofileplot(ifiles, args):
     try:
         lonb = f.variables['geos_longitude_bounds']
         latb = f.variables['geos_latitude_bounds']
-    except:
+    except Exception:
         lonb = f.variables['longitude_bounds']
         latb = f.variables['latitude_bounds']
     for var_name in args.variables:
@@ -243,7 +241,7 @@ def vertprofileplot(ifiles, args):
         try:
             eval(var_name, None, temp)
             var = eval(var_name, None, f.variables)[:]
-        except:
+        except Exception:
             temp[var_name]
             var = f.variables[var_name][:]
         if maskzeros:
@@ -254,7 +252,6 @@ def vertprofileplot(ifiles, args):
             var = unitconvert.get((unit, outunit), lambda x: x)(var)
         else:
             outunit = unit
-        bmap = None
         vmin, vmax = np.percentile(
             np.ma.compressed(var).ravel(), list(minmaxq))
         if minmax[0] is not None:
@@ -262,7 +259,7 @@ def vertprofileplot(ifiles, args):
         if minmax[1] is not None:
             vmax = minmax[1]
         if edges:
-            fig = pl.figure(figsize=(16, 4))
+            fig = plt.figure(figsize=(16, 4))
             offset = 0.05
             ax = fig.add_axes([.1 - offset, .15, .22, .725])
             ax = fig.add_axes([.325 - offset, .15, .22, .725])
@@ -278,7 +275,7 @@ def vertprofileplot(ifiles, args):
             we = ws + f.NROWS + 1
             axs = fig.axes
             for ax in fig.axes[1:]:
-                ax.yaxis.set_major_formatter(pl.NullFormatter())
+                ax.yaxis.set_major_formatter(plt.NullFormatter())
 
             vars = [var[:, :, ss:se], var[:, :, es:ee], var[:, :, ns:ne]
                     [:, :, ::-1], var[:, :, ws:we][:, :, ::-1]]
@@ -288,7 +285,7 @@ def vertprofileplot(ifiles, args):
                       latb[ns:ne][::-1], latb[ws:we][::-1]]
 
         else:
-            fig = pl.figure()
+            fig = plt.figure()
             ax = fig.add_subplot(111)
             axs = fig.axes
             vars = [var]
@@ -334,18 +331,18 @@ def vertprofileplot(ifiles, args):
 
             if len(tespaths) > 0:
                 tesl, tesr = plot_tes(ax, lonbs, latbs, tespaths)
-                if not tesl is None:
+                if tesl is not None:
                     llines.append((tesl, tesr))
             if len(omipaths) > 0:
                 omil, omir = plot_omi(ax, lonbs, latbs, omipaths, airden=f.variables['AIRDEN'][:].mean(
                     0).mean(1), airdenvert=vertcrd)
-                if not omil is None:
+                if omil is not None:
                     llines.append((omil, omir))
 
         try:
             title = '%s to %s' % (sdate.strftime(
                 '%Y-%m-%d'), edate.strftime('%Y-%m-%d'))
-        except:
+        except Exception:
             title = var_name
         if sigma:
             axs[0].set_ylabel('sigma')
@@ -374,10 +371,10 @@ def vertprofileplot(ifiles, args):
         for ax in axs:
             if len(ax.get_lines()) > nl:
                 nl = len(ax.get_lines())
-                pl.sca(ax)
+                plt.sca(ax)
 
         llabels = [l[0].get_label() for l in llines]
-        pl.legend(llines, llabels, bbox_to_anchor=(.1, 1),
+        plt.legend(llines, llabels, bbox_to_anchor=(.1, 1),
                   loc='upper left', bbox_transform=fig.transFigure, ncol=6)
         if edges:
             fig.text(0.95, 0.975, title, horizontalalignment='right',
@@ -389,5 +386,5 @@ def vertprofileplot(ifiles, args):
         fig.savefig(figpath)
         if args.verbose > 0:
             print('Saved fig', figpath)
-        # pl.close(fig)
+        # plt.close(fig)
     return fig

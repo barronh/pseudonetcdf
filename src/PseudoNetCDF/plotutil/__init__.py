@@ -1,11 +1,25 @@
+__all__ = ['plotts',
+           'plotprofile',
+           'add_vertprofile_options',
+           'plotscatter',
+           'SegmentedNorm',
+           'SegmentedLogNorm',
+           'plot',
+           'plot2d',
+           'plotcontour',
+           'plotcontourf'
+           ]
+
 import pylab
-pl = pylab
 import matplotlib.pyplot as pyplot
-plt = pyplot
+import numpy as np
 
 from .pncts import plotts
 from .vertprofile import plotprofile, add_vertprofile_options
 from .pncscatter import pncscatter as plotscatter
+
+pl = pylab
+plt = pyplot
 
 Normalize = pl.matplotlib.colors.Normalize
 LogNorm = pl.matplotlib.colors.LogNorm

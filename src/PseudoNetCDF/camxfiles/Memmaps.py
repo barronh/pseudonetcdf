@@ -23,7 +23,8 @@ __all__ = ['cloud_rain',
            'uamiv',
            'vertical_diffusivity',
            'wind',
-           'lateral_boundary']
+           'lateral_boundary',
+           'finst']
 
 from .uamiv.Memmap import uamiv
 from .cloud_rain.Memmap import cloud_rain

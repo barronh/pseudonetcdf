@@ -1,4 +1,15 @@
 from unittest import TestSuite, findTestCases, TextTestRunner
+from ..core import _files
+from .. import sci_var
+from .. import ArrayTransforms
+from .. import camxfiles
+from .. import net_balance
+from .. import geoschemfiles
+from .. import textfiles
+from .. import icarttfiles
+from .. import _getreader
+
+
 test_suite = TestSuite()
 
 
@@ -6,16 +17,16 @@ def addTestCasesFromModule(module):
     test_suite.addTests(findTestCases(module))
 
 
-from ..core import _files
+# Core file tests
 addTestCasesFromModule(_files)
 
-from .. import sci_var
+# sci_var tests
 addTestCasesFromModule(sci_var)
 
-from .. import ArrayTransforms
+# ArrayTransforms ests
 addTestCasesFromModule(ArrayTransforms)
 
-from .. import camxfiles
+# CAMx tests
 addTestCasesFromModule(camxfiles.wind.Memmap)
 addTestCasesFromModule(camxfiles.humidity.Memmap)
 addTestCasesFromModule(camxfiles.temperature.Memmap)
@@ -33,21 +44,21 @@ addTestCasesFromModule(camxfiles.irr.Memmap)
 addTestCasesFromModule(camxfiles.FortranFileUtil)
 addTestCasesFromModule(camxfiles.timetuple)
 
-from .. import net_balance
+# Net balance test
 addTestCasesFromModule(net_balance)
 
-from .. import geoschemfiles
+# GEOS-Chem tests
 addTestCasesFromModule(geoschemfiles._bpch)
 addTestCasesFromModule(geoschemfiles._newbpch)
 addTestCasesFromModule(geoschemfiles._geos)
 
-from .. import textfiles
+# Text file tests
 addTestCasesFromModule(textfiles._delimited)
 
-from .. import icarttfiles
+# ICARTT Files
 addTestCasesFromModule(icarttfiles.ffi1001)
 
-from .. import _getreader
+# Reader tests
 addTestCasesFromModule(_getreader)
 
 

@@ -31,4 +31,4 @@ def sliceit(args):
     try:
         return slice(*args)
     except TypeError:
-        return slice(args, args+1)
+        return slice(args, args + 1)

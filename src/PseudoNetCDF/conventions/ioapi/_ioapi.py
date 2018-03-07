@@ -1,15 +1,9 @@
 from PseudoNetCDF.pncwarn import warn
 import numpy as np
 _withlatlon = False
-for impstmt in ['import pyproj', 'from mpl_toolkits.basemap import pyproj']:
-    try:
-        exec(impstmt)
-    except ImportError:
-        pass
-    else:
-        _withlatlon = True
-        break
-else:
+try:
+    import pyproj
+except Exception:
     warn('pyproj could not be found, so IO/API coordinates cannot be converted to lat/lon; to fix, install pyproj or basemap (e.g., `pip install pyproj)`')
 
 
@@ -30,7 +24,7 @@ def add_lay_coordinates(ifileo):
     if 'level' not in ifileo.variables.keys():
         var = ifileo.createVariable('level', 'd', ('LAY',))
         if hasattr(ifileo, 'VGLVLS'):
-            var[:] = (ifileo.VGLVLS[:-1] + ifile.VGLVLS[1:]) / 2
+            var[:] = (ifileo.VGLVLS[:-1] + ifileo.VGLVLS[1:]) / 2
         else:
             var[:] = np.arange(nlay, dtype='d')
         var.units = 'sigma'
@@ -176,7 +170,7 @@ def getmapdef(ifileo, add=True):
         mapdef.latitude_of_projection_origin = ifileo.P_ALP * 90
         mapdef.straight_vertical_longitude_from_pole = ifileo.P_GAM
         mapdef.standard_parallel = np.array([ifileo.P_BET], dtype='d')
-        #mapdef.standard_parallel = np.array([ifileo.P_BET], dtype = 'f')
+        # mapdef.standard_parallel = np.array([ifileo.P_BET], dtype = 'f')
     else:
         mapdef.standard_parallel = np.array(
             [ifileo.P_ALP, ifileo.P_BET], dtype='d')
@@ -254,13 +248,14 @@ def add_lcc_coordinates(ifileo):
                 mapdef.semi_major_axis, mapdef.semi_minor_axis, mapdef.longitude_of_central_meridian)
             mapproj = pyproj.Proj(mapstr)
         elif ifileo.GDTYP == 1:
-            def mapproj(x, y, inverse): return (x, y)
+            def mapproj(x, y, inverse):
+                return (x, y)
         lon, lat = mapproj(lcc_x, lcc_y, inverse=True)
         lone, late = mapproj(lcc_xe.ravel(), lcc_ye.ravel(), inverse=True)
         lone = lone.reshape(*lcc_xe.shape)
         late = late.reshape(*lcc_ye.shape)
 
-    if not 'x' in ifileo.variables.keys() and xdim in ifileo.dimensions:
+    if 'x' not in ifileo.variables.keys() and xdim in ifileo.dimensions:
         """
         Not necessary for cdo
         """
@@ -270,7 +265,7 @@ def add_lcc_coordinates(ifileo):
         var._CoordinateAxisType = "GeoX"
         var.long_name = "synthesized coordinate from XORIG XCELL global attributes"
 
-    if not 'y' in ifileo.variables.keys() and ydim in ifileo.dimensions:
+    if 'y' not in ifileo.variables.keys() and ydim in ifileo.dimensions:
         """
         Not necessary for cdo
         """
@@ -298,7 +293,7 @@ def add_lcc_coordinates(ifileo):
 
     if _withlatlon:
         for dk, dl in zip(latlone_dim, late.shape):
-            if not dk in ifileo.dimensions:
+            if dk not in ifileo.dimensions:
                 ifileo.createDimension(dk, dl)
 
     if _withlatlon and 'latitude_bounds' not in ifileo.variables.keys():
@@ -321,7 +316,7 @@ def add_lcc_coordinates(ifileo):
         # we should find a better fix for this
         # try:
         #    ifileo.variables[varkey] = var
-        # except:
+        # except Exception:
         #    pass
         olddims = list(var.dimensions)
         if _withlatlon:
@@ -329,15 +324,17 @@ def add_lcc_coordinates(ifileo):
                                   'TSTEP': 'time', 'LAY': 'level'}.get(x, x), olddims)
         dims = [d for d in dims]  # Why was I excluding time  if d != 'time'
         if olddims != dims:
-            if ('PERIM' in dims or
-                    ('latitude' in dims and 'longitude' in dims)
-                ) and varkey not in ('latitude', 'longitude'):
+            if (varkey not in ('latitude', 'longitude') and
+                ('PERIM' in dims or
+                 ('latitude' in dims and 'longitude' in dims))):
                 try:
                     var.coordinates = ' '.join(dims)
                     var.grid_mapping = gridname
                 except Exception as e:
-                    warn('coordinates="{0}" and gridmapping="{1}" not added to variables:\n\t{3}'.format(
-                        ' '.join(dims), gridname, varkey, e), category=UserWarning)
+                    warn(('coordinates="{0}" and gridmapping="{1}" ' +
+                          'not added to variables:\n\t{3}'
+                          ).format(' '.join(dims), gridname, varkey, e),
+                         category=UserWarning)
 
 
 def add_ioapi_from_cf(ifileo, coordkeys=[]):
@@ -368,11 +365,11 @@ add_ioapi_from_ioapi = add_ioapi_from_cf
 def add_cf_from_ioapi(ifileo, coordkeys=[]):
     try:
         add_lay_coordinates(ifileo)
-    except:
+    except Exception:
         pass
     try:
         add_time_variables(ifileo)
-    except:
+    except Exception:
         pass
     if ifileo.GDTYP in _gdnames:
         add_lcc_coordinates(ifileo)

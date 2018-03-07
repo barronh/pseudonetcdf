@@ -12,8 +12,8 @@ def shadoz(inpath):
     datalines = datafile.read().split('\n')
     nmeta = int(datalines[0])
     meta = dict([[w.strip() for w in l.split(': ')]
-                 for l in datalines[1:nmeta-2]])
-    varline, unitline = datalines[nmeta-2:nmeta]
+                 for l in datalines[1:nmeta - 2]])
+    varline, unitline = datalines[nmeta - 2:nmeta]
     varnames = spaces.split(varline)
     units = spaces.split(unitline)
     data = np.fromstring(

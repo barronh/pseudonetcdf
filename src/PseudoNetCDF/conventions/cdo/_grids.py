@@ -2,6 +2,7 @@ import textwrap
 
 
 def griddes(infile):
+    gridparams = {}
     gridparams['GTYPE'] = 'unstructured'
     gridparams['NX'] = len(infile.dimensions['longitude'])
     gridparams['NY'] = len(infile.dimensions['latitude'])
@@ -12,6 +13,8 @@ def griddes(infile):
         ' '.join(['%f' % lon for lon in infile.variables['longitude'][:]]), 80)
     LATSTR = textwrap.wrap(
         ' '.join(['%f' % lat for lat in infile.variables['latitude'][:]]), 80)
+    gridparams['LONSTR'] = LONSTR
+    gridparams['LATSTR'] = LATSTR
     out = """
     gridtype  = %(GTYPE)s
     gridsize  = %(NCELLS)d

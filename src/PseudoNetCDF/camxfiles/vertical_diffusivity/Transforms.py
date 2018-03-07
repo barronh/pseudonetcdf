@@ -7,15 +7,12 @@ __doc__ = """
 .. module:: Write
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` variable transformations for CAMx vertical
-              diffusivity files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              diffusivity files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
 
-from numpy import array
-
-from PseudoNetCDF.MetaNetCDF import add_derived, time_avg_new_unit
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoNetCDFVariable
+from PseudoNetCDF.MetaNetCDF import time_avg_new_unit
 from .Memmap import vertical_diffusivity as reg_vertical_diffusivity
 
 

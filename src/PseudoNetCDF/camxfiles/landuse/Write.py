@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 import numpy as np
+from PseudoNetCDF._getwriter import registerwriter
 
 
 def ncf2landuse(ncffile, outpath):
@@ -43,6 +44,5 @@ def ncf2landuse(ncffile, outpath):
     return outfile
 
 
-from PseudoNetCDF._getwriter import registerwriter
 registerwriter('camxfiles.landuse', ncf2landuse)
 registerwriter('landuse', ncf2landuse)

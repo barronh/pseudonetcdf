@@ -2,16 +2,17 @@
 # Run this script with pnc options
 from __future__ import print_function
 
-import sys
 import os
 
 from PseudoNetCDF.pncload import PNCConsole
 from PseudoNetCDF.pncparse import pncparse
 import warnings
-warn = warnings.warn
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+
+
+warn = warnings.warn
 Normalize = matplotlib.colors.Normalize
 
 LogNorm = matplotlib.colors.LogNorm
@@ -27,6 +28,7 @@ ax = fig.add_subplot(111)
 
 def make2ds(args):
     ifiles = args.ifiles
+    cbar = None
     if len(args.figure_keywords) > 0:
         plt.setp(fig, **args.figure_keywords)
     if len(args.axes_keywords) > 0:
@@ -40,6 +42,7 @@ def make2ds(args):
         if len(variables) == 0:
             raise ValueError(
                 'Unable to heuristically determin plottable variables; use -v to specify variables for plotting')
+
         for varkey in variables:
             var = ifile.variables[varkey]
             vals = var[:]
@@ -66,16 +69,16 @@ def make2ds(args):
             else:
                 norm = eval(args.normalize)
                 formatter = None
-            if not args.colorbarformatter is None:
+            if args.colorbarformatter is not None:
                 try:
                     formatter = eval(args.colorbarformatter)
-                except:
+                except Exception:
                     formatter = args.colorbarformatter
 
             vmin, vmax = vals.min(), vals.max()
-            if not norm.vmin is None:
+            if norm.vmin is not None:
                 vmin = norm.vmin
-            if not norm.vmax is None:
+            if norm.vmax is not None:
                 vmax = norm.vmax
 
             varunit = getattr(var, 'units', 'unknown').strip()
@@ -98,11 +101,12 @@ def make2ds(args):
                 orientation = 'horizontal'
             else:
                 orientation = 'vertical'
-            try:
+            if cbar is None:
+                cax = None
+            else:
                 cax = cbar.ax
                 cax.cla()
-            except:
-                cax = None
+
             if vals.max() > vmax and vals.min() < vmin:
                 extend = 'both'
             elif vals.max() > vmax:
@@ -116,12 +120,12 @@ def make2ds(args):
             del cbar.ax.texts[:]
             cbar.set_label(
                 varkey + ' (' + varunit + '; min=%.3g; max=%.3g)' % (var[:].min(), var[:].max()))
- #           if orientation == 'vertical':
- #               cbar.ax.text(.5, 1.05, '%.3g' % var[:].max(), horizontalalignment = 'center', verticalalignment = 'bottom')
-#                cbar.ax.text(.5, -.06, '%.3g ' % var[:].min(), horizontalalignment = 'center', verticalalignment = 'top')
-#            else:
-#                cbar.ax.text(1.05, .5, ' %.3g' % var[:].max(), verticalalignment = 'center', horizontalalignment = 'left')
-#                cbar.ax.text(-.06, .5, '%.3g ' % var[:].min(), verticalalignment = 'center', horizontalalignment = 'right')
+            # if orientation == 'vertical':
+            #     cbar.ax.text(.5, 1.05, '%.3g' % var[:].max(), horizontalalignment = 'center', verticalalignment = 'bottom')
+            #     cbar.ax.text(.5, -.06, '%.3g ' % var[:].min(), horizontalalignment = 'center', verticalalignment = 'top')
+            # else:
+            #     cbar.ax.text(1.05, .5, ' %.3g' % var[:].max(), verticalalignment = 'center', horizontalalignment = 'left')
+            #     cbar.ax.text(-.06, .5, '%.3g ' % var[:].min(), verticalalignment = 'center', horizontalalignment = 'right')
             # cbar.update_ticks()
             fmt = 'png'
             outpath = args.outpath
@@ -141,11 +145,11 @@ def make2ds(args):
 
 
 if __name__ == '__main__':
-    from PseudoNetCDF.pncparse import pncparse, getparser
+    from PseudoNetCDF.pncparse import getparser
     parser = getparser(has_ofile=True, plot_options=True, interactive=True)
-    #parser.add_argument('--no-squeeze', dest = 'squeeze', default = True, action = 'store_false', help = 'Squeeze automatically removes singleton dimensions; disabling requires user to remove singleton dimensions with --remove-singleton option')
+    # parser.add_argument('--no-squeeze', dest = 'squeeze', default = True, action = 'store_false', help = 'Squeeze automatically removes singleton dimensions; disabling requires user to remove singleton dimensions with --remove-singleton option')
     parser.add_argument('--swapaxes', action='store_true',
                         help='Swap x-y axes')
     ifiles, args = pncparse(
         has_ofile=True, plot_options=True, interactive=True, parser=parser)
-    make2d(ifiles, args)
+    make2ds(ifiles, args)

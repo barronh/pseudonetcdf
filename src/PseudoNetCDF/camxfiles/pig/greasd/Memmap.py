@@ -10,13 +10,13 @@ class greasd(PseudoNetCDFFile):
         self.SDATE = tmpmap[1]
         self.STIME = tmpmap[2:3].view('>f')[0]
         self.NPIG = tmpmap[3]
-        record_length = int(tmpmap[-1]/4)
+        record_length = int(tmpmap[-1] / 4)
         per_pig = record_length / self.NPIG
 
         pig_dtype = dtype(
             dict(
                 names='SPAD1 IDATE TIME NPIG IDUM EPAD1'.split(
-                )+['SPAD2']+['P%d_%d' % (i / per_pig, i % per_pig) for i in range(record_length)]+['EPAD2'],
+                ) + ['SPAD2'] + ['P%d_%d' % (i / per_pig, i % per_pig) for i in range(record_length)] + ['EPAD2'],
                 formats='>i >i >f >i >i >i >i'.split(
                 ) + ['>f'] * record_length + ['>i']
             )

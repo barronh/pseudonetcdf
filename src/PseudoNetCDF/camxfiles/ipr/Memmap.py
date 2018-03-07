@@ -7,33 +7,33 @@ __doc__ = """
 .. module:: Memmap
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx
-              ipr files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              ipr files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
+# Distribution packages
+import unittest
+import struct
+from warnings import warn
+
+# Site-Packages
+from numpy import zeros, dtype, memmap, char
+
+# This Package modules
+from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
+from PseudoNetCDF.camxfiles.timetuple import timeadd, timerange
+from PseudoNetCDF.camxfiles.util import cartesian
+from PseudoNetCDF.camxfiles.units import get_uamiv_units
+from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
+from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
+
 HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxMemmap.py $"
 ChangeDate = "$LastChangedDate$"
 RevisionNum = "$LastChangedRevision$"
 ChangedBy = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
 
-# Distribution packages
-import unittest
-import struct
-from warnings import warn
-from mmap import error as MemmapLimitError
-
-# Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype, nan
-
-# This Package modules
-from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd, timerange
-from PseudoNetCDF.camxfiles.util import cartesian
-from PseudoNetCDF.camxfiles.units import get_uamiv_units
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, Int2Asc
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
-from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 # for use in identifying uncaught nan
 listnan = struct.unpack('>f', b'\xff\xc0\x00\x00')[0]
@@ -52,13 +52,13 @@ class ipr(PseudoNetCDFFile):
         >>> ipr_path = 'camx_ipr.bin'
         >>> iprfile = ipr(ipr_path)
         >>> iprfile.variables.keys()
-        ['TFLAG', 'SPAD_O3', 'DATE_O3', 'TIME_O3', 'SPC_O3', 
-         'PAGRID_O3', 'NEST_O3', 'I_O3', 'J_O3', 'K_O3', 
-         'INIT_O3', 'CHEM_O3', 'EMIS_O3', 'PTEMIS_O3', 
-         'PIG_O3', 'WADV_O3', 'EADV_O3', 'SADV_O3', 'NADV_O3', 
-         'BADV_O3', 'TADV_O3', 'DIL_O3', 'WDIF_O3', 'EDIF_O3', 
-         'SDIF_O3', 'NDIF_O3', 'BDIF_O3', 'TDIF_O3', 'DDEP_O3', 
-         'WDEP_O3', 'INORGACHEM_O3', 'ORGACHEM_O3', 'AQACHEM_O3', 
+        ['TFLAG', 'SPAD_O3', 'DATE_O3', 'TIME_O3', 'SPC_O3',
+         'PAGRID_O3', 'NEST_O3', 'I_O3', 'J_O3', 'K_O3',
+         'INIT_O3', 'CHEM_O3', 'EMIS_O3', 'PTEMIS_O3',
+         'PIG_O3', 'WADV_O3', 'EADV_O3', 'SADV_O3', 'NADV_O3',
+         'BADV_O3', 'TADV_O3', 'DIL_O3', 'WDIF_O3', 'EDIF_O3',
+         'SDIF_O3', 'NDIF_O3', 'BDIF_O3', 'TDIF_O3', 'DDEP_O3',
+         'WDEP_O3', 'INORGACHEM_O3', 'ORGACHEM_O3', 'AQACHEM_O3',
          'FCONC_O3', 'UCNV_O3', 'AVOL_O3', 'EPAD_O3']
         >>> v = iprfile.variables['CHEM_O3']
         >>> tflag = iprfile.variables['TFLAG']
@@ -119,8 +119,7 @@ class ipr(PseudoNetCDFFile):
         prcs = ['SPAD', 'DATE', 'TIME', 'PAGRID', 'NEST', 'I', 'J', 'K',
                 'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG', 'WADV', 'EADV', 'SADV',
                 'NADV', 'BADV', 'TADV', 'DIL', 'WDIF', 'EDIF', 'SDIF', 'NDIF',
-                'BDIF', 'TDIF', 'DDEP', 'WDEP']+{24: ['AERCHEM'], 26: ['INORGACHEM', 'ORGACHEM', 'AQACHEM']}[len(self.prcnames)]+['FCONC', 'UCNV', 'AVOL',
-                                                                                                                                  'EPAD']
+                'BDIF', 'TDIF', 'DDEP', 'WDEP'] + {24: ['AERCHEM'], 26: ['INORGACHEM', 'ORGACHEM', 'AQACHEM']}[len(self.prcnames)] + ['FCONC', 'UCNV', 'AVOL', 'EPAD']
         varkeys = ['_'.join(i) for i in cartesian(prcs, self.spcnames)]
         varkeys += ['SPAD', 'DATE', 'TIME',
                     'PAGRID', 'NEST', 'I', 'J', 'K', 'TFLAG']
@@ -151,9 +150,9 @@ class ipr(PseudoNetCDFFile):
             grp.varget = eval(
                 "lambda k: self._ipr__variables('%s', k)""" % dk, dict(self=self), locals())
             if len(self.padomains) == 1:
-                self.variables = PseudoNetCDFVariables(varget, varkeys)
+                self.variables = PseudoNetCDFVariables(grp.varget, varkeys)
             else:
-                grp.variables = PseudoNetCDFVariables(varget, varkeys)
+                grp.variables = PseudoNetCDFVariables(grp.varget, varkeys)
 
         self.__memmaps = memmap(self.__rffile.infile.name, dtype(
             padatatype), 'r', self.data_start_byte).reshape(NSTEPS, len(self.spcnames))
@@ -161,14 +160,14 @@ class ipr(PseudoNetCDFFile):
             setattr(self, k, v)
         try:
             add_cf_from_ioapi(self)
-        except:
+        except Exception:
             pass
 
     def __del__(self):
         try:
             self.__memmaps.close()
             del self.__memmaps
-        except:
+        except Exception:
             pass
 
     def __decorator(self, name, pncfv):
@@ -182,8 +181,9 @@ class ipr(PseudoNetCDFFile):
         else:
             units = get_uamiv_units('IPR', spc)
 
-        def decor(k): return dict(
-            units=units, var_desc=k.ljust(16), long_name=k.ljust(16))
+        def decor(k):
+            return dict(units=units, var_desc=k.ljust(16),
+                        long_name=k.ljust(16))
         for k, v in decor(name).items():
             setattr(pncfv, k, v)
         return pncfv
@@ -191,7 +191,7 @@ class ipr(PseudoNetCDFFile):
     def __variables(self, pk, proc_spc):
         if proc_spc in self.__ipr_record_type.names:
             proc = proc_spc
-            proc_spc = proc_spc+'_'+self.spcnames[0]
+            proc_spc = proc_spc + '_' + self.spcnames[0]
             return PseudoNetCDFVariable(self, proc_spc, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'), values=self.__memmaps[pk][:, 0, :, :, :][proc].swapaxes(1, 3).swapaxes(2, 3))
         if proc_spc == 'TFLAG':
             thisdate = self.__memmaps[pk][:, 0, :, :, :]['DATE'].swapaxes(
@@ -201,7 +201,7 @@ class ipr(PseudoNetCDFFile):
             return ConvertCAMxTime(thisdate, thistime, len(self.groups[pk].dimensions['VAR']))
         for k in self.__ipr_record_type.names:
             proc = proc_spc[:len(k)]
-            spc = proc_spc[len(k)+1:]
+            spc = proc_spc[len(k) + 1:]
             if proc == k and spc in self.spcnames:
                 spc = self.spcnames.index(spc)
                 dvals = self.__memmaps[pk][:, spc][proc].swapaxes(
@@ -261,15 +261,15 @@ class ipr(PseudoNetCDFFile):
             self.id_fmt)
         self.__rffile.previous()
         self.TSTEP = 100.
-        self.padded_size = self.record_size+8
+        self.padded_size = self.record_size + 8
         domain = self.padomains[0]
-        self.records_per_time = self.nspec*(domain['iend']-domain['istart']+1)*(
-            domain['jend']-domain['jstart']+1)*(domain['tlay']-domain['blay']+1)
-        self.time_data_block = self.padded_size*self.records_per_time
+        self.records_per_time = self.nspec * (domain['iend'] - domain['istart'] + 1) * (
+            domain['jend'] - domain['jstart'] + 1) * (domain['tlay'] - domain['blay'] + 1)
+        self.time_data_block = self.padded_size * self.records_per_time
         self.time_step = 100.
 
     def timerange(self):
-        return timerange((self.start_date, self.start_time+self.time_step), timeadd((self.end_date, self.end_time), (0, self.time_step)), self.time_step)
+        return timerange((self.start_date, self.start_time + self.time_step), timeadd((self.end_date, self.end_time), (0, self.time_step)), self.time_step)
 
 
 class TestMemmap(unittest.TestCase):

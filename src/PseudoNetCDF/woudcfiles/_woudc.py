@@ -1,5 +1,4 @@
 import numpy as np
-import re
 import io
 from PseudoNetCDF import PseudoNetCDFFile
 from PseudoNetCDF.pncwarn import warn
@@ -13,7 +12,7 @@ _units = dict(
 
 
 class woudcsonde(PseudoNetCDFFile):
-    """wouldcsonde provides a NetCDF-like interface to csv files from the 
+    """wouldcsonde provides a NetCDF-like interface to csv files from the
     ozonesonde data distributed by the Would Ozone and Ultraviolet
     Radiation Data Center (wouldc)
 
@@ -24,7 +23,7 @@ class woudcsonde(PseudoNetCDFFile):
         """Adds metavariables for next two lines"""
         try:
             import pandas as pd
-        except:
+        except Exception:
             raise ImportError(
                 'woudcsonde requires pandas; install pandas (e.g., pip install pandas)')
         metalines = myf.readline()
@@ -93,7 +92,7 @@ class woudcsonde(PseudoNetCDFFile):
         """
         try:
             import pandas as pd
-        except:
+        except Exception:
             raise ImportError(
                 'woudcsonde requires pandas; install pandas (e.g., pip install pandas)')
         if hasattr(path, 'readline'):
@@ -127,7 +126,7 @@ class woudcsonde(PseudoNetCDFFile):
         readopts = dict(sep='\s*,', skiprows=li + 1,
                         engine='python', na_values=na_values, comment='*')
         data = pd.read_csv(path, **readopts)
-        #indkey = data.columns[0]
+        # indkey = data.columns[0]
         indkey = 'level'
         self.createDimension(indkey, len(data))
         self.metadata = meta
@@ -181,10 +180,10 @@ class woudcsonde(PseudoNetCDFFile):
         myp = self.variables['Pressure'][:]  # hPa
         myo = self.variables['O3PartialPressure'][:] * 1e1  # mPa -> cPa
         psfc = myp[0, 0]
-        if not vglvls is None:
+        if vglvls is not None:
             outpress_edges = vglvls * (psfc - vgtop / 100) + vgtop / 100
             nlvls = vglvls.size - 1
-        elif not hyai is None:
+        elif hyai is not None:
             outpress_edges = hyai + hybi * psfc
             nlvls = hyai.size - 1
         outf.createDimension(levelname, nlvls)

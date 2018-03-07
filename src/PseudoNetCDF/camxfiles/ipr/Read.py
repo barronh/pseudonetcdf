@@ -7,40 +7,32 @@ __doc__ = """
 .. module:: Read
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` random access read for CAMx
-              ipr files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              ipr files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
+# Distribution packages
+import unittest
+import struct
+from warnings import warn
+
+# Site-Packages
+from numpy import zeros, dtype, fromfile
+from numpy import char
+
+# This Package modules
+from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
+from PseudoNetCDF.camxfiles.timetuple import timediff
+from PseudoNetCDF.camxfiles.util import cartesian
+from PseudoNetCDF.camxfiles.units import get_uamiv_units
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
+from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
+
 HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxRead.py $"
 ChangeDate = "$LastChangedDate$"
 RevisionNum = "$LastChangedRevision$"
 ChangedBy = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
-
-# Distribution packages
-from types import GeneratorType
-import unittest
-import struct
-import sys
-import os
-import operator
-from warnings import warn
-from tempfile import TemporaryFile as tempfile
-import os
-import sys
-
-# Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype, fromfile, dtype
-from numpy import char
-
-# This Package modules
-from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd, timerange
-from PseudoNetCDF.camxfiles.util import cartesian
-from PseudoNetCDF.camxfiles.units import get_uamiv_units
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into, Int2Asc, Asc2Int
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
-from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 # for use in identifying uncaught nan
 listnan = struct.unpack('>f', b'\xff\xc0\x00\x00')[0]
@@ -60,13 +52,13 @@ class ipr(PseudoNetCDFFile):
         >>> rows,cols = 65,83
         >>> iprfile = ipr(ipr_path,rows,cols)
         >>> iprfile.variables.keys()
-        ['TFLAG', 'SPAD_O3', 'DATE_O3', 'TIME_O3', 'SPC_O3', 
-         'PAGRID_O3', 'NEST_O3', 'I_O3', 'J_O3', 'K_O3', 
-         'INIT_O3', 'CHEM_O3', 'EMIS_O3', 'PTEMIS_O3', 
-         'PIG_O3', 'WADV_O3', 'EADV_O3', 'SADV_O3', 'NADV_O3', 
-         'BADV_O3', 'TADV_O3', 'DIL_O3', 'WDIF_O3', 'EDIF_O3', 
-         'SDIF_O3', 'NDIF_O3', 'BDIF_O3', 'TDIF_O3', 'DDEP_O3', 
-         'WDEP_O3', 'INORGACHEM_O3', 'ORGACHEM_O3', 'AQACHEM_O3', 
+        ['TFLAG', 'SPAD_O3', 'DATE_O3', 'TIME_O3', 'SPC_O3',
+         'PAGRID_O3', 'NEST_O3', 'I_O3', 'J_O3', 'K_O3',
+         'INIT_O3', 'CHEM_O3', 'EMIS_O3', 'PTEMIS_O3',
+         'PIG_O3', 'WADV_O3', 'EADV_O3', 'SADV_O3', 'NADV_O3',
+         'BADV_O3', 'TADV_O3', 'DIL_O3', 'WDIF_O3', 'EDIF_O3',
+         'SDIF_O3', 'NDIF_O3', 'BDIF_O3', 'TDIF_O3', 'DDEP_O3',
+         'WDEP_O3', 'INORGACHEM_O3', 'ORGACHEM_O3', 'AQACHEM_O3',
          'FCONC_O3', 'UCNV_O3', 'AVOL_O3', 'EPAD_O3']
         >>> v = iprfile.variables['CHEM_O3']
         >>> tflag = iprfile.variables['TFLAG']
@@ -95,7 +87,7 @@ class ipr(PseudoNetCDFFile):
         ),
         26: dtype(
             dict(
-                names=['SPAD', 'DATE', 'TIME', 'SPC', 'PAGRID', 'NEST', 'I', 'J',  'K', 'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG', 'WADV', 'EADV', 'SADV', 'NADV', 'BADV',
+                names=['SPAD', 'DATE', 'TIME', 'SPC', 'PAGRID', 'NEST', 'I', 'J', 'K', 'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG', 'WADV', 'EADV', 'SADV', 'NADV', 'BADV',
                        'TADV', 'DIL', 'WDIF', 'EDIF', 'SDIF', 'NDIF', 'BDIF', 'TDIF', 'DDEP', 'WDEP', 'INORGACHEM', 'ORGACHEM', 'AQACHEM', 'FCONC', 'UCNV', 'AVOL', 'EPAD'],
                 formats=['>i', '>i', '>f', '>S10', '>i', '>i', '>i', '>i', '>i', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f',
                          '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>i']
@@ -112,7 +104,7 @@ class ipr(PseudoNetCDFFile):
 
         Keywords (i.e., props) for projection: P_ALP, P_BET, P_GAM, XCENT, YCENT, XORIG, YORIG, XCELL, YCELL
         """
-        if proc_dict != None:
+        if proc_dict is not None:
             self.proc_dict = proc_dict
         else:
             self.proc_dict = None
@@ -128,15 +120,15 @@ class ipr(PseudoNetCDFFile):
         tdim = self.createDimension('TSTEP', self.NSTEPS)
         tdim.setunlimited(True)
         self.createDimension('DATE-TIME', 2)
-        self.createDimension('VAR', self.NSPCS*self.NPROCESS)
+        self.createDimension('VAR', self.NSPCS * self.NPROCESS)
         varkeys = ["_".join([j[1], j[0]]) for j in [i for i in cartesian([i.strip() for i in char.decode(
-            self.spcnames['SPECIES']).tolist()], self.proc_dict.keys())]]+['TFLAG']
+            self.spcnames['SPECIES']).tolist()], self.proc_dict.keys())]] + ['TFLAG']
         self.variables = PseudoNetCDFVariables(self.__variables, varkeys)
         for k, v in props.items():
             setattr(self, k, v)
         try:
             add_cf_from_ioapi(self)
-        except:
+        except Exception:
             pass
 
     def __variables(self, proc_spc):
@@ -153,11 +145,11 @@ class ipr(PseudoNetCDFFile):
 
         for k in self.proc_dict:
             proc = proc_spc[:len(k)]
-            spc = proc_spc[len(k)+1:]
+            spc = proc_spc[len(k) + 1:]
             if proc == k and spc.ljust(10) in char.decode(self.spcnames['SPECIES']).tolist():
                 spcprocs = self.__readalltime(spc)
                 for p, plong in self.proc_dict.items():
-                    var_name = p+'_'+spc
+                    var_name = p + '_' + spc
                     # IPR units are consistent with 'IPR'
                     if p == 'UCNV':
                         units = 'm**3/mol'
@@ -192,7 +184,7 @@ class ipr(PseudoNetCDFFile):
     def __start(self, ntime, spc):
         nspec = char.decode(
             self.spcnames['SPECIES']).tolist().index(spc.ljust(10))
-        return self.__data_start_byte+(long(ntime)*self.__block4d+self.__block3d*nspec)*self.__ipr_record_type.itemsize
+        return self.__data_start_byte + (int(ntime) * self.__block4d + self.__block3d * nspec) * self.__ipr_record_type.itemsize
 
     def __readheader(self):
         """
@@ -205,14 +197,14 @@ class ipr(PseudoNetCDFFile):
             names=['SPAD', 'RUNMESSAGE', 'EPAD'], formats=['>i', '>80S', '>i'])), count=1)['RUNMESSAGE']
         dates = fromfile(self.__rffile, dtype=dtype(dict(names=[
                          'SPAD', 'SDATE', 'STIME', 'EDATE', 'ETIME', 'EPAD'], formats=['>i', '>i', '>f', '>i', '>f', '>i'])), count=1)
-        self.SDATE = dates['SDATE']+2000000
+        self.SDATE = dates['SDATE'] + 2000000
         self.STIME = dates['STIME']
-        self.EDATE = dates['EDATE']+2000000
+        self.EDATE = dates['EDATE'] + 2000000
         self.ETIME = dates['ETIME']
 
         self.__grids = []
         self.NGRIDS = fromfile(self.__rffile, dtype=dtype(
-            dict(names=['SPAD', 'NGRIDS', 'EPAD'], formats=['>i']*3)), count=1)['NGRIDS']
+            dict(names=['SPAD', 'NGRIDS', 'EPAD'], formats=['>i'] * 3)), count=1)['NGRIDS']
         for grid in range(self.NGRIDS):
             self.__grids.append(
                 fromfile(self.__rffile, dtype=dtype(dict(names=['SPAD', 'orgx', 'orgy', 'ncol', 'nrow', 'xsize', 'ysize', 'EPAD'], formats=[
@@ -284,16 +276,16 @@ class ipr(PseudoNetCDFFile):
     def __setDomain__(self, id=0):
         self.__activedomain = self.__padomains[id]
         self.createDimension(
-            'COL', self.__activedomain['iend']-self.__activedomain['istart']+1)
+            'COL', self.__activedomain['iend'] - self.__activedomain['istart'] + 1)
         self.createDimension(
-            'ROW', self.__activedomain['jend']-self.__activedomain['jstart']+1)
+            'ROW', self.__activedomain['jend'] - self.__activedomain['jstart'] + 1)
         self.createDimension(
-            'LAY', self.__activedomain['tlay']-self.__activedomain['blay']+1)
+            'LAY', self.__activedomain['tlay'] - self.__activedomain['blay'] + 1)
         self.NCOLS = len(self.dimensions['COL'])
         self.NROWS = len(self.dimensions['ROW'])
         self.NLAYS = len(self.dimensions['LAY'])
-        self.__block3d = self.NLAYS*self.NROWS*self.NCOLS
-        self.__block4d = self.__block3d*self.NSPCS
+        self.__block3d = self.NLAYS * self.NROWS * self.NCOLS
+        self.__block4d = self.__block3d * self.NSPCS
 
     def __gettimestep(self):
         """
@@ -304,11 +296,11 @@ class ipr(PseudoNetCDFFile):
         """
         self.__rffile.seek(self.__data_start_byte, 0)
         temp = fromfile(self.__rffile, dtype=self.__ipr_record_type, count=len(
-            self.dimensions['LAY'])*len(self.dimensions['ROW'])*len(self.dimensions['COL'])+1)
+            self.dimensions['LAY']) * len(self.dimensions['ROW']) * len(self.dimensions['COL']) + 1)
         self.TSTEP = timediff((self.SDATE, self.STIME),
-                              (temp[-1]['DATE']+2000000, temp[-1]['TIME']))
+                              (temp[-1]['DATE'] + 2000000, temp[-1]['TIME']))
         self.NSTEPS = int(timediff((self.SDATE, self.STIME),
-                                   (self.EDATE, self.ETIME))/self.TSTEP)
+                                   (self.EDATE, self.ETIME)) / self.TSTEP)
 
 
 class TestRead(unittest.TestCase):

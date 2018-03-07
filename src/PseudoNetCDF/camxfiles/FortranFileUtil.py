@@ -9,15 +9,26 @@ __doc__ = """
 
 .. module:: FortranFileUtil
    :platform: Unix, Windows
-   :synopsis: Provides utilities for interacting with Fortran 
-              "unformatted" binary files.  These files often 
+   :synopsis: Provides utilities for interacting with Fortran
+              "unformatted" binary files.  These files often
               have records with integer buffers and formatted data.
               Often the data has a byte order different than the
-              machine doing the reading. These utilities provide ways 
+              machine doing the reading. These utilities provide ways
               for the user to get data and ignore the byte order and
               data buffers.
 .. moduleauthor:: Adam Hupp
 """
+
+# Distribution Packages
+import unittest
+import sys
+import struct
+from operator import mul
+# Site-Packages
+# use numpy if available
+# otherwise use numeric
+from numpy import array, fromfile
+import numpy as np
 
 HeadURL = "$HeadURL$"
 ChangeDate = "$LastChangedDate$"
@@ -25,18 +36,6 @@ RevisionNum = "$LastChangedRevision$"
 ChangedBy = "$LastChangedBy$"
 __version__ = RevisionNum
 
-# Distribution Packages
-import unittest
-import sys
-import struct
-import os.path
-from operator import mul
-
-# Site-Packages
-# use numpy if available
-# otherwise use numeric
-from numpy import array, zeros, reshape, product, shape, transpose, fromfile
-import numpy as np
 
 platform_is_bigendian = (sys.byteorder != 'little')
 
@@ -49,7 +48,7 @@ def freadnumpy(ifile, count, read_type, return_type=None, byteswap=False):
         endian = '>'
     else:
         endian = '<'
-    rfmt = "%s%s" % (endian, return_type)
+    # rfmt = "%s%s" % (endian, return_type)
     fmt = "%s%s" % (endian, read_type)
     return array(fromfile(ifile, dtype=fmt, count=count), dtype=return_type)
 
@@ -101,7 +100,7 @@ def check_read(requested, result):
 
 class RecordFile(object):
     """
-    This class provides an easy interface to treat unformated 
+    This class provides an easy interface to treat unformated
     Fortran files like like record files.
 
     TODO: count=-1 does not work in aread, off by one element?!?
@@ -228,7 +227,7 @@ class RecordFile(object):
             # NOTE: This does not work right!
             remain = self.record_size - (self.infile.tell() -
                                          self.record_start)
-            count = remain/struct.calcsize(type)
+            count = remain / struct.calcsize(type)
 
         data = fread(self.infile, count,
                      type, type,
@@ -301,15 +300,15 @@ def writeline(d, fmt, ForceBig=True):
     and determines if byteswap is necessary
     """
     rlen = struct.calcsize(fmt)
-    rfmt = "i"+fmt+"i"
+    rfmt = "i" + fmt + "i"
     if sys.byteorder == 'little' or ForceBig:
-        rfmt = '>'+rfmt
+        rfmt = '>' + rfmt
     d = [i for i in d]
     d.insert(0, rlen)
     d.append(rlen)
     try:
         return struct.pack(rfmt, *d)
-    except:
+    except Exception:
         print(d)
         raise
 
@@ -336,7 +335,7 @@ def Int2Asc(mspec):
     """
     spcname = ""
     for c in mspec:
-        spcname += chr((((c-32)//256-32)//256-32)//256)
+        spcname += chr((((c - 32) // 256 - 32) // 256 - 32) // 256)
     return spcname
 
 
@@ -346,7 +345,7 @@ def Asc2Int(spcname):
     """
     mspec = []
     for c in spcname:
-        mspec.append(int((((((ord(c)*256)+32)*256)+32)*256)+32))
+        mspec.append(int((((((ord(c) * 256) + 32) * 256) + 32) * 256) + 32))
     return mspec
 
 
@@ -359,10 +358,10 @@ class TestFileUtils(unittest.TestCase):
         # 1st line is 0-19 as floats
         # 2nd line is 0-19 as ints
         # 3rd line is 0-19 as strings
-        self.tmpfile.write(b'\x00\x00\x00P'+b'\x00\x00\x00\x00?\x80\x00\x00@\x00\x00\x00@@\x00\x00@\x80\x00\x00@\xa0\x00\x00@\xc0\x00\x00@\xe0\x00\x00A\x00\x00\x00A\x10\x00\x00A \x00\x00A0\x00\x00A@\x00\x00AP\x00\x00A`\x00\x00Ap\x00\x00A\x80\x00\x00A\x88\x00\x00A\x90\x00\x00A\x98\x00\x00'+b'\x00\x00\x00P')
-        self.tmpfile.write(b'\x00\x00\x00P'+b'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00\t\x00\x00\x00\n\x00\x00\x00\x0b\x00\x00\x00\x0c\x00\x00\x00\r\x00\x00\x00\x0e\x00\x00\x00\x0f\x00\x00\x00\x10\x00\x00\x00\x11\x00\x00\x00\x12\x00\x00\x00\x13'+b'\x00\x00\x00P')
+        self.tmpfile.write(b'\x00\x00\x00P' + b'\x00\x00\x00\x00?\x80\x00\x00@\x00\x00\x00@@\x00\x00@\x80\x00\x00@\xa0\x00\x00@\xc0\x00\x00@\xe0\x00\x00A\x00\x00\x00A\x10\x00\x00A \x00\x00A0\x00\x00A@\x00\x00AP\x00\x00A`\x00\x00Ap\x00\x00A\x80\x00\x00A\x88\x00\x00A\x90\x00\x00A\x98\x00\x00' + b'\x00\x00\x00P')
+        self.tmpfile.write(b'\x00\x00\x00P' + b'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00\t\x00\x00\x00\n\x00\x00\x00\x0b\x00\x00\x00\x0c\x00\x00\x00\r\x00\x00\x00\x0e\x00\x00\x00\x0f\x00\x00\x00\x10\x00\x00\x00\x11\x00\x00\x00\x12\x00\x00\x00\x13' + b'\x00\x00\x00P')
         self.tmpfile.write(b'\x00\x00\x00\x14' +
-                           b'The quick brown fox '+b'\x00\x00\x00\x14')
+                           b'The quick brown fox ' + b'\x00\x00\x00\x14')
         self.tmprf = RecordFile(self.tmpfile)
 
     def testAdvance(self):

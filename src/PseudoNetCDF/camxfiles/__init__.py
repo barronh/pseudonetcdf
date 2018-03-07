@@ -5,7 +5,7 @@ __doc__ = """
 
 .. module:: CAMx
    :platform: Unix, Windows
-   :synopsis: Provides :ref:`PseudoNetCDF` memory map and random access read 
+   :synopsis: Provides :ref:`PseudoNetCDF` memory map and random access read
               based file interfaces for all CAMx related files.  See
               PseudoNetCDF.sci_var.PseudoNetCDFFile for interface details.
               Each camx file level module (i.e. uamiv, cloud_rain, etc) can
@@ -15,6 +15,7 @@ __doc__ = """
 """
 __all__ = ['Memmaps',
            'Readers',
+           'Writers',
            'cloud_rain',
            'height_pressure',
            'humidity',

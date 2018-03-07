@@ -32,7 +32,7 @@ def add_cf_from_wrfioapi(ifile, coordkeys=[]):
         timesince = (np.array([np.datetime64(time[0].replace(
             '_', 'T') + 'Z') for time in invals]) - sdate).astype('l')
         outvar[:] = timesince
-    except:
+    except Exception:
         pass
     # add projection
     grid_mapping_name = get_proj(ifile)
@@ -42,13 +42,13 @@ def add_cf_from_wrfioapi(ifile, coordkeys=[]):
         xvar = ifile.createVariable('x', 'd', ('west_east',))
         xvar.units = 'm'
         xvar.standard_name = 'x'
-        xvar[:] = np.arange(xvar.size, dtype='d')*ifile.DX - \
-            gridvar.false_easting + ifile.DX/2
+        xvar[:] = np.arange(xvar.size, dtype='d') * ifile.DX - \
+            gridvar.false_easting + ifile.DX / 2
         yvar = ifile.createVariable('y', 'd', ('south_north',))
         yvar.units = 'm'
         yvar.standard_name = 'y'
-        yvar[:] = np.arange(yvar.size, dtype='d')*ifile.DY - \
-            gridvar.false_northing + ifile.DY/2
+        yvar[:] = np.arange(yvar.size, dtype='d') * ifile.DY - \
+            gridvar.false_northing + ifile.DY / 2
     except Exception as e:
         raise e
     for k in ifile.variables.keys():

@@ -7,36 +7,26 @@ __doc__ = """
 .. module:: Read
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` random access read for CAMx
-              vertical/diffusivity files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              vertical/diffusivity files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
+# Distribution packages
+import unittest
+import struct
+
+# Site-Packages
+from numpy import zeros, array
+
+# This Package modules
+from PseudoNetCDF.camxfiles.one3d.Read import one3d
+
 HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxRead.py $"
 ChangeDate = "$LastChangedDate$"
 RevisionNum = "$LastChangedRevision$"
 ChangedBy = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
 
-# Distribution packages
-from types import GeneratorType
-import unittest
-import struct
-import sys
-import os
-import operator
-from warnings import warn
-from tempfile import TemporaryFile as tempfile
-import os
-import sys
-
-# Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype
-
-# This Package modules
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd, timerange
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into, Int2Asc, Asc2Int
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
-from PseudoNetCDF.camxfiles.one3d.Read import one3d
 
 # for use in identifying uncaught nan
 listnan = struct.unpack('>f', b'\xff\xc0\x00\x00')[0]

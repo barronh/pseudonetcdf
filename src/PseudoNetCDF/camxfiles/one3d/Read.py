@@ -7,35 +7,27 @@ __doc__ = """
 .. module:: Read
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` random access read for CAMx
-              generic 1 3D variable wind files.  See 
+              generic 1 3D variable wind files.  See
               PseudoNetCDF.sci_var.PseudoNetCDFFile for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
+# Distribution packages
+import unittest
+import struct
+
+# Site-Packages
+from numpy import zeros, array
+
+# This Package modules
+from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd, timerange
+from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables
+
 HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxRead.py $"
 ChangeDate = "$LastChangedDate$"
 RevisionNum = "$LastChangedRevision$"
 ChangedBy = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
-
-# Distribution packages
-from types import GeneratorType
-import unittest
-import struct
-import sys
-import os
-import operator
-from warnings import warn
-from tempfile import TemporaryFile as tempfile
-import os
-import sys
-
-# Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype
-
-# This Package modules
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd, timerange
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into, Int2Asc, Asc2Int
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
 
 
 # for use in identifying uncaught nan
@@ -91,15 +83,15 @@ class one3d(PseudoNetCDFFile):
         self.id_size = struct.calcsize(self.id_fmt)
         self.__readheader()
         self.__gettimestep()
-        if rows == None and cols == None:
+        if rows is None and cols is None:
             rows = self.cell_count
             cols = 1
-        elif rows == None:
-            rows = self.cell_count/cols
-        elif cols == None:
-            cols = self.cell_count/rows
+        elif rows is None:
+            rows = self.cell_count / cols
+        elif cols is None:
+            cols = self.cell_count / rows
         else:
-            if cols*rows != self.cell_count:
+            if cols * rows != self.cell_count:
                 raise ValueError("The product of cols (%d) and rows (%d) must equal cells (%d)" % (
                     cols, rows, self.cell_count))
 
@@ -131,10 +123,10 @@ class one3d(PseudoNetCDFFile):
         self.data_start_byte = 0
         self.start_time, self.start_date = self.rffile.read(self.id_fmt)
         self.record_size = self.rffile.record_size
-        self.padded_size = self.record_size+8
+        self.padded_size = self.record_size + 8
         self.cell_count = (
-            self.record_size-self.id_size)//struct.calcsize(self.data_fmt)
-        self.record_fmt = self.id_fmt+self.data_fmt*(self.cell_count)
+            self.record_size - self.id_size) // struct.calcsize(self.data_fmt)
+        self.record_fmt = self.id_fmt + self.data_fmt * (self.cell_count)
 
     def __gettimestep(self):
         """
@@ -157,11 +149,12 @@ class one3d(PseudoNetCDFFile):
             try:
                 self.seek(d, t, 1, False)
                 d, t = timeadd((d, t), (0, self.time_step))
-            except:
+            except Exception:
                 break
         self.end_date, self.end_time = timeadd((d, t), (0, -self.time_step))
         self.time_step_count = int(timediff(
-            (self.start_date, self.start_time), (self.end_date, self.end_time))/self.time_step)+1
+            (self.start_date, self.start_time),
+            (self.end_date, self.end_time)) / self.time_step) + 1
 
     def __timerecords(self, dt):
         """
@@ -170,21 +163,23 @@ class one3d(PseudoNetCDFFile):
         """
         d, t = dt
         nsteps = int(
-            timediff((self.start_date, self.start_time), (d, t))/self.time_step)
-        nk = self.__layerrecords(self.nlayers+1)
-        return nsteps*nk
+            timediff((self.start_date, self.start_time),
+                     (d, t)) / self.time_step)
+        nk = self.__layerrecords(self.nlayers + 1)
+        return nsteps * nk
 
     def __layerrecords(self, k):
         """
         routine returns the number of records to increment from the
         data start byte to find the first klayer
         """
-        return k-1
+        return k - 1
 
     def __recordposition(self, date, time, k):
-        """ 
-        routine uses timerecords and layerrecords multiplied 
-        by the fortran padded size to return the byte position of the specified record
+        """
+        routine uses timerecords and layerrecords multiplied
+        by the fortran padded size to return the byte position
+        of the specified record
 
         date - integer
         time - float
@@ -192,16 +187,16 @@ class one3d(PseudoNetCDFFile):
         """
         ntime = self.__timerecords((date, time))
         nk = self.__layerrecords(k)
-        return (nk+ntime)*self.padded_size+self.data_start_byte
+        return (nk + ntime) * self.padded_size + self.data_start_byte
 
     def seek(self, date=None, time=None, k=1, chkvar=True):
         """
         Move file cursor to beginning of specified record
         see __recordposition for a definition of variables
         """
-        if date == None:
+        if date is None:
             date = self.start_date
-        if time == None:
+        if time is None:
             time = self.start_time
 
         if chkvar and timediff((self.end_date, self.end_time), (date, time)) > 0 or timediff((self.start_date, self.start_time), (date, time)) < 0:
@@ -250,7 +245,7 @@ class one3d(PseudoNetCDFFile):
 
     def keys(self):
         for d, t in self.timerange():
-            for k in range(1, self.nlayers+1):
+            for k in range(1, self.nlayers + 1):
                 yield d, t, k
     __iter__ = keys
 
@@ -258,12 +253,12 @@ class one3d(PseudoNetCDFFile):
         a = zeros((self.time_step_count, self.nlayers, len(
             self.dimensions['ROW']), len(self.dimensions['COL'])), 'f')
         for ti, (d, t) in enumerate(self.timerange()):
-            for ki, k in enumerate(range(1, self.nlayers+1)):
+            for ki, k in enumerate(range(1, self.nlayers + 1)):
                 self.seekandreadinto(a[ti, ki, ...], d, t, k)
         return a
 
     def timerange(self):
-        return timerange((self.start_date, self.start_time), (self.end_date, self.end_time+self.time_step), self.time_step)
+        return timerange((self.start_date, self.start_time), (self.end_date, self.end_time + self.time_step), self.time_step)
 
 
 class TestRead(unittest.TestCase):

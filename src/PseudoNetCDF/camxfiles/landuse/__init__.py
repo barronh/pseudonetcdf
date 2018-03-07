@@ -5,7 +5,7 @@ __doc__ = """
 
 .. module:: landuse
    :platform: Unix, Windows
-   :synopsis: Provides :ref:`PseudoNetCDF` memory map and random access read 
+   :synopsis: Provides :ref:`PseudoNetCDF` memory map and random access read
    based file interfaces for CAMx landuse files.
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
