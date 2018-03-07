@@ -3,6 +3,7 @@ import numpy as np
 _withlatlon = False
 try:
     import pyproj
+    _withlatlon = True
 except Exception:
     warn('pyproj could not be found, so IO/API coordinates cannot be converted to lat/lon; to fix, install pyproj or basemap (e.g., `pip install pyproj)`')
 
