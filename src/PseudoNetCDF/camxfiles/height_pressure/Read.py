@@ -7,7 +7,7 @@ __doc__ = """
 .. module:: Read
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` random access read for CAMx
-              height_pressure files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              height_pressure files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -18,24 +18,16 @@ ChangedBy = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
 
 # Distribution packages
-from types import GeneratorType
 import unittest
 import struct
-import sys
-import os
-import operator
-from warnings import warn
-from tempfile import TemporaryFile as tempfile
-import os
-import sys
 
 # Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype
+from numpy import zeros, array
 
 # This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd, timerange
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into, Int2Asc, Asc2Int
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
+from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables
 
 
 # for use in identifying uncaught nan
@@ -92,11 +84,11 @@ class height_pressure(PseudoNetCDFFile):
             rows = self.cell_count
             cols = 1
         elif rows == None:
-            rows = self.cell_count/cols
+            rows = self.cell_count / cols
         elif cols == None:
-            cols = self.cell_count/rows
+            cols = self.cell_count / rows
         else:
-            if cols*rows != self.cell_count:
+            if cols * rows != self.cell_count:
                 raise ValueError("The product of cols (%d) and rows (%d) must equal cells (%d)" % (
                     cols, rows, self.cell_count))
 
@@ -128,10 +120,10 @@ class height_pressure(PseudoNetCDFFile):
         self.data_start_byte = 0
         self.start_time, self.start_date = self.rffile.read(self.id_fmt)
         self.record_size = self.rffile.record_size
-        self.padded_size = self.record_size+8
+        self.padded_size = self.record_size + 8
         self.cell_count = (
-            self.record_size-self.id_size)//struct.calcsize(self.data_fmt)
-        self.record_fmt = self.id_fmt+self.data_fmt*(self.cell_count)
+            self.record_size - self.id_size) // struct.calcsize(self.data_fmt)
+        self.record_fmt = self.id_fmt + self.data_fmt * (self.cell_count)
 
     def __gettimestep(self):
         """
@@ -141,7 +133,7 @@ class height_pressure(PseudoNetCDFFile):
         timestep length and the anticipated number.
         """
         self.rffile._newrecord(
-            self.padded_size*2
+            self.padded_size * 2
         )
         d, t = self.start_date, self.start_time
         self.nlayers = 0
@@ -159,7 +151,7 @@ class height_pressure(PseudoNetCDFFile):
                 break
         self.end_date, self.end_time = timeadd((d, t), (0, -self.time_step))
         self.time_step_count = int(timediff(
-            (self.start_date, self.start_time), (self.end_date, self.end_time))/self.time_step)+1
+            (self.start_date, self.start_time), (self.end_date, self.end_time)) / self.time_step) + 1
 
     def __timerecords(self, dt):
         """
@@ -168,19 +160,19 @@ class height_pressure(PseudoNetCDFFile):
         """
         d, t = dt
         nsteps = int(
-            timediff((self.start_date, self.start_time), (d, t))/self.time_step)
-        nk = self.__layerrecords(self.nlayers+1)
-        return nsteps*nk
+            timediff((self.start_date, self.start_time), (d, t)) / self.time_step)
+        nk = self.__layerrecords(self.nlayers + 1)
+        return nsteps * nk
 
     def __layerrecords(self, k):
         """
         routine returns the number of records to increment from the
         data start byte to find the first klayer
         """
-        return (k-1)*2
+        return (k - 1) * 2
 
     def __recordposition(self, date, time, k, hp):
-        """ 
+        """
         routine uses timerecords and layerrecords multiplied plus hp
         by the fortran padded size to return the byte position of the specified record
 
@@ -191,7 +183,7 @@ class height_pressure(PseudoNetCDFFile):
         """
         ntime = self.__timerecords((date, time))
         nk = self.__layerrecords(k)
-        return (nk+ntime+hp)*self.padded_size+self.data_start_byte
+        return (nk + ntime + hp) * self.padded_size + self.data_start_byte
 
     def seek(self, date=None, time=None, k=1, hp=0, chkvar=True):
         """
@@ -251,7 +243,7 @@ class height_pressure(PseudoNetCDFFile):
 
     def keys(self):
         for d, t in self.timerange():
-            for k in range(1, self.nlayers+1):
+            for k in range(1, self.nlayers + 1):
                 yield d, t, k
 
     __iter__ = keys
@@ -261,7 +253,7 @@ class height_pressure(PseudoNetCDFFile):
             self.dimensions['ROW']), len(self.dimensions['COL'])), 'f')
 
         for ti, (d, t) in enumerate(self.timerange()):
-            for ki, k in enumerate(range(1, self.nlayers+1)):
+            for ki, k in enumerate(range(1, self.nlayers + 1)):
                 self.seekandreadinto(a[ti, ki, ...], d, t, k, hp)
         return a
 

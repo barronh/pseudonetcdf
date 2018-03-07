@@ -7,7 +7,7 @@ __doc__ = """
 .. module:: Read
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` random access read for CAMx
-              irr files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              irr files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -18,24 +18,16 @@ ChangedBy = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
 
 # Distribution packages
-from datetime import datetime, timedelta
-from types import GeneratorType
+from datetime import datetime
 import unittest
 import struct
-import sys
-import os
-import operator
 from warnings import warn
-from tempfile import TemporaryFile as tempfile
 from math import ceil
-import os
-import sys
 
 # Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype, fromfile, arange
+from numpy import zeros, array, dtype, fromfile, arange
 
 # This Package modules
-from PseudoNetCDF.camxfiles.util import sliceit
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
 
 
@@ -97,14 +89,14 @@ class irr(PseudoNetCDFFile):
         if self.units != 'ppm/hr' and self.__conv == None:
             raise ValueError(
                 "When units are provided, a conversion array dim(t,z,x,y) must also be provided")
-        varkeys = ['RXN_%02d' % i for i in range(1, self.NRXNS+1)]
+        varkeys = ['RXN_%02d' % i for i in range(1, self.NRXNS + 1)]
 
         domain = self.padomains[0]
         tdim = self.createDimension('TSTEP', int(self.NSTEPS))
         tdim.setunlimited(True)
-        self.createDimension('COL', int(domain['iend']-domain['istart']+1))
-        self.createDimension('ROW', int(domain['jend']-domain['jstart']+1))
-        self.createDimension('LAY', int(domain['tlay']-domain['blay']+1))
+        self.createDimension('COL', int(domain['iend'] - domain['istart'] + 1))
+        self.createDimension('ROW', int(domain['jend'] - domain['jstart'] + 1))
+        self.createDimension('LAY', int(domain['tlay'] - domain['blay'] + 1))
         self.createDimension('DATE-TIME', 2)
         self.createDimension('VAR', int(self.NRXNS))
         self.variables = PseudoNetCDFVariables(self.__var_get, varkeys)
@@ -180,7 +172,7 @@ class irr(PseudoNetCDFFile):
         """
         self._activedomain = self.padomains[0]
         self._rffile.seek(
-            self._data_start_byte+(
+            self._data_start_byte + (
                 self.__jrecords(0, self.padomains[0]['jend']) *
                 self._padded_size
             ), 0
@@ -207,7 +199,7 @@ class irr(PseudoNetCDFFile):
         data start byte to find the pagrid
         """
         ntime = self.__timerecords(
-            pagrid, (self.EDATE, int(self.ETIME+self.TSTEP)))
+            pagrid, (self.EDATE, int(self.ETIME + self.TSTEP)))
         return ntime
 
     def __timerecords(self, pagrid, dt):
@@ -217,36 +209,36 @@ class irr(PseudoNetCDFFile):
         """
         d, t = dt
         nsteps = self.timerange().index((d, t))
-        nj = self.__jrecords(pagrid, self.padomains[pagrid]['jend']+1)
-        return nsteps*nj
+        nj = self.__jrecords(pagrid, self.padomains[pagrid]['jend'] + 1)
+        return nsteps * nj
 
     def __irecords(self, pagrid, i):
         """
         routine returns the number of records to increment from the
         data start byte to find the first icell
         """
-        ni = i-self._activedomain['istart']
-        nk = self.__krecords(pagrid, self._activedomain['tlay']+1)
-        return ni*nk
+        ni = i - self._activedomain['istart']
+        nk = self.__krecords(pagrid, self._activedomain['tlay'] + 1)
+        return ni * nk
 
     def __jrecords(self, pagrid, j):
         """
         routine returns the number of records to increment from the
         data start byte to find the first jcell
         """
-        nj = j-self._activedomain['jstart']
-        ni = self.__irecords(pagrid, self._activedomain['iend']+1)
-        return nj*ni
+        nj = j - self._activedomain['jstart']
+        ni = self.__irecords(pagrid, self._activedomain['iend'] + 1)
+        return nj * ni
 
     def __krecords(self, pagrid, k):
         """
         routine returns the number of records to increment from the
         data start byte to find the first kcell
         """
-        return k-self._activedomain['blay']
+        return k - self._activedomain['blay']
 
     def __recordposition(self, pagrid, date, time, i, j, k):
-        """ 
+        """
         routine uses pagridrecords, timerecords,irecords,
         jrecords, and krecords multiplied by the fortran padded size
         to return the byte position of the specified record
@@ -265,7 +257,7 @@ class irr(PseudoNetCDFFile):
         records += self.__jrecords(pagrid, j)
         records += self.__irecords(pagrid, i)
         records += self.__krecords(pagrid, k)
-        return records*self._padded_size+self._data_start_byte
+        return records * self._padded_size + self._data_start_byte
 
     def _seek(self, pagrid=1, date=None, time=None, i=1, j=1, k=1):
         """
@@ -275,7 +267,7 @@ class irr(PseudoNetCDFFile):
         if date == None:
             date = self.SDATE
         if time == None:
-            time = self.STIME+self.TSTEP
+            time = self.STIME + self.TSTEP
         self._activedomain = self.padomains[pagrid]
         self._rffile.seek(self.__recordposition(pagrid, date, time, i, j, k))
 
@@ -328,7 +320,7 @@ class irr(PseudoNetCDFFile):
             self.SDATE, self.STIME), '%y%jT%H%M')
         tdiff = datetime.strptime(
             '%04d' % self.TSTEP, '%H%M') - datetime.strptime('0000', '%H%M')
-        dates = [tstart + (tdiff * i) for i in range(1, self.NSTEPS+1)]
+        dates = [tstart + (tdiff * i) for i in range(1, self.NSTEPS + 1)]
         return [(int(d.strftime('%y%j')), float(d.strftime('%H%M'))) for d in dates]
 
 

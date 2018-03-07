@@ -7,7 +7,7 @@ __doc__ = """
 .. module:: Memmap
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx
-              wind files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              wind files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -22,11 +22,10 @@ import unittest
 import struct
 
 # Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype, nan
+from numpy import zeros, array, memmap, nan
 
 # This Package modules
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, Int2Asc
+from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
 from collections import OrderedDict
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
@@ -80,14 +79,14 @@ class wind(PseudoNetCDFFile):
         while rf.record_size == record_size:
             lays += 1
             rf.next()
-        self.__dummy_length = (rf.record_size+8)//4
+        self.__dummy_length = (rf.record_size + 8) // 4
         lays //= 2
-        record = rows*cols*4+8
+        record = rows * cols * 4 + 8
         total_size = self.__dummy_length
         times = 0
         while total_size < rf.length:
             times += 1
-            total_size += record*2*lays+self.__time_hdr_fmts_size+8
+            total_size += record * 2 * lays + self.__time_hdr_fmts_size + 8
         times -= 1
 
         self.variables = OrderedDict
@@ -131,25 +130,25 @@ class wind(PseudoNetCDFFile):
         lays = len(self.dimensions['LAY'])
         rows = len(self.dimensions['ROW'])
         cols = len(self.dimensions['COL'])
-        offset = len(self.__time_hdr_fmts)+2
-        block = (rows*cols+2)*2*lays
+        offset = len(self.__time_hdr_fmts) + 2
+        block = (rows * cols + 2) * 2 * lays
         out_idx = zeros(self.__memmap.shape, 'b')
         for t in range(tsteps):
-            start = (t+1)*offset+t*block+t*self.__dummy_length
-            stop = start+block
+            start = (t + 1) * offset + t * block + t * self.__dummy_length
+            stop = start + block
 
-            out_idx[start:stop].reshape(lays*2, rows*cols+2)[:, 1:-1] = 1
-            out_idx[start:stop].reshape(lays*2, rows*cols+2)[:, [0, -1]] = 2
-            out_idx[start-offset:start] = 3
+            out_idx[start:stop].reshape(lays * 2, rows * cols + 2)[:, 1:-1] = 1
+            out_idx[start:stop].reshape(lays * 2, rows * cols + 2)[:, [0, -1]] = 2
+            out_idx[start - offset:start] = 3
 
         buffer = self.__memmap[out_idx == 2].reshape(tsteps, lays, 2, 2)
         if not (buffer[:, :, :, 0] == buffer[:, :, :, 1]).all():
             raise ValueError(
                 'Fortran unformatted record start and end padding do not match.')
         date = self.__memmap[out_idx == 3].reshape(
-            tsteps, (out_idx == 3).sum()//tsteps)[:, 2].view('>i')
+            tsteps, (out_idx == 3).sum() // tsteps)[:, 2].view('>i')
         time = self.__memmap[out_idx == 3].reshape(
-            tsteps, (out_idx == 3).sum()//tsteps)[:, 1]
+            tsteps, (out_idx == 3).sum() // tsteps)[:, 1]
 
         self.variables['TFLAG'] = ConvertCAMxTime(date, time, 2)
         self.variables['U'] = self.__decorator('U', PseudoNetCDFVariable(
@@ -175,7 +174,6 @@ class TestMemmap(unittest.TestCase):
     def testNCF2WD(self):
         import PseudoNetCDF.testcase
         from PseudoNetCDF.pncgen import pncgen
-        from PseudoNetCDF.camxfiles.Writers import ncf2wind
 
         import os
         inpath = PseudoNetCDF.testcase.camxfiles_paths['wind']

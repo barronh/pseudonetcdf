@@ -7,15 +7,10 @@ __doc__ = """
 .. module:: Write
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` writer for CAMx
-              wind files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              wind files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-
-# Distribution packages
-from types import GeneratorType
-import unittest
-import struct
 
 import numpy as np
 

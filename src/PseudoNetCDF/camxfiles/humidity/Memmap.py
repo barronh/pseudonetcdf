@@ -7,7 +7,7 @@ __doc__ = """
 .. module:: Memmap
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx
-              humidity files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              humidity files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -22,13 +22,10 @@ import unittest
 import struct
 
 # Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype, nan
+from numpy import zeros, array
 
 # This Package modules
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, Int2Asc
 from PseudoNetCDF.camxfiles.one3d.Memmap import one3d
-from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 # for use in identifying uncaught nan
 listnan = struct.unpack('>f', b'\xff\xc0\x00\x00')[0]

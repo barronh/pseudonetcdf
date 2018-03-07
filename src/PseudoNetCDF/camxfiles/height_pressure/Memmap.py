@@ -7,7 +7,7 @@ __doc__ = """
 .. module:: Memmap
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx
-              height/pressure files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              height/pressure files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -22,10 +22,9 @@ import unittest
 import struct
 
 # Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype, nan
+from numpy import zeros, array, memmap
 
 # This Package modules
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, Int2Asc
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
@@ -69,9 +68,9 @@ class height_pressure(PseudoNetCDFFile):
 
     def __init__(self, rf, rows=None, cols=None):
         self.__memmap = memmap(rf, '>f', 'r', offset=0)
-        rowsXcols = self.__memmap[0].view('i')//4-2
-        record_length = rowsXcols+4
-        records = self.__memmap.size//record_length
+        rowsXcols = self.__memmap[0].view('i') // 4 - 2
+        record_length = rowsXcols + 4
+        records = self.__memmap.size // record_length
 
         times = self.__memmap.reshape(records, record_length)[:, 1:3]
         self.STIME, self.SDATE = times[0]
@@ -79,18 +78,18 @@ class height_pressure(PseudoNetCDFFile):
             if (t, d) != (self.STIME, self.SDATE):
                 break
         self.SDATE = self.SDATE.view('i')
-        self.createDimension('LAY', i/2)
-        self.createDimension('TSTEP', times.shape[0]/i)
+        self.createDimension('LAY', i / 2)
+        self.createDimension('TSTEP', times.shape[0] / i)
 
         if rows == None and cols == None:
             rows = rowsXcols
             cols = 1
         elif rows == None:
-            rows = rowsXcols/cols
+            rows = rowsXcols / cols
         elif cols == None:
-            cols = rowsXcols/rows
+            cols = rowsXcols / rows
         else:
-            if cols*rows != rowsXcols:
+            if cols * rows != rowsXcols:
                 raise ValueError("The product of cols (%d) and rows (%d) must equal cells (%d)" % (
                     cols, rows, rowsXcols))
 
@@ -105,7 +104,7 @@ class height_pressure(PseudoNetCDFFile):
         self.NVARS = 2
         self.NTHIK = 1
 
-        setattr(self, 'VAR-LIST', 'HGHT'.ljust(16)+'PRES'.ljust(16))
+        setattr(self, 'VAR-LIST', 'HGHT'.ljust(16) + 'PRES'.ljust(16))
 
         self.variables = PseudoNetCDFVariables(
             self.__var_get, ['HGHT', 'PRES', 'TFLAG'])
@@ -120,13 +119,13 @@ class height_pressure(PseudoNetCDFFile):
         time = 3
         date = 4
         out_idx = zeros(self.__memmap.shape, dtype='b').reshape(
-            times, lays, 2, rows*cols+4)
+            times, lays, 2, rows * cols + 4)
         out_idx[:, :, 0, 3:-1] = hght
         out_idx[:, :, 1, 3:-1] = pres
         out_idx[:, :, :, 1] = time
         out_idx[:, :, :, 2] = date
         out_idx = out_idx.ravel()
-        buf = self.__memmap[out_idx == 0].reshape(lays*2*times, 2)
+        buf = self.__memmap[out_idx == 0].reshape(lays * 2 * times, 2)
         if not (buf[:, 0] == buf[:, 1]).all():
             raise ValueError("Buffer")
         v = self.variables['HGHT'] = PseudoNetCDFVariable(
@@ -139,8 +138,8 @@ class height_pressure(PseudoNetCDFFile):
         v.units = 'hPA'
         v.long_name = 'PRES'.ljust(16)
         v.var_desc = 'Pressure at center'
-        self.variables['TFLAG'] = ConvertCAMxTime(self.__memmap[out_idx == 4][slice(None, None, len(self.dimensions['LAY'])*2)].view(
-            '>i'), self.__memmap[out_idx == 3][slice(None, None, len(self.dimensions['LAY'])*2)], len(self.dimensions['VAR']))
+        self.variables['TFLAG'] = ConvertCAMxTime(self.__memmap[out_idx == 4][slice(None, None, len(self.dimensions['LAY']) * 2)].view(
+            '>i'), self.__memmap[out_idx == 3][slice(None, None, len(self.dimensions['LAY']) * 2)], len(self.dimensions['VAR']))
 
         return self.variables[key]
 

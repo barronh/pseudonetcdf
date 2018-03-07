@@ -8,7 +8,7 @@ __doc__ = """
 .. module:: Write
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` variable transformations
-              for CAMx cloud/rain files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              for CAMx cloud/rain files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -17,7 +17,7 @@ __doc__ = """
 from numpy import array
 
 from PseudoNetCDF.MetaNetCDF import add_derived, time_avg_new_unit
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoNetCDFVariable
+from PseudoNetCDF.sci_var import PseudoNetCDFVariable
 from .Memmap import cloud_rain as reg_cloud_rain
 
 
@@ -34,9 +34,9 @@ class cloud_rain_plus(add_derived):
             val = self.variables['PRECIP']
         else:
             val = self.variables['RAIN'] + \
-                self.variables['SNOW']+self.variables['GRAUPEL']
+                self.variables['SNOW'] + self.variables['GRAUPEL']
         var = PseudoNetCDFVariable(
-            self, 'PRECIP_RATE', 'f', ('TSTEP', 'LAY', 'ROW', 'COL'), values=(val*10)**1.27)
+            self, 'PRECIP_RATE', 'f', ('TSTEP', 'LAY', 'ROW', 'COL'), values=(val * 10)**1.27)
         var.units = 'mm/h'
         var.long_name = 'PRECIP_RATE'.ljust(16)
         var.var_desc = 'PRECIP_RATE'.ljust(16)

@@ -8,14 +8,12 @@ __doc__ = """
 .. module:: Write
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` variable transformations
-              for CAMx uamiv files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              for CAMx uamiv files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
 
-from numpy import array, zeros
-from warnings import warn
-import unittest
+from numpy import zeros
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoIOAPIVariable
 from .Memmap import uamiv
 
@@ -24,9 +22,9 @@ class osat(PseudoNetCDFFile):
     """
     OSAT provides a way of slicing and summing tagged species.
 
-    sources - dictionary of name and id for CAMx source codes 
+    sources - dictionary of name and id for CAMx source codes
               (i.e. {'SOURCES1-5': '001','002','003','004','005'})
-    regions - dictionary of name and id for CAMx region codes  
+    regions - dictionary of name and id for CAMx region codes
               (i.e. {'REGIONS1-5': '001','002','003','004','005'})
 
     Example:
@@ -35,9 +33,9 @@ class osat(PseudoNetCDFFile):
         regions={'REGIONS1-5': ('001','002','003','004','005')}
         # File initiation
         osatfile=osat('path',sources,regions)
-        # Variable (v) would return the sum of all O3V for all five 
+        # Variable (v) would return the sum of all O3V for all five
         # sources and all five regions
-        v=osatfile.variables['O3V_SOURCES1-5_REGIONS1-5'] 
+        v=osatfile.variables['O3V_SOURCES1-5_REGIONS1-5']
 
     """
     __delim = '_'
@@ -73,8 +71,8 @@ class osat(PseudoNetCDFFile):
         time_dim_keys = [(k[:1], k[1:6], k[6:]) for k in time_keys]
         allkeys = [i for i in self.__child.variables.keys()]
         for skey in spc_keys:
-            for src in sources.keys()+['']:
-                for reg in regions.keys()+['']:
+            for src in sources.keys() + ['']:
+                for reg in regions.keys() + ['']:
                     allkeys.append(self.__delim.join([skey, src, reg]))
         allkeys = [i for i in set(allkeys)]
         self.variables = PseudoNetCDFVariables(self.__variables, allkeys)
@@ -93,7 +91,7 @@ class osat(PseudoNetCDFFile):
             regions = self.__regionsbyNm[region]
             for source in sources:
                 for region in regions:
-                    key = spc+source+region
+                    key = spc + source + region
                     if key in self.__child.variables.keys():
                         keys.append(key)
         return keys

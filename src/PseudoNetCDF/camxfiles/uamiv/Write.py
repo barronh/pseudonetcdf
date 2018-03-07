@@ -8,7 +8,7 @@ __doc__ = """
 .. module:: Write
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` writer for CAMx
-              uamiv files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              uamiv files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -20,25 +20,17 @@ ChangedBy = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
 
 # Distribution packages
-from types import GeneratorType
 import unittest
-import struct
 import sys
 import os
 import operator
-from warnings import warn
-from tempfile import TemporaryFile as tempfile
-import os
-import sys
 
 # Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype
 import numpy as np
 
 # This Package modules
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd, timerange
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into, writeline, Int2Asc, Asc2Int
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
+from PseudoNetCDF.camxfiles.timetuple import timeadd, timerange
+from PseudoNetCDF.camxfiles.FortranFileUtil import writeline, Asc2Int
 
 _emiss_hdr_fmt = np.dtype(dict(names=['SPAD', 'name', 'note', 'itzon', 'nspec', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[
                           '>i', '(10,4)>S1', '(60,4)>S1', '>i', '>i', '>i', '>f', '>i', '>f', '>i']))
@@ -65,7 +57,7 @@ def ncf2uamiv(ncffile, outpath):
             Must be open and have all properties of a uamiv
             file as produced by PseudoNetCDF.camxfiles
             1) IOAPI conventions
-            2) UAMIV specific properties: PLON PLAT IUTM CPROJ 
+            2) UAMIV specific properties: PLON PLAT IUTM CPROJ
                                             TLAT1 TLAT2 ISTAG
     outpath : string
             path to create a uamiv file output
@@ -94,7 +86,7 @@ def ncf2uamiv(ncffile, outpath):
         # If uamivpath includes EOD, the diff may yield difference.
         # The ONLY difference will be time flags for the end of a day.
         # Most time software agrees that there is no such thing as 2002154T24:00.
-        # Some CAMx files, however, have a 2400 time. 
+        # Some CAMx files, however, have a 2400 time.
         # PseudoNetCDF interprets this equivalently as 2002155T00:00
         $ python -c "from PseudoNetCDF.camxfiles.Memmaps import uamiv
         import numpy as np
@@ -159,11 +151,11 @@ def ncf2uamiv(ncffile, outpath):
     time_hdr['EPAD'] = 16
     date_s, time_s = ncffile.variables['TFLAG'][:, 0].T
     time_s = time_s.astype('>f') / 10000.
-    date_s = date_s % (date_s//100000*100000)
+    date_s = date_s % (date_s // 100000 * 100000)
     if 'ETFLAG' in ncffile.variables.keys():
         date_e, time_e = ncffile.variables['ETFLAG'][:, 0].T
         time_e = time_e.astype('>f') / 10000.
-        date_e = date_e % (date_e//100000*100000)
+        date_e = date_e % (date_e // 100000 * 100000)
     else:
         if hasattr(ncffile, 'TSTEP'):
             tincr = ncffile.TSTEP / 10000
@@ -206,7 +198,7 @@ def ncf2uamiv(ncffile, outpath):
             for zi in range(nz):
                 var = ncffile.variables[str(np.char.strip(spc_key))]
                 data = var[di, zi].astype('>f')
-                buf = np.array(4+40+data.size*4).astype('>i')
+                buf = np.array(4 + 40 + data.size * 4).astype('>i')
                 buf.tofile(outfile)
                 np.array(1).astype('>i').tofile(outfile)
                 spc_name.tofile(outfile)
@@ -225,10 +217,10 @@ def write_emissions_ncf(infile, outfile):
     from operator import concat
     # initialize hdr_fmts with species count
     hdr_fmts = ["10i60i3ifif", "ffiffffiiiiifff",
-                "iiii", "10i"*len(infile.variables.keys())]
+                "iiii", "10i" * len(infile.variables.keys())]
     hdrlines = []
 
-    hdrlines.append(reduce(concat, [Asc2Int(s) for s in [infile.name, infile.note]])+[infile.ione, len(
+    hdrlines.append(reduce(concat, [Asc2Int(s) for s in [infile.name, infile.note]]) + [infile.ione, len(
         infile.variables.keys()), infile.start_date, infile.start_time, infile.end_date, infile.end_time])
 
     hdrlines.append([infile.rdum, infile.rdum, infile.iutm, infile.xorg, infile.yorg, infile.delx, infile.dely, len(infile.dimensions['COL']), len(
@@ -247,13 +239,13 @@ def write_emissions_ncf(infile, outfile):
         outfile.write(writeline((d, t, ed, et), 'ifif'))
         for spc in infile.variables.keys():
             for k in range(len(infile.dimensions['LAY'])):
-                outfile.write(writeline([infile.ione]+Asc2Int(spc.ljust(10))+infile.variables[spc]
-                                        [ti, :, :, k].transpose().ravel().tolist(), '11i'+infile.cell_count*'f'))
+                outfile.write(writeline([infile.ione] + Asc2Int(spc.ljust(10)) + infile.variables[spc]
+                                        [ti, :, :, k].transpose().ravel().tolist(), '11i' + infile.cell_count * 'f'))
 
 
 def write_emissions(start_date, start_time, time_step, hdr, vals):
     # initialize hdr_fmts with species count
-    hdr_fmts = ["10i60i3ifif", "ffiffffiiiiifff", "iiii", "10i"*len(hdr[-1])]
+    hdr_fmts = ["10i60i3ifif", "ffiffffiiiiifff", "iiii", "10i" * len(hdr[-1])]
 
     # initialize output variable
     emis_string = ''
@@ -267,7 +259,7 @@ def write_emissions(start_date, start_time, time_step, hdr, vals):
         print("Header doesn't match start date/time", file=sys.stderr)
 
     # Change name and note
-    hdr[0] = list(hdr[0][0])+list(hdr[0][1])+list(hdr[0][2:])
+    hdr[0] = list(hdr[0][0]) + list(hdr[0][1]) + list(hdr[0][2:])
 
     # Change species names to array of characters
     hdr[-1] = reduce(operator.concat, [Asc2Int(s) for s in hdr[-1]])
@@ -277,12 +269,12 @@ def write_emissions(start_date, start_time, time_step, hdr, vals):
         emis_string += writeline(h, f)
 
     # create value format
-    cells = vals.shape[2]*vals.shape[3]
-    valfmt = 'i10i'+('f'*cells)
+    cells = vals.shape[2] * vals.shape[3]
+    valfmt = 'i10i' + ('f' * cells)
 
     # Get end date
     (end_date, end_time) = timeadd(
-        (start_date, start_time), (0, time_step*vals.shape[0]))
+        (start_date, start_time), (0, time_step * vals.shape[0]))
 
     if tuple(hdr[0][6:]) != (end_date, end_time):
         print("Header doesn't match end date/time", file=sys.stderr)
@@ -324,4 +316,4 @@ class TestMemmaps(unittest.TestCase):
             nv = uamivfile2.variables[k]
             check = check & bool((nv[...] == v[...]).all())
         assert(check)
-        os.remove(self.uamivpath+'.check')
+        os.remove(self.uamivpath + '.check')

@@ -5,7 +5,7 @@ __doc__ = """
 
 .. module:: uamiv
    :platform: Unix, Windows
-   :synopsis: Provides :ref:`PseudoNetCDF` memory map and random access read 
+   :synopsis: Provides :ref:`PseudoNetCDF` memory map and random access read
    based file interfaces for CAMx UAM-IV files.
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """

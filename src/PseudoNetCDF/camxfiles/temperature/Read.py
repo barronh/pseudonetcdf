@@ -7,7 +7,7 @@ __doc__ = """
 .. module:: Read
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` random access read for CAMx
-              temperature files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              temperature files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -18,24 +18,16 @@ ChangedBy = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
 
 # Distribution packages
-from types import GeneratorType
 import unittest
 import struct
-import sys
-import os
-import operator
-from warnings import warn
-from tempfile import TemporaryFile as tempfile
-import os
-import sys
 
 # Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype
+from numpy import zeros, array, memmap
 
 # This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd, timerange
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into, Int2Asc, Asc2Int
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
+from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables
 
 
 # for use in identifying uncaught nan
@@ -90,11 +82,11 @@ class temperature(PseudoNetCDFFile):
             rows = self.cell_count
             cols = 1
         elif rows == None:
-            rows = self.cell_count/cols
+            rows = self.cell_count / cols
         elif cols == None:
-            cols = self.cell_count/rows
+            cols = self.cell_count / rows
         else:
-            if cols*rows != self.cell_count:
+            if cols * rows != self.cell_count:
                 raise ValueError("The product of cols (%d) and rows (%d) must equal cells (%d)" % (
                     cols, rows, self.cell_count))
 
@@ -126,18 +118,18 @@ class temperature(PseudoNetCDFFile):
 
         self.area_size = self.rffile.record_size
         self.area_count = (
-            self.area_size-self.id_size)//struct.calcsize(self.data_fmt)
-        self.area_padded_size = self.area_size+8
-        self.area_fmt = self.id_fmt+self.data_fmt*(self.area_count)
+            self.area_size - self.id_size) // struct.calcsize(self.data_fmt)
+        self.area_padded_size = self.area_size + 8
+        self.area_fmt = self.id_fmt + self.data_fmt * (self.area_count)
 
         self.start_time, self.start_date = self.rffile.read(self.id_fmt)
 
         self.record_size = self.rffile.record_size
-        self.padded_size = self.record_size+8
+        self.padded_size = self.record_size + 8
         self.cell_count = (
-            self.record_size-self.id_size)//struct.calcsize(self.data_fmt)
+            self.record_size - self.id_size) // struct.calcsize(self.data_fmt)
 
-        self.record_fmt = self.id_fmt+self.data_fmt*(self.cell_count)
+        self.record_fmt = self.id_fmt + self.data_fmt * (self.cell_count)
 
     def __gettimestep(self):
         d, t = date, time = self.start_date, self.start_time
@@ -150,7 +142,7 @@ class temperature(PseudoNetCDFFile):
         self.rffile.previous()
         self.end_time, self.end_date = self.rffile.read(self.id_fmt)
         self.time_step_count = int(timediff(
-            (self.start_date, self.start_time), (self.end_date, self.end_time))//self.time_step)+1
+            (self.start_date, self.start_time), (self.end_date, self.end_time)) // self.time_step) + 1
 
     def __variables(self, k):
         if k == 'SURFTEMP':
@@ -167,8 +159,8 @@ class temperature(PseudoNetCDFFile):
         return out
 
     def __surfpos(self):
-        pos = self.data_start_byte+12
-        inc = self.area_padded_size+self.padded_size*self.nlayers
+        pos = self.data_start_byte + 12
+        inc = self.area_padded_size + self.padded_size * self.nlayers
         self.rffile.infile.seek(0, 2)
         rflen = self.rffile.tell()
         while pos < rflen:
@@ -181,8 +173,8 @@ class temperature(PseudoNetCDFFile):
             yield memmap(self.rffile.infile.name, '>f', 'r', pos, (self.area_count,)).reshape(len(self.dimensions['ROW']), len(self.dimensions['COL']))
 
     def __airpos(self):
-        pos = self.area_padded_size+self.data_start_byte
-        inc = self.area_padded_size+self.padded_size*self.nlayers
+        pos = self.area_padded_size + self.data_start_byte
+        inc = self.area_padded_size + self.padded_size * self.nlayers
         self.rffile.infile.seek(0, 2)
         rflen = self.rffile.tell()
         while pos < rflen:
@@ -192,7 +184,7 @@ class temperature(PseudoNetCDFFile):
 
     def __airmaps(self):
         for pos in self.__airpos():
-            yield memmap(self.rffile.infile.name, '>f', 'r', pos, ((self.cell_count+4)*self.nlayers,)).reshape(self.nlayers, self.cell_count+4)[:, 3:-1].reshape(len(self.dimensions['LAY']), len(self.dimensions['ROW']), len(self.dimensions['COL']))
+            yield memmap(self.rffile.infile.name, '>f', 'r', pos, ((self.cell_count + 4) * self.nlayers,)).reshape(self.nlayers, self.cell_count + 4)[:, 3:-1].reshape(len(self.dimensions['LAY']), len(self.dimensions['ROW']), len(self.dimensions['COL']))
 
     def timerange(self):
         return timerange((self.start_date, self.start_time), timeadd((self.end_date, self.end_time), (0, self.time_step), (2400, 24)[int(self.time_step % 2)]), self.time_step, (2400, 24)[int(self.time_step % 2)])

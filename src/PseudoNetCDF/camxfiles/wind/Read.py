@@ -7,7 +7,7 @@ __doc__ = """
 .. module:: Read
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` random access read for CAMx
-              wind files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              wind files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -18,24 +18,16 @@ ChangedBy = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
 
 # Distribution packages
-from types import GeneratorType
 import unittest
 import struct
-import sys
-import os
-import operator
-from warnings import warn
-from tempfile import TemporaryFile as tempfile
-import os
-import sys
 
 # Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype
+from numpy import zeros, array
 
 # This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd, timerange
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into, Int2Asc, Asc2Int
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
+from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables
 
 
 # for use in identifying uncaught nan
@@ -87,18 +79,18 @@ class wind(PseudoNetCDFFile):
         self.time_hdr_fmt = self.time_hdr_fmts[self.rffile.record_size]
 
         self.time_hdr_size = struct.calcsize(self.time_hdr_fmt)
-        self.padded_time_hdr_size = struct.calcsize("ii"+self.time_hdr_fmt)
+        self.padded_time_hdr_size = struct.calcsize("ii" + self.time_hdr_fmt)
         self.__readheader()
         self.__gettimestep()
         if rows == None and cols == None:
             rows = self.cell_count
             cols = 1
         elif rows == None:
-            rows = self.cell_count/cols
+            rows = self.cell_count / cols
         elif cols == None:
-            cols = self.cell_count/rows
+            cols = self.cell_count / rows
         else:
-            if cols*rows != self.cell_count:
+            if cols * rows != self.cell_count:
                 raise ValueError("The product of cols (%d) and rows (%d) must equal cells (%d)" % (
                     cols, rows, self.cell_count))
         self.createDimension('TSTEP', self.time_step_count)
@@ -140,9 +132,9 @@ class wind(PseudoNetCDFFile):
             raise NotImplementedError("Header format is unknown")
 
         self.record_size = self.rffile.record_size
-        self.padded_size = self.record_size+8
-        self.cell_count = self.record_size//struct.calcsize(self.data_fmt)
-        self.record_fmt = self.data_fmt*self.cell_count
+        self.padded_size = self.record_size + 8
+        self.cell_count = self.record_size // struct.calcsize(self.data_fmt)
+        self.record_fmt = self.data_fmt * self.cell_count
 
     def __gettimestep(self):
         """
@@ -165,7 +157,7 @@ class wind(PseudoNetCDFFile):
             self.rffile.next()
             nlayers += 1
 
-        self.nlayers = (nlayers-1)//2
+        self.nlayers = (nlayers - 1) // 2
 
         if self.time_hdr_fmt == "fi":
             time, date = self.rffile.read(self.time_hdr_fmt)
@@ -179,7 +171,7 @@ class wind(PseudoNetCDFFile):
 
         while True:
             try:
-                for i in range(self.nlayers*2 + 1):
+                for i in range(self.nlayers * 2 + 1):
                     self.rffile.next()
                 if self.rffile.record_size == 8:
                     self.end_time, self.end_date = self.rffile.read("fi")
@@ -192,10 +184,10 @@ class wind(PseudoNetCDFFile):
                 break
 
         self.time_step_count = int(timediff(
-            (self.start_date, self.start_time), (self.end_date, self.end_time))/self.time_step)+1
+            (self.start_date, self.start_time), (self.end_date, self.end_time)) / self.time_step) + 1
 
     def __layerrecords(self, k):
-        return k-1
+        return k - 1
 
     def __timerecords(self, dt):
         """
@@ -204,12 +196,12 @@ class wind(PseudoNetCDFFile):
         """
         d, t = dt
         nsteps = int(
-            timediff((self.start_date, self.start_time), (d, t))/self.time_step)
-        nlays = self.__layerrecords(self.nlayers+1)
-        return nsteps*nlays
+            timediff((self.start_date, self.start_time), (d, t)) / self.time_step)
+        nlays = self.__layerrecords(self.nlayers + 1)
+        return nsteps * nlays
 
     def __recordposition(self, date, time, k, duv):
-        """ 
+        """
         routine uses pagridrecords, timerecords,irecords,
         jrecords, and krecords multiplied by the fortran padded size
         to return the byte position of the specified record
@@ -221,12 +213,12 @@ class wind(PseudoNetCDFFile):
         """
         bytes = self.data_start_byte
         nsteps = self.__timerecords((date, time))
-        bytes += int(nsteps/self.nlayers)*self.padded_time_hdr_size
-        bytes += int(nsteps/self.nlayers)*12
-        bytes += nsteps*self.padded_size*2
+        bytes += int(nsteps / self.nlayers) * self.padded_time_hdr_size
+        bytes += int(nsteps / self.nlayers) * 12
+        bytes += nsteps * self.padded_size * 2
         if not duv == 0:
             bytes += self.padded_time_hdr_size
-            bytes += self.__layerrecords(k)*2*self.padded_size
+            bytes += self.__layerrecords(k) * 2 * self.padded_size
         if duv == 2:
             bytes += self.padded_size
         return bytes
@@ -280,7 +272,7 @@ class wind(PseudoNetCDFFile):
 
     def keys(self):
         for d, t in timerange((self.start_date, self.start_time), timeadd((self.end_date, self.end_time), (0, self.time_step)), self.time_step):
-            for k in range(1, self.nlayers+1):
+            for k in range(1, self.nlayers + 1):
                 yield d, t, k
 
     def values(self):
@@ -298,19 +290,19 @@ class wind(PseudoNetCDFFile):
             if type(krange) == tuple:
                 krange = slice(*krange)
             if type(krange) == int:
-                krange = slice(krange, krange+1)
+                krange = slice(krange, krange + 1)
         a = zeros(
             (
                 self.time_step_count,
                 2,
-                len(range(*krange.indices(self.nlayers+1))),
+                len(range(*krange.indices(self.nlayers + 1))),
                 len(self.dimensions['ROW']),
                 len(self.dimensions['COL']),
             ), 'f')
         for i, (d, t) in enumerate(self.timerange()):
             for uv in range(1, 3):
-                for ki, k in enumerate(range(*krange.indices(self.nlayers+1))):
-                    self.seekandreadinto(a[i, uv-1, k-1, :, :], d, t, k, uv)
+                for ki, k in enumerate(range(*krange.indices(self.nlayers + 1))):
+                    self.seekandreadinto(a[i, uv - 1, k - 1, :, :], d, t, k, uv)
         return a
 
     def timerange(self):

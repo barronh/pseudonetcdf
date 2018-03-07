@@ -7,7 +7,7 @@ __doc__ = """
 .. module:: Memmap
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx
-              irr files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              irr files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -23,11 +23,11 @@ import struct
 from warnings import warn
 from collections import defaultdict
 # Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype, nan
+from numpy import zeros, memmap, dtype
 
 # This Package modules
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd, timerange
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, Int2Asc
+from PseudoNetCDF.camxfiles.timetuple import timeadd, timerange
+from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
@@ -95,18 +95,18 @@ class irr(PseudoNetCDFFile):
         self.__readheader()
         irr_record_type = dtype(
             dict(names=(['SPAD', 'DATE', 'TIME', 'PAGRID', 'NEST', 'I', 'J', 'K'] +
-                        ['RXN_%02d' % i for i in range(1, self.nrxns+1)] +
+                        ['RXN_%02d' % i for i in range(1, self.nrxns + 1)] +
                         ['EPAD']),
                  formats=(['>i', '>i', '>f', '>i', '>i', '>i', '>i', '>i'] +
-                          ['>f' for i in range(1, self.nrxns+1)] +
+                          ['>f' for i in range(1, self.nrxns + 1)] +
                           ['>i'])))
 
-        varkeys = [i for i in irr_record_type.names[8:-1]]+['TFLAG']
+        varkeys = [i for i in irr_record_type.names[8:-1]] + ['TFLAG']
         self.groups = defaultdict(PseudoNetCDFFile)
         padatatype = []
         pavarkeys = []
         self.createDimension('TSTEP', self.time_step_count)
-        self.createDimension('VAR',  len(varkeys)-1)
+        self.createDimension('VAR',  len(varkeys) - 1)
         self.createDimension('DATE-TIME', 2)
         for di, domain in enumerate(self._padomains):
             dk = 'PA%02d' % (di + 1)
@@ -116,17 +116,17 @@ class irr(PseudoNetCDFFile):
             for propk, propv in domain.items():
                 setattr(grp, propk, propv)
             grp.createDimension('TSTEP', self.time_step_count)
-            grp.createDimension('VAR',  len(varkeys)-1)
+            grp.createDimension('VAR',  len(varkeys) - 1)
             grp.createDimension('DATE-TIME', 2)
-            grp.createDimension('COL', domain['iend']-domain['istart']+1)
-            grp.createDimension('ROW', domain['jend']-domain['jstart']+1)
-            grp.createDimension('LAY', domain['tlay']-domain['blay']+1)
+            grp.createDimension('COL', domain['iend'] - domain['istart'] + 1)
+            grp.createDimension('ROW', domain['jend'] - domain['jstart'] + 1)
+            grp.createDimension('LAY', domain['tlay'] - domain['blay'] + 1)
             padatatype.append((dk, irr_record_type, (len(grp.dimensions['ROW']), len(
                 grp.dimensions['COL']), len(grp.dimensions['LAY']))))
             if len(self._padomains) == 1:
-                self.createDimension('COL', domain['iend']-domain['istart']+1)
-                self.createDimension('ROW', domain['jend']-domain['jstart']+1)
-                self.createDimension('LAY', domain['tlay']-domain['blay']+1)
+                self.createDimension('COL', domain['iend'] - domain['istart'] + 1)
+                self.createDimension('ROW', domain['jend'] - domain['jstart'] + 1)
+                self.createDimension('LAY', domain['tlay'] - domain['blay'] + 1)
                 for propk, propv in domain.items():
                     setattr(grp, propk, propv)
             exec("""def varget(k):
@@ -195,15 +195,15 @@ class irr(PseudoNetCDFFile):
         self.data_start_byte = self.__rffile.record_start
         self.record_fmt = self.id_fmt + str(self.nrxns) + self.data_fmt
         self.record_size = self.__rffile.record_size
-        self.padded_size = self.record_size+8
+        self.padded_size = self.record_size + 8
         domain = self._padomains[0]
-        self.records_per_time = (domain['iend']-domain['istart']+1)*(
-            domain['jend']-domain['jstart']+1)*(domain['tlay']-domain['blay']+1)
-        self.time_data_block = self.padded_size*self.records_per_time
+        self.records_per_time = (domain['iend'] - domain['istart'] + 1) * (
+            domain['jend'] - domain['jstart'] + 1) * (domain['tlay'] - domain['blay'] + 1)
+        self.time_data_block = self.padded_size * self.records_per_time
         self.time_step = 100.
 
     def timerange(self):
-        return timerange((self.start_date, self.start_time+self.time_step), timeadd((self.end_date, self.end_time), (0, self.time_step)), self.time_step)
+        return timerange((self.start_date, self.start_time + self.time_step), timeadd((self.end_date, self.end_time), (0, self.time_step)), self.time_step)
 
 
 class TestMemmap(unittest.TestCase):

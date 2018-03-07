@@ -7,7 +7,7 @@ __doc__ = """
 .. module:: Read
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` random access read for CAMx
-              point_source files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              point_source files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -18,24 +18,16 @@ ChangedBy = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
 
 # Distribution packages
-from types import GeneratorType
 import unittest
 import struct
-import sys
-import os
-import operator
-from warnings import warn
-from tempfile import TemporaryFile as tempfile
-import os
-import sys
 
 # Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype
+from numpy import zeros, array
 
 # This Package modules
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd, timerange
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into, Int2Asc, Asc2Int
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
+from PseudoNetCDF.camxfiles.timetuple import timediff, timerange
+from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into, Int2Asc
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables
 
 
 # for use in identifying uncaught nan
@@ -85,10 +77,10 @@ class point_source(PseudoNetCDFFile):
     time_hdr_fmt = "ifif"
     spc_fmt = "10i"
     nstk_hdr_fmt = "ii"
-    padded_nstk_hdr_size = struct.calcsize("ii"+nstk_hdr_fmt)
-    padded_time_hdr_size = struct.calcsize("ii"+time_hdr_fmt)
+    padded_nstk_hdr_size = struct.calcsize("ii" + nstk_hdr_fmt)
+    padded_time_hdr_size = struct.calcsize("ii" + time_hdr_fmt)
     stk_hdr_fmt = "ffffff"
-    id_fmt = "i"+spc_fmt
+    id_fmt = "i" + spc_fmt
     id_size = struct.calcsize(id_fmt)
     data_fmt = "f"
     stkprops = ['XSTK', 'YSTK', 'HSTK', 'DSTK', 'TSTK', 'VSTK']
@@ -102,14 +94,14 @@ class point_source(PseudoNetCDFFile):
         see __readheader and __gettimestep() for more info
         """
         self.rffile = OpenRecordFile(rf)
-        self.padded_time_hdr_size = struct.calcsize(self.time_hdr_fmt+"ii")
+        self.padded_time_hdr_size = struct.calcsize(self.time_hdr_fmt + "ii")
         self.__readheader()
         self.__gettimestep()
         self.__gettimeprops()
         self.createDimension('TSTEP', self.time_step_count)
         self.createDimension('STK', self.nstk)
         varkeys = ['XSTK', 'YSTK', 'HSTK', 'DSTK', 'TSTK', 'VSTK',
-                   'KCELL', 'FLOW', 'PLMHT']+[i.strip() for i in self.spcnames]
+                   'KCELL', 'FLOW', 'PLMHT'] + [i.strip() for i in self.spcnames]
         self.variables = PseudoNetCDFVariables(self.__var_get, varkeys)
 
     def __var_get(self, key):
@@ -171,18 +163,18 @@ class point_source(PseudoNetCDFFile):
         if not (self.nx, self.ny) == (nx, ny):
             raise ValueError("nx, ny defined first as %i, %i and then as %i, %i" % (
                 self.nx, self.ny, nx, ny))
-        species_temp = self.rffile.read(self.nspec*self.spc_fmt)
+        species_temp = self.rffile.read(self.nspec * self.spc_fmt)
         self.spcnames = []
-        for i in range(0, self.nspec*10, 10):
-            self.spcnames.append(Int2Asc(species_temp[i:i+10]))
+        for i in range(0, self.nspec * 10, 10):
+            self.spcnames.append(Int2Asc(species_temp[i:i + 10]))
 
         ione, self.nstk = self.rffile.read(self.nstk_hdr_fmt)
 
-        stkprms = zeros((self.nstk*len(self.stk_hdr_fmt),), 'f')
+        stkprms = zeros((self.nstk * len(self.stk_hdr_fmt),), 'f')
         read_into(self.rffile, stkprms, '')
         self.rffile.next()
         # self.rffile.previous()
-        # self.tmplist=self.rffile.read('ffffff'*self.nstk)
+        # self.tmplist=self.rffile.read('ffffff' * self.nstk)
 
         stkprms = stkprms.reshape((self.nstk, len(self.stk_hdr_fmt)))
         for i in range(stkprms.shape[0]):
@@ -197,15 +189,15 @@ class point_source(PseudoNetCDFFile):
             (self.start_date, self.start_time), (end_date, end_time))
         #self.end_time += self.time_step
         self.time_step_count = int(timediff((self.start_date, self.start_time), (
-            self.end_date, self.end_time), (2400, 24)[int(self.time_step % 2)])/self.time_step)
+            self.end_date, self.end_time), (2400, 24)[int(self.time_step % 2)]) / self.time_step)
 
-        self.stk_time_prop_fmt = ""+("iiiff"*self.nstk)
+        self.stk_time_prop_fmt = "" + ("iiiff" * self.nstk)
         self.padded_stk_time_prop_size = struct.calcsize(
-            "ii"+self.stk_time_prop_fmt)
+            "ii" + self.stk_time_prop_fmt)
 
-        self.record_fmt = ("i10i")+self.data_fmt*(self.nstk)
+        self.record_fmt = ("i10i") + self.data_fmt * (self.nstk)
         self.record_size = struct.calcsize(self.record_fmt)
-        self.padded_size = self.record_size+8
+        self.padded_size = self.record_size + 8
 
     def __gettimestep(self):
         """
@@ -237,15 +229,15 @@ class point_source(PseudoNetCDFFile):
         d, t = dt
         nsteps = int(timediff((self.start_date, self.start_time),
                               (d, t), (2400, 24)[int(self.time_step % 2)]))
-        nspec = self.__spcrecords(self.nspec+1)
-        return nsteps*(nspec)
+        nspec = self.__spcrecords(self.nspec + 1)
+        return nsteps * (nspec)
 
     def __spcrecords(self, spc):
         """
         Calculated number of records before spc
         """
 
-        return spc-1
+        return spc - 1
 
     def __recordposition(self, date, time, spc, offset=False):
         """
@@ -257,14 +249,14 @@ class point_source(PseudoNetCDFFile):
         spc - integer
         """
         ntime = self.__timerecords((date, time))
-        nhdr = ((ntime//self.__spcrecords(self.nspec+1))+1)
+        nhdr = ((ntime // self.__spcrecords(self.nspec + 1)) + 1)
         nspc = self.__spcrecords(spc)
         noffset = -abs(int(offset))
         byte = self.data_start_byte
-        byte += nhdr*(self.padded_time_hdr_size +
-                      self.padded_nstk_hdr_size+self.padded_stk_time_prop_size)
-        byte += (ntime+nspc)*self.padded_size
-        byte += noffset*self.padded_stk_time_prop_size
+        byte += nhdr * (self.padded_time_hdr_size +
+                      self.padded_nstk_hdr_size + self.padded_stk_time_prop_size)
+        byte += (ntime + nspc) * self.padded_size
+        byte += noffset * self.padded_stk_time_prop_size
         return byte
 
     def seek(self, date=None, time=None, spc=-1, offset=False):
@@ -321,7 +313,7 @@ class point_source(PseudoNetCDFFile):
 
     def keys(self):
         for ti, (d, t) in enumerate(self.timerange()):
-            for spc in range(1, len(self.spcnames)+1):
+            for spc in range(1, len(self.spcnames) + 1):
                 yield d, t, spc
 
     __iter__ = keys
@@ -329,8 +321,8 @@ class point_source(PseudoNetCDFFile):
     def getArray(self):
         a = zeros((self.time_step_count, self.nspec, self.nstk), 'f')
         for ti, (d, t) in enumerate(self.timerange()):
-            for spc in range(1, len(self.spcnames)+1):
-                self.seekandreadinto(a[ti, spc-1, ...], d, t, spc)
+            for spc in range(1, len(self.spcnames) + 1):
+                self.seekandreadinto(a[ti, spc - 1, ...], d, t, spc)
         return a.copy()
 
     def timerange(self):

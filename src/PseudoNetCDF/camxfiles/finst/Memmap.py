@@ -8,7 +8,7 @@ __doc__ = """
 .. module:: Memmap
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx fine
-              instantaneus/avg files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              instantaneus/avg files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -24,12 +24,10 @@ import unittest
 import struct
 
 # Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype, nan, fromfile
+from numpy import zeros, memmap, dtype, fromfile
 
 # This Package modules
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd
 from PseudoNetCDF.camxfiles.units import get_uamiv_units
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, Int2Asc
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
@@ -70,7 +68,7 @@ class finst(PseudoNetCDFFile):
     __messagefmt = '>240S'
     __nestspcfmt = dtype(dict(names=['nnest', 'nspec'], formats=['>i', '>i']))
     __nestparmsfmt = dtype(dict(names=['SPAD', 'ibeg', 'jbeg', 'iend', 'jend', 'mesh',
-                                       'ione', 'nx', 'ny', 'nz', 'iparent', 'ilevel', 'EPAD'], formats=['>i']*13))
+                                       'ione', 'nx', 'ny', 'nz', 'iparent', 'ilevel', 'EPAD'], formats=['>i'] * 13))
     __time_hdr_fmt = dtype(dict(names=['time', 'date'], formats=['>f', '>i']))
     __spc_fmt = dtype(">10S")
     __ione = 1
@@ -104,7 +102,7 @@ class finst(PseudoNetCDFFile):
 
         # Create variables
         self.variables = PseudoNetCDFVariables(
-            self.__variables, self.__var_names__+['TFLAG'])
+            self.__variables, self.__var_names__ + ['TFLAG'])
 
         # Initialize time maps
         date = self.__memmap__['DATE']['DATE']
@@ -122,8 +120,8 @@ class finst(PseudoNetCDFFile):
     def __readheader(self, mode):
         start = 0
         end = 0
-        # start+=self.__buffersize
-        # end=self.__messagefmt.itemsize/4
+        # start += self.__buffersize
+        # end=self.__messagefmt.itemsize / 4
         # self.MESSAGE=self.__memmap__[start:end].view(self.__messagefmt)
         f = open(self.__rffile)
         f.seek(92)
@@ -132,7 +130,7 @@ class finst(PseudoNetCDFFile):
 
         self.SPECIES = fromfile(f, self.__spc_fmt, self.NSPEC)
 
-        offset = f.tell()+4
+        offset = f.tell() + 4
         f.close()
         del f
         self.__var_names__ = [i.strip() for i in self.SPECIES.tolist()]
@@ -140,7 +138,7 @@ class finst(PseudoNetCDFFile):
         self.NEST_PARMS = memmap(
             self.__rffile, dtype=self.__nestparmsfmt, mode=mode, offset=offset, shape=self.NNEST)
 
-        offset += self.__nestparmsfmt.itemsize*self.NNEST
+        offset += self.__nestparmsfmt.itemsize * self.NNEST
 
         date_fmt = dtype(
             dict(names=['SPAD', 'TIME', 'DATE', 'EPAD'], formats=['>i', '>f', '>i', '>i']))
@@ -152,10 +150,10 @@ class finst(PseudoNetCDFFile):
         grid_fmt = []
         for i in range(self.NNEST):
             grid_fmt.append(dtype(dict(names=self.__var_names__, formats=[dtype(
-                (spc_1_lay_fmt[i], (int(self.NEST_PARMS[i]['nz']), )))]*self.NSPEC)))
+                (spc_1_lay_fmt[i], (int(self.NEST_PARMS[i]['nz']), )))] * self.NSPEC)))
 
         self.__memmap__ = memmap(self.__rffile, mode=mode, offset=offset, dtype=dtype(dict(
-            names=['DATE']+['grid%d' % i for i in range(self.NNEST)], formats=[date_fmt]+grid_fmt)))
+            names=['DATE'] + ['grid%d' % i for i in range(self.NNEST)], formats=[date_fmt] + grid_fmt)))
 
         ntimes = self.__memmap__.shape[0]
         if int(ntimes) != ntimes:

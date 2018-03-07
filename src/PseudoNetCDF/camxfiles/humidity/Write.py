@@ -7,7 +7,7 @@ __doc__ = """
 .. module:: Write
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` writer for CAMx
-              humidity files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              humidity files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """

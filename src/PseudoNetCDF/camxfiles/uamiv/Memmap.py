@@ -7,7 +7,7 @@ __doc__ = """
 .. module:: Memmap
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx
-              uamiv files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              uamiv files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -19,15 +19,12 @@ __version__ = RevisionNum
 
 # Distribution packages
 import unittest
-import struct
 from warnings import warn
 
 # Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype, nan, linspace
+from numpy import array, memmap, dtype, linspace
 
 # This Package modules
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoIOAPIVariable, PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 from PseudoNetCDF.camxfiles.units import get_uamiv_units, get_chemparam_names
@@ -193,7 +190,7 @@ class uamiv(PseudoNetCDFFile):
         self.__emiss_hdr = memmap(
             self.__rffile, mode=self.__mode, dtype=self.__emiss_hdr_fmt, shape=1, offset=offset)
         nspec = self.__emiss_hdr['nspec'][0]
-        offset += self.__emiss_hdr.dtype.itemsize*self.__emiss_hdr.size
+        offset += self.__emiss_hdr.dtype.itemsize * self.__emiss_hdr.size
 
         self.__grid_hdr = memmap(
             self.__rffile, mode=self.__mode, dtype=self.__grid_hdr_fmt, shape=1, offset=offset)
@@ -236,24 +233,24 @@ class uamiv(PseudoNetCDFFile):
         ny = self.__grid_hdr['ny'][0]
         nz = max(self.__grid_hdr['nz'], array([1]))[0]
 
-        offset += self.__grid_hdr.dtype.itemsize*self.__grid_hdr.size
+        offset += self.__grid_hdr.dtype.itemsize * self.__grid_hdr.size
         self.__cell_hdr = memmap(
             self.__rffile, mode=self.__mode, dtype=self.__cell_hdr_fmt, shape=1, offset=offset)
 
-        offset += self.__cell_hdr.dtype.itemsize*self.__cell_hdr.size+4
+        offset += self.__cell_hdr.dtype.itemsize * self.__cell_hdr.size + 4
         self.__spc_hdr = memmap(self.__rffile, mode=self.__mode,
                                 dtype=self.__spc_fmt, shape=nspec, offset=offset)
 
-        offset += self.__spc_hdr.dtype.itemsize*self.__spc_hdr.size+4
+        offset += self.__spc_hdr.dtype.itemsize * self.__spc_hdr.size + 4
 
         date_time_fmt = dtype(dict(names=['SPAD', 'BDATE', 'BTIME', 'EDATE', 'ETIME', 'EPAD'], formats=[
                               ep + 'i', ep + 'i', ep + 'f', ep + 'i', ep + 'f', ep + 'i']))
         date_time_block_size = 6
         spc_1_lay_fmt = dtype(dict(names=['SPAD', 'IONE', 'SPC', 'DATA', 'EPAD'], formats=[
                               ep + 'i', ep + 'i', '(10,4)%sS1' % ep, '(%d,%d)%sf' % (ny, nx, ep), ep + 'i']))
-        spc_1_lay_block_size = 13+nx*ny
+        spc_1_lay_block_size = 13 + nx * ny
         spc_3d_fmt = dtype((spc_1_lay_fmt, (nz,)))
-        spc_3d_block_size = spc_1_lay_block_size*nz
+        spc_3d_block_size = spc_1_lay_block_size * nz
 
         # Get species names from spc_hdr
         var_names = [spc[:, 0].copy().view('S10')[0] for spc in self.__spc_hdr]
@@ -262,15 +259,15 @@ class uamiv(PseudoNetCDFFile):
         self.__var_names__ = [''.join(v).strip() for v in var_names]
 
         data_block_fmt = dtype(dict(
-            names=['DATE']+self.__var_names__, formats=[date_time_fmt]+[spc_3d_fmt]*nspec))
+            names=['DATE'] + self.__var_names__, formats=[date_time_fmt] + [spc_3d_fmt] * nspec))
 
-        data_block_size = date_time_block_size+nspec*nz*spc_1_lay_block_size
+        data_block_size = date_time_block_size + nspec * nz * spc_1_lay_block_size
         f = open(self.__rffile)
         f.seek(0, 2)
         size = f.tell()
         f.close()
         del f
-        ntimes = float(size-offset)/4./data_block_size
+        ntimes = float(size - offset) / 4. / data_block_size
         if int(ntimes) != ntimes:
             raise ValueError(
                 "Partial time output (%f times); partial time indicates incomplete file." % ntimes)

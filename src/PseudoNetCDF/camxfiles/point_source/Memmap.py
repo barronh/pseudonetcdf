@@ -22,13 +22,11 @@ __version__ = RevisionNum
 # Distribution packages
 import unittest
 import struct
-from warnings import warn
+
 # Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype, nan
+from numpy import zeros, array, memmap, dtype
 import numpy as np
 # This Package modules
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
@@ -94,26 +92,26 @@ class point_source(PseudoNetCDFFile):
         for key, val in kwds.items():
             setattr(self, key, val)
 
-        self.__memmap = memmap(self.__rffile, ep+'f', mode)
+        self.__memmap = memmap(self.__rffile, ep + 'f', mode)
         self.__emiss_hdr_fmt = dtype(dict(names=['SPAD', 'name', 'note', 'itzon', 'nspec', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[
-                                     ep+'i', ep+'(10,4)S1', ep+'(60,4)S1', ep+'i', ep+'i', ep+'i', ep+'f', ep+'i', ep+'f', ep+'i']))
+                                     ep + 'i', ep + '(10,4)S1', ep + '(60,4)S1', ep + 'i', ep + 'i', ep + 'i', ep + 'f', ep + 'i', ep + 'f', ep + 'i']))
         self.__grid_hdr_fmt = dtype(dict(names=['SPAD', 'plon', 'plat', 'iutm', 'xorg', 'yorg', 'delx', 'dely', 'nx', 'ny', 'nz', 'iproj', 'istag', 'tlat1', 'tlat2', 'rdum5', 'EPAD'], formats=[
-                                    ep+'i', ep+'f', ep+'f', ep+'i', ep+'f', ep+'f', ep+'f', ep+'f', ep+'i', ep+'i', ep+'i', ep+'i', ep+'i', ep+'f', ep+'f', ep+'f', ep+'i']))
+                                    ep + 'i', ep + 'f', ep + 'f', ep + 'i', ep + 'f', ep + 'f', ep + 'f', ep + 'f', ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'f', ep + 'f', ep + 'f', ep + 'i']))
         self.__cell_hdr_fmt = dtype(dict(names=['SPAD', 'ione1', 'ione2', 'nx', 'ny', 'EPAD'], formats=[
-                                    ep+'i', ep+'i', ep+'i', ep+'i', ep+'i', ep+'i']))
-        self.__spc_hdr_fmt = dtype('(10,4)'+ep+'S1')
+                                    ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'i']))
+        self.__spc_hdr_fmt = dtype('(10,4)' + ep + 'S1')
         self.__time_hdr_fmt = dtype(dict(names=['SPAD', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[
-                                    ep+'i', ep+'i', ep+'f', ep+'i', ep+'f', ep+'i']))
+                                    ep + 'i', ep + 'i', ep + 'f', ep + 'i', ep + 'f', ep + 'i']))
         self.__nstk_hdr_fmt = dtype(dict(names=['SPAD', 'ione', 'nstk', 'EPAD'], formats=[
-                                    ep+'i', ep+'i', ep+'i', ep+'i']))
+                                    ep + 'i', ep + 'i', ep + 'i', ep + 'i']))
         self.__stk_prop_fmt = dtype(dict(names=['XSTK', 'YSTK', 'HSTK', 'DSTK', 'TSTK', 'VSTK'], formats=[
-                                    ep+'f', ep+'f', ep+'f', ep+'f', ep+'f', ep+'f']))
+                                    ep + 'f', ep + 'f', ep + 'f', ep + 'f', ep + 'f', ep + 'f']))
         self.__stk_time_prop_fmt = dtype(dict(names=['IONE', 'ITWO', 'KCELL', 'FLOW', 'PLMHT'], formats=[
-                                         ep+'i', ep+'i', ep+'f', ep+'f', ep+'f']))
+                                         ep + 'i', ep + 'i', ep + 'f', ep + 'f', ep + 'f']))
 
         self.__globalheader()
         varkeys = ['ETFLAG', 'TFLAG', 'XSTK', 'YSTK', 'HSTK', 'DSTK', 'TSTK', 'VSTK', 'IONE',
-                   'ITWO', 'KCELL', 'FLOW', 'PLMHT', 'NSTKS']+[i.strip() for i in self.__spc_names]
+                   'ITWO', 'KCELL', 'FLOW', 'PLMHT', 'NSTKS'] + [i.strip() for i in self.__spc_names]
         self.SPC_NAMES = ''.join([s.ljust(16) for s in self.__spc_names])
         setattr(self, 'VAR-LIST', "".join([i.ljust(16) for i in varkeys]))
         self.variables = PseudoNetCDFVariables(self.__variables, varkeys)
@@ -130,13 +128,13 @@ class point_source(PseudoNetCDFFile):
         offset = 0
 
         self.__emiss_hdr = self.__memmap[offset:offset +
-                                         self.__emiss_hdr_fmt.itemsize//4].view(self.__emiss_hdr_fmt)
-        offset += self.__emiss_hdr.nbytes//4
+                                         self.__emiss_hdr_fmt.itemsize // 4].view(self.__emiss_hdr_fmt)
+        offset += self.__emiss_hdr.nbytes // 4
         assert((self.__emiss_hdr['SPAD'] == self.__emiss_hdr['EPAD']).all())
 
         self.__grid_hdr = self.__memmap[offset:offset +
-                                        self.__grid_hdr_fmt.itemsize//4].view(self.__grid_hdr_fmt)
-        offset += self.__grid_hdr.nbytes//4
+                                        self.__grid_hdr_fmt.itemsize // 4].view(self.__grid_hdr_fmt)
+        offset += self.__grid_hdr.nbytes // 4
 
         assert((self.__grid_hdr['SPAD'] == self.__grid_hdr['EPAD']).all())
         self.NAME = self.__emiss_hdr['name'][0, :, 0].copy().view('S10')[
@@ -158,16 +156,16 @@ class point_source(PseudoNetCDFFile):
         self.ISTAG = istag = self.__grid_hdr['istag'][0]
         self.CPROJ = cproj = self.__grid_hdr['iproj'][0]
         self.__cell_hdr = self.__memmap[offset:offset +
-                                        self.__cell_hdr_fmt.itemsize//4].view(self.__cell_hdr_fmt)
-        offset += self.__cell_hdr.nbytes//4+1
+                                        self.__cell_hdr_fmt.itemsize // 4].view(self.__cell_hdr_fmt)
+        offset += self.__cell_hdr.nbytes // 4 + 1
         assert((self.__cell_hdr['SPAD'] == self.__cell_hdr['EPAD']).all())
 
         nspec = self.__emiss_hdr['nspec'][0]
         self.ITZON = self.__emiss_hdr['itzon'][0]
 
-        self.__spc_hdr = self.__memmap[offset:offset+self.__spc_hdr_fmt.itemsize //
-                                       4*nspec].view(ep+'S1').reshape(nspec, 10, 4)
-        offset += self.__spc_hdr.nbytes//4+1
+        self.__spc_hdr = self.__memmap[offset:offset + self.__spc_hdr_fmt.itemsize //
+                                       4 * nspec].view(ep + 'S1').reshape(nspec, 10, 4)
+        offset += self.__spc_hdr.nbytes // 4 + 1
 
         spc_names = [np.char.strip(spc[:, 0].copy().view('S10'))[
             0] for spc in self.__spc_hdr]
@@ -175,16 +173,16 @@ class point_source(PseudoNetCDFFile):
                      else spc for spc in spc_names]
         self.__spc_names = spc_names
         self.__nstk_hdr = self.__memmap[offset:offset +
-                                        self.__nstk_hdr_fmt.itemsize//4].view(self.__nstk_hdr_fmt)
-        offset += self.__nstk_hdr.nbytes//4+1
+                                        self.__nstk_hdr_fmt.itemsize // 4].view(self.__nstk_hdr_fmt)
+        offset += self.__nstk_hdr.nbytes // 4 + 1
         assert((self.__nstk_hdr['SPAD'] == self.__nstk_hdr['EPAD']).all())
 
         nstk = self.__nstk_hdr['nstk'][0]
         self.createDimension('NSTK', nstk)
 
-        self.__stk_props = self.__memmap[offset:offset+self.__stk_prop_fmt.itemsize//4*nstk].reshape(
-            nstk, self.__stk_prop_fmt.itemsize//4).view(self.__stk_prop_fmt)
-        offset += self.__stk_props.nbytes//4+1
+        self.__stk_props = self.__memmap[offset:offset + self.__stk_prop_fmt.itemsize // 4 * nstk].reshape(
+            nstk, self.__stk_prop_fmt.itemsize // 4).view(self.__stk_prop_fmt)
+        offset += self.__stk_props.nbytes // 4 + 1
 
         self.__data_start = offset
 
@@ -203,43 +201,43 @@ class point_source(PseudoNetCDFFile):
         nstks = len(self.dimensions['NSTK'])
         date_block_size = 6
         stk_block_size = 4
-        stk_props_size = 2+nstks*5
-        emiss_block_size = nspcs*(nstks+13)
-        hour_block_size = date_block_size+stk_block_size+stk_props_size+emiss_block_size
+        stk_props_size = 2 + nstks * 5
+        emiss_block_size = nspcs * (nstks + 13)
+        hour_block_size = date_block_size + stk_block_size + stk_props_size + emiss_block_size
         data = self.__memmap[self.__data_start:]
-        data = data.reshape(data.size//hour_block_size, hour_block_size)
+        data = data.reshape(data.size // hour_block_size, hour_block_size)
         ntimes = data.shape[0]
         self.createDimension('TSTEP', ntimes)
         self.createDimension('DATE-TIME', 2)
         start = 0
         end = date_block_size
         date_times = data[:, start:end]
-        dates = date_times[:, [1, 3]].view(ep+'i')
+        dates = date_times[:, [1, 3]].view(ep + 'i')
         times = date_times[:, [2, 4]]
 
         start = end
-        end = start+stk_block_size
-        nstk_hdr = data[:, start:end].view(ep+'i')
+        end = start + stk_block_size
+        nstk_hdr = data[:, start:end].view(ep + 'i')
         if not (nstks == nstk_hdr[:, 2:3]).all():
             raise ValueError("Number of stacks varies with time")
         start = end
-        end = start+stk_props_size
+        end = start + stk_props_size
         self.__hourly_stk_props = data[:,
                                        start:end][:, 1:-1].reshape(ntimes, nstks, 5)
 
         start = end
-        end = start+emiss_block_size
+        end = start + emiss_block_size
         if not end == data.shape[1]:
             raise ValueError("Incorrect shape")
         self.__emiss_data = data[:, start:].reshape(
-            ntimes, nspcs, 13+nstks)[:, :, 12:-1]
+            ntimes, nspcs, 13 + nstks)[:, :, 12:-1]
         bdates = dates[:, 0]
         btimes = times[:, 0]
         edates = dates[:, 1]
         etimes = times[:, 1]
         self.NSTEPS = ntimes
 
-        self.createDimension('VAR', len(self.__spc_names)+3)
+        self.createDimension('VAR', len(self.__spc_names) + 3)
 
         self.variables['TFLAG'] = ConvertCAMxTime(
             bdates, btimes, len(self.dimensions['VAR']))

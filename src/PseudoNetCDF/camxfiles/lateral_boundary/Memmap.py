@@ -7,7 +7,7 @@ __doc__ = """
 .. module:: Memmap
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx
-              lateral_boundary files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              lateral_boundary files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -22,11 +22,9 @@ import unittest
 import struct
 
 # Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype, nan, testing
+from numpy import zeros, array, memmap, dtype, testing
 
 # This Package modules
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoIOAPIVariable, PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 from PseudoNetCDF.camxfiles.units import get_uamiv_units
@@ -110,7 +108,7 @@ class lateral_boundary(PseudoNetCDFFile):
         nvars = self.NVARS = len(self.dimensions['VAR'])
         nsteps = self.NSTEPS = len(self.dimensions['TSTEP'])
         setattr(self, 'VAR-LIST', "".join([i.ljust(16)
-                                           for i in self.__var_names__]+['TFLAG'.ljust(16)]))
+                                           for i in self.__var_names__] + ['TFLAG'.ljust(16)]))
         self.GDTYP = 2
         name = self.__emiss_hdr['name'][0, :, 0].copy().view('S10')[0]
         note = self.__emiss_hdr['note'][0, :, 0].copy().view('S60')[0]
@@ -124,7 +122,7 @@ class lateral_boundary(PseudoNetCDFFile):
 
         # Create variables
         self.variables = PseudoNetCDFVariables(
-            self.__variables, self.__var_names__+['TFLAG', 'ETFLAG'])
+            self.__variables, self.__var_names__ + ['TFLAG', 'ETFLAG'])
         self.variables['TFLAG'] = ConvertCAMxTime(
             self.__memmap__['DATE']['BDATE'], self.__memmap__['DATE']['BTIME'], self.NVARS)
         self.variables['ETFLAG'] = ConvertCAMxTime(
@@ -144,7 +142,7 @@ class lateral_boundary(PseudoNetCDFFile):
         self.__emiss_hdr = memmap(
             self.__rffile, mode=self.__mode, dtype=self.__emiss_hdr_fmt, shape=1, offset=offset)
         nspec = self.__emiss_hdr['nspec'][0]
-        offset += self.__emiss_hdr.dtype.itemsize*self.__emiss_hdr.size
+        offset += self.__emiss_hdr.dtype.itemsize * self.__emiss_hdr.size
 
         self.__grid_hdr = memmap(
             self.__rffile, mode=self.__mode, dtype=self.__grid_hdr_fmt, shape=1, offset=offset)
@@ -185,15 +183,15 @@ class lateral_boundary(PseudoNetCDFFile):
         ny = self.__grid_hdr['ny'][0]
         nz = max(self.__grid_hdr['nz'], array([1]))[0]
 
-        offset += self.__grid_hdr.dtype.itemsize*self.__grid_hdr.size
+        offset += self.__grid_hdr.dtype.itemsize * self.__grid_hdr.size
         self.__cell_hdr = memmap(
             self.__rffile, mode=self.__mode, dtype=self.__cell_hdr_fmt, shape=1, offset=offset)
 
-        offset += self.__cell_hdr.dtype.itemsize*self.__cell_hdr.size+4
+        offset += self.__cell_hdr.dtype.itemsize * self.__cell_hdr.size + 4
         self.__spc_hdr = memmap(self.__rffile, mode=self.__mode,
                                 dtype=self.__spc_fmt, shape=nspec, offset=offset)
 
-        offset += self.__spc_hdr.dtype.itemsize*self.__spc_hdr.size+4
+        offset += self.__spc_hdr.dtype.itemsize * self.__spc_hdr.size + 4
         self._boundary_def = {}
         for bkey, bdim in [('WEST', ny), ('EAST', ny), ('SOUTH', nx), ('NORTH', nx)]:
             __bound_fmt = dtype(dict(names=['SPAD', 'ione', 'iedge', 'ncell', 'edgedata', 'EPAD'], formats=[
@@ -222,19 +220,19 @@ class lateral_boundary(PseudoNetCDFFile):
         self.__spc_names__ = [spc.strip() for spc in spc_names]
         for spc in self.__spc_names__:
             for bkey in ['WEST_', 'EAST_', 'SOUTH_', 'NORTH_']:
-                self.__var_names__.append(bkey+spc)
+                self.__var_names__.append(bkey + spc)
 
         spc_lat_block_size = spc_lat_fmt.itemsize // 4
         data_block_fmt = dtype(dict(
-            names=['DATE']+self.__spc_names__, formats=[date_time_fmt]+[spc_lat_fmt]*nspec))
+            names=['DATE'] + self.__spc_names__, formats=[date_time_fmt] + [spc_lat_fmt] * nspec))
 
-        data_block_size = date_time_block_size+nspec*spc_lat_block_size
+        data_block_size = date_time_block_size + nspec * spc_lat_block_size
         f = open(self.__rffile)
         f.seek(0, 2)
         size = f.tell()
         f.close()
         del f
-        ntimes = float(size-offset)//4.//data_block_size
+        ntimes = float(size - offset) // 4. // data_block_size
         if int(ntimes) != ntimes:
             raise ValueError("Not an even number of times %f" % ntimes)
         ntimes = int(ntimes)
@@ -242,7 +240,7 @@ class lateral_boundary(PseudoNetCDFFile):
         self.createDimension('COL', nx)
         self.createDimension('ROW', ny)
         self.createDimension('TSTEP', ntimes)
-        self.createDimension('VAR', nspec*4)
+        self.createDimension('VAR', nspec * 4)
 
         self.__memmap__ = memmap(
             self.__rffile, mode=self.__mode, dtype=data_block_fmt, offset=offset)
@@ -250,7 +248,7 @@ class lateral_boundary(PseudoNetCDFFile):
     def __variables(self, k):
         spc_index = self.__var_names__.index(k)
         edgename = k.split('_')[0]
-        spcname = k[len(edgename)+1:]
+        spcname = k[len(edgename) + 1:]
         if edgename in ('WEST', 'EAST'):
             dimensions = ('TSTEP', 'ROW', 'LAY')
         else:
@@ -292,7 +290,6 @@ class TestMemmap(unittest.TestCase):
 
     def testNCF2LB(self):
         import PseudoNetCDF.testcase
-        from PseudoNetCDF.camxfiles.Writers import ncf2lateral_boundary
         from PseudoNetCDF.pncgen import pncgen
         import os
         inpath = PseudoNetCDF.testcase.camxfiles_paths['lateral_boundary']

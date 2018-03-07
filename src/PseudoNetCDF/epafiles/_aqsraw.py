@@ -48,7 +48,7 @@ class aqsraw(PseudoNetCDFFile):
             from shapely.geometry import Point
         bdate = getbdate(bdate)
         edate = getedate(edate)
-        nseconds = {'hourly': 3600, 'daily': 3600*24}[timeresolution]
+        nseconds = {'hourly': 3600, 'daily': 3600 * 24}[timeresolution]
         tunit = {'hourly': 'hours', 'daily': 'days'}[timeresolution]
 
         if sampleval is None:

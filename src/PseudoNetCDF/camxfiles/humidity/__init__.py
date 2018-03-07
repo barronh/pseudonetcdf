@@ -5,7 +5,7 @@ __doc__ = """
 
 .. module:: humidity
    :platform: Unix, Windows
-   :synopsis: Provides :ref:`PseudoNetCDF` memory map and random access read 
+   :synopsis: Provides :ref:`PseudoNetCDF` memory map and random access read
    based file interfaces for CAMx humidity files.
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """

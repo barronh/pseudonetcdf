@@ -8,7 +8,7 @@ __doc__ = """
 .. module:: Read
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` random access read for CAMx
-              uamiv files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              uamiv files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -19,26 +19,18 @@ ChangedBy = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
 
 # Distribution packages
-from types import GeneratorType
 import unittest
 import struct
-import sys
-import os
-import operator
-from warnings import warn
-from tempfile import TemporaryFile as tempfile
-import os
-import sys
 
 # Site-Packages
-from numpy import zeros, array, where, memmap, newaxis, dtype, fromfile
+from numpy import zeros, array, newaxis
 
 # This Package modules
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd, timerange
+from PseudoNetCDF.camxfiles.timetuple import timediff, timerange
 from PseudoNetCDF.camxfiles.util import sliceit
 from PseudoNetCDF.camxfiles.units import get_uamiv_units, get_chemparam_names
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into, Int2Asc, Asc2Int
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoIOAPIVariable, PseudoNetCDFVariables
+from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into, Int2Asc
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables
 
 
 # for use in identifying uncaught nan
@@ -81,7 +73,7 @@ class uamiv(PseudoNetCDFFile):
     cell_hdr_fmt = "iiii"
     time_hdr_fmt = "ifif"
     spc_fmt = "10i"
-    id_fmt = "i"+spc_fmt
+    id_fmt = "i" + spc_fmt
     id_size = struct.calcsize(id_fmt)
     data_fmt = "f"
     ione = 1
@@ -102,7 +94,7 @@ class uamiv(PseudoNetCDFFile):
         else:
             self._aerosol_names = get_chemparam_names(chemparam)
 
-        self.padded_time_hdr_size = struct.calcsize(self.time_hdr_fmt+"ii")
+        self.padded_time_hdr_size = struct.calcsize(self.time_hdr_fmt + "ii")
         self.__readheader()
         self.__gettimestep()
         self.dimensions = {}
@@ -181,10 +173,10 @@ class uamiv(PseudoNetCDFFile):
         if not (self.nx, self.ny) == (nx, ny):
             raise ValueError("nx, ny defined first as %i, %i and then as %i, %i" % (
                 self.nx, self.ny, nx, ny))
-        species_temp = self.rffile.read(self.nspec*self.spc_fmt)
+        species_temp = self.rffile.read(self.nspec * self.spc_fmt)
         self.spcnames = []
-        for i in range(0, self.nspec*10, 10):
-            self.spcnames.append(Int2Asc(species_temp[i:i+10]))
+        for i in range(0, self.nspec * 10, 10):
+            self.spcnames.append(Int2Asc(species_temp[i:i + 10]))
 
         self.data_start_byte = self.rffile.record_start
         start_date, start_time, end_date, end_time = self.rffile.read(
@@ -192,15 +184,15 @@ class uamiv(PseudoNetCDFFile):
         self.time_step = timediff(
             (start_date, start_time), (end_date, end_time))
         self.time_step_count = int(timediff((self.start_date, self.start_time), (
-            self.end_date, self.end_time), (2400, 24)[int(self.time_step % 2)])//self.time_step)
+            self.end_date, self.end_time), (2400, 24)[int(self.time_step % 2)]) // self.time_step)
         if self.name == 'AIRQUALITY':
             self.time_step_count = 1
             self.start_date = self.end_date
         self.record_size = self.rffile.record_size
-        self.padded_size = self.record_size+8
-        self.cell_count = (self.record_size-struct.calcsize("i10i")
-                           )//struct.calcsize(self.data_fmt)
-        self.record_fmt = ("i10i")+self.data_fmt*(self.cell_count)
+        self.padded_size = self.record_size + 8
+        self.cell_count = (self.record_size - struct.calcsize("i10i")
+                           ) // struct.calcsize(self.data_fmt)
+        self.record_fmt = ("i10i") + self.data_fmt * (self.cell_count)
 
     def __gettimestep(self):
         """
@@ -216,20 +208,20 @@ class uamiv(PseudoNetCDFFile):
         """
         d, t = dt
         nsteps = int(
-            timediff((self.start_date, self.start_time), (d, t))/self.time_step)
-        nspec = self.__spcrecords(self.nspec+1)
-        return nsteps*nspec
+            timediff((self.start_date, self.start_time), (d, t)) / self.time_step)
+        nspec = self.__spcrecords(self.nspec + 1)
+        return nsteps * nspec
 
     def __layerrecords(self, k):
         """Calculate the number of records to increment to reach layer k
         """
-        return k-1
+        return k - 1
 
     def __spcrecords(self, spc):
         """
         Calculated number of records before spc
         """
-        return (spc-1)*self.__layerrecords(self.nlayers+1)
+        return (spc - 1) * self.__layerrecords(self.nlayers + 1)
 
     def __recordposition(self, date, time, spc, k):
         """
@@ -243,13 +235,13 @@ class uamiv(PseudoNetCDFFile):
         """
         ntime = self.__timerecords((date, time))
         nk = self.__layerrecords(k)
-        nid = ntime//self.nspec//self.nlayers
+        nid = ntime // self.nspec // self.nlayers
         nspec = 0
         if spc != 0:
             nid += 1
             nspec = self.__spcrecords(spc)
 
-        return self.data_start_byte+(nspec+nk+ntime)*self.padded_size+nid*self.padded_time_hdr_size
+        return self.data_start_byte + (nspec + nk + ntime) * self.padded_size + nid * self.padded_time_hdr_size
 
     def seek(self, date=None, time=None, spc=-1, k=0, chkvar=True):
         """
@@ -311,7 +303,7 @@ class uamiv(PseudoNetCDFFile):
     def keys(self):
         for d, t in self.timerange():
             for spc in range(len(self.spcnames)):
-                for k in range(1, self.nlayers+1):
+                for k in range(1, self.nlayers + 1):
                     yield d, t, spc, k
     __iter__ = keys
 
@@ -320,7 +312,7 @@ class uamiv(PseudoNetCDFFile):
 
     def getArray(self, krange=slice(1, None), nspec=slice(None), nx=slice(None), ny=slice(None)):
         """Method takes slice arguments. Alternatively, takes a hashable object
-        with 2 values (e.g., the list: [0,3]). 
+        with 2 values (e.g., the list: [0,3]).
         Arguments:
         krange    vertical slice (1 indexed)
         nspec     species  slice (0 indexed)
@@ -336,13 +328,13 @@ class uamiv(PseudoNetCDFFile):
             (
                 self.time_step_count,
                 len(range(*nspec.indices(self.nspec))),
-                len(range(*krange.indices(self.nlayers+1))),
+                len(range(*krange.indices(self.nlayers + 1))),
                 self.ny,
                 self.nx), 'f')
 
         for ti, (d, t) in enumerate(self.timerange()):
             for sidx, spc in enumerate(range(*nspec.indices(self.nspec))):
-                for kidx, k in enumerate(range(*krange.indices(self.nlayers+1))):
+                for kidx, k in enumerate(range(*krange.indices(self.nlayers + 1))):
                     self.seekandreadinto(a[ti, sidx, kidx, ...], d, t, spc, k)
 
         return a[..., ny, nx]

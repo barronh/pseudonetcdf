@@ -1,5 +1,5 @@
 from ..sci_var import PseudoNetCDFFile
-from numpy import array, dtype, fromstring, newaxis, vectorize
+from numpy import dtype, fromstring, newaxis, vectorize
 from datetime import timedelta, datetime
 
 
@@ -18,7 +18,7 @@ def box_model_conc(conc_path, start_datetime):
     spc_names = [spc_name.strip() for spc_name in lines[0][:-1].split('\t')]
     data_block = ''.join(lines[1:])
 
-    line_format = dtype(dict(names=spc_names, formats=['f']*len(spc_names)))
+    line_format = dtype(dict(names=spc_names, formats=['f'] * len(spc_names)))
     conc = fromstring(data_block, dtype='f', sep='\t').view(line_format)
 
     result = PseudoNetCDFFile()
@@ -61,7 +61,7 @@ def box_model_mrg(conc_path, irr_path, start_datetime):
                    if k not in ('TFLAG', 'TIME')]
     sorted_spcs.sort()
 
-    nsteps = retval.createDimension('TSTEP', len(irr.dimensions['TSTEP'])-1)
+    nsteps = retval.createDimension('TSTEP', len(irr.dimensions['TSTEP']) - 1)
     nrxns = retval.createDimension('REACTIONS', len(sorted_rxns))
     nrxns = len(retval.dimensions['REACTIONS'])
     nsteps = len(retval.dimensions['TSTEP'])
@@ -89,9 +89,9 @@ def box_model_mrg(conc_path, irr_path, start_datetime):
     for spci, spc_name in enumerate(sorted_spcs):
         ipr_vals[:, spci, 0] = conc.variables[spc_name][:-1]
         ipr_vals[:, spci, 2] = conc.variables[spc_name][1:]
-        ipr_vals[:, spci, 1] = ipr_vals[:, spci, 2]-ipr_vals[:, spci, 0]
+        ipr_vals[:, spci, 1] = ipr_vals[:, spci, 2] - ipr_vals[:, spci, 0]
 
     retval.Species = ''.join([k.ljust(16) for k in sorted_spcs])
-    retval.Process = 'INIT'.ljust(16)+'CHEM'.ljust(16)+'FCONC'.ljust(16)
+    retval.Process = 'INIT'.ljust(16) + 'CHEM'.ljust(16) + 'FCONC'.ljust(16)
 
     return retval

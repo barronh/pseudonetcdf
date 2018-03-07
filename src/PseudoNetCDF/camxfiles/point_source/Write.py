@@ -7,7 +7,7 @@ __doc__ = """
 .. module:: Write
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` writer for CAMx
-              point_source files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile 
+              point_source files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -19,24 +19,14 @@ ChangedBy = "$LastChangedBy: svnbarronh $"
 __version__ = RevisionNum
 
 # Distribution packages
-from types import GeneratorType
-import unittest
-import struct
-import sys
-import os
 import operator
-from warnings import warn
-from tempfile import TemporaryFile as tempfile
-import os
-import sys
 
 # Site-Packages
 import numpy as np
 
 # This Package modules
-from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd, timerange
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into, writeline, Int2Asc, Asc2Int
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
+from PseudoNetCDF.camxfiles.timetuple import timeadd, timerange
+from PseudoNetCDF.camxfiles.FortranFileUtil import writeline, Asc2Int
 
 _emiss_hdr_fmt = np.dtype(dict(names=['SPAD', 'name', 'note', 'itzon', 'nspec', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[
                           '>i', '(10,4)>S1', '(60,4)>S1', '>i', '>i', '>i', '>f', '>i', '>f', '>i']))
@@ -102,9 +92,9 @@ def ncf2point_source(ncffile, outpath):
     date, time = ncffile.variables['TFLAG'][:, 0].T
     edate, etime = ncffile.variables['ETFLAG'][:, 0].T
     time = time.astype('>f') / 10000.
-    date = date % (date//100000*100000)
+    date = date % (date // 100000 * 100000)
     etime = etime.astype('>f') / 10000.
-    edate = edate % (edate//100000*100000)
+    edate = edate % (edate // 100000 * 100000)
     time_hdr['ibdate'] = date
     time_hdr['btime'] = time
     time_hdr['iedate'] = edate
@@ -174,7 +164,7 @@ def ncf2point_source(ncffile, outpath):
         for spc_key, spc_name in zip(spc_names, spc_hdr[0]['NAME']):
             var = ncffile.variables[spc_key]
             data = var[di].astype('>f')
-            buf = np.array([4+40+data.size*4]).astype('>i')
+            buf = np.array([4 + 40 + data.size * 4]).astype('>i')
             tempout += buf.tobytes()
             tempout += ione.tobytes()
             tempout += spc_name.tobytes()
@@ -199,20 +189,20 @@ def write_point(start_date, start_time, time_step, hdr, vals):
 
     # initialize hdr_fmts with species count
     hdr_fmts = ["10i60i3ifif", "ffiffffiiiiifff",
-                "iiii", "10i"*len(species), "ii", "ffffff"*nstk]
+                "iiii", "10i" * len(species), "ii", "ffffff" * nstk]
 
     # initialize output variable
     pt_string = ''
 
     # Change name and note
-    hdr[0] = list(hdr[0][0])+list(hdr[0][1])+list(hdr[0][2:])
+    hdr[0] = list(hdr[0][0]) + list(hdr[0][1]) + list(hdr[0][2:])
 
     # Reducing stk props
     stkprops = hdr[-1]
     hdr[-1] = []
     for stk in stkprops:
         hdr[-1].extend(stk)
-    stk_time_prop_fmt = "iiiff"*nstk
+    stk_time_prop_fmt = "iiiff" * nstk
 
     stk_time_props = []
     for time in timeprops:
@@ -228,11 +218,11 @@ def write_point(start_date, start_time, time_step, hdr, vals):
         pt_string += writeline(h, f, False)
 
     # create value format
-    valfmt = 'i10i'+('f'*nstk)
+    valfmt = 'i10i' + ('f' * nstk)
 
     # Get end date
     (end_date, end_time) = timeadd(
-        (start_date, start_time), (0, time_step*vals.shape[0]))
+        (start_date, start_time), (0, time_step * vals.shape[0]))
 
     # Write out values
     for ti, (d, t) in enumerate(timerange((start_date, start_time), (end_date, end_time), time_step)):
