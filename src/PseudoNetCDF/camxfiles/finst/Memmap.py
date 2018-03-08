@@ -12,11 +12,6 @@ __doc__ = """
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxMemmap.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
 
 from warnings import warn
 # Distribution packages
@@ -91,13 +86,13 @@ class finst(PseudoNetCDFFile):
         self.__readheader(mode)
 
         # Add IOAPI metavariables
-        nlays = self.NLAYS = len(self.dimensions['LAY'])
-        nrows = self.NROWS = len(self.dimensions['ROW'])
-        ncols = self.NCOLS = len(self.dimensions['COL'])
-        nvars = self.NVARS = len(self.dimensions['VAR'])
-        nsteps = self.NSTEPS = len(self.dimensions['TSTEP'])
-        setattr(self, 'VAR-LIST', "".join([i.ljust(16)
-                                           for i in self.__var_names__] + ['TFLAG'.ljust(16)]))
+        self.NLAYS = len(self.dimensions['LAY'])
+        self.NROWS = len(self.dimensions['ROW'])
+        self.NCOLS = len(self.dimensions['COL'])
+        self.NVARS = len(self.dimensions['VAR'])
+        self.NSTEPS = len(self.dimensions['TSTEP'])
+        varlist = "".join([i.ljust(16) for i in self.__var_names__])
+        setattr(self, 'VAR-LIST', varlist)
         self.GDTYP = 2
 
         # Create variables
@@ -118,11 +113,6 @@ class finst(PseudoNetCDFFile):
         return flen
 
     def __readheader(self, mode):
-        start = 0
-        end = 0
-        # start += self.__buffersize
-        # end=self.__messagefmt.itemsize / 4
-        # self.MESSAGE=self.__memmap__[start:end].view(self.__messagefmt)
         f = open(self.__rffile)
         f.seek(92)
         self.NNEST, self.NSPEC = fromfile(f, '>i', 2)
@@ -178,10 +168,6 @@ class finst(PseudoNetCDFFile):
 
     def __variables(self, k):
         dimensions = ('TSTEP', 'LAY', 'ROW', 'COL')
-        ntimes = len(self.dimensions['TSTEP'])
-        nx = len(self.dimensions['COL'])
-        ny = len(self.dimensions['ROW'])
-        nz = len(self.dimensions['LAY'])
 
         outvals = self.__memmap__[self.CURRENT_GRID][k]['DATA'][:, :, :, :]
         unit = get_uamiv_units('INSTANT   ', k)
@@ -203,8 +189,6 @@ class TestMemmap(unittest.TestCase):
             v = finstfile.variables[var]
             warn("Test case is not fully implemented.  Review values for 'reasonability.'")
             datetime = finstfile.variables['TFLAG']
-            date = datetime[:, 0, 0]
-            time = datetime[:, 0, 1]
             minv = v.min(1).min(1).min(1)
             meanv = v.mean(1).mean(1).mean(1)
             maxv = v.max(1).max(1).max(1)

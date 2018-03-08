@@ -11,11 +11,6 @@ __doc__ = """
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxRead.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
 
 # Distribution packages
 import unittest
@@ -82,12 +77,12 @@ class wind(PseudoNetCDFFile):
         self.padded_time_hdr_size = struct.calcsize("ii" + self.time_hdr_fmt)
         self.__readheader()
         self.__gettimestep()
-        if rows == None and cols == None:
+        if rows is None and cols is None:
             rows = self.cell_count
             cols = 1
-        elif rows == None:
+        elif rows is None:
             rows = self.cell_count / cols
-        elif cols == None:
+        elif cols is None:
             cols = self.cell_count / rows
         else:
             if cols * rows != self.cell_count:
@@ -101,11 +96,14 @@ class wind(PseudoNetCDFFile):
         self.variables = PseudoNetCDFVariables(self.__var_get, ['U', 'V'])
 
     def __var_get(self, key):
-        def constr(uv): return self.getArray()[
-            :, {'U': 0, 'V': 1}[uv], :, :, :].copy()
+        def constr(uv):
+            return self.getArray()[
+                :, {'U': 0, 'V': 1}[uv], :, :, :].copy()
 
-        def decor(uv): return dict(
-            units='m/s', var_desc=uv.ljust(16), long_name=uv.ljust(16))
+        def decor(uv):
+            return dict(units='m/s',
+                        var_desc=uv.ljust(16),
+                        long_name=uv.ljust(16))
         values = constr(key)
 
         var = self.createVariable(key, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'))
@@ -180,7 +178,7 @@ class wind(PseudoNetCDFFile):
                         "fii")
                 else:
                     raise KeyError()
-            except:
+            except Exception:
                 break
 
         self.time_step_count = int(timediff(
@@ -228,9 +226,9 @@ class wind(PseudoNetCDFFile):
         Move file cursor to beginning of specified record
         see __recordposition for a definition of variables
         """
-        if date == None:
+        if date is None:
             date = self.start_date
-        if time == None:
+        if time is None:
             time = self.start_time
         chkvar = True
         if chkvar and timediff((self.end_date, self.end_time), (date, time)) > 0 or timediff((self.start_date, self.start_time), (date, time)) < 0:

@@ -28,12 +28,6 @@ from PseudoNetCDF.camxfiles.units import get_uamiv_units
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxRead.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
-
 # for use in identifying uncaught nan
 listnan = struct.unpack('>f', b'\xff\xc0\x00\x00')[0]
 checkarray = zeros((1,), 'f')

@@ -30,12 +30,6 @@ from operator import mul
 from numpy import array, fromfile
 import numpy as np
 
-HeadURL = "$HeadURL$"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy$"
-__version__ = RevisionNum
-
 
 platform_is_bigendian = (sys.byteorder != 'little')
 

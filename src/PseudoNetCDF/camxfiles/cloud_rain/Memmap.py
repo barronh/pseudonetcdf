@@ -12,12 +12,6 @@ __doc__ = """
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
 
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxMemmap.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
-
 # Distribution packages
 import unittest
 import struct
@@ -83,7 +77,7 @@ class cloud_rain(PseudoNetCDFFile):
         self.STIME, self.SDATE = header.tolist()[-2:]
         if self.SDATE < 10000:
             self.SDATE += 2000000
-        if (ncols != cols and cols != None) or (rows != rows and rows != None):
+        if (ncols != cols and cols is not None) or (rows != rows and rows is not None):
             warn('Files says cols = %d, rows = %d, and lays = %d; you said cols = %d and rows = %d' % (
                 ncols, nrows, nlays, cols, rows))
 
@@ -129,7 +123,7 @@ class cloud_rain(PseudoNetCDFFile):
         snow = 5
         graupel = 6
         cod = 7
-        stagger = 8
+        # stagger = 8
         out_idx = zeros(self.__memmap.shape, dtype='b')
         out_idx.reshape(times, lays * vars *
                         (rows * cols + 2) + 4)[:, 1] = hour

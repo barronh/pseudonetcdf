@@ -9,7 +9,6 @@ import numpy as np
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoNetCDFVariable
 
 
-
 _geos_units = dict(ALBEDO='unitless',
                    CLDTOT='unitless',
                    EFLUX='W/m2',
@@ -87,6 +86,8 @@ class geos(PseudoNetCDFFile):
         datatypes = [('name', '>i4, >S8, >i4')]
         names = []
         first = True
+        # values will be found before use
+        name = nrow = ncol = nlay = nlay_stag = nlay_in = nlay_in_stag = None
         while infile.tell() < fsize:
             ipad = np.fromfile(infile, dtype='>i', count=1)
             dtype = '>S8' if ipad == 8 else '>f'

@@ -232,6 +232,8 @@ Notes:
 
 
 class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
+    __array_priority__ = 1000000000.
+
     def __new__(subtype, parent, name, typecode='f', dimensions=(), **kwds):
         """
         Creates a variable using the dimensions as defined in
@@ -248,7 +250,6 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
               the array
 
         """
-        __array_priority__ = 1000000000.
         if 'values' in kwds.keys():
             result = kwds.pop('values')
         else:

@@ -11,11 +11,6 @@ __doc__ = """
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxRead.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
 
 # Distribution packages
 import unittest
@@ -105,17 +100,13 @@ class point_source(PseudoNetCDFFile):
         self.variables = PseudoNetCDFVariables(self.__var_get, varkeys)
 
     def __var_get(self, key):
-        constr = self.__variables
-        decor = lambda *args, **kwds: {'notread': 1}
-
-        values = constr(key)
+        values = self.__variables(key)
         if key in self.stkprops:
             var = self.createVariable(key, 'f', ('STK',))
         else:
             var = self.createVariable(key, 'f', ('TSTEP', 'STK'))
         var[:] = values
-        for k, v in decor(key).items():
-            setattr(var, k, v)
+        setattr(var, 'notread', 1)
         return var
 
     def __variables(self, k):
@@ -187,7 +178,7 @@ class point_source(PseudoNetCDFFile):
 
         self.time_step = timediff(
             (self.start_date, self.start_time), (end_date, end_time))
-        #self.end_time += self.time_step
+        # self.end_time += self.time_step
         self.time_step_count = int(timediff((self.start_date, self.start_time), (
             self.end_date, self.end_time), (2400, 24)[int(self.time_step % 2)]) / self.time_step)
 
@@ -254,7 +245,8 @@ class point_source(PseudoNetCDFFile):
         noffset = -abs(int(offset))
         byte = self.data_start_byte
         byte += nhdr * (self.padded_time_hdr_size +
-                      self.padded_nstk_hdr_size + self.padded_stk_time_prop_size)
+                        self.padded_nstk_hdr_size +
+                        self.padded_stk_time_prop_size)
         byte += (ntime + nspc) * self.padded_size
         byte += noffset * self.padded_stk_time_prop_size
         return byte
@@ -276,7 +268,7 @@ class point_source(PseudoNetCDFFile):
         """
         Provide direct access to record file read
         """
-        if fmt == None:
+        if fmt is None:
             fmt = self.record_fmt
         return self.rffile.read(fmt)
 

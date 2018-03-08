@@ -12,11 +12,6 @@ __doc__ = """
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxRead.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
 
 # Distribution packages
 import unittest
@@ -111,22 +106,26 @@ class uamiv(PseudoNetCDFFile):
         units = get_uamiv_units(self.name, key, self._aerosol_names)
         spcnames = [sn.strip() for sn in self.spcnames]
         if self.name == 'EMISSIONS ':
-            def constr(spc): return self.getArray(
-                nspec=spcnames.index(spc)).squeeze()[:, newaxis, :, :]
+            def constr(spc):
+                return self.getArray(
+                    nspec=spcnames.index(spc)).squeeze()[:, newaxis, :, :]
 
-            def decor(spc): return dict(
-                units=units, var_desc=spc, long_name=spc.ljust(16))
+            def decor(spc):
+                return dict(units=units, var_desc=spc,
+                            long_name=spc.ljust(16))
         else:
             ntimes = len(self.dimensions['TSTEP'])
             nlays = len(self.dimensions['LAY'])
             nrows = len(self.dimensions['ROW'])
             ncols = len(self.dimensions['COL'])
 
-            def constr(spc): return self.getArray(nspec=spcnames.index(
-                spc)).squeeze().reshape(ntimes, nlays, nrows, ncols)
+            def constr(spc):
+                return self.getArray(nspec=spcnames.index(
+                    spc)).squeeze().reshape(ntimes, nlays, nrows, ncols)
 
-            def decor(spc): return dict(
-                units=units, var_desc=spc.ljust(16), long_name=spc.ljust(16))
+            def decor(spc):
+                return dict(units=units, var_desc=spc.ljust(16),
+                            long_name=spc.ljust(16))
 
         values = constr(key)
         var = self.createVariable(key, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'))
@@ -249,9 +248,9 @@ class uamiv(PseudoNetCDFFile):
         see __recordposition for parameter definitions
         """
         spc += 1
-        if date == None:
+        if date is None:
             date = self.start_date
-        if time == None:
+        if time is None:
             time = self.start_time
 
         if chkvar and timediff((self.end_date, self.end_time), (date, time), 24) > 0 or timediff((self.start_date, self.start_time), (date, time), 24) < 0:

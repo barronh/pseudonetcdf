@@ -22,13 +22,6 @@ from numpy import zeros, array, memmap, dtype
 from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile
 from PseudoNetCDF.sci_var import PseudoNetCDFFile
 
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxMemmap.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
-
-
 # for use in identifying uncaught nan
 listnan = struct.unpack('>f', b'\xff\xc0\x00\x00')[0]
 checkarray = zeros((1, ), 'f')

@@ -67,8 +67,6 @@ class osat(PseudoNetCDFFile):
         self.dimensions = self.__child.dimensions.copy()
 
         spc_keys = ['NOX', 'VOC', 'O3N', 'O3V']
-        time_keys = ['I', 'D']
-        time_dim_keys = [(k[:1], k[1:6], k[6:]) for k in time_keys]
         allkeys = [i for i in self.__child.variables.keys()]
         for skey in spc_keys:
             for src in sources.keys() + ['']:
@@ -100,8 +98,6 @@ class osat(PseudoNetCDFFile):
         var_id_names = self.__var_id_names(key)
         # var_nm_names=self.__var_nm_names(key)
 
-        var_indices = self.__indices(var_id_names)
-        cnt = False
         if len(var_id_names) > 1:
             outvals = zeros(map(len, (self.dimensions['TSTEP'], self.dimensions['LAY'],
                                       self.dimensions['ROW'], self.dimensions['COL'])), dtype='>f')
@@ -114,5 +110,5 @@ class osat(PseudoNetCDFFile):
         v = PseudoIOAPIVariable(
             self, key, 'f', dimensions, values=outvals, units='ppm')
         v.VAR_NAMES = ''.join([nm.ljust(16) for nm in var_id_names])
-        #v.VAR_NAME_DESCS=''.join([nm.ljust(16) for nm in var_nm_names])
+        # v.VAR_NAME_DESCS=''.join([nm.ljust(16) for nm in var_nm_names])
         return v

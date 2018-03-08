@@ -18,12 +18,6 @@ from warnings import warn
 warn(PendingDeprecationWarning(
     "Time tuple will be replaced by datetime and dateutil"))
 
-HeadURL = "$HeadURL$"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy$"
-__version__ = RevisionNum
-
 
 def timerange(datetime1, datetime2, step=100, eod=2400.0):
     """Iterater of time tuples between start and end (not end inclusive)

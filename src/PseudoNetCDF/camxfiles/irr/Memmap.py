@@ -11,17 +11,14 @@ __doc__ = """
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxMemmap.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
 
 # Distribution packages
 import unittest
 import struct
 from warnings import warn
 from collections import defaultdict
+from functools import partial
+
 # Site-Packages
 from numpy import zeros, memmap, dtype
 
@@ -106,7 +103,7 @@ class irr(PseudoNetCDFFile):
         padatatype = []
         pavarkeys = []
         self.createDimension('TSTEP', self.time_step_count)
-        self.createDimension('VAR',  len(varkeys) - 1)
+        self.createDimension('VAR', len(varkeys) - 1)
         self.createDimension('DATE-TIME', 2)
         for di, domain in enumerate(self._padomains):
             dk = 'PA%02d' % (di + 1)
@@ -116,7 +113,7 @@ class irr(PseudoNetCDFFile):
             for propk, propv in domain.items():
                 setattr(grp, propk, propv)
             grp.createDimension('TSTEP', self.time_step_count)
-            grp.createDimension('VAR',  len(varkeys) - 1)
+            grp.createDimension('VAR', len(varkeys) - 1)
             grp.createDimension('DATE-TIME', 2)
             grp.createDimension('COL', domain['iend'] - domain['istart'] + 1)
             grp.createDimension('ROW', domain['jend'] - domain['jstart'] + 1)
@@ -129,8 +126,8 @@ class irr(PseudoNetCDFFile):
                 self.createDimension('LAY', domain['tlay'] - domain['blay'] + 1)
                 for propk, propv in domain.items():
                     setattr(grp, propk, propv)
-            exec("""def varget(k):
-                return self._irr__variables('%s', k)""" % dk, dict(self=self), locals())
+
+            varget = partial(self.__variables, dk)
             if len(self._padomains) == 1:
                 self.variables = PseudoNetCDFVariables(varget, varkeys)
             else:
@@ -142,12 +139,13 @@ class irr(PseudoNetCDFFile):
         try:
             self.__memmaps.close()
             del self.__memmaps
-        except:
+        except Exception:
             pass
 
     def __decorator(self, name, pncfv):
-        def decor(k): return dict(units='ppm/hr',
-                                  var_desc=k.ljust(16), long_name=k.ljust(16))
+        def decor(k):
+            return dict(units='ppm/hr',
+                        var_desc=k.ljust(16), long_name=k.ljust(16))
         for k, v in decor(name).items():
             setattr(pncfv, k, v)
         return pncfv

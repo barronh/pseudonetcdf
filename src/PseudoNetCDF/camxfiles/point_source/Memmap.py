@@ -13,11 +13,6 @@ __doc__ = """
 .. moduleauthor:: Barron Henderson <barronh@gmail.com>
 .. modulecontributor:: Yoann Long (little endian support)
 """
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxMemmap.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
 
 # Distribution packages
 import unittest
@@ -73,9 +68,9 @@ class point_source(PseudoNetCDFFile):
     @classmethod
     def isMine(cls, path):
         try:
-            f = point_source(path)
+            point_source(path)
             return True
-        except:
+        except Exception:
             return False
 
     def __init__(self, rf, endian='big', mode='r', **kwds):
@@ -148,13 +143,13 @@ class point_source(PseudoNetCDFFile):
         self.NCOLS = self.__grid_hdr['nx'][0]
         self.NROWS = self.__grid_hdr['ny'][0]
         self.NLAYS = self.__grid_hdr['nz'][0]
-        self.PLON = plon = self.__grid_hdr['plon'][0]
-        self.PLAT = plat = self.__grid_hdr['plat'][0]
-        self.TLAT1 = tlat1 = self.__grid_hdr['tlat1'][0]
-        self.TLAT2 = tlat2 = self.__grid_hdr['tlat2'][0]
-        self.IUTM = iutm = self.__grid_hdr['iutm'][0]
-        self.ISTAG = istag = self.__grid_hdr['istag'][0]
-        self.CPROJ = cproj = self.__grid_hdr['iproj'][0]
+        self.PLON = self.__grid_hdr['plon'][0]
+        self.PLAT = self.__grid_hdr['plat'][0]
+        self.TLAT1 = self.__grid_hdr['tlat1'][0]
+        self.TLAT2 = self.__grid_hdr['tlat2'][0]
+        self.IUTM = self.__grid_hdr['iutm'][0]
+        self.ISTAG = self.__grid_hdr['istag'][0]
+        self.CPROJ = self.__grid_hdr['iproj'][0]
         self.__cell_hdr = self.__memmap[offset:offset +
                                         self.__cell_hdr_fmt.itemsize // 4].view(self.__cell_hdr_fmt)
         offset += self.__cell_hdr.nbytes // 4 + 1
@@ -196,7 +191,6 @@ class point_source(PseudoNetCDFFile):
 
     def __time_stks(self):
         ep = self.__endianprefix
-        i = offset = 0
         nspcs = len(self.__spc_names)
         nstks = len(self.dimensions['NSTK'])
         date_block_size = 6

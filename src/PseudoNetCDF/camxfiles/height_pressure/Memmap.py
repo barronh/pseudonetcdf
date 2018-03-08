@@ -11,11 +11,6 @@ __doc__ = """
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxMemmap.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
 
 # Distribution packages
 import unittest
@@ -81,12 +76,12 @@ class height_pressure(PseudoNetCDFFile):
         self.createDimension('LAY', i / 2)
         self.createDimension('TSTEP', times.shape[0] / i)
 
-        if rows == None and cols == None:
+        if rows is None and cols is None:
             rows = rowsXcols
             cols = 1
-        elif rows == None:
+        elif rows is None:
             rows = rowsXcols / cols
-        elif cols == None:
+        elif cols is None:
             cols = rowsXcols / rows
         else:
             if cols * rows != rowsXcols:

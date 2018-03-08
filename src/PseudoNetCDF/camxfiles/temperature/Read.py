@@ -11,11 +11,6 @@ __doc__ = """
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxRead.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
 
 # Distribution packages
 import unittest
@@ -78,12 +73,12 @@ class temperature(PseudoNetCDFFile):
         self.id_size = struct.calcsize(self.id_fmt)
         self.__readheader()
         self.__gettimestep()
-        if rows == None and cols == None:
+        if rows is None and cols is None:
             rows = self.cell_count
             cols = 1
-        elif rows == None:
+        elif rows is None:
             rows = self.cell_count / cols
-        elif cols == None:
+        elif cols is None:
             cols = self.cell_count / rows
         else:
             if cols * rows != self.cell_count:
@@ -99,10 +94,12 @@ class temperature(PseudoNetCDFFile):
             self.__var_get, ['AIRTEMP', 'SURFTEMP'])
 
     def __var_get(self, key):
-        def decor(k): return dict(
-            units='K', var_desc=k.ljust(16), long_name=k.ljust(16))
+        def decor(k):
+            return dict(units='K', var_desc=k.ljust(16),
+                        long_name=k.ljust(16))
 
-        def constr(k): return self.__variables(k)
+        def constr(k):
+            return self.__variables(k)
         values = constr(key)
         dims = {'AIRTEMP': ('TSTEP', 'LAY', 'ROW', 'COL'),
                 'SURFTEMP': ('TSTEP', 'SURF', 'ROW', 'COL')}[key]
@@ -153,7 +150,6 @@ class temperature(PseudoNetCDFFile):
             out = zeros((len(self.dimensions['TSTEP']), len(self.dimensions['LAY']), len(
                 self.dimensions['ROW']), len(self.dimensions['COL'])), 'f')
             vars = self.__airmaps()
-        dts = self.timerange()
         for i, v in enumerate(vars):
             out[i, ...] = v
         return out

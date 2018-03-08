@@ -17,13 +17,7 @@ import numpy as np
 # This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timeadd, timerange
 from PseudoNetCDF.camxfiles.FortranFileUtil import writeline
-
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxWrite.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
-
+from PseudoNetCDF._getwriter import registerwriter
 
 """
 hour,idate,lstagger
@@ -63,7 +57,6 @@ def ncf2wind(ncffile, outpath, tflag='TFLAG'):
     return outfile
 
 
-from PseudoNetCDF._getwriter import registerwriter
 registerwriter('camxfiles.wind', ncf2wind)
 registerwriter('wind', ncf2wind)
 
@@ -83,7 +76,7 @@ def write_wind(sdate, stime, time_step, vals, lstagger=None):
     edate, etime = timeadd((sdate, stime), (0, vals.shape[0] * time_step))
 
     for i, (d, t) in enumerate(timerange((sdate, stime), (edate, etime), time_step)):
-        if lstagger != None:
+        if lstagger is not None:
             wind_string += writeline((t, d, lstagger), "fii")
         else:
             wind_string += writeline((t, d), "fi")

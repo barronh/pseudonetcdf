@@ -21,13 +21,6 @@ from numpy import zeros, array
 # This Package modules
 from PseudoNetCDF.camxfiles.one3d.Read import one3d
 
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxRead.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
-
-
 # for use in identifying uncaught nan
 listnan = struct.unpack('>f', b'\xff\xc0\x00\x00')[0]
 checkarray = zeros((1,), 'f')

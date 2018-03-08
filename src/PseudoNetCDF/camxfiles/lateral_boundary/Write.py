@@ -1,5 +1,10 @@
 from __future__ import unicode_literals
+
+__all__ = ['ncf2lateral_boundary']
+
 import numpy as np
+from PseudoNetCDF._getwriter import registerwriter
+
 _emiss_hdr_fmt = np.dtype(dict(names=['SPAD', 'name', 'note', 'itzon', 'nspec', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[
                           '>i', '(10,4)>S1', '(60,4)>S1', '>i', '>i', '>i', '>f', '>i', '>f', '>i']))
 
@@ -21,7 +26,7 @@ def ncf2lateral_boundary(ncffile, outpath):
     emiss_hdr[0]['name'][:, 0] = np.array(ncffile.NAME, dtype='>c')
     emiss_hdr[0]['note'][:, :] = ' '
     emiss_hdr[0]['note'][:, 0] = np.array(ncffile.NOTE, dtype='>c')
-    gdtype = getattr(ncffile, 'GDTYPE', -999)
+    # gdtype = getattr(ncffile, 'GDTYPE', -999)
     emiss_hdr['itzon'][0] = ncffile.ITZON
     nspec = len(ncffile.dimensions['VAR']) / 4
     emiss_hdr['nspec'] = nspec
@@ -91,7 +96,6 @@ def ncf2lateral_boundary(ncffile, outpath):
     spc_hdr[0]['DATA'][:] = ' '
     spc_hdr[0]['DATA'][:, :, 0] = spc_names
     spc_names = spc_names.view('>S10')
-    nz = len(ncffile.dimensions['LAY'])
     outfile = open(outpath, 'wb')
     emiss_hdr.tofile(outfile)
     grid_hdr.tofile(outfile)
@@ -135,6 +139,5 @@ def ncf2lateral_boundary(ncffile, outpath):
     return outfile
 
 
-from PseudoNetCDF._getwriter import registerwriter
 registerwriter('camxfiles.lateral_boundary', ncf2lateral_boundary)
 registerwriter('lateral_boundary', ncf2lateral_boundary)

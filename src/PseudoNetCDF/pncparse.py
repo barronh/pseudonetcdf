@@ -756,7 +756,7 @@ def getfiles(ipaths, args):
         format_options = args.format.split(',')
         file_format = format_options.pop(0)
         format_options = eval('dict(' + ', '.join(format_options) + ')')
-        if isinstance(ipath, (PseudoNetCDFFile, NetCDFFile)):
+        if isinstance(ipath, (PseudoNetCDFFile, NetCDFFile, MFDataset)):
             f = ipath
         elif isinstance(ipath, (str,)):
             try:

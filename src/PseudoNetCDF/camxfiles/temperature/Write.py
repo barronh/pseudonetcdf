@@ -1,4 +1,6 @@
 import numpy as np
+from PseudoNetCDF._getwriter import registerwriter
+
 """
 hour,idate,((temps(i,j),i=1,nx),j=1,ny)
 Loop from 1 to nlay layers:
@@ -33,6 +35,5 @@ def ncf2temperature(ncffile, outpath):
     return outfile
 
 
-from PseudoNetCDF._getwriter import registerwriter
 registerwriter('camxfiles.temperature', ncf2temperature)
 registerwriter('temperature', ncf2temperature)

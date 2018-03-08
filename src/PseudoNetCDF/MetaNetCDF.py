@@ -20,12 +20,6 @@ from PseudoNetCDF.sci_var import PseudoNetCDFVariables, PseudoNetCDFDimension
 from PseudoNetCDF.sci_var import PseudoNetCDFVariableConvertUnit
 from PseudoNetCDF.ArrayTransforms import CenterTime
 
-HeadURL = "$HeadURL$"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy$"
-__version__ = RevisionNum
-
 
 class add_derived(PseudoNetCDFFile):
     """add_derived provides a simple interface to add derived variables

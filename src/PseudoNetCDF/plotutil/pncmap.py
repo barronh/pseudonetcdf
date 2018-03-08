@@ -12,6 +12,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 warn = warnings.warn
 pl = plt
+LogFormatter = plt.matplotlib.ticker.LogFormatter
+BoundaryNorm = plt.matplotlib.colors.BoundaryNorm
 # from PseudoNetCDF.plotutil import *
 
 

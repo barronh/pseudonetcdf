@@ -11,11 +11,6 @@ __doc__ = """
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxRead.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
 
 # Distribution packages
 from datetime import datetime
@@ -83,10 +78,10 @@ class irr(PseudoNetCDFFile):
         self.__readheader()
         self.__gettimestep()
         self.units = units
-        #__conv is a conversion array that comes from ipr
+        # __conv is a conversion array that comes from ipr
         # if units is not ppm/hr, conv must be provided
         self.__conv = conva
-        if self.units != 'ppm/hr' and self.__conv == None:
+        if self.units != 'ppm/hr' and self.__conv is None:
             raise ValueError(
                 "When units are provided, a conversion array dim(t,z,x,y) must also be provided")
         varkeys = ['RXN_%02d' % i for i in range(1, self.NRXNS + 1)]
@@ -252,7 +247,7 @@ class irr(PseudoNetCDFFile):
         """
         records = 0
         for pag in range(pagrid):
-            records += __gridrecords(pag)
+            records += self.__gridrecords(pag)
         records += self.__timerecords(pagrid, (date, time))
         records += self.__jrecords(pagrid, j)
         records += self.__irecords(pagrid, i)
@@ -264,9 +259,9 @@ class irr(PseudoNetCDFFile):
         Move file cursor to beginning of specified record
         see __recordposition for a definition of variables
         """
-        if date == None:
+        if date is None:
             date = self.SDATE
-        if time == None:
+        if time is None:
             time = self.STIME + self.TSTEP
         self._activedomain = self.padomains[pagrid]
         self._rffile.seek(self.__recordposition(pagrid, date, time, i, j, k))

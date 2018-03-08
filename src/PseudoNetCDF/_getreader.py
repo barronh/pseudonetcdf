@@ -5,7 +5,7 @@ import os
 from warnings import warn
 from PseudoNetCDF.netcdf import NetCDFFile
 
-_readers = []
+_readers = [('Dataset', NetCDFFile)]
 
 
 def testreader(reader, *args, **kwds):

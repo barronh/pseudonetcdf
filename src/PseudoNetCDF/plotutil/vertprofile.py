@@ -59,7 +59,7 @@ def maskfilled(v):
 
 def plot_omi(ax, lon_bnds, lat_bnds, omipaths, key='O3Profile', airden=None, airdenvert=None):
     import h5py
-    from scipy.constants import Avogadro
+    # from scipy.constants import Avogadro
     allx = []
     ally = []
     lon_bnds = lon_bnds[:]
@@ -198,7 +198,7 @@ def vertprofileplot(ifiles, args):
     from PseudoNetCDF.coordutil import getsigmamid, getpresmid, gettimes
     import matplotlib.pyplot as plt
     plt.rcParams['text.usetex'] = False
-    from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm, LogNorm
+    # from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm, LogNorm
     scale = args.scale
     minmax = eval(args.minmax)
     minmaxq = eval(args.minmaxq)
@@ -375,7 +375,7 @@ def vertprofileplot(ifiles, args):
 
         llabels = [l[0].get_label() for l in llines]
         plt.legend(llines, llabels, bbox_to_anchor=(.1, 1),
-                  loc='upper left', bbox_transform=fig.transFigure, ncol=6)
+                   loc='upper left', bbox_transform=fig.transFigure, ncol=6)
         if edges:
             fig.text(0.95, 0.975, title, horizontalalignment='right',
                      verticalalignment="top", fontsize=16)

@@ -13,17 +13,12 @@ __doc__ = """
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
 
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxWrite.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
-
 # Distribution packages
 import unittest
 import sys
 import os
 import operator
+from functools import reduce
 
 # Site-Packages
 import numpy as np
@@ -31,6 +26,7 @@ import numpy as np
 # This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timeadd, timerange
 from PseudoNetCDF.camxfiles.FortranFileUtil import writeline, Asc2Int
+from PseudoNetCDF._getwriter import registerwriter
 
 _emiss_hdr_fmt = np.dtype(dict(names=['SPAD', 'name', 'note', 'itzon', 'nspec', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[
                           '>i', '(10,4)>S1', '(60,4)>S1', '>i', '>i', '>i', '>f', '>i', '>f', '>i']))
@@ -110,7 +106,7 @@ def ncf2uamiv(ncffile, outpath):
     emiss_hdr[0]['name'][:, 0] = np.array(ncffile.NAME, dtype='>c')
     emiss_hdr[0]['note'][:, :] = ' '
     emiss_hdr[0]['note'][:, 0] = np.array(ncffile.NOTE, dtype='>c')
-    gdtype = getattr(ncffile, 'GDTYP', -999)
+    # gdtype = getattr(ncffile, 'GDTYP', -999)
     emiss_hdr['itzon'][0] = ncffile.ITZON
     nspec = len(ncffile.dimensions['VAR'])
     emiss_hdr['nspec'] = nspec
@@ -208,7 +204,6 @@ def ncf2uamiv(ncffile, outpath):
     return outfile
 
 
-from PseudoNetCDF._getwriter import registerwriter
 registerwriter('camxfiles.uamiv', ncf2uamiv)
 registerwriter('uamiv', ncf2uamiv)
 
@@ -294,9 +289,6 @@ def write_emissions(start_date, start_time, time_step, hdr, vals):
                 emis_string += writeline(temp, valfmt)
 
     return emis_string
-
-
-import unittest
 
 
 class TestMemmaps(unittest.TestCase):

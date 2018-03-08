@@ -11,11 +11,6 @@ __doc__ = """
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxMemmap.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
 
 # Distribution packages
 import unittest
@@ -88,7 +83,7 @@ class uamiv(PseudoNetCDFFile):
         else:
             self._aerosol_names = get_chemparam_names(chemparam)['aerosol']
 
-        ep = self.__endianprefix = dict(big='>', little='<')[endian]
+        self.__endianprefix = dict(big='>', little='<')[endian]
         self._make_header_fmt()
         self.__rffile = rf
         self.__mode = mode
@@ -98,13 +93,13 @@ class uamiv(PseudoNetCDFFile):
         self.__readheader()
 
         # Add IOAPI metavariables
-        nlays = self.NLAYS = len(self.dimensions['LAY'])
-        nrows = self.NROWS = len(self.dimensions['ROW'])
-        ncols = self.NCOLS = len(self.dimensions['COL'])
-        nvars = self.NVARS = len(self.dimensions['VAR'])
-        nsteps = self.NSTEPS = len(self.dimensions['TSTEP'])
-        setattr(self, 'VAR-LIST',
-                "".join([i.ljust(16) for i in self.__var_names__]))
+        self.NLAYS = len(self.dimensions['LAY'])
+        self.NROWS = len(self.dimensions['ROW'])
+        self.NCOLS = len(self.dimensions['COL'])
+        self.NVARS = len(self.dimensions['VAR'])
+        self.NSTEPS = len(self.dimensions['TSTEP'])
+        varlist = "".join([i.ljust(16) for i in self.__var_names__])
+        setattr(self, 'VAR-LIST', varlist)
         self.NAME = self.__emiss_hdr['name'][0, :, 0].copy().view('S10')[
             0].decode()
         self.NOTE = self.__emiss_hdr['note'][0, :, 0].copy().view('S60')[
@@ -124,25 +119,30 @@ class uamiv(PseudoNetCDFFile):
                                 'DATE']['BTIME'], self.NVARS)
         etflag = ConvertCAMxTime(self.__memmap__['DATE']['EDATE'], self.__memmap__[
                                  'DATE']['ETIME'], self.NVARS)
-        tflagv = self.createVariable('TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'), values=tflag,
-                                     units='DATE-TIME', long_name='TFLAG'.ljust(16), var_desc='TFLAG'.ljust(80))
-        etflagv = self.createVariable('ETFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'), values=etflag,
-                                      units='DATE-TIME', long_name='ETFLAG'.ljust(16), var_desc='Ending TFLAG'.ljust(80))
+        tflagv = self.createVariable('TFLAG', 'i',
+                                     ('TSTEP', 'VAR', 'DATE-TIME'),
+                                     values=tflag, units='DATE-TIME',
+                                     long_name='TFLAG'.ljust(16),
+                                     var_desc='TFLAG'.ljust(80))
+        etflagv = self.createVariable('ETFLAG', 'i',
+                                      ('TSTEP', 'VAR', 'DATE-TIME'),
+                                      values=etflag, units='DATE-TIME',
+                                      long_name='ETFLAG'.ljust(16),
+                                      var_desc='Ending TFLAG'.ljust(80))
 
         self.SDATE, self.STIME = self.variables['TFLAG'][0, 0, :]
-        self.TSTEP = self.variables['ETFLAG'][0, 0,
-                                              1] - self.variables['TFLAG'][0, 0, 1]
-        if not P_ALP is None:
+        self.TSTEP = etflagv[0, 0, 1] - tflagv[0, 0, 1]
+        if P_ALP is not None:
             self.P_ALP = P_ALP
-        if not P_BET is None:
+        if P_BET is not None:
             self.P_BET = P_BET
-        if not P_GAM is None:
+        if P_GAM is not None:
             self.P_GAM = P_GAM
-        if not XCENT is None:
+        if XCENT is not None:
             self.XCENT = XCENT
-        if not YCENT is None:
+        if YCENT is not None:
             self.YCENT = YCENT
-        if not GDTYP is None:
+        if GDTYP is not None:
             self.GDTYP = GDTYP
         try:
             add_cf_from_ioapi(self)
@@ -163,7 +163,7 @@ class uamiv(PseudoNetCDFFile):
         cls._make_header_fmt(self, '>')
         offset = 0
         emiss_hdr = memmap(
-            path,  mode='r', dtype=self.__emiss_hdr_fmt, shape=1, offset=offset)
+            path, mode='r', dtype=self.__emiss_hdr_fmt, shape=1, offset=offset)
         name = emiss_hdr['name'][0, :, 0].copy().view('S10')[
             0].decode().strip()
         if name in ('BOUNDARY', 'PTSOURCE'):
@@ -204,7 +204,7 @@ class uamiv(PseudoNetCDFFile):
         self.TLAT1 = tlat1 = self.__grid_hdr['tlat1'][0]
         self.TLAT2 = tlat2 = self.__grid_hdr['tlat2'][0]
         self.IUTM = iutm = self.__grid_hdr['iutm'][0]
-        self.ISTAG = istag = self.__grid_hdr['istag'][0]
+        self.ISTAG = self.__grid_hdr['istag'][0]
         self.CPROJ = cproj = self.__grid_hdr['iproj'][0]
         if hasattr(self, 'GDTYP'):
             GDTYPE = self.GDTYP
@@ -250,7 +250,6 @@ class uamiv(PseudoNetCDFFile):
                               ep + 'i', ep + 'i', '(10,4)%sS1' % ep, '(%d,%d)%sf' % (ny, nx, ep), ep + 'i']))
         spc_1_lay_block_size = 13 + nx * ny
         spc_3d_fmt = dtype((spc_1_lay_fmt, (nz,)))
-        spc_3d_block_size = spc_1_lay_block_size * nz
 
         # Get species names from spc_hdr
         var_names = [spc[:, 0].copy().view('S10')[0] for spc in self.__spc_hdr]
@@ -284,7 +283,6 @@ class uamiv(PseudoNetCDFFile):
             self.__rffile, mode=self.__mode, dtype=data_block_fmt, offset=offset)
 
     def __variables(self, k):
-        spc_index = self.__var_names__.index(k)
         dimensions = ('TSTEP', 'LAY', 'ROW', 'COL')
         outvals = self.__memmap__[k]['DATA']
         units = get_uamiv_units(self.NAME, k, self._aerosol_names)

@@ -11,11 +11,6 @@ __doc__ = """
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxMemmap.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
 
 # Distribution packages
 import unittest
@@ -82,9 +77,9 @@ class lateral_boundary(PseudoNetCDFFile):
     def isMine(cls, path):
         try:
             # initialization calls readheader, which has an assertion check
-            f = lateral_boundary(path)
+            lateral_boundary(path)
             return True
-        except:
+        except Exception:
             return False
 
     def __init__(self, rf, mode='r'):
@@ -102,13 +97,13 @@ class lateral_boundary(PseudoNetCDFFile):
         self.__readheader()
 
         # Add IOAPI metavariables
-        nlays = self.NLAYS = len(self.dimensions['LAY'])
-        nrows = self.NROWS = len(self.dimensions['ROW'])
-        ncols = self.NCOLS = len(self.dimensions['COL'])
-        nvars = self.NVARS = len(self.dimensions['VAR'])
-        nsteps = self.NSTEPS = len(self.dimensions['TSTEP'])
-        setattr(self, 'VAR-LIST', "".join([i.ljust(16)
-                                           for i in self.__var_names__] + ['TFLAG'.ljust(16)]))
+        self.NLAYS = len(self.dimensions['LAY'])
+        self.NROWS = len(self.dimensions['ROW'])
+        self.NCOLS = len(self.dimensions['COL'])
+        self.NVARS = len(self.dimensions['VAR'])
+        self.NSTEPS = len(self.dimensions['TSTEP'])
+        varlist = "".join([i.ljust(16) for i in self.__var_names__])
+        setattr(self, 'VAR-LIST', varlist)
         self.GDTYP = 2
         name = self.__emiss_hdr['name'][0, :, 0].copy().view('S10')[0]
         note = self.__emiss_hdr['note'][0, :, 0].copy().view('S60')[0]
@@ -151,13 +146,13 @@ class lateral_boundary(PseudoNetCDFFile):
         self.YORIG = self.__grid_hdr['yorg'][0]
         self.XCELL = self.__grid_hdr['delx'][0]
         self.YCELL = self.__grid_hdr['dely'][0]
-        self.PLON = plon = self.__grid_hdr['plon'][0]
-        self.PLAT = plat = self.__grid_hdr['plat'][0]
-        self.TLAT1 = tlat1 = self.__grid_hdr['tlat1'][0]
-        self.TLAT2 = tlat2 = self.__grid_hdr['tlat2'][0]
-        self.IUTM = iutm = self.__grid_hdr['iutm'][0]
-        self.ISTAG = istag = self.__grid_hdr['istag'][0]
-        self.CPROJ = cproj = self.__grid_hdr['iproj'][0]
+        self.PLON = self.__grid_hdr['plon'][0]
+        self.PLAT = self.__grid_hdr['plat'][0]
+        self.TLAT1 = self.__grid_hdr['tlat1'][0]
+        self.TLAT2 = self.__grid_hdr['tlat2'][0]
+        self.IUTM = self.__grid_hdr['iutm'][0]
+        self.ISTAG = self.__grid_hdr['istag'][0]
+        self.CPROJ = self.__grid_hdr['iproj'][0]
 
         # Map CAMx projection constants to IOAPI
         GDTYPE = self.GDTYP = {0: 1, 1: 5, 2: 2, 3: 6}[
@@ -198,8 +193,8 @@ class lateral_boundary(PseudoNetCDFFile):
                                 '>i', '>i', '>i', '>i', '(%d,%d)>i' % (bdim, 4), '>i']))
             self._boundary_def[bkey] = memmap(
                 self.__rffile, mode=self.__mode, dtype=__bound_fmt, shape=1, offset=offset)
-            assert(self._boundary_def[bkey]['SPAD']
-                   == (__bound_fmt.itemsize - 8))
+            assert(self._boundary_def[bkey]['SPAD'] ==
+                   (__bound_fmt.itemsize - 8))
             offset += __bound_fmt.itemsize
 
         date_time_fmt = dtype(dict(names=['SPAD', 'BDATE', 'BTIME', 'EDATE', 'ETIME', 'EPAD'], formats=[
@@ -246,7 +241,6 @@ class lateral_boundary(PseudoNetCDFFile):
             self.__rffile, mode=self.__mode, dtype=data_block_fmt, offset=offset)
 
     def __variables(self, k):
-        spc_index = self.__var_names__.index(k)
         edgename = k.split('_')[0]
         spcname = k[len(edgename) + 1:]
         if edgename in ('WEST', 'EAST'):

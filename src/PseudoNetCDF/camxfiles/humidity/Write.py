@@ -1,4 +1,4 @@
-__all__ = ['ncf2hum']
+__all__ = ['ncf2humidity']
 __doc__ = """
 .. _Write
 :mod:`Write` -- CAMx humidity  writer

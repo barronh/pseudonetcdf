@@ -23,13 +23,6 @@ from PseudoNetCDF.camxfiles.timetuple import timediff, timeadd, timerange
 from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables
 
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxRead.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
-
-
 # for use in identifying uncaught nan
 listnan = struct.unpack('>f', b'\xff\xc0\x00\x00')[0]
 checkarray = zeros((1,), 'f')
@@ -103,14 +96,13 @@ class one3d(PseudoNetCDFFile):
         self.variables = PseudoNetCDFVariables(self.__var_get, [self.var_name])
 
     def __var_get(self, key):
-        constr = lambda *args, **kwds: self.getArray()
-        decor = lambda *args: dict(units=self.units, var_desc=self.var_name.ljust(
-            16), long_name=self.var_name.ljust(16))
-        values = constr(key)
+        props = dict(units=self.units, var_desc=self.var_name.ljust(16),
+                     long_name=self.var_name.ljust(16))
+        values = self.getArray()
 
         var = self.createVariable(key, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'))
         var[:] = values
-        for k, v in decor(key).items():
+        for k, v in props.items():
             setattr(var, k, v)
         return var
 

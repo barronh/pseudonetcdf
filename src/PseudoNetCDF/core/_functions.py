@@ -9,13 +9,13 @@ import sys
 from warnings import warn
 import numpy as np
 from collections import OrderedDict
-
+import functools
 
 from ._files import PseudoNetCDFFile
 from ._variables import PseudoNetCDFMaskedVariable, PseudoNetCDFVariable
 
 # Functions to be available for pncexpr
-from ..userfuncs import mda8, daymax, daymin, daymean, daystd, dayvar
+from .. import userfuncs
 import datetime
 
 if sys.version_info.major == 2:
@@ -491,17 +491,26 @@ def _getfunc(a, func):
         if hasattr(a, func):
             outfunc = getattr(a, func)
         elif isinstance(a, np.ma.MaskedArray):
-            outfunc = lambda axis = None, keepdims = True: getattr(
-                np.ma, func)(a, axis=axis, keepdims=keepdims)
+            outfunc = functools.partial(getattr(np.ma, func),
+                                        a, axis=None, keepdims=True)
+            # outfunc = lambda axis = None, keepdims = True: getattr(
+            #    np.ma, func)(a, axis=axis, keepdims=keepdims)
         elif hasattr(np, func):
-            outfunc = lambda axis = None, keepdims = True: getattr(
-                np, func)(a, axis=axis, keepdims=keepdims)
+            outfunc = functools.partial(getattr(np, func),
+                                        a, axis=None, keepdims=True)
+            # outfunc = lambda axis = None, keepdims = True: getattr(
+            #     np, func)(a, axis=axis, keepdims=keepdims)
         else:
-            outfunc = lambda axis = None, keepdims = True: eval(
-                func)(a, axis=axis, keepdims=keepdims)
+            outfunc = functools.partial(eval(func),
+                                        a, axis=None, keepdims=True)
+            # outfunc = lambda axis = None, keepdims = True: eval(
+            #    func)(a, axis=axis, keepdims=keepdims)
     else:
-        outfunc = lambda axis = None, keepdims = True: np.apply_along_axis(
-            func1d=func, axis=axis, arr=a, keepdims=keepdims)
+        outfunc = functools.partial(np.apply_along_axis,
+                                    func1d=func, arr=a,
+                                    axis=None, keepdims=True)
+        # outfunc = lambda axis = None, keepdims = True: np.apply_along_axis(
+        #     func1d=func, axis=axis, arr=a, keepdims=keepdims)
     return outfunc
 
 
@@ -782,6 +791,9 @@ def pncexpr(expr, ifile, verbose=0):
     vardict['ifile'] = ifile
     vardict['infile'] = ifile
     vardict['np'] = np
+    vardict['datetime'] = datetime
+    for fname in dir(userfuncs):
+        vardict[fname] = getattr(userfuncs, fname)
     exec('from scipy.constants import *', None, vardict)
     for k in ifile.ncattrs():
         if k not in vardict:

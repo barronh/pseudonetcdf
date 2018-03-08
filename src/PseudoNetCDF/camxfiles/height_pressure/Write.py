@@ -20,12 +20,6 @@ from PseudoNetCDF.camxfiles.timetuple import timeadd, timerange
 from PseudoNetCDF.camxfiles.FortranFileUtil import writeline
 from PseudoNetCDF._getwriter import registerwriter
 
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxWrite.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
-
 
 def ncf2height_pressure(ncffile, outpath, hght='HGHT', pres='PRES', tflag='TFLAG'):
     outfile = open(outpath, 'wb')

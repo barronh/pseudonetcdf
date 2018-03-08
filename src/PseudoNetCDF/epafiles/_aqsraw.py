@@ -36,10 +36,10 @@ class aqsraw(PseudoNetCDFFile):
         """
         try:
             import pandas
-        except:
+        except Exception:
             raise ImportError(
                 'aqsraw requires pandas; install pandas (e.g., pip install pandas)')
-        if not wktpolygon is None:
+        if wktpolygon is not None:
             from shapely.wkt import loads
             from shapely.prepared import prep
             bounds = loads(wktpolygon)
@@ -71,11 +71,11 @@ class aqsraw(PseudoNetCDFFile):
             data = pandas.read_csv(yearpath, index_col=False, converters={
                                    'State Code': str, 'County Code': str, 'Site Num': str}, parse_dates=parse_dates)
             intimes = np.array([True]).repeat(len(data), 0)
-            #intimes = intimes & (data['Parameter Code'] == param)
+            # intimes = intimes & (data['Parameter Code'] == param)
 
-            if not bdate is None:
+            if bdate is not None:
                 intimes = intimes & (data[date_key] >= bdate)
-            if not edate is None:
+            if edate is not None:
                 intimes = intimes & (data[date_key] < edate)
 
             if wktpolygon is None:
@@ -124,8 +124,8 @@ class aqsraw(PseudoNetCDFFile):
         self.createDimension('points', len(sitelist))
         self.lonlatcoords = '/'.join(['%f,%f' % (row['Longitude'], row['Latitude'])
                                       for idx, row in sites.iterrows()])
-        last_time = start_time = hourly[date_key].values.min()
-        end_time = hourly[date_key].values.max()
+        last_time = hourly[date_key].values.min()
+        # end_time = hourly[date_key].values.max()
         temp = {}
         lat = self.createVariable('latitude', 'f', ('points',))
         lat.units = 'degrees_north'
@@ -146,7 +146,7 @@ class aqsraw(PseudoNetCDFFile):
             aqsid = row['State Code'] + row['County Code'] + row['Site Num']
             sidx = sitelist.index(aqsid)
             var_name = row['Parameter Name']
-            if not var_name in self.variables.keys():
+            if var_name not in self.variables.keys():
                 var = self.createVariable(
                     var_name, 'f', ('time', 'LAY', 'points'), fill_value=-999)
                 var.units = unit

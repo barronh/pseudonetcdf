@@ -1,4 +1,7 @@
+__all__ = ['ncf2cloud_rain']
+
 import numpy as np
+from PseudoNetCDF._getwriter import registerwriter
 
 
 def ncf2cloud_rain(ncffile, outpath, tflag='TFLAG'):
@@ -32,6 +35,5 @@ def ncf2cloud_rain(ncffile, outpath, tflag='TFLAG'):
     return outfile
 
 
-from PseudoNetCDF._getwriter import registerwriter
 registerwriter('camxfiles.cloud_rain', ncf2cloud_rain)
 registerwriter('cloud_rain', ncf2cloud_rain)

@@ -16,12 +16,6 @@ from numpy import mean, array, sum, arange, zeros, newaxis
 from warnings import warn
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
 
-HeadURL = "$HeadURL$"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy$"
-__version__ = RevisionNum
-
 
 def interior_vertex_func(a, dims=(-1, -2), func=sum):
     """Reduces the array dimensions by 1, by applying

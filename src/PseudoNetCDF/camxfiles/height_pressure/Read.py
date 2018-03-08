@@ -11,11 +11,6 @@ __doc__ = """
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxRead.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
 
 # Distribution packages
 import unittest
@@ -80,12 +75,12 @@ class height_pressure(PseudoNetCDFFile):
         self.id_size = struct.calcsize(self.id_fmt)
         self.__readheader()
         self.__gettimestep()
-        if rows == None and cols == None:
+        if rows is None and cols is None:
             rows = self.cell_count
             cols = 1
-        elif rows == None:
+        elif rows is None:
             rows = self.cell_count / cols
-        elif cols == None:
+        elif cols is None:
             cols = self.cell_count / rows
         else:
             if cols * rows != self.cell_count:
@@ -100,10 +95,14 @@ class height_pressure(PseudoNetCDFFile):
             self.__var_get, ['HGHT', 'PRES'])
 
     def __var_get(self, key):
-        def constr(hp): return self.getArray({'HGHT': 0, 'PRES': 1}[hp])
+        def constr(hp):
+            return self.getArray({'HGHT': 0, 'PRES': 1}[hp])
 
-        def decor(hp): return {'HGHT': dict(units='m', var_desc='HGHT'.ljust(16), long_name='HGHT'.ljust(
-            16)), 'PRES': dict(units='hPa', var_desc='PRES'.ljust(16), long_name='PRES'.ljust(16))}[hp]
+        def decor(hp):
+            return {'HGHT': dict(units='m', var_desc='HGHT'.ljust(16),
+                                 long_name='HGHT'.ljust(16)),
+                    'PRES': dict(units='hPa', var_desc='PRES'.ljust(16),
+                                 long_name='PRES'.ljust(16))}[hp]
         values = constr(key)
         var = self.createVariable(key, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'))
         var[:] = values
@@ -147,7 +146,7 @@ class height_pressure(PseudoNetCDFFile):
             try:
                 self.seek(d, t, self.nlayers, 1, False)
                 d, t = timeadd((d, t), (0, self.time_step))
-            except:
+            except Exception:
                 break
         self.end_date, self.end_time = timeadd((d, t), (0, -self.time_step))
         self.time_step_count = int(timediff(
@@ -189,9 +188,9 @@ class height_pressure(PseudoNetCDFFile):
         """
         Move file cursor to specified record
         """
-        if date == None:
+        if date is None:
             date = self.start_date
-        if time == None:
+        if time is None:
             time = self.start_time
 
         if chkvar and timediff((self.end_date, self.end_time), (date, time)) > 0 or timediff((self.start_date, self.start_time), (date, time)) < 0:

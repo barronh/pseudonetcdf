@@ -12,14 +12,9 @@ __doc__ = """
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
 
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxWrite.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
-
 # Distribution packages
 import operator
+from functools import reduce
 
 # Site-Packages
 import numpy as np
@@ -27,6 +22,7 @@ import numpy as np
 # This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timeadd, timerange
 from PseudoNetCDF.camxfiles.FortranFileUtil import writeline, Asc2Int
+from PseudoNetCDF._getwriter import registerwriter
 
 _emiss_hdr_fmt = np.dtype(dict(names=['SPAD', 'name', 'note', 'itzon', 'nspec', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[
                           '>i', '(10,4)>S1', '(60,4)>S1', '>i', '>i', '>i', '>f', '>i', '>f', '>i']))
@@ -55,7 +51,7 @@ def ncf2point_source(ncffile, outpath):
     emiss_hdr[0]['note'][:, :] = ' '
     emiss_hdr[0]['note'][:, 0] = np.array(
         [c for c in ncffile.NOTE], dtype='>S1')
-    gdtype = getattr(ncffile, 'GDTYPE', -999)
+    # gdtype = getattr(ncffile, 'GDTYPE', -999)
     emiss_hdr['itzon'][0] = ncffile.ITZON
     SPC_NAMES = [s.decode() for s in np.array([c for c in ncffile.SPC_NAMES],
                                               dtype='S1').reshape(-1, 16)[:, :10].copy().view('>S10')[:, 0]]
@@ -99,8 +95,8 @@ def ncf2point_source(ncffile, outpath):
     time_hdr['btime'] = time
     time_hdr['iedate'] = edate
     time_hdr['etime'] = etime
-    #time_hdr['iedate'] += time_hdr['etime'] // 24
-    #time_hdr['etime'] -= (time_hdr['etime'] // 24) * 24
+    # time_hdr['iedate'] += time_hdr['etime'] // 24
+    # time_hdr['etime'] -= (time_hdr['etime'] // 24) * 24
 
     emiss_hdr['ibdate'] = time_hdr[0]['ibdate']
     emiss_hdr['btime'] = time_hdr[0]['btime']
@@ -122,7 +118,7 @@ def ncf2point_source(ncffile, outpath):
     nstk_hdr['nstk'] = len(ncffile.dimensions['NSTK'])
 
     nstk = nstk_hdr['nstk'][0]
-    #(xstk(n),ystk(n),hstk(n),dstk(n),tstk(n),vstk(n),n=1,nstk)
+    # (xstk(n),ystk(n),hstk(n),dstk(n),tstk(n),vstk(n),n=1,nstk)
     stk_prop_fmt = np.dtype(dict(names=['xstk', 'ystk', 'hstk', 'dstk', 'tstk', 'vstk'], formats=[
                             '>f', '>f', '>f', '>f', '>f', '>f']))
     stk_prop = np.ones((1,), dtype=np.dtype(
@@ -149,7 +145,7 @@ def ncf2point_source(ncffile, outpath):
         tempout = b''
         tempout += time_hdr[di].tobytes()
         tempout += np.array([8, 1, nstk, 8], dtype='>i').tobytes()
-        #(idum,idum,kcell(n),flow(n),plmht(n),n=1,nstk)
+        # (idum,idum,kcell(n),flow(n),plmht(n),n=1,nstk)
         time_prop_fmt = np.dtype(dict(names=['ione1', 'ione2', 'kcell', 'flow', 'plmht'], formats=[
                                  '>i', '>i', '>i', '>f', '>f']))
         props = np.ones((1,), dtype=np.dtype(
@@ -175,7 +171,6 @@ def ncf2point_source(ncffile, outpath):
     return outfile
 
 
-from PseudoNetCDF._getwriter import registerwriter
 registerwriter('camxfiles.point_source', ncf2point_source)
 registerwriter('point_source', ncf2point_source)
 

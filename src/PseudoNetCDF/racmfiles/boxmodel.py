@@ -1,5 +1,5 @@
 from ..sci_var import PseudoNetCDFFile
-from numpy import dtype, fromstring, newaxis, vectorize
+from numpy import dtype, fromstring, newaxis, vectorize, nan
 from datetime import timedelta, datetime
 
 
@@ -62,8 +62,7 @@ def box_model_mrg(conc_path, irr_path, start_datetime):
     sorted_spcs.sort()
 
     nsteps = retval.createDimension('TSTEP', len(irr.dimensions['TSTEP']) - 1)
-    nrxns = retval.createDimension('REACTIONS', len(sorted_rxns))
-    nrxns = len(retval.dimensions['REACTIONS'])
+    retval.createDimension('REACTIONS', len(sorted_rxns))
     nsteps = len(retval.dimensions['TSTEP'])
     retval.createDimension('SPECIES', len(sorted_spcs))
     retval.createDimension('PROCESS', 3)

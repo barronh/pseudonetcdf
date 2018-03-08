@@ -23,13 +23,6 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
 from PseudoNetCDF.sci_var import PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
-HeadURL = "$HeadURL: http://dawes.sph.unc.edu:8080/uncaqmlsvn/pyPA/utils/trunk/CAMxMemmap.py $"
-ChangeDate = "$LastChangedDate$"
-RevisionNum = "$LastChangedRevision$"
-ChangedBy = "$LastChangedBy: svnbarronh $"
-__version__ = RevisionNum
-
-
 # for use in identifying uncaught nan
 listnan = struct.unpack('>f', b'\xff\xc0\x00\x00')[0]
 checkarray = zeros((1,), 'f')
@@ -142,9 +135,9 @@ class one3d(PseudoNetCDFFile):
         self.SDATE, self.STIME = v[0, 0, :]
 
     def __decorator(self, name, pncfv):
-        decor = lambda *args: dict(units=self.units, var_desc=self.var_name.ljust(
-            16), long_name=self.var_name.ljust(16))
-        for k, v in decor(name).items():
+        props = dict(units=self.units, var_desc=self.var_name.ljust(16),
+                     long_name=self.var_name.ljust(16))
+        for k, v in props.items():
             setattr(pncfv, k, v)
         return pncfv
 
