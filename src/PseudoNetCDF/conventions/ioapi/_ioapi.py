@@ -138,7 +138,7 @@ def get_ioapi_sphere():
     elif len(isph_parts) == 2:
         return isph_parts
     elif isph_parts[0] >= 0 and isph_parts[0] < _AXIS.size :
-        return _AXIS[isph_parts], _BXIS[isph_parts]
+        return _AXIS[isph_parts[0]], _BXIS[isph_parts[0]]
     else:
         return isph_parts * 2
 
