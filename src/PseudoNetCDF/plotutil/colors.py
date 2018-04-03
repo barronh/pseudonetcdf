@@ -22,15 +22,19 @@ def register_norm(name, norm):
 
 def _addusepaaqi():
     aqicolors = ['green', 'yellow', 'orange', 'red', 'purple', 'maroon']
+    aqic = aqicolors
     bounds_colors = {}
-    bounds_colors[('O3', 'mda8', 'ppbv')] = [0, 55, 71, 86,
-                                             106, 200], aqicolors[:5] + ['black'], 'max'
-    bounds_colors[('O3', 'mda8', 'ppmv')] = [0, 0.055, 0.071,
-                                             0.086, 0.106, 0.0200], aqicolors[:5] + ['black'], 'max'
-    bounds_colors[('O3', 'mda1', 'ppbv')] = [125, 165, 205, 405, 604], [
-        'white'] + aqicolors[2:] + ['black'], 'both'
-    bounds_colors[('PM25', 'a24', 'micrograms/m**3')] = [0, 12.1,
-                                                         35.5, 55.5, 150.5, 250.5, 500.4], aqicolors + ['black'], 'max'
+    bounds_colors[('O3', 'mda8', 'ppbv')] = ([0, 55, 71, 86, 106, 200],
+                                             aqic[:5] + ['black'], 'max')
+    bounds_colors[('O3', 'mda8', 'ppmv')] = ([0, 0.055, 0.071, 0.086,
+                                              0.106, 0.0200],
+                                             aqic[:5] + ['black'], 'max')
+    bounds_colors[('O3', 'mda1', 'ppbv')] = ([125, 165, 205, 405, 604],
+                                             ['white'] + aqic[2:] + ['black'],
+                                             'both')
+    pmb = [0, 12.1, 35.5, 55.5, 150.5, 250.5, 500.4]
+    pmc = aqic + ['black']
+    bounds_colors[('PM25', 'a24', 'micrograms/m**3')] = (pmb, pmc, 'max')
     for key, (bnds, colors, extend) in bounds_colors.items():
         print(key)
         name = '_'.join(('usepa', 'aqi',) + key)

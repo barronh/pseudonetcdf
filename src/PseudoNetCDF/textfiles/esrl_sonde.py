@@ -1,5 +1,5 @@
 """
-NOAA/GMD sounding data file produced on 2015/02/02 22:04:08 GMT by SkySonde Processor version 0.2.2.8
+NOAA/GMD sounding data file produced on 2015/02/02 22:04:08 GMT ...
                Header lines = 45
                Data columns = 21
               Flight number = BL049
@@ -42,7 +42,11 @@ Oltmans solution correction = Yes
        Altitude data source = Radiosonde Geopot Altitude
    Geo alt anchoring method = First/Launch Row Set to Launch Altitude
 
-      Time,     Press,      Praw,       Alt,     Tcorr,      Temp,      Traw,     Theta,        RH,     RHraw,     TFp V,     IPW V,    TVaisI, O3 Cell I,      O3 P,     O3 Mr,    T Pump,     O3Bat,    I Pump,     Total Column O3,  Total w/ Extrap O3"""
+      Time,     Press,      Praw,       Alt,     Tcorr,      Temp,..."""
+
+# Time, Press, Praw, Alt, Tcorr, Temp, Traw, Theta, RH, RHraw, TFp V,
+# IPW V, TVaisI, O3 Cell I, O3 P, O3 Mr, T Pump, O3Bat, I Pump,
+# Total Column O3, Total w/ Extrap O3
 
 
 from PseudoNetCDF import PseudoNetCDFFile

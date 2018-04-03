@@ -5,7 +5,9 @@ try:
     import pyproj
     _withlatlon = True
 except Exception:
-    warn('pyproj could not be found, so IO/API coordinates cannot be converted to lat/lon; to fix, install pyproj or basemap (e.g., `pip install pyproj)`')
+    warn('pyproj could not be found, so IO/API coordinates cannot be ' +
+         'converted to lat/lon; to fix, install pyproj or basemap ' +
+         '(e.g., `pip install pyproj)`')
 
 
 def add_lay_coordinates(ifileo):
@@ -42,14 +44,15 @@ def add_time_variables(ifileo):
 
 def add_time_variable(ifileo, key):
     from datetime import datetime, timedelta, timezone
+    strptime = datetime.strptime
+
     sdate = int(abs(ifileo.SDATE))
     if sdate < 1400000:
         sdate += 2000000
     sdate = datetime(sdate // 1000, 1, 1, tzinfo=timezone.utc) + \
         timedelta(days=(sdate % 1000) - 1)
     sdate = sdate + timedelta(days=ifileo.STIME / 240000.)
-    rdate = datetime.strptime(
-        '1970-01-01 00:00:00+0000', '%Y-%m-%d %H:%M:%S%z')
+    rdate = strptime('1970-01-01 00:00:00+0000', '%Y-%m-%d %H:%M:%S%z')
     if ifileo.TSTEP == 0:
         tmpseconds = 0
     else:
@@ -66,8 +69,9 @@ def add_time_variable(ifileo, key):
         hhmmsss = tflag[:, 1]
         if jdays[0] == 0:
             jdays = [ifileo.SDATE]
-        dates = np.array([datetime.strptime('%7d %06d+0000' % (jday, hhmmss),
-                                            '%Y%j %H%M%S%z') for jday, hhmmss in zip(jdays, hhmmsss)])
+        dates = np.array([strptime('%7d %06d+0000' % (jday, hhmmss),
+                                   '%Y%j %H%M%S%z')
+                          for jday, hhmmss in zip(jdays, hhmmsss)])
         time = np.array([(date - rdate).total_seconds() for date in dates])
         if key == 'time_bounds':
             time = np.array([time, time + tmpseconds]).T
@@ -77,16 +81,18 @@ def add_time_variable(ifileo, key):
         else:
             dims = ('TSTEP',)
     else:
-        sdate = datetime.strptime('%07d %06d+0000' % (getattr(
-            ifileo, 'SDATE', 1970001), getattr(ifileo, 'STIME', 0)), '%Y%j %H%M%S%z')
+        sdate = strptime('%07d %06d+0000' %
+                         (getattr(ifileo, 'SDATE', 1970001),
+                          getattr(ifileo, 'STIME', 0)),
+                         '%Y%j %H%M%S%z')
         off = (sdate - rdate).total_seconds()
         if key == 'time':
-            time = np.arange(
-                0, max(1, len(ifileo.dimensions['TSTEP'])), dtype='i') * tmpseconds + off
+            tmax = max(1, len(ifileo.dimensions['TSTEP']))
+            time = np.arange(0, tmax, dtype='i') * tmpseconds + off
             dims = ('TSTEP',)
         elif key == 'time_bounds':
-            time = np.arange(
-                0, max(1, len(ifileo.dimensions['TSTEP'])) + 1, dtype='i') * tmpseconds + off
+            tmax = max(1, len(ifileo.dimensions['TSTEP'])) + 1
+            time = np.arange(0, tmax, dtype='i') * tmpseconds + off
             time = time.repeat(2, 0)[1:-1].reshape(-1, 2)
             dims = ('TSTEP', 'tnv')
             if 'tnv' not in ifileo.dimensions.keys():
@@ -105,7 +111,8 @@ def add_time_variable(ifileo, key):
         var._CoordinateAxisType = "Time"
         var.bounds = 'time_bounds'
 
-    var.long_name = "synthesized time coordinate from SDATE, STIME, STEP global attributes"
+    var.long_name = ("synthesized time coordinate from SDATE, " +
+                     "STIME, STEP global attributes")
 
 
 # 0 Clarke 1866
@@ -130,10 +137,17 @@ def add_time_variable(ifileo, key):
 # 19 Normal Sphere
 # 20 MM5 Sphere
 # 21 WRF-NMM Sphere
-_AXIS = np.array([6378206.4, 6378249.145, 6377397.155, 6378157.5, 6378388.0, 6378135.0, 6377276.3452, 6378145.0, 6378137.0, 6377563.396,
-                  6377304.063, 6377340.189, 6378137.0, 6378155., 6378160.0, 6378245.0, 6378270.0, 6378166.0, 6378150.0, 6370997.0, 6370000.0, 6371200.0])
-_BXIS = np.array([6356583.8, 6356514.86955, 6356078.96284, 6356772.2, 6356911.94613, 6356750.519915, 6356075.4133, 6356759.769356, 6356752.314140, 6356256.91,
-                  6356103.039, 6356034.448, 6356752.314245, 6356773.3205, 6356774.719, 6356863.0188, 6356794.343479, 6356784.283666, 6356768.337303, 6370997.0, 6370000.0, 6371200.0])
+_AXIS = np.array([6378206.4, 6378249.145, 6377397.155, 6378157.5, 6378388.0,
+                  6378135.0, 6377276.3452, 6378145.0, 6378137.0, 6377563.396,
+                  6377304.063, 6377340.189, 6378137.0, 6378155., 6378160.0,
+                  6378245.0, 6378270.0, 6378166.0, 6378150.0, 6370997.0,
+                  6370000.0, 6371200.0])
+_BXIS = np.array([6356583.8, 6356514.86955, 6356078.96284, 6356772.2,
+                  6356911.94613, 6356750.519915, 6356075.4133, 6356759.769356,
+                  6356752.314140, 6356256.91, 6356103.039, 6356034.448,
+                  6356752.314245, 6356773.3205, 6356774.719, 6356863.0188,
+                  6356794.343479, 6356784.283666, 6356768.337303, 6370997.0,
+                  6370000.0, 6371200.0])
 
 
 def get_ioapi_sphere():
@@ -145,8 +159,8 @@ def get_ioapi_sphere():
              ENV_IOAPI_ISPH + '; consistent with WRF')
     isph_parts = [eval(ip) for ip in ENV_IOAPI_ISPH.split(' ')]
     if len(isph_parts) > 2:
-        raise ValueError(
-            'IOAPI_ISPH must be 1 or 2 parameters (got: %s)' % str(isph_parts))
+        raise ValueError('IOAPI_ISPH must be 1 or 2 parameters (got: %s)' %
+                         str(isph_parts))
     elif len(isph_parts) == 2:
         return isph_parts
     elif isph_parts[0] >= 0 and isph_parts[0] < _AXIS.size:
@@ -209,10 +223,12 @@ def add_lcc_coordinates(ifileo):
         wy = _y[:-1]
         lcc_x = x = np.concatenate([bx, ex, tx, wx])
         lcc_y = y = np.concatenate([by, ey, ty, wy])
-        lcc_xe = np.array([x - ifileo.XCELL / 2., x + ifileo.XCELL /
-                           2., x + ifileo.XCELL / 2., x - ifileo.XCELL / 2.]).T
-        lcc_ye = np.array([y - ifileo.YCELL / 2., y - ifileo.YCELL /
-                           2., y + ifileo.YCELL / 2., y + ifileo.YCELL / 2.]).T
+        XCELL = ifileo.XCELL
+        YCELL = ifileo.YCELL
+        lcc_xe = np.array([x - XCELL / 2., x + XCELL /
+                           2., x + XCELL / 2., x - XCELL / 2.]).T
+        lcc_ye = np.array([y - YCELL / 2., y - YCELL /
+                           2., y + YCELL / 2., y + YCELL / 2.]).T
         latlon_dim = ('PERIM',)
         latlone_dim = ('PERIM', 'nv')
         latlon_coord = 'PERIM'
@@ -225,10 +241,13 @@ def add_lcc_coordinates(ifileo):
         xe = np.arange(0, ifileo.NCOLS) * ifileo.XCELL + ifileo.XORIG
         ye = np.arange(0, ifileo.NROWS) * ifileo.YCELL + ifileo.YORIG
         lcc_xe, lcc_ye = np.meshgrid(xe, ye)
-        lcc_xe = np.concatenate([lcc_xe[:, :, None], lcc_xe[:, :, None] + ifileo.XCELL,
-                                 lcc_xe[:, :, None] + ifileo.XCELL, lcc_xe[:, :, None]], axis=2)
-        lcc_ye = np.concatenate([lcc_ye[:, :, None], lcc_ye[:, :, None], lcc_ye[:,
-                                                                                :, None] + ifileo.YCELL, lcc_ye[:, :, None] + ifileo.YCELL], axis=2)
+        lcc_xe = np.concatenate([lcc_xe[:, :, None],
+                                 lcc_xe[:, :, None] + ifileo.XCELL,
+                                 lcc_xe[:, :, None] + ifileo.XCELL,
+                                 lcc_xe[:, :, None]], axis=2)
+        lcc_ye = np.concatenate([lcc_ye[:, :, None], lcc_ye[:, :, None],
+                                 lcc_ye[:, :, None] + ifileo.YCELL,
+                                 lcc_ye[:, :, None] + ifileo.YCELL], axis=2)
         x = np.arange(0, ifileo.NCOLS) * ifileo.XCELL + \
             ifileo.XCELL / 2. + ifileo.XORIG
         y = np.arange(0, ifileo.NROWS) * ifileo.YCELL + \
@@ -237,16 +256,28 @@ def add_lcc_coordinates(ifileo):
 
     if _withlatlon:
         if ifileo.GDTYP == 2:
-            mapstr = '+proj=lcc +a=%s +b=%s +lon_0=%s +lat_1=%s +lat_2=%s +lat_0=%s' % (
-                mapdef.semi_major_axis, mapdef.semi_minor_axis, mapdef.longitude_of_central_meridian, mapdef.standard_parallel[0], mapdef.standard_parallel[1], mapdef.latitude_of_projection_origin,)
+            mapstrs = ['+proj=lcc',
+                       '+a=%s' % mapdef.semi_major_axis,
+                       '+b=%s' % mapdef.semi_minor_axis,
+                       '+lon_0=%s' % mapdef.longitude_of_central_meridian,
+                       '+lat_1=%s' % mapdef.standard_parallel[0],
+                       '+lat_2=%s' % mapdef.standard_parallel[1],
+                       '+lat_0=%s' % mapdef.latitude_of_projection_origin]
+            mapstr = ' '.join(mapstrs)
             mapproj = pyproj.Proj(mapstr)
         elif ifileo.GDTYP == 6:
-            mapstr = '+proj=stere +a={3} +b={4} +lon_0={0} +lat_0={1} +lat_ts={2}'.format(
-                mapdef.straight_vertical_longitude_from_pole, mapdef.latitude_of_projection_origin, mapdef.standard_parallel[0], mapdef.semi_major_axis, mapdef.semi_minor_axis)
+            mapstr = ('+proj=stere +a={3} +b={4} ' +
+                      '+lon_0={0} +lat_0={1} +lat_ts={2}').format(
+                          mapdef.straight_vertical_longitude_from_pole,
+                          mapdef.latitude_of_projection_origin,
+                          mapdef.standard_parallel[0],
+                          mapdef.semi_major_axis,
+                          mapdef.semi_minor_axis)
             mapproj = pyproj.Proj(mapstr)
         elif ifileo.GDTYP == 7:
             mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (
-                mapdef.semi_major_axis, mapdef.semi_minor_axis, mapdef.longitude_of_central_meridian)
+                mapdef.semi_major_axis, mapdef.semi_minor_axis,
+                mapdef.longitude_of_central_meridian)
             mapproj = pyproj.Proj(mapstr)
         elif ifileo.GDTYP == 1:
             def mapproj(x, y, inverse):
@@ -264,7 +295,8 @@ def add_lcc_coordinates(ifileo):
         var[:] = x[:]
         var.units = 'km'
         var._CoordinateAxisType = "GeoX"
-        var.long_name = "synthesized coordinate from XORIG XCELL global attributes"
+        var.long_name = ("synthesized coordinate from XORIG XCELL " +
+                         "global attributes")
 
     if 'y' not in ifileo.variables.keys() and ydim in ifileo.dimensions:
         """
@@ -274,7 +306,8 @@ def add_lcc_coordinates(ifileo):
         var[:] = y[:]
         var.units = 'km'
         var._CoordinateAxisType = "GeoY"
-        var.long_name = "synthesized coordinate from YORIG YCELL global attributes"
+        var.long_name = ("synthesized coordinate from YORIG YCELL " +
+                         "global attributes")
 
     if _withlatlon and 'latitude' not in ifileo.variables.keys():
         var = ifileo.createVariable('latitude', lat.dtype.char, latlon_dim)
@@ -313,7 +346,8 @@ def add_lcc_coordinates(ifileo):
 
     for varkey in ifileo.variables.keys():
         var = ifileo.variables[varkey]
-        # this must have been a fix for dictionaries that reproduced variables on demand
+        # this must have been a fix for dictionaries that
+        # reproduced variables on demand
         # we should find a better fix for this
         # try:
         #    ifileo.variables[varkey] = var
@@ -321,8 +355,10 @@ def add_lcc_coordinates(ifileo):
         #    pass
         olddims = list(var.dimensions)
         if _withlatlon:
-            dims = map(lambda x: {'ROW': 'latitude', 'COL': 'longitude',
-                                  'TSTEP': 'time', 'LAY': 'level'}.get(x, x), olddims)
+            def io2cf(x):
+                return {'ROW': 'latitude', 'COL': 'longitude',
+                        'TSTEP': 'time', 'LAY': 'level'}.get(x, x)
+            dims = [io2cf(d) for d in olddims]
         dims = [d for d in dims]  # Why was I excluding time  if d != 'time'
         if olddims != dims:
             if (varkey not in ('latitude', 'longitude') and
@@ -357,7 +393,8 @@ def add_ioapi_from_cf(ifileo, coordkeys=[]):
     tflag[:, :, 1] = itimes[:, None]
     tflag.units = "<YYYYDDD,HHMMSS>"
     tflag.long_name = "TFLAG           "
-    tflag.var_desc = "Timestep-valid flags:  (1) YYYYDDD or (2) HHMMSS                                "
+    tflag.var_desc = ("Timestep-valid flags: " +
+                      " (1) YYYYDDD or (2) HHMMSS").ljust(80)
 
 
 add_ioapi_from_ioapi = add_ioapi_from_cf

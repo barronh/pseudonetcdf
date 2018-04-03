@@ -100,7 +100,8 @@ class arltrajdump(PseudoNetCDFFile):
         1X,A8 - direction of trajectory calculation (FORWARD, BACKWARD)
         1X,A8 - vertical motion calculation method (OMEGA, THETA, ...)
         """
-        ntrajstr, self.TRAJECTORY_CALCULATION, self.VERTMOTION = f.readline().strip().split()
+        ntrajstr, tcalc, vmot = f.readline().strip().split()
+        self.TRAJECTORY_CALCULATION, self.VERTMOTION = tcalc, vmot
         ntrajs = self.NTRAJECTORIES = int(ntrajstr)
         """
         Record Loop #4 through the number of different trajectories in file
@@ -143,8 +144,9 @@ class arltrajdump(PseudoNetCDFFile):
         v.long_name = 'initial altitude'
         v[:] = trajmeta[:, 6]
         # Starting time
-        self._starttimes = _timefromnoaa(
-            trajmeta[:, 0], trajmeta[:, 1], trajmeta[:, 2], trajmeta[:, 3], trajmeta[:, 3] * 0)
+        self._starttimes = _timefromnoaa(trajmeta[:, 0], trajmeta[:, 1],
+                                         trajmeta[:, 2], trajmeta[:, 3],
+                                         trajmeta[:, 3] * 0)
         """
         Record #5
 
@@ -164,16 +166,20 @@ class arltrajdump(PseudoNetCDFFile):
         F8.1 - age of the trajectory in hours
         2F9.3 - position latitude and longitude
         1X,F8.1 - position height in meters above ground
-        n(1X,F8.1) - n diagnostic output variables (1st to be output is always pressure)
+        n(1X,F8.1) - n diagnostic output variables (1st to be output
+                    is always pressure)
         """
         try:
             import pandas as pd
         except Exception:
-            raise ImportError(
-                'arltrajdump requires pandas; install pandas (e.g., pip install pandas)')
+            raise ImportError('arltrajdump requires pandas; ' +
+                              'install pandas (e.g., pip install pandas)')
         # , parse_dates = ['YEAR MONTH DAY HOUR MINUTE'.split()])
-        data = pd.read_csv(
-            f, delimiter='\s+', names='trajid metgridid year month day hour minute forecast_hour age latitude longitude altitude'.split() + diagnostics[1:])
+        data = pd.read_csv(f, delimiter='\s+',
+                           names=(('trajid metgridid year month day hour ' +
+                                   'minute forecast_hour age latitude ' +
+                                   'longitude altitude').split() +
+                                  diagnostics[1:]))
         mytimes = _timefromnoaa(data['year'], data['month'], data['day'],
                                 data['hour'], data['minute'])
         unique_times = np.sort(np.unique(mytimes))

@@ -21,7 +21,8 @@ from numpy import zeros, array
 
 # This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timediff, timerange
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into, Int2Asc
+from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into
+from PseudoNetCDF.camxfiles.FortranFileUtil import Int2Asc
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables
 
 
@@ -95,8 +96,9 @@ class point_source(PseudoNetCDFFile):
         self.__gettimeprops()
         self.createDimension('TSTEP', self.time_step_count)
         self.createDimension('STK', self.nstk)
-        varkeys = ['XSTK', 'YSTK', 'HSTK', 'DSTK', 'TSTK', 'VSTK',
-                   'KCELL', 'FLOW', 'PLMHT'] + [i.strip() for i in self.spcnames]
+        varkeys = (['XSTK', 'YSTK', 'HSTK', 'DSTK', 'TSTK', 'VSTK',
+                    'KCELL', 'FLOW', 'PLMHT'] +
+                   [i.strip() for i in self.spcnames])
         self.variables = PseudoNetCDFVariables(self.__var_get, varkeys)
 
     def __var_get(self, key):
@@ -113,7 +115,8 @@ class point_source(PseudoNetCDFFile):
         if k in self.stkprops:
             return array(self.stk_props)[:, self.stkprops.index(k)]
         elif k in self.stktimeprops:
-            return array(self.stk_time_props)[:, :, 2:][:, :, self.stktimeprops.index(k)]
+            stkps = array(self.stk_time_props)[:, :, 2:]
+            return stkps[:, :, self.stktimeprops.index(k)]
         else:
             return self.getArray()[:, self.spcnames.index(k.ljust(10)), :]
 
@@ -140,10 +143,20 @@ class point_source(PseudoNetCDFFile):
         as properties of the ipr class
         """
         vals = self.rffile.read(self.emiss_hdr_fmt)
-        self.name, self.note, ione, self.nspec, self.start_date, self.start_time, self.end_date, self.end_time = vals[
-            0:10], vals[10:70], vals[70], vals[71], vals[72], vals[73], vals[74], vals[75]
-        rdum, rdum, self.iutm, self.xorg, self.yorg, self.delx, self.dely, self.nx, self.ny, self.nz, idum, idum, rdum, rdum, rdum = self.rffile.read(
-            self.grid_hdr_fmt)
+        self.name = vals[0:10]
+        self.note = vals[10:70]
+        ione = vals[70]
+        self.nspec = vals[71]
+        self.start_date = vals[72]
+        self.start_time = vals[73]
+        self.end_date = vals[74]
+        self.end_time = vals[75]
+
+        vals = self.rffile.read(self.grid_hdr_fmt)
+        rdum, rdum, self.iutm = vals[0:3]
+        self.xorg, self.yorg, self.delx, self.dely = vals[3:7]
+        self.nx, self.ny, self.nz = vals[7:10]
+        idum, idum, rdum, rdum, rdum = vals[10:]
         if self.nz == 0:
             # Special case of gridded emissions
             # Seems to be same as avrg
@@ -152,8 +165,8 @@ class point_source(PseudoNetCDFFile):
             self.nlayers = self.nz
         ione, ione, nx, ny = self.rffile.read(self.cell_hdr_fmt)
         if not (self.nx, self.ny) == (nx, ny):
-            raise ValueError("nx, ny defined first as %i, %i and then as %i, %i" % (
-                self.nx, self.ny, nx, ny))
+            raise ValueError(("nx, ny defined first as %i, %i and then as " +
+                              "%i, %i") % (self.nx, self.ny, nx, ny))
         species_temp = self.rffile.read(self.nspec * self.spc_fmt)
         self.spcnames = []
         for i in range(0, self.nspec * 10, 10):
@@ -173,14 +186,16 @@ class point_source(PseudoNetCDFFile):
                 stkprms[i, -1] = float('-nan')
         self.stk_props = stkprms.tolist()
         self.data_start_byte = self.rffile.record_start
-        self.start_date, self.start_time, end_date, end_time = self.rffile.read(
-            self.time_hdr_fmt)
+        self.start_date, self.start_time, end_date, end_time = \
+            self.rffile.read(self.time_hdr_fmt)
 
         self.time_step = timediff(
             (self.start_date, self.start_time), (end_date, end_time))
         # self.end_time += self.time_step
-        self.time_step_count = int(timediff((self.start_date, self.start_time), (
-            self.end_date, self.end_time), (2400, 24)[int(self.time_step % 2)]) / self.time_step)
+        mydayhrs = (2400, 24)[int(self.time_step % 2)]
+        self.time_step_count = int(timediff((self.start_date, self.start_time),
+                                            (self.end_date, self.end_time),
+                                            mydayhrs) / self.time_step)
 
         self.stk_time_prop_fmt = "" + ("iiiff" * self.nstk)
         self.padded_stk_time_prop_size = struct.calcsize(
@@ -200,8 +215,10 @@ class point_source(PseudoNetCDFFile):
 
     def __gettimeprops(self):
         self.stk_time_props = []
-        dates = timerange((self.start_date, self.start_time), (self.end_date,
-                                                               self.end_time), self.time_step, (2400, 24)[int(self.time_step % 2)])
+        dates = timerange((self.start_date, self.start_time),
+                          (self.end_date, self.end_time),
+                          self.time_step,
+                          (2400, 24)[int(self.time_step % 2)])
         for ti, (d, t) in enumerate(dates):
             tmpprop = zeros((len(self.stk_time_prop_fmt)), 'f')
             tmpprop[...] = self.seekandread(
@@ -256,11 +273,6 @@ class point_source(PseudoNetCDFFile):
         Move file cursor to the beginning of the specified record
         see __recordposition for parameter definitions
         """
-        # chkvar=True
-        # if chkvar and timediff((self.end_date,self.end_time),(date,time),24)>0 or timediff((self.start_date,self.start_time),(date,time),24)<0:
-        #    raise KeyError("Point emission file includes (%i,%6.1f) thru (%i,%6.1f); you requested (%i,%6.1f)" % (self.start_date,self.start_time,self.end_date,self.end_time,date,time))
-        # if chkvar and spc<1 or spc>self.nspec:
-        #    raise KeyError("Point emission file include species 1 thru %i; you requested %i" % (self.nspec,spc))
         seekto = self.__recordposition(date, time, spc, offset)
         self.rffile._newrecord(seekto)
 
@@ -318,7 +330,9 @@ class point_source(PseudoNetCDFFile):
         return a.copy()
 
     def timerange(self):
-        return timerange((self.start_date, self.start_time), (self.end_date, self.end_time), self.time_step, eod=24)
+        return timerange((self.start_date, self.start_time),
+                         (self.end_date, self.end_time), self.time_step,
+                         eod=24)
 
 
 class TestRead(unittest.TestCase):
@@ -333,8 +347,10 @@ class TestRead(unittest.TestCase):
         emissfile = point_source(
             PseudoNetCDF.testcase.camxfiles_paths['point_source'])
         v = emissfile.variables['NO2']
-        self.assert_((v[:] == array([0.00000000e+00, 3.12931000e+02, 1.23599997e+01, 0.00000000e+00, 5.27999992e+01,
-                                     0.00000000e+00, 3.12931000e+02, 1.23599997e+01, 0.00000000e+00, 5.27999992e+01], dtype='f').reshape(2, 5)).all())
+        self.assert_((v[:] == array(
+            [0.00000000e+00, 3.12931000e+02, 1.23599997e+01, 0.00000000e+00,
+             5.27999992e+01, 0.00000000e+00, 3.12931000e+02, 1.23599997e+01,
+             0.00000000e+00, 5.27999992e+01], dtype='f').reshape(2, 5)).all())
 
 
 if __name__ == '__main__':

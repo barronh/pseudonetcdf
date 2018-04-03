@@ -29,7 +29,8 @@ class add_derived(PseudoNetCDFFile):
     overwrite __childclass__ with the base class
     overwrite __addvars__ with a list of keys for variable names you
                           intend to derive
-    for each key name, create a key interface funciton (e.g. key = DEPTH, interface = __DEPTH__)
+    for each key name, create a key interface funciton (e.g. key = DEPTH,
+    interface = __DEPTH__)
     """
     __childclass__ = None
     __addvars__ = {}
@@ -39,7 +40,8 @@ class add_derived(PseudoNetCDFFile):
         self.__child = self.__childclass__(* args[1:], **kwds)
         self.dimensions = self.__child.dimensions
         self.variables = PseudoNetCDFVariables(
-            self.__variables__, self.__child.variables.keys() + self.__addvars__)
+            self.__variables__,
+            self.__child.variables.keys() + self.__addvars__)
 
     def __variables__(self, key):
         if key in self.__addvars__:
@@ -64,7 +66,8 @@ class time_avg_new_unit(PseudoNetCDFFile):
         'm/s'
         >>> class windavgnewunit(time_avg_new_unit):
         ...     __reader__ = wind
-        >>> windavgfile = windavgnewunit(wind_path, rows, cols, {'U': 'km/h', 'V': 'mph'})
+        >>> windavgfile = windavgnewunit(wind_path, rows, cols,\
+                          {'U': 'km/h', 'V': 'mph'})
         >>> windavgfile.dimensions
         {'TSTEP': 24, 'LAY': 28, 'ROW': 65, 'COL': 83}
         >>> windfile.variables['U'].units
@@ -102,7 +105,11 @@ class time_avg_new_unit(PseudoNetCDFFile):
         var = self.__file.variables[k]
         if outunit is None:
             outunit = var.units
-        return PseudoNetCDFVariableConvertUnit(self.__decorator(var, PseudoNetCDFVariable(self, k, var.typecode(), var.dimensions, values=CenterTime(var))), outunit)
+        tmpvar = PseudoNetCDFVariable(self, k, var.typecode(), var.dimensions,
+                                      values=CenterTime(var))
+        
+        return PseudoNetCDFVariableConvertUnit(self.__decorator(var, tmpvar),
+                                               outunit)
 
     def __decorator(self, ovar, nvar):
         for a, v in ovar.__dict__.items():
@@ -132,14 +139,19 @@ class window(PseudoNetCDFFile):
 
     """
 
-    def __init__(self, ncffile, tslice=slice(None), kslice=slice(None), jslice=slice(None), islice=slice(None)):
+    def __init__(self, ncffile, tslice=slice(None), kslice=slice(None),
+                 jslice=slice(None), islice=slice(None)):
         self.__file = ncffile
         self.__idx = [tslice, kslice, jslice, islice]
         self.dimensions = self.__file.dimensions.copy()
         any_non_time_key = [
             k for k in self.__file.variables.keys() if 'TFLAG' not in k][0]
-        self.dimensions['TSTEP'], self.dimensions['LAY'], self.dimensions['ROW'], self.dimensions['COL'] \
-            = map(lambda x: PseudoNetCDFDimension(None, None, x), self.__file.variables[any_non_time_key][self.__idx].shape)
+        tmpvar = self.__file.variables[any_non_time_key][self.__idx]
+        ntimes, nlays, nrows, ncols = tmpvar.shape
+        self.dimensions['TSTEP'] = PseudoNetCDFDimension(None, None, ntimes)
+        self.dimensions['LAY'] = PseudoNetCDFDimension(None, None, nlays)
+        self.dimensions['ROW'] = PseudoNetCDFDimension(None, None, nrows)
+        self.dimensions['COL'] = PseudoNetCDFDimension(None, None, ncols)
         self.variables = PseudoNetCDFVariables(
             self.__variables, self.__file.variables.keys())
 
@@ -173,7 +185,8 @@ class newresolution(PseudoNetCDFFile):
         (25, 28, 260, 332)
     """
 
-    def __init__(self, ncffile, dimension, oldres, newres, repeat_method=repeat, condense_method=sum, nthick=0):
+    def __init__(self, ncffile, dimension, oldres, newres,
+                 repeat_method=repeat, condense_method=sum, nthick=0):
         from PseudoNetCDF.sci_var import Pseudo2NetCDF
         PseudoNetCDFFile.__init__(self)
         self.__dimension = array(dimension, ndmin=1)
@@ -185,7 +198,8 @@ class newresolution(PseudoNetCDFFile):
         self.__file = ncffile
         self.__nthick = nthick
 
-        if not logical_or((self.__mesh % 1) == 0, (1. / self.__mesh) % 1 == 0).any():
+        if not logical_or((self.__mesh % 1) == 0,
+                          (1. / self.__mesh) % 1 == 0).any():
             raise ValueError("One resolution must be a factor of the other.")
 
         Pseudo2NetCDF().addDimensions(self.__file, self)
@@ -288,13 +302,15 @@ class MetaNetCDF(PseudoNetCDFFile):
             if k in f.variables.keys():
                 v = f.variables[k]
                 if k == 'TFLAG':
-                    v = PseudoNetCDFVariable(self, 'TFLAG', 'i', v.dimensions, values=v[:][:, [
-                                             0], :].repeat(len(self.dimensions['VAR']), 1))
+                    nvars = len(self.dimensions['VAR'])
+                    vals = v[:][:, [0], :].repeat(nvars, 1)
+                    v = PseudoNetCDFVariable(self, 'TFLAG', 'i', v.dimensions,
+                                             values=vals)
                     v.long_name = 'TFLAG'.ljust(16)
                     v.var_desc = 'TFLAG'.ljust(16)
                     v.units = 'DATE-TIME'
 
-                if k == 'LAY' and k in self.dimensions.keys() and len(k.shape) > 1:
+                if k == 'LAY' and k in self.dimensions and len(k.shape) > 1:
                     if v.shape[1] == 1:
                         dims = list(v.dimensions)
                         dims[1] = 'SURFLAY'

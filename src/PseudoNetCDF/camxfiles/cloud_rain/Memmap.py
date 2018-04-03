@@ -22,7 +22,8 @@ from numpy import zeros, array, memmap
 import numpy as np
 
 # This Package modules
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
+from PseudoNetCDF.sci_var import PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 # for use in identifying uncaught nan
@@ -66,26 +67,32 @@ class cloud_rain(PseudoNetCDFFile):
         flen = f.tell()
         offset = struct.unpack('>i', open(rf, 'rb').read(4))[0] + 8
         self.__memmap = memmap(rf, dtype='>f', mode='r', offset=offset)
-        ncols, nrows, nlays = struct.unpack({35: '>i15ciiii', 40: '>i20ciiii'}[
-                                            offset], open(rf, 'rb').read(offset))[-4:-1]
+        line1fmt = {35: '>i15ciiii', 40: '>i20ciiii'}[offset]
+        ncols, nrows, nlays = struct.unpack(line1fmt,
+                                            open(rf, 'rb').read(offset))[-4:-1]
         self.createDimension('COL', ncols)
         self.createDimension('ROW', nrows)
         self.createDimension('LAY', nlays)
-        header = np.fromfile(rf, dtype={35: '>i4,S15,>i4,>i4,>i4,>i4,>i4,>f4,>i4',
-                                        40: '>i4,S20,>i4,>i4,>i4,>i4,>i4,>f4,>i4'}[offset], count=1)[0]
+        mydt = {35: '>i4,S15,>i4,>i4,>i4,>i4,>i4,>f4,>i4',
+                40: '>i4,S20,>i4,>i4,>i4,>i4,>i4,>f4,>i4'}[offset]
+        header = np.fromfile(rf, dtype=mydt, count=1)[0]
         self.FILEDESC = ''.join(header[1].decode())
         self.STIME, self.SDATE = header.tolist()[-2:]
         if self.SDATE < 10000:
             self.SDATE += 2000000
-        if (ncols != cols and cols is not None) or (rows != rows and rows is not None):
-            warn('Files says cols = %d, rows = %d, and lays = %d; you said cols = %d and rows = %d' % (
+        if (((ncols != cols and cols is not None) or
+             (rows != rows and rows is not None))):
+            warn(('Files says cols = %d, rows = %d, and lays = %d; ' +
+                  'you said cols = %d and rows = %d') % (
                 ncols, nrows, nlays, cols, rows))
 
         self.createDimension('DATE-TIME', 2)
-        self.VERSION, varkeys = {35: ('<4.3', ['CLOUD', 'PRECIP', 'COD', 'TFLAG']), 40: (
-            '4.3', ['CLOUD', 'RAIN', 'SNOW', 'GRAUPEL', 'COD', 'TFLAG'])}[offset]
-        self.createDimension('TSTEP', (flen - offset) //
-                             ((len(varkeys) - 1) * nlays * (nrows * ncols + 2) * 4 + 16))
+        ver_keys = {35: ('<4.3', ['CLOUD', 'PRECIP', 'COD', 'TFLAG']),
+                    40: ('4.3', ['CLOUD', 'RAIN', 'SNOW',
+                                 'GRAUPEL', 'COD', 'TFLAG'])}[offset]
+        self.VERSION, varkeys = ver_keys
+        timesize = ((len(varkeys) - 1) * nlays * (nrows * ncols + 2) * 4 + 16)
+        self.createDimension('TSTEP', (flen - offset) // timesize)
         self.createDimension('VAR', len(varkeys) - 1)
 
         self.NVARS = len(self.dimensions['VAR'])
@@ -103,8 +110,10 @@ class cloud_rain(PseudoNetCDFFile):
         lays = len(self.dimensions['LAY'])
         rows = len(self.dimensions['ROW'])
         cols = len(self.dimensions['COL'])
-        v = PseudoNetCDFVariable(self, key, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'),
-                                 values=self.__memmap[vals_idx].reshape(times, lays, rows, cols))
+        vals = self.__memmap[vals_idx].reshape(times, lays, rows, cols)
+        v = PseudoNetCDFVariable(self, key, 'f',
+                                 ('TSTEP', 'LAY', 'ROW', 'COL'),
+                                 values=vals)
         v.units = {'COD': 'None'}.get(key, 'g/m**3')
         v.long_name = key
         v.var_desc = key
@@ -130,11 +139,17 @@ class cloud_rain(PseudoNetCDFFile):
         out_idx.reshape(times, lays * vars *
                         (rows * cols + 2) + 4)[:, 2] = date
 
-        self.variables['TFLAG'] = ConvertCAMxTime(self.__memmap[out_idx == date].view(
-            '>i'), self.__memmap[out_idx == hour], len(self.dimensions['VAR']))
+        dateblock = self.__memmap[out_idx == date].view('>i')
+        hourblock = self.__memmap[out_idx == hour]
+        nvars = len(self.dimensions['VAR'])
+        self.variables['TFLAG'] = ConvertCAMxTime(dateblock, hourblock, nvars)
 
-        val_shape = out_idx.reshape(times, lays * vars * (rows * cols + 2) + 4)[:, 4:].reshape(
-            times, lays, vars, rows * cols + 2)[:, :, :, 1:-1].reshape(times, lays, vars, rows, cols)
+        newshape1 = (times, lays * vars * (rows * cols + 2) + 4)
+        newshape2 = (times, lays, vars, rows * cols + 2)
+        newshape3 = (times, lays, vars, rows, cols)
+        val_shape = out_idx.reshape(*newshape1)[:, 4:]
+        val_shape = val_shape.reshape(*newshape2)[:, :, :, 1:-1]
+        val_shape = val_shape.reshape(*newshape3)
         if self.VERSION == '<4.3':
             val_shape[:, :, 0, :, :] = cloud
             val_shape[:, :, 1, :, :] = rain
@@ -174,15 +189,55 @@ class TestMemmap(unittest.TestCase):
         crfile = cloud_rain(
             PseudoNetCDF.testcase.camxfiles_paths['cloud_rain'], 4, 5)
         crfile.variables['TFLAG']
-        self.assert_((crfile.variables['COD'] == array([1.25412483e+01, 1.77024829e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.38041372e+01, 1.94885385e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.41415815e+01, 1.67501605e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.34467077e+01, 1.99459922e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.25412483e+01, 1.77024829e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.38041372e+01, 1.94885385e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.41415815e+01, 1.67501605e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.34467077e+01, 1.99459922e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.25412483e+01, 1.77024829e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.38041372e+01, 1.94885385e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.41415815e+01, 1.67501605e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.34467077e+01, 1.99459922e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
-                                                        1.96655331e+01, 2.05677104e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.14273071e+01, 2.09934115e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.21391239e+01, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.26519203e+01, 4.96763992e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.96655331e+01, 2.05677104e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.14273071e+01, 2.09934115e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.21391239e+01, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.26519203e+01, 4.96763992e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.96655331e+01, 2.05677104e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.14273071e+01, 2.09934115e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.21391239e+01, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.26519203e+01, 4.96763992e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00], dtype='f').reshape(2, 3, 4, 5)).all())
+        checkv = array([1.25412483e+01, 1.77024829e+00, 0.00000000e+00,
+                        0.00000000e+00, 0.00000000e+00, 1.38041372e+01,
+                        1.94885385e+00, 0.00000000e+00, 0.00000000e+00,
+                        0.00000000e+00, 1.41415815e+01, 1.67501605e+00,
+                        0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+                        1.34467077e+01, 1.99459922e+00, 0.00000000e+00,
+                        0.00000000e+00, 0.00000000e+00, 1.25412483e+01,
+                        1.77024829e+00, 0.00000000e+00, 0.00000000e+00,
+                        0.00000000e+00, 1.38041372e+01, 1.94885385e+00,
+                        0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+                        1.41415815e+01, 1.67501605e+00, 0.00000000e+00,
+                        0.00000000e+00, 0.00000000e+00, 1.34467077e+01,
+                        1.99459922e+00, 0.00000000e+00, 0.00000000e+00,
+                        0.00000000e+00, 1.25412483e+01, 1.77024829e+00,
+                        0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+                        1.38041372e+01, 1.94885385e+00, 0.00000000e+00,
+                        0.00000000e+00, 0.00000000e+00, 1.41415815e+01,
+                        1.67501605e+00, 0.00000000e+00, 0.00000000e+00,
+                        0.00000000e+00, 1.34467077e+01, 1.99459922e+00,
+                        0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+                        1.96655331e+01, 2.05677104e+00, 0.00000000e+00,
+                        0.00000000e+00, 0.00000000e+00, 2.14273071e+01,
+                        2.09934115e+00, 0.00000000e+00, 0.00000000e+00,
+                        0.00000000e+00, 2.21391239e+01, 0.00000000e+00,
+                        0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+                        2.26519203e+01, 4.96763992e+00, 0.00000000e+00,
+                        0.00000000e+00, 0.00000000e+00, 1.96655331e+01,
+                        2.05677104e+00, 0.00000000e+00, 0.00000000e+00,
+                        0.00000000e+00, 2.14273071e+01, 2.09934115e+00,
+                        0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+                        2.21391239e+01, 0.00000000e+00, 0.00000000e+00,
+                        0.00000000e+00, 0.00000000e+00, 2.26519203e+01,
+                        4.96763992e+00, 0.00000000e+00, 0.00000000e+00,
+                        0.00000000e+00, 1.96655331e+01, 2.05677104e+00,
+                        0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+                        2.14273071e+01, 2.09934115e+00, 0.00000000e+00,
+                        0.00000000e+00, 0.00000000e+00, 2.21391239e+01,
+                        0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+                        0.00000000e+00, 2.26519203e+01, 4.96763992e+00,
+                        0.00000000e+00, 0.00000000e+00, 0.00000000e+00],
+                       dtype='f').reshape(2, 3, 4, 5)
+        self.assert_((crfile.variables['COD'] == checkv).all())
 
     def testNCF2CR(self):
         import PseudoNetCDF.testcase
         from PseudoNetCDF.pncgen import pncgen
         import os
         inpath = PseudoNetCDF.testcase.camxfiles_paths['cloud_rain']
-        outpath = PseudoNetCDF.testcase.camxfiles_paths['cloud_rain'] + '.check'
+        outpath = inpath + '.check'
         infile = cloud_rain(inpath, 4, 5)
         pncgen(infile, outpath, format='camxfiles.cloud_rain')
         orig = open(inpath, 'rb').read()

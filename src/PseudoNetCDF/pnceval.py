@@ -29,17 +29,20 @@ def MNB(obs, mod, axis=None):
 
 def MNE(obs, mod, axis=None):
     """ Mean Normalized Gross Error (%)"""
-    return np.ma.masked_invalid(np.ma.abs(mod - obs) / obs).mean(axis=axis) * 100.
+    ne = np.ma.abs(mod - obs) / obs
+    return np.ma.masked_invalid(ne).mean(axis=axis) * 100.
 
 
 def MdnNB(obs, mod, axis=None):
     """ Median Normalized Bias (%)"""
-    return np.ma.median(np.ma.masked_invalid((mod - obs) / obs), axis=axis) * 100.
+    nb = (mod - obs) / obs
+    return np.ma.median(np.ma.masked_invalid(nb), axis=axis) * 100.
 
 
 def MdnNE(obs, mod, axis=None):
     """ Median Normalized Gross Error (%)"""
-    return np.ma.median(np.ma.masked_invalid(np.ma.abs(mod - obs) / obs), axis=axis) * 100.
+    ne = np.ma.abs(mod - obs) / obs
+    return np.ma.median(np.ma.masked_invalid(ne), axis=axis) * 100.
 
 
 def NO(obs, mod, axis=None):
@@ -115,12 +118,15 @@ def NMB(obs, mod, axis=None):
 
 def NMdnB(obs, mod, axis=None):
     """ Normalized Median Bias (%)"""
-    return np.ma.median(mod - obs, axis=axis) / np.ma.median(obs, axis=axis) * 100.
+    mdnb = np.ma.median(mod - obs, axis=axis)
+    mdno = np.ma.median(obs, axis=axis)
+    return mdnb / mdno * 100.
 
 
 def FB(obs, mod, axis=None):
     """ Fractional Bias (%)"""
-    return ((np.ma.masked_invalid((mod - obs) / (mod + obs))).mean(axis=axis) * 2.) * 100.
+    halffb = (mod - obs) / (mod + obs)
+    return ((np.ma.masked_invalid(halffb)).mean(axis=axis) * 2.) * 100.
 
 
 def ME(obs, mod, axis=None):
@@ -164,52 +170,74 @@ def FE(obs, mod, axis=None):
 
 def USUTPB(obs, mod, axis=None):
     """ Unpaired Space/Unpaired Time Peak Bias (%)"""
-    return ((mod.max(axis=axis) - obs.max(axis=axis)) / obs.max(axis=axis)) * 100.
+    modmax = mod.max(axis=axis)
+    obsmax = obs.max(axis=axis)
+    return ((modmax - obsmax) / obsmax) * 100.
 
 
 def USUTPE(obs, mod, axis=None):
     """ Unpaired Space/Unpaired Time Peak Error (%)"""
-    return (np.ma.abs(mod.max(axis=axis) - obs.max(axis=axis)) / obs.max(axis=axis)) * 100.
+    obsmax = obs.max(axis=axis)
+    return (np.ma.abs(mod.max(axis=axis) - obsmax) / obsmax) * 100.
 
 
 def MNPB(obs, mod, paxis, axis=None):
     """ Mean Normalized Peak Bias (%)"""
-    return ((mod.max(axis=paxis) - obs.max(axis=paxis)) / obs.max(axis=paxis)).mean(axis=axis) * 100.
+    obsmax = obs.max(axis=paxis)
+    return ((mod.max(axis=paxis) - obsmax) / obsmax).mean(axis=axis) * 100.
 
 
 def MdnNPB(obs, mod, paxis, axis=None):
     """ Median Normalized Peak Bias (%)"""
-    return np.ma.median((mod.max(axis=paxis) - obs.max(axis=paxis)) / obs.max(axis=paxis), axis=axis) * 100.
+    obsmax = obs.max(axis=paxis)
+    modmax = mod.max(axis=paxis)
+    return np.ma.median((modmax - obsmax) / obsmax, axis=axis) * 100.
 
 
 def MNPE(obs, mod, paxis, axis=None):
     """ Mean Normalized Peak Error (%)"""
-    return ((np.ma.abs(mod.max(axis=paxis) - obs.max(axis=paxis))) / obs.max(axis=paxis)).mean(axis=axis) * 100.
+    modmax = mod.max(axis=paxis)
+    obsmax = obs.max(axis=paxis)
+    return ((np.ma.abs(modmax - obsmax)) / obsmax).mean(axis=axis) * 100.
 
 
 def MdnNPE(obs, mod, paxis, axis=None):
     """ Median Normalized Peak Bias (%)"""
-    return np.ma.median((np.ma.abs(mod.max(axis=paxis) - obs.max(axis=paxis))) / obs.max(axis=paxis), axis=axis) * 100.
+    modmax = mod.max(axis=paxis)
+    obsmax = obs.max(axis=paxis)
+    pe = np.ma.abs(modmax - obsmax)
+    return np.ma.median((pe) / obsmax, axis=axis) * 100.
 
 
 def NMPB(obs, mod, paxis, axis=None):
     """ Normalized Mean Peak Bias (%)"""
-    return (mod.max(axis=paxis) - obs.max(axis=paxis)).mean(axis=axis) / obs.max(axis=paxis).mean(axis=axis) * 100.
+    modmax = mod.max(axis=paxis)
+    obsmax = obs.max(axis=paxis)
+    return (modmax - obsmax).mean(axis=axis) / obsmax.mean(axis=axis) * 100.
 
 
 def NMdnPB(obs, mod, paxis, axis=None):
     """ Normalized Median Peak Bias (%)"""
-    return np.ma.median((mod.max(axis=paxis) - obs.max(axis=paxis)), axis=axis) / np.ma.median(obs.max(axis=paxis), axis=axis) * 100.
+    modmax = mod.max(axis=paxis)
+    obsmax = obs.max(axis=paxis)
+    return (np.ma.median((modmax - obsmax), axis=axis) /
+            np.ma.median(obsmax, axis=axis) * 100.)
 
 
 def NMPE(obs, mod, paxis, axis=None):
     """ Normalized Mean Peak Error (%)"""
-    return (np.ma.abs(mod.max(axis=paxis) - obs.max(axis=paxis))).mean(axis=axis) / obs.max(axis=paxis).mean(axis=axis) * 100.
+    modmax = mod.max(axis=paxis)
+    obsmax = obs.max(axis=paxis)
+    return (np.ma.abs(modmax - obsmax).mean(axis=axis) /
+            obsmax.mean(axis=axis) * 100.)
 
 
 def NMdnPE(obs, mod, paxis, axis=None):
     """ Normalized Median Peak Bias (%)"""
-    return np.ma.median(np.ma.abs(mod.max(axis=paxis) - obs.max(axis=paxis)), axis=axis) / np.ma.median(obs.max(axis=paxis), axis=axis) * 100.
+    modmax = mod.max(axis=paxis)
+    obsmax = obs.max(axis=paxis)
+    return (np.ma.median(np.ma.abs(modmax - obsmax), axis=axis) /
+            np.ma.median(obsmax, axis=axis) * 100.)
 
 
 def PSUTMNPB(obs, mod, axis=None):
@@ -258,7 +286,8 @@ def R2(obs, mod, axis=None):
     if axis is None:
         return pearsonr(obs, mod)[0]**2
     else:
-        return apply_along_axis_2v(lambda x, y: pearsonr(x, y)[0]**2, axis, obs, mod)
+        r = pearsonr
+        return apply_along_axis_2v(lambda x, y: r(x, y)[0]**2, axis, obs, mod)
 
 
 def apply_along_axis_2v(func, axis, v1, v2, *args):
@@ -332,12 +361,17 @@ def RMSEu(obs, mod, axis=None):
 
 def d1(obs, mod, axis=None):
     """ Modified Index of Agreement, d1"""
-    return 1.0 - (np.ma.abs(obs - mod)).sum(axis=axis) / (np.ma.abs(mod - obs.mean(axis=axis)) + np.ma.abs(obs - obs.mean(axis=axis))).sum(axis=axis)
+    return (1.0 -
+            np.ma.abs(obs - mod).sum(axis=axis) /
+            (np.ma.abs(mod - obs.mean(axis=axis)) +
+             np.ma.abs(obs - obs.mean(axis=axis))).sum(axis=axis))
 
 
 def E1(obs, mod, axis=None):
     """ Modified Coefficient of Efficiency, E1"""
-    return 1.0 - (np.ma.abs(obs - mod)).sum(axis=axis) / (np.ma.abs(obs - obs.mean(axis=axis))).sum(axis=axis)
+    return (1.0 -
+            np.ma.abs(obs - mod).sum(axis=axis) /
+            (np.ma.abs(obs - obs.mean(axis=axis))).sum(axis=axis))
 
 
 def IOA(obs, mod, axis=None):
@@ -345,7 +379,10 @@ def IOA(obs, mod, axis=None):
     obsmean = obs.mean(axis=axis)
     if axis is not None:
         obsmean = np.expand_dims(obsmean, axis=axis)
-    return 1.0 - (np.ma.abs(obs - mod)**2).sum(axis=axis) / ((np.ma.abs(mod - obsmean) + np.ma.abs(obs - obsmean))**2).sum(axis=axis)
+    return (1.0 -
+            (np.ma.abs(obs - mod)**2).sum(axis=axis) /
+            ((np.ma.abs(mod - obsmean) +
+              np.ma.abs(obs - obsmean))**2).sum(axis=axis))
 
 
 def circlebias(b):
@@ -365,7 +402,8 @@ def WDIOA(obs, mod, axis=None):
 
     ohat = circlebias(obs - obsmean)
 
-    return 1.0 - (np.ma.abs(b)**2).sum(axis=axis) / ((np.ma.abs(bhat) + np.ma.abs(ohat))**2).sum(axis=axis)
+    return (1.0 - (np.ma.abs(b)**2).sum(axis=axis) /
+            ((np.ma.abs(bhat) + np.ma.abs(ohat))**2).sum(axis=axis))
 
 
 def AC(obs, mod, axis=None):
@@ -384,13 +422,15 @@ def WDAC(obs, mod, axis=None):
     obs_bar = obs.mean(axis=axis)
     if axis is not None:
         obs_bar = np.expand_dims(obs_bar, axis=axis)
-    p1 = (circlebias(mod - obs_bar) * circlebias(obs - obs_bar)).sum(axis=axis)
+    p1 = (circlebias(mod - obs_bar) *
+          circlebias(obs - obs_bar)).sum(axis=axis)
     p2 = ((circlebias(mod - obs_bar)**2).sum(axis=axis) *
           (circlebias(obs - obs_bar)**2).sum(axis=axis))**0.5
     return p1 / p2
 
 
-def stat_spatial(ifile0, ifile1, funcs=__all__, variables=['O3'], counties=False):
+def stat_spatial(ifile0, ifile1, funcs=__all__,
+                 variables=['O3'], counties=False):
     """
     ifile0 - left hand side of equation
     ifile1 - right hand side of equation
@@ -529,9 +569,12 @@ def main():
 
     parser = getparser(has_ofile=False, plot_options=False, interactive=True)
     parser.add_argument('--csv', dest='csv', default=False,
-                        action='store_true', help='Print all data in CSV format')
-    parser.add_argument('--funcs', default=__all__, type=lambda x: x.split(','),
-                        help='Functions to evaluate split by , (default: %s)' % ','.join(__all__))
+                        action='store_true',
+                        help='Print all data in CSV format')
+    parser.add_argument('--funcs', default=__all__,
+                        type=lambda x: x.split(','),
+                        help=('Functions to evaluate split by , ' +
+                              '(default: %s)') % ','.join(__all__))
 
     ifiles, args = pncparse(has_ofile=False, interactive=True, parser=parser)
     args.ifiles = ifiles

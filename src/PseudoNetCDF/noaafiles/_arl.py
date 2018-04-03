@@ -1,6 +1,7 @@
 from __future__ import print_function
 import numpy as np
-from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
+from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariable
+from PseudoNetCDF import PseudoNetCDFVariables
 from PseudoNetCDF.coordutil import gettimes
 from PseudoNetCDF._getwriter import registerwriter
 from datetime import datetime
@@ -34,16 +35,19 @@ def timeit(key):
 
 timeit.starts = {}
 
-thdtype = dtype([('YYMMDDHHFF', '>10S'), ('LEVEL', '>2S'), ('GRID', '>2S'), ('INDX', '>4S'), ('Z1', '>4S'), ('MB1', '>14S'), ('MB2', '>14S'),
-                 ('SRCE', '>S4'), ('MGRID', '>S3'), ('VSYS', '>S2'),
-                 ('POLLAT', '>S7'), ('POLLON',
-                                     '>S7'), ('REFLAT', '>S7'), ('REFLON', '>S7'),
+thdtype = dtype([('YYMMDDHHFF', '>10S'), ('LEVEL', '>2S'), ('GRID', '>2S'),
+                 ('INDX', '>4S'), ('Z1', '>4S'), ('MB1', '>14S'),
+                 ('MB2', '>14S'), ('SRCE', '>S4'), ('MGRID', '>S3'),
+                 ('VSYS', '>S2'), ('POLLAT', '>S7'), ('POLLON', '>S7'),
+                 ('REFLAT', '>S7'), ('REFLON', '>S7'),
                  ('GRIDX', '>S7'), ('ORIENT', '>S7'), ('TANLAT', '>S7'),
-                 ('SYNCHX', '>S7'), ('SYNCHY',
-                                     '>S7'), ('SYNCHLAT', '>S7'), ('SYNCHLON', '>S7'),
-                 ('RESERVED', '>S7'), ('NX', '>S3'), ('NY', '>S3'), ('NZ', '>S3'), ('VSYS2', '>S2'), ('LENH', '>S4')])
+                 ('SYNCHX', '>S7'), ('SYNCHY', '>S7'), ('SYNCHLAT', '>S7'),
+                 ('SYNCHLON', '>S7'), ('RESERVED', '>S7'), ('NX', '>S3'),
+                 ('NY', '>S3'), ('NZ', '>S3'), ('VSYS2', '>S2'),
+                 ('LENH', '>S4')])
 vhdtype = dtype([('YYMMDDHHFF', '>10S'), ('LEVEL', '>2S'), ('grid', '>2S'),
-                 ('VKEY', '>4S'), ('EXP', '>4S'), ('PREC', '>14S'), ('VAR1', '>14S')])
+                 ('VKEY', '>4S'), ('EXP', '>4S'), ('PREC', '>14S'),
+                 ('VAR1', '>14S')])
 
 stdprops = dict(
     x=('x', 'm'),
@@ -182,7 +186,8 @@ def writevardef(vglvls, keys, checksums):
     """
     vglvls - iterables of floats [1, .98, ...]
     keys - dictionary of keys by level {vglvli: [vark, ....], ...}
-    checksums - integer checsums for each lvl, key -- {(vglvl, vark): checksum, ...}
+    checksums - integer checsums for each lvl, key --
+                {(vglvl, vark): checksum, ...}
     """
     vardef = ''
     vgtxts = getvgtxts(vglvls)
@@ -274,10 +279,14 @@ def writearlpackedbit(infile, path):
 
     # vardefs = datamap['vardef']
     # for ti, vardef in enumerate(vardefs):
-    #     sfcvardeftxt = vgtxts[0] + '%2d' % len(svars) + ''.join(['%-4s -1 ' % skey.decode() for skey in sfckeys])
+    #     sfcvardeftxt = vgtxts[0] + '%2d' % len(svars) +
+    #                    ''.join(['%-4s -1 ' % skey.decode()
+    #                             for skey in sfckeys])
     #     layvardeftxt = ''
     #     for vgtxt in vgtxts[1:]:
-    #         layvardeftxt += vgtxt + '%2d' % len(lvars) + ''.join(['%-4s -1 ' % lkey.decode() for lkey in laykeys])
+    #         layvardeftxt += vgtxt + '%2d' % len(lvars) +
+    #                         ''.join(['%-4s -1 ' % lkey.decode()
+    #                                  for lkey in laykeys])
     #
     #
     # vardeftxt = sfcvardeftxt + layvardeftxt
@@ -305,8 +314,9 @@ def writearlpackedbit(infile, path):
             var_time = datamap['surface'][sfck.decode()]
             varhead = var_time['head']
 
+            _skipprop = ('YYMMDDHHFF', 'LEVEL', 'EXP', 'PREC', 'VAR1')
             for varpropk in varhead.dtype.names:
-                if varpropk not in ('YYMMDDHHFF', 'LEVEL', 'EXP', 'PREC', 'VAR1'):
+                if varpropk not in _skipprop:
                     varhead[varpropk][ti] = getattr(invar, varpropk)
 
             indata = invar[ti]
@@ -325,7 +335,7 @@ def writearlpackedbit(infile, path):
             for li, var_time_lay in enumerate(var_time):
                 varhead = var_time_lay['head']
                 for varpropk in varhead.dtype.names:
-                    if varpropk not in ('YYMMDDHHFF', 'LEVEL', 'EXP', 'PREC', 'VAR1'):
+                    if varpropk not in _skipprop:
                         varhead[varpropk] = getattr(invar, varpropk)
 
                 indata = invar[ti, li]
@@ -372,7 +382,8 @@ def maparlpackedbit(path, mode='r', shape=None, **props):
     FILE FORMAT:
         recl = 50 + NX*NY
         for time in times:
-            1 rec of length recl with meta-data (thdtype + vardefdtype + hdrdtype)
+            1 rec of length recl with meta-data
+                (thdtype + vardefdtype + hdrdtype)
             for sfckey in sfckeys:
                 1 rec of length recl (vhdtype + nx*ny bytes)
             for layer in layers:
@@ -401,10 +412,14 @@ def maparlpackedbit(path, mode='r', shape=None, **props):
         [('head', vhdtype), ('data', dtype('(%d,%d)>1S' % (ny, nx)))])
     sfcdtype = dtype(dict(names=[k.decode() for k in sfckeys], formats=[
                      lay1dtype] * len(sfckeys)))
-    layersdtype = dtype([(str(laykey), dtype(dict(names=[k.decode() for k in layvarkeys], formats=[
-                        lay1dtype] * len(layvarkeys)))) for laykey, layvarkeys in laykeys])
+    layersdtype = dtype([(str(laykey),
+                          dtype(dict(names=[k.decode()
+                                            for k in layvarkeys],
+                                     formats=[lay1dtype] * len(layvarkeys))))
+                         for laykey, layvarkeys in laykeys])
     timedtype = dtype([('timehead', thdtype), ('vardef', vardefdtype),
-                       ('hdr', hdrdtype), ('surface', sfcdtype), ('layers', layersdtype)])
+                       ('hdr', hdrdtype), ('surface', sfcdtype),
+                       ('layers', layersdtype)])
     datamap = np.memmap(path, timedtype, shape=shape, mode=mode)
     return datamap
 
@@ -431,11 +446,11 @@ def CHAR(c):
 
 def pack2d(RVARA, verbose=False):
     """
-    CHARACTER, INTENT(OUT) :: cvar(nxy)   ! packed char*1 output array
-    REAL,      INTENT(OUT) :: prec        ! precision of packed data array
-    INTEGER,   INTENT(OUT) :: nexp        ! packing scaling exponent
-    REAL,      INTENT(OUT) :: var1        ! value of real array at position (1,1)
-    INTEGER,   INTENT(OUT) :: ksum        ! rotating checksum of packed data
+    CHARACTER, INTENT(OUT) :: cvar(nxy) ! packed char*1 output array
+    REAL,      INTENT(OUT) :: prec      ! precision of packed data array
+    INTEGER,   INTENT(OUT) :: nexp      ! packing scaling exponent
+    REAL,      INTENT(OUT) :: var1      ! value of real array at position (1,1)
+    INTEGER,   INTENT(OUT) :: ksum      ! rotating checksum of packed data
     """
     # MAX = np.maximum
     FLOAT = np.float32
@@ -542,7 +557,17 @@ class arlpackedbit(PseudoNetCDFFile):
     Format as follows:
 
     for t in times:
-        thdtype = dtype([('YYMMDDHHFF', '>10S'), ('LEVEL', '>2S'), ('GRID', '>2S') , ('INDX', '>4S'), ('Z1', '>4S'), ('MB', '2>14S'),  ('SRCE', '>S4'), ('MGRID', '>S3'), ('VSYS', '>S2'), ('POLLAT', '>S7'), ('POLLON', '>S7'), ('REFLAT','>S7'), ('REFLON','>S7'), ('GRIDX','>S7'), ('ORIENT','>S7'), ('TANLAT','>S7'), ('SYNCHX','>S7'), ('SYNCHY','>S7'), ('SYNCHLAT','>S7'), ('SYNCHLON','>S7'), ('RESERVED', '>S7'), ('NX', '>S3'), ('NY', '>S3'), ('NZ', '>S3'), ('VSYS2', '>S2'), ('LENH', '>S4')]) + ny * nx - 158 - 50
+        thdtype = dtype([('YYMMDDHHFF', '>10S'), ('LEVEL', '>2S'),
+                         ('GRID', '>2S') , ('INDX', '>4S'), ('Z1', '>4S'),
+                         ('MB', '2>14S'),  ('SRCE', '>S4'), ('MGRID', '>S3'),
+                         ('VSYS', '>S2'), ('POLLAT', '>S7'), ('POLLON', '>S7'),
+                         ('REFLAT','>S7'), ('REFLON','>S7'), ('GRIDX','>S7'),
+                         ('ORIENT','>S7'), ('TANLAT','>S7'), ('SYNCHX','>S7'),
+                         ('SYNCHY','>S7'), ('SYNCHLAT','>S7'),
+                         ('SYNCHLON','>S7'), ('RESERVED', '>S7'),
+                         ('NX', '>S3'), ('NY', '>S3'), ('NZ', '>S3'),
+                         ('VSYS2', '>S2'), ('LENH', '>S4')]) +
+                         ny * nx - 158 - 50
         ny+nx-
         for surfacekey in surfacekeys:
             YYMMDDHHFFLLGGVVVVEEEEPPPPPPPPPPPPPPVVVVVVVVVVVVVV+
@@ -567,14 +592,17 @@ class arlpackedbit(PseudoNetCDFFile):
     EEEE = 4-digit integer exponent
     PPPPPPPPPPPPP = %14.7e precision
     VVVVVVVVVVVVV = %14.7e value R(1,1)
-    P(ny,nx) = ny by nx 1-byte values dervied from real values (R) according to the formula below.
+    P(ny,nx) = ny by nx 1-byte values dervied from real values (R) according
+               to the formula below.
 
     P(i,j) = (Ri,j  - Ri-1,j)* (2**(7-(ln dRmax / ln 2)))
     """
     @classmethod
     def isMine(cls, path):
-        testchunk = np.fromfile(path, dtype=dtype(
-            [('YYMMDDHHFF', '>10S'), ('LEVEL', '>2S'), ('GRID', '>2S'), ('INDX', '>4S')]), count=1)
+        testchunk = np.fromfile(path,
+                                dtype=dtype([('YYMMDDHHFF', '>10S'),
+                                             ('LEVEL', '>2S'), ('GRID', '>2S'),
+                                             ('INDX', '>4S')]), count=1)
         check = testchunk[0]['INDX'] == b'INDX'
         return check
 
@@ -600,7 +628,8 @@ class arlpackedbit(PseudoNetCDFFile):
         alllayvarkeys = []
         for layk, layvarkeys in out['laykeys']:
             alllayvarkeys.extend(
-                [k.decode() for k in layvarkeys if k.decode() not in alllayvarkeys])
+                [k.decode() for k in layvarkeys
+                 if k.decode() not in alllayvarkeys])
         self._layvarkeys = tuple(alllayvarkeys)
         tflag = np.char.replace(datamap['timehead']['YYMMDDHHFF'], b' ', b'0')
         sfckeys = self._datamap['surface'].dtype.names
@@ -659,8 +688,9 @@ class arlpackedbit(PseudoNetCDFFile):
         z = self.createVariable('z', 'f', ('z',))
         z[:] = out['vglvls'][1:]
         self.SFCVGLVL = out['vglvls'][0]
-        z.units = {1: 'pressure sigma', 2: 'pressure absolute',
-                   3: 'terrain sigma', 4: 'hybrid sigma'}.get(int(self.VSYS2), 'unknown')
+        _units = {1: 'pressure sigma', 2: 'pressure absolute',
+                  3: 'terrain sigma', 4: 'hybrid sigma'}
+        z.units = _units.get(int(self.VSYS2), 'unknown')
 
     def _getvar(self, varkey):
         datamap = self._datamap
@@ -669,30 +699,35 @@ class arlpackedbit(PseudoNetCDFFile):
             vhead = datamap['surface'][varkey]['head']
             v11 = vhead['VAR1']
             EXP = vhead['EXP']
-            props = dict([(pk, vhead[pk][0]) for pk in vhead.dtype.names if pk not in (
-                'YYMMDDHHFF', 'LEVEL')])
+            props = dict([(pk, vhead[pk][0]) for pk in vhead.dtype.names
+                          if pk not in ('YYMMDDHHFF', 'LEVEL')])
             bytes = datamap['surface'][varkey]['data']
             vdata = unpack(bytes, v11, EXP)
             # if varkey == 'MXLR':
-            #    CVAR, PREC, NEXP, VAR1, KSUM = pack2d(vdata[21], verbose = True)
+            #  CVAR, PREC, NEXP, VAR1, KSUM = pack2d(vdata[21], verbose = True)
 
-            return PseudoNetCDFVariable(self, varkey, 'f', ('time', 'y', 'x'), values=vdata, units=stdunit, standard_name=stdname, **props)
+            return PseudoNetCDFVariable(self, varkey, 'f', ('time', 'y', 'x'),
+                                        values=vdata, units=stdunit,
+                                        standard_name=stdname, **props)
         elif varkey in self._layvarkeys:
             laykeys = datamap['layers'].dtype.names
-            mylaykeys = [
-                laykey for laykey in laykeys if varkey in datamap['layers'][laykey].dtype.names]
+            mylaykeys = [laykey for laykey in laykeys
+                         if varkey in datamap['layers'][laykey].dtype.names]
             bytes = np.array([datamap['layers'][lk][varkey]['data']
                               for lk in mylaykeys]).swapaxes(0, 1)
             vhead = np.array([datamap['layers'][lk][varkey]['head']
                               for lk in mylaykeys]).swapaxes(0, 1)
             v11 = vhead['VAR1']
             EXP = vhead['EXP']
-            props = dict([(pk, vhead[pk][0, 0])
-                          for pk in vhead.dtype.names if pk not in ('YYMMDDHHFF', 'LEVEL')])
+            props = dict([(pk, vhead[pk][0, 0]) for pk in vhead.dtype.names
+                          if pk not in ('YYMMDDHHFF', 'LEVEL')])
             props['LEVEL_START'] = vhead['LEVEL'][0, 0]
             props['LEVEL_END'] = vhead['LEVEL'][-1, -1]
             vdata = unpack(bytes, v11, EXP)
-            return PseudoNetCDFVariable(self, varkey, 'f', ('time', 'z', 'y', 'x'), values=vdata, units=stdunit, standard_name=stdname, **props)
+            return PseudoNetCDFVariable(self, varkey, 'f',
+                                        ('time', 'z', 'y', 'x'),
+                                        values=vdata, units=stdunit,
+                                        standard_name=stdname, **props)
 
 
 registerwriter('noaafiles.arlpackedbit', writearlpackedbit)

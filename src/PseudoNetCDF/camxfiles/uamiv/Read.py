@@ -24,7 +24,8 @@ from numpy import zeros, array, newaxis
 from PseudoNetCDF.camxfiles.timetuple import timediff, timerange
 from PseudoNetCDF.camxfiles.util import sliceit
 from PseudoNetCDF.camxfiles.units import get_uamiv_units, get_chemparam_names
-from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into, Int2Asc
+from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile, read_into
+from PseudoNetCDF.camxfiles.FortranFileUtil import Int2Asc
 from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables
 
 
@@ -154,13 +155,21 @@ class uamiv(PseudoNetCDFFile):
         as properties of the ipr class
         """
         vals = self.rffile.read(self.emiss_hdr_fmt)
-        self.name, self.note, ione, self.nspec, self.start_date, self.start_time, self.end_date, self.end_time = vals[
-            0:10], vals[10:70], vals[70], vals[71], vals[72], vals[73], vals[74], vals[75]
+        self.name = vals[0:10]
+        self.note = vals[10:70]
+        ione = vals[70]
+        self.nspec = vals[71]
+        self.start_date, self.start_time = vals[72], vals[73]
+        self.end_date, self.end_time = vals[74], vals[75]
 
         self.name = Int2Asc(self.name)
         self.note = Int2Asc(self.note)
-        self.rdum, rdum, self.iutm, self.xorg, self.yorg, self.delx, self.dely, self.nx, self.ny, self.nz, idum, self.idum, rdum, rdum, rdum = self.rffile.read(
-            self.grid_hdr_fmt)
+
+        vals = self.rffile.read(self.grid_hdr_fmt)
+        self.rdum, rdum, self.iutm = vals[0:3]
+        self.xorg, self.yorg, self.delx, self.dely = vals[3:7]
+        self.nx, self.ny, self.nz = vals[7:10]
+        idum, self.idum, rdum, rdum, rdum = vals[10:]
 
         if self.name == 'EMISSIONS ':
             # Special case of gridded emissions
@@ -170,8 +179,8 @@ class uamiv(PseudoNetCDFFile):
             self.nlayers = self.nz
         self.ione, ione, nx, ny = self.rffile.read(self.cell_hdr_fmt)
         if not (self.nx, self.ny) == (nx, ny):
-            raise ValueError("nx, ny defined first as %i, %i and then as %i, %i" % (
-                self.nx, self.ny, nx, ny))
+            raise ValueError(("nx, ny defined first as %i, %i and then " +
+                              "as %i, %i") % (self.nx, self.ny, nx, ny))
         species_temp = self.rffile.read(self.nspec * self.spc_fmt)
         self.spcnames = []
         for i in range(0, self.nspec * 10, 10):
@@ -180,10 +189,13 @@ class uamiv(PseudoNetCDFFile):
         self.data_start_byte = self.rffile.record_start
         start_date, start_time, end_date, end_time = self.rffile.read(
             self.time_hdr_fmt)
+
         self.time_step = timediff(
             (start_date, start_time), (end_date, end_time))
-        self.time_step_count = int(timediff((self.start_date, self.start_time), (
-            self.end_date, self.end_time), (2400, 24)[int(self.time_step % 2)]) // self.time_step)
+        mystep = (2400, 24)[int(self.time_step % 2)]
+        self.time_step_count = int(timediff((self.start_date, self.start_time),
+                                            (self.end_date, self.end_time),
+                                            mystep) // self.time_step)
         if self.name == 'AIRQUALITY':
             self.time_step_count = 1
             self.start_date = self.end_date
@@ -207,7 +219,8 @@ class uamiv(PseudoNetCDFFile):
         """
         d, t = dt
         nsteps = int(
-            timediff((self.start_date, self.start_time), (d, t)) / self.time_step)
+            timediff((self.start_date, self.start_time), (d, t)) /
+            self.time_step)
         nspec = self.__spcrecords(self.nspec + 1)
         return nsteps * nspec
 
@@ -240,7 +253,9 @@ class uamiv(PseudoNetCDFFile):
             nid += 1
             nspec = self.__spcrecords(spc)
 
-        return self.data_start_byte + (nspec + nk + ntime) * self.padded_size + nid * self.padded_time_hdr_size
+        out = (self.data_start_byte + (nspec + nk + ntime) *
+               self.padded_size + nid * self.padded_time_hdr_size)
+        return out
 
     def seek(self, date=None, time=None, spc=-1, k=0, chkvar=True):
         """
@@ -253,12 +268,18 @@ class uamiv(PseudoNetCDFFile):
         if time is None:
             time = self.start_time
 
-        if chkvar and timediff((self.end_date, self.end_time), (date, time), 24) > 0 or timediff((self.start_date, self.start_time), (date, time), 24) < 0:
-            raise KeyError("Gridded emission file includes (%i,%6.1f) thru (%i,%6.1f); you requested (%i,%6.1f)" % (
-                self.start_date, self.start_time, self.end_date, self.end_time, date, time))
+        if (
+            chkvar and
+            timediff((self.end_date, self.end_time), (date, time), 24) > 0 or
+            timediff((self.start_date, self.start_time), (date, time), 24) < 0
+        ):
+            raise KeyError(("Gridded emission file includes (%i,%6.1f) " +
+                            "thru (%i,%6.1f); you requested (%i,%6.1f)") %
+                           (self.start_date, self.start_time,
+                            self.end_date, self.end_time, date, time))
         if chkvar and spc < 1 or spc > self.nspec:
-            raise KeyError(
-                "Gridded emission file include species 1 thru %i; you requested %i" % (self.nspec, spc))
+            raise KeyError(("Gridded emission file include species 1 thru " +
+                            "%i; you requested %i") % (self.nspec, spc))
 
         # self.rffile._newrecord(self.__recordposition(date,time,1,0))
         # start_date,start_time,end_date,end_time=self.rffile.read("ifif")
@@ -309,7 +330,8 @@ class uamiv(PseudoNetCDFFile):
     def close(self):
         self.rffile.infile.close()
 
-    def getArray(self, krange=slice(1, None), nspec=slice(None), nx=slice(None), ny=slice(None)):
+    def getArray(self, krange=slice(1, None), nspec=slice(None),
+                 nx=slice(None), ny=slice(None)):
         """Method takes slice arguments. Alternatively, takes a hashable object
         with 2 values (e.g., the list: [0,3]).
         Arguments:
@@ -330,16 +352,17 @@ class uamiv(PseudoNetCDFFile):
                 len(range(*krange.indices(self.nlayers + 1))),
                 self.ny,
                 self.nx), 'f')
-
+        nlay = self.nlayers
         for ti, (d, t) in enumerate(self.timerange()):
             for sidx, spc in enumerate(range(*nspec.indices(self.nspec))):
-                for kidx, k in enumerate(range(*krange.indices(self.nlayers + 1))):
+                for kidx, k in enumerate(range(*krange.indices(nlay + 1))):
                     self.seekandreadinto(a[ti, sidx, kidx, ...], d, t, spc, k)
 
         return a[..., ny, nx]
 
     def timerange(self):
-        return timerange((self.start_date, self.start_time), (self.end_date, self.end_time), self.time_step, 24)
+        return timerange((self.start_date, self.start_time),
+                         (self.end_date, self.end_time), self.time_step, 24)
 
 
 class TestuamivRead(unittest.TestCase):
@@ -353,8 +376,13 @@ class TestuamivRead(unittest.TestCase):
         import PseudoNetCDF.testcase
         emissfile = uamiv(PseudoNetCDF.testcase.camxfiles_paths['uamiv'])
         v = emissfile.variables['NO2']
-        self.assert_((v == array([0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.24175494e-04, 2.79196858e-04, 1.01672206e-03, 4.36782313e-04, 0.00000000e+00,
-                                  1.54810550e-04, 3.90250643e-04, 6.18023798e-04, 3.36963218e-04, 0.00000000e+00, 1.85579920e-04, 1.96825975e-04, 2.16468165e-04, 2.19882189e-04], dtype='f').reshape(1, 1, 4, 5)).all())
+        self.assert_((v == array(
+            [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+             0.00000000e+00, 0.00000000e+00, 1.24175494e-04, 2.79196858e-04,
+             1.01672206e-03, 4.36782313e-04, 0.00000000e+00, 1.54810550e-04,
+             3.90250643e-04, 6.18023798e-04, 3.36963218e-04, 0.00000000e+00,
+             1.85579920e-04, 1.96825975e-04, 2.16468165e-04, 2.19882189e-04],
+            dtype='f').reshape(1, 1, 4, 5)).all())
 
 
 if __name__ == '__main__':

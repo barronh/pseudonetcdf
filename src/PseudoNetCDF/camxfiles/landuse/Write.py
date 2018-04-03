@@ -8,23 +8,36 @@ def ncf2landuse(ncffile, outpath):
     nrows = len(ncffile.dimensions['ROW'])
     ncols = len(ncffile.dimensions['COL'])
     newstyle = getattr(ncffile, '_newstyle', True)
+    dt3dfmt = '(%d, %d, %d)>f' % (nland, nrows, ncols)
+    dt2dfmt = '(%d, %d)>f' % (nrows, ncols)
     if newstyle:
-        _fland_dtype = np.dtype(dict(names=['SPAD1', 'KEY', 'EPAD1', 'SPAD2', 'DATA', 'EPAD2'], formats=[
-                                '>i', '8>S', '>i', '>i', '(%d, %d, %d)>f' % (nland, nrows, ncols), '>i']))
-        _other_dtype = np.dtype(dict(names=['SPAD1', 'KEY', 'EPAD1', 'SPAD2', 'DATA', 'EPAD2'], formats=[
-                                '>i', '8>S', '>i', '>i', '(%d, %d)>f' % (nrows, ncols), '>i']))
+        _fland_dtype = np.dtype(dict(names=['SPAD1', 'KEY', 'EPAD1', 'SPAD2',
+                                            'DATA', 'EPAD2'],
+                                     formats=['>i', '8>S', '>i', '>i', dt3dfmt,
+                                              '>i']))
+        _other_dtype = np.dtype(dict(names=['SPAD1', 'KEY', 'EPAD1', 'SPAD2',
+                                            'DATA', 'EPAD2'],
+                                     formats=['>i', '8>S', '>i', '>i', dt2dfmt,
+                                              '>i']))
     else:
-        _fland_dtype = np.dtype(dict(names=['SPAD2', 'DATA', 'EPAD2'], formats=[
-                                '>i', '(%d, %d, %d)>f' % (nland, nrows, ncols), '>i']))
-        _other_dtype = np.dtype(dict(names=['SPAD2', 'DATA', 'EPAD2'], formats=[
-                                '>i', '(%d, %d)>f' % (nrows, ncols), '>i']))
+        _fland_dtype = np.dtype(dict(names=['SPAD2', 'DATA', 'EPAD2'],
+                                     formats=['>i', dt3dfmt, '>i']))
+        _other_dtype = np.dtype(dict(names=['SPAD2', 'DATA', 'EPAD2'],
+                                     formats=['>i', dt2dfmt, '>i']))
 
     outfile = open(outpath, 'wb')
-    keys = [key for key in ['FLAND', 'VAR1', 'LAI', 'TOPO',
-                            'LUCAT11', 'LUCAT26'] if key in ncffile.variables.keys()]
+    keys = [key
+            for key in ['FLAND', 'VAR1', 'LAI', 'TOPO', 'LUCAT11', 'LUCAT26']
+            if key in ncffile.variables.keys()]
 
-    keyandvar = [(key, np.empty(shape=(1,), dtype={
-                  'FLAND': _fland_dtype, 'LUCAT11': _fland_dtype, 'LUCAT26': _fland_dtype}.get(key, _other_dtype))) for key in keys]
+    ludts = {'FLAND': _fland_dtype,
+             'LUCAT11': _fland_dtype,
+             'LUCAT26': _fland_dtype}
+
+    def getempty(key):
+        return np.empty(shape=(1,), dtype=ludts.get(key, _other_dtype))
+
+    keyandvar = [(key, getempty(key)) for key in keys]
     for key, var in keyandvar:
         invar = ncffile.variables[key]
         if newstyle:

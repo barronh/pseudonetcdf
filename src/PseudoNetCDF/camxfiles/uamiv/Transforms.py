@@ -14,7 +14,8 @@ __doc__ = """
 """
 
 from numpy import zeros
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoIOAPIVariable
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables
+from PseudoNetCDF.sci_var import PseudoIOAPIVariable
 from .Memmap import uamiv
 
 
@@ -44,10 +45,14 @@ class osat(PseudoNetCDFFile):
         self.__child = uamiv(rffile)
 
         # Use Use all species based keys
-        self.__sourcesbyNm = dict([(k[3:6], k[3:6]) for k in self.__child.variables.keys(
-        ) if k[:3] in ('NOX', 'VOC', 'O3V', 'O3N')])
-        self.__regionsbyNm = dict([(k[6:], k[6:]) for k in self.__child.variables.keys(
-        ) if k[:3] in ('NOX', 'VOC', 'O3V', 'O3N')])
+        self.__sourcesbyNm = dict(
+            [(k[3:6], k[3:6])
+             for k in self.__child.variables.keys()
+             if k[:3] in ('NOX', 'VOC', 'O3V', 'O3N')])
+        self.__regionsbyNm = dict(
+            [(k[6:], k[6:])
+             for k in self.__child.variables.keys()
+             if k[:3] in ('NOX', 'VOC', 'O3V', 'O3N')])
 
         # Create global keys
         self.__sourcesbyNm[''] = tuple(self.__sourcesbyNm.keys())
@@ -99,8 +104,9 @@ class osat(PseudoNetCDFFile):
         # var_nm_names=self.__var_nm_names(key)
 
         if len(var_id_names) > 1:
-            outvals = zeros(map(len, (self.dimensions['TSTEP'], self.dimensions['LAY'],
-                                      self.dimensions['ROW'], self.dimensions['COL'])), dtype='>f')
+            outvals = zeros([len(self.dimensions[dk])
+                             for dk in ['TSTEP', 'LAY', 'ROW', 'COL']],
+                            dtype='>f')
             for k in var_id_names:
                 outvals[...] += self.__child.variables[k]
         else:

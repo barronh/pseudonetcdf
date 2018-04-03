@@ -92,8 +92,9 @@ class arlpardump(PseudoNetCDFFile):
         self.HOUR = hdr[5]
         self.MINUTES = hdr[6]
         assert(rec1['f0'] == rec1['f2'])
-        self._fmt = np.dtype([('header', '>i,>7i,>i'), ('data', '>i,>({},)f,>i,>i,>6f,>i,>i,>5i,>i'.format(
-            self.NPOLLUTANTS), (self.NPARTICLES,))])
+        datfmt = '>i,>({},)f,>i,>i,>6f,>i,>i,>5i,>i'.format(self.NPOLLUTANTS)
+        self._fmt = np.dtype([('header', '>i,>7i,>i'),
+                              ('data', datfmt, (self.NPARTICLES,))])
         data = np.fromfile(self._path, dtype=self._fmt)
         assert(data.shape[0] == 1)
         self._data = data[0]

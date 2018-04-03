@@ -6,7 +6,8 @@ import os
 
 import numpy as np
 
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoNetCDFVariable
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables
+from PseudoNetCDF.sci_var import PseudoNetCDFVariable
 
 
 _geos_units = dict(ALBEDO='unitless',
@@ -109,7 +110,8 @@ class geos(PseudoNetCDFFile):
                     shape = (nlay_in_stag, nrow, ncol)
                 else:
                     raise IOError('Expected %d, %d, or %d elements, got %d' % (
-                        nrow * ncol + 2, nrow * ncol * nlay + 2, nrow * ncol * nlay_stag + 2, elem))
+                        nrow * ncol + 2, nrow * ncol * nlay + 2,
+                        nrow * ncol * nlay_stag + 2, elem))
             if dtype == '>S8':
                 data = np.fromfile(infile, dtype=dtype, count=elem)
             else:
@@ -121,7 +123,9 @@ class geos(PseudoNetCDFFile):
             epad = np.fromfile(infile, dtype='>i', count=1)
             if lasttype == '>S8' and name[:2] not in ('G5', 'G4'):
                 datatypes.append(
-                    (name, '>i4, >S8, >i4, >i4, >i4, >i4, %s>f, >i4' % str(tuple(shape))))
+                    (name,
+                     ('>i4, >S8, >i4, >i4, >i4, >i4, %s>f, >i4' %
+                      str(tuple(shape)))))
             else:
                 name = data[0].strip()
                 if first:
@@ -158,17 +162,25 @@ class geos(PseudoNetCDFFile):
                     nlay_stag = self.Ap.size
 
                     if name[3:5] == '22':
-                        longitude_bounds = np.arange(-181.25, 180,
-                                                     2.5).repeat(2, 0)[1:-1].reshape(-1, 2)
-                        latitude_bounds = np.append(
-                            np.append(-90., np.arange(-89., 90., 2.)), 90.).repeat(2, 0)[1:-1].reshape(-1, 2)
+                        lone1d = np.arange(-181.25, 180, 2.5)
+                        lone = lone1d.repeat(2, 0)[1:-1].reshape(-1, 2)
+                        longitude_bounds = lone
+                        late1d = np.append(np.append(-90.,
+                                                     np.arange(-89., 90., 2.)),
+                                           90.)
+                        late = late1d.repeat(2, 0)[1:-1].reshape(-1, 2)
+                        latitude_bounds = late
                         nrow = 91
                         ncol = 144
                     elif name[3:5] == '45':
-                        longitude_bounds = np.arange(-182.5, 180,
-                                                     5).repeat(2, 0)[1:-1].reshape(-1, 2)
-                        latitude_bounds = np.append(
-                            np.append(-90., np.arange(-88., 90., 4.)), 90.).repeat(2, 0)[1:-1].reshape(-1, 2)
+                        lone1d = np.arange(-182.5, 180, 5)
+                        lone = lone1d.repeat(2, 0)[1:-1].reshape(-1, 2)
+                        longitude_bounds = lone
+                        late1d = np.append(np.append(-90.,
+                                                     np.arange(-88., 90., 4.)),
+                                           90.)
+                        late = late1d.repeat(2, 0)[1:-1].reshape(-1, 2)
+                        latitude_bounds = late
                         nrow = 46
                         ncol = 72
                     else:
@@ -212,38 +224,58 @@ class geos(PseudoNetCDFFile):
             unit = _geos_units.get(key, '')
             if dims != ('time', 'latitude', 'longitude'):
                 thisdatain = thisdata
-                thisdata = np.zeros(
-                    map(lambda k: len(self.dimensions[k]), dims), dtype=thisdata.dtype)
+                thisdata = np.zeros([len(self.dimensions[k]) for k in dims],
+                                    dtype=thisdata.dtype)
                 if reduced:
                     if self.gtype == 'GEOS-4-REDUCED':
-                        # !--------------------------------------------------------------
-                        # ! GEOS-4: Lump 55 levels into 30 levels, starting above L=20
+                        # !----------------------------------------------------
+                        # ! GEOS-4: Lump 55 levels into 30 levels, starting
+                        # ! above L=20
                         # ! Lump levels in groups of 2, then 4. (cf. Mat Evans)
-                        # !--------------------------------------------------------------
+                        # !----------------------------------------------------
                         #
                         # ! Lump 2 levels together at a time
-                        lump_groups = [[0, ], [1, ], [2, ], [3, ], [4, ], [5, ], [6, ], [7, ], [8, ], [9, ], [10, ], [11, ], [12, ], [13, ], [14, ], [15, ], [16, ], [17, ], [18, ]] + \
-                            [[19, 20], [21, 22], [23, 24], [25, 26]] + \
-                            [[27, 28, 29, 30], [31, 32, 33, 34], [35, 36, 37, 38], [
-                                39, 40, 41, 42], [43, 44, 45, 46], [47, 48, 49, 50], [51, 52, 53, 54]]
+                        lump_groups = [[0, ], [1, ], [2, ], [3, ], [4, ],
+                                       [5, ], [6, ], [7, ], [8, ], [9, ],
+                                       [10, ], [11, ], [12, ], [13, ], [14, ],
+                                       [15, ], [16, ], [17, ], [18, ]] + \
+                                      [[19, 20], [21, 22],
+                                       [23, 24], [25, 26]] + \
+                                      [[27, 28, 29, 30], [31, 32, 33, 34],
+                                       [35, 36, 37, 38], [39, 40, 41, 42],
+                                       [43, 44, 45, 46],
+                                       [47, 48, 49, 50],
+                                       [51, 52, 53, 54]]
 
                     elif self.gtype == 'GEOS-5-REDUCED':
-                        # !--------------------------------------------------------------
-                        # ! GEOS-5/MERRA: Lump 72 levels into 47 levels, starting above
-                        # ! L=36.  Lump levels in groups of 2, then 4. (cf. Bob Yantosca)
-                        # !--------------------------------------------------------------
+                        # !----------------------------------------------------
+                        # ! GEOS-5/MERRA: Lump 72 levels into 47 levels,
+                        # ! starting above L=36.  Lump levels in groups of 2,
+                        # ! then 4. (cf. Bob Yantosca)
+                        # !----------------------------------------------------
                         #
                         # ! Lump 2 levels together at a time
-                        lump_groups = [[0, ], [1, ], [2, ], [3, ], [4, ], [5, ], [6, ], [7, ], [8, ], [9, ], [10, ], [11, ], [12, ], [13, ], [14, ], [15, ], [16, ], [17, ], [18, ], [19, ], [20, ], [21, ], [22, ], [23, ], [24, ], [25, ], [26, ], [27, ], [28, ], [29, ], [30, ], [31, ], [32, ], [33, ], [34, ], [35, ]] + \
-                            [[36, 37], [38, 39], [40, 41], [42, 43]] + \
-                            [[44, 45, 46, 47], [48, 49, 50, 51], [52, 53, 54, 55], [
-                                56, 57, 58, 59], [60, 61, 62, 63], [64, 65, 66, 67], [68, 69, 70, 71]]
+                        lump_groups = [[0, ], [1, ], [2, ], [3, ], [4, ],
+                                       [5, ], [6, ], [7, ], [8, ], [9, ],
+                                       [10, ], [11, ], [12, ], [13, ], [14, ],
+                                       [15, ], [16, ], [17, ], [18, ], [19, ],
+                                       [20, ], [21, ], [22, ], [23, ], [24, ],
+                                       [25, ], [26, ], [27, ], [28, ], [29, ],
+                                       [30, ], [31, ], [32, ], [33, ], [34, ],
+                                       [35, ]] + \
+                                      [[36, 37], [38, 39],
+                                       [40, 41], [42, 43]] + \
+                                      [[44, 45, 46, 47], [48, 49, 50, 51],
+                                       [52, 53, 54, 55], [56, 57, 58, 59],
+                                       [60, 61, 62, 63], [64, 65, 66, 67],
+                                       [68, 69, 70, 71]]
                     else:
                         raise ValueError('Cannot reduce %' % self.gtype)
                     assert(len(lump_groups) == nlay)
 
                     for li, lump_group in enumerate(lump_groups):
-                        if len(lump_group) == 1 or dims[1] == 'layer_stag' or key == 'PLE':
+                        if (len(lump_group) == 1 or
+                                dims[1] == 'layer_stag' or key == 'PLE'):
                             thisdata[:, li] = thisdatain[:, lump_group[0]]
                         elif dims[1] == 'layer':
                             # assumes lumping only happens above pure eta
@@ -258,27 +290,49 @@ class geos(PseudoNetCDFFile):
 
                 else:
                     thisdata = thisdatain
-            return PseudoNetCDFVariable(self, key, 'f', dims, values=thisdata, units=unit, long_name=key.ljust(16))
+            return PseudoNetCDFVariable(self, key, 'f', dims, values=thisdata,
+                                        units=unit, long_name=key.ljust(16))
         self.variables = PseudoNetCDFVariables(keys=names[1:], func=getem)
         dates = data[0]['data'][names[1]]['f4']
         times = data[0]['data'][names[1]]['f5']
         years, months, days = dates // 10000, dates % 10000 // 100, dates % 100
-        hours, minutes, seconds = times // 10000, times % 10000 // 100, times % 100
+        hours, minutes = times // 10000, times % 10000 // 100
+        seconds = times % 100
         self.createVariable('layer', 'f', ('layer',),
-                            values=eta_m[:], units='hybrid pressure-sigma', bounds='layer_bounds')
-        self.createVariable('layer_bounds', 'f', ('layer', 'nv'), values=eta_i[:].repeat(
-            2, 0)[1:-1].reshape(-1, 2), units='hybrid pressure-sigma')
+                            values=eta_m[:], units='hybrid pressure-sigma',
+                            bounds='layer_bounds')
+        self.createVariable('layer_bounds', 'f', ('layer', 'nv'),
+                            values=eta_i[:].repeat(2, 0)[1:-1].reshape(-1, 2),
+                            units='hybrid pressure-sigma')
 
-        self.createVariable('time', 'f', ('time',), values=np.array([(datetime(y, m, d, H, M, S) - datetime(1985, 1, 1, 0, 0, 0)).total_seconds() / 3600. for y, m, d, H, M, S in zip(
-            years, months, days, hours, minutes, seconds)]), units='hours since 1985-01-01 00:00:00 UTC', base_units='hours since 1985-01-01 00:00:00 UTC', long_name='time', standard_name='time')
+        rdate = datetime(1985, 1, 1, 0, 0, 0)
+
+        def ymdhms2reldate(y, m, d, H, M, S):
+            dates = datetime(y, m, d, H, M, S)
+            rdates = dates - rdate
+            seconds = rdates.total_seconds()
+            hours = seconds / 3600.
+            return hours
+
+        enumdateparts = zip(years, months, days, hours, minutes, seconds)
+        self.createVariable('time', 'f', ('time',),
+                            values=np.array([ymdhms2reldate(*ymdHMS)
+                                             for ymdHMS in enumdateparts]),
+                            units='hours since 1985-01-01 00:00:00 UTC',
+                            base_units='hours since 1985-01-01 00:00:00 UTC',
+                            long_name='time', standard_name='time')
         self.createVariable('longitude', 'f', ('longitude',), values=longitude,
-                            units='degrees_east', standard_name='longitude', bounds='longitude_bounds')
+                            units='degrees_east', standard_name='longitude',
+                            bounds='longitude_bounds')
         self.createVariable('longitude_bounds', 'f', ('longitude', 'nv'),
-                            values=longitude_bounds, units='degrees_east', standard_name='longitude')
+                            values=longitude_bounds, units='degrees_east',
+                            standard_name='longitude')
         self.createVariable('latitude', 'f', ('latitude',), values=latitude,
-                            units='degrees_north', standard_name='latitude', bounds='latitude_bounds')
+                            units='degrees_north', standard_name='latitude',
+                            bounds='latitude_bounds')
         self.createVariable('latitude_bounds', 'f', ('latitude', 'nv'),
-                            values=latitude_bounds, units='degrees_north', standard_name='latitude')
+                            values=latitude_bounds, units='degrees_north',
+                            standard_name='latitude')
 
 
 class TestMemmaps(unittest.TestCase):

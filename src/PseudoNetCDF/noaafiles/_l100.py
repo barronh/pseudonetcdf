@@ -7,8 +7,10 @@ _edges = [0, 4, 12, 20, 28, 35, 43, 50, 57, 64, 72, 79, 88, 95]
 _starts = _edges[:-1]
 _ends = _edges[1:]
 _ses = [se for se in zip(_starts, _ends)]
-_orignames = 'Level Press Alt Pottp Temp FtempV Hum Ozone Ozone Ozone Ptemp O3_DN O3_Res'.split()
-_names = 'Level Press Alt Pottp Temp FtempV Hum Ozone_mPa Ozone_ppmv Ozone_atmcm Ptemp O3_DN O3_Res'.split()
+_orignames = ('Level Press Alt Pottp Temp FtempV Hum Ozone Ozone ' +
+              'Ozone Ptemp O3_DN O3_Res').split()
+_names = ('Level Press Alt Pottp Temp FtempV Hum Ozone_mPa Ozone_ppmv ' +
+          'Ozone_atmcm Ptemp O3_DN O3_Res').split()
 _units = 'Num hPa km K C C % mPa ppmv atmcm C 10^11/cc DU'.split()
 
 
@@ -49,8 +51,8 @@ class l100(PseudoNetCDFFile):
         try:
             import pandas as pd
         except Exception:
-            raise ImportError(
-                'l100 sonde files requires pandas; install pandas (e.g., pip install pandas)')
+            raise ImportError('l100 sonde files requires pandas; ' +
+                              'install pandas (e.g., pip install pandas)')
         self._path = path
         metalines = l100._getmeta(path)
         datastartline = len(metalines)
@@ -61,8 +63,10 @@ class l100(PseudoNetCDFFile):
                 val = ':'.join(parts[1:]).strip()
                 setattr(self, key, val)
 
-        dataset = pd.read_fwf(path, colspecs=_ses, skiprows=datastartline, names=_names, na_values=[
-                              '99.90', '99.99', '999', '99.999', '999.999', '99.9990', '9999'])
+        dataset = pd.read_fwf(path, colspecs=_ses, skiprows=datastartline,
+                              names=_names, na_values=['99.90', '99.99', '999',
+                                                       '99.999', '999.999',
+                                                       '99.9990', '9999'])
         self.createDimension('site', 1)
         self.createDimension('level', dataset.shape[0])
         for key, unit in zip(_names, _units):
@@ -90,7 +94,8 @@ class l100(PseudoNetCDFFile):
 
         self.description = ''.join(metalines)
 
-    def avgSigma(self, vglvls=None, vgtop=None, hyai=None, hybi=None, inplace=False, copyall=True, levelname='LAY'):
+    def avgSigma(self, vglvls=None, vgtop=None, hyai=None, hybi=None,
+                 inplace=False, copyall=True, levelname='LAY'):
         """
         vglvls - sigma coordinate
         vgtop - top in Pa

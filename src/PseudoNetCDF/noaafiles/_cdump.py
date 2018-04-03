@@ -23,7 +23,8 @@ class arlconcdump(PseudoNetCDFFile):
         Record #1
 
         CHAR*4 Meteorological MODEL Identification
-        INT*4 Meteorological file starting time (YEAR, MONTH, DAY, HOUR, FORECAST-HOUR)
+        INT*4 Meteorological file starting time (YEAR, MONTH, DAY, HOUR,
+                                                 FORECAST-HOUR)
         INT*4 NUMBER of starting locations
         INT*4 Concentration packing flag (0=no 1=yes)
         """
@@ -182,8 +183,12 @@ class arlconcdump(PseudoNetCDFFile):
                     myc = tmp['f3'][0]
                     infile.seek(-16, 1)
                     c = np.zeros((nlats, nlons), dtype='f')
-                    tmp = np.fromfile(infile, np.dtype([('f0', forfmt, 1), ('data', np.dtype(dict(
-                        names='IJC', formats='>i2,>i2,>f'.split(','))), myc), ('f1', '>i', 1)]), count=1)
+                    ijcdt = np.dtype(dict(names='IJC',
+                                          formats='>i2,>i2,>f'.split(',')))
+                    tmp = np.fromfile(infile,
+                                      np.dtype([('f0', forfmt, 1),
+                                                ('data', ijcdt, myc),
+                                                ('f1', '>i', 1)]), count=1)
                     Jidx = tmp[0]['data']['J']
                     Iidx = tmp[0]['data']['I']
                     Cval = tmp[0]['data']['C']

@@ -8,8 +8,10 @@ __doc__ = """
    :synopsis: Provides utilities for array shape and type manipulation.
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-__all__ = ['interior_vertex_func', 'CenterTime', 'CenterLay', 'CenterRow', 'CenterCol', 'CenterRowCol', 'CenterTimeRowCol',
-           'CenterCMAQWind', 'CenterCAMxWind', 'CenterCAMxU', 'CenterCAMxV', 'BoundToDiff', 'CAMxHeightToDepth', 'ConvertCAMxTime']
+__all__ = ['interior_vertex_func', 'CenterTime', 'CenterLay', 'CenterRow',
+           'CenterCol', 'CenterRowCol', 'CenterTimeRowCol', 'CenterCMAQWind',
+           'CenterCAMxWind', 'CenterCAMxU', 'CenterCAMxV', 'BoundToDiff',
+           'CAMxHeightToDepth', 'ConvertCAMxTime']
 
 import unittest
 from numpy import mean, array, sum, arange, zeros, newaxis
@@ -46,8 +48,8 @@ def interior_vertex_func(a, dims=(-1, -2), func=sum):
         one_to_end = full_shape.copy()
         zero_to_minus_one[dim] = slice(0, -1)
         one_to_end[dim] = slice(1, None)
-        out_array = func(array(
-            [out_array[zero_to_minus_one.tolist()], out_array[one_to_end.tolist()]]), 0)
+        out_array = func(array([out_array[zero_to_minus_one.tolist()],
+                                out_array[one_to_end.tolist()]]), 0)
 
     return out_array
 
@@ -181,8 +183,8 @@ def ConvertCAMxTime(date, time, nvars=1):
     time = a[:, :, 1]
     while not (time == 0).all() and time.max() < 10000:
         time *= 100
-    a = PseudoNetCDFVariable(
-        f, 'TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'), values=a[:, [0], :].repeat(nvars, 1))
+    a = PseudoNetCDFVariable(f, 'TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'),
+                             values=a[:, [0], :].repeat(nvars, 1))
     a.units = 'DATE-TIME'.ljust(16)
     a.long_name = 'TFLAG'.ljust(16)
     a.var_desc = a.long_name

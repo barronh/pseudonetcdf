@@ -20,7 +20,10 @@ def cspec(path, smv2='smv2.log'):
 
 def get_cspec(smvpath):
     text = open(smvpath, 'r').read()
-    reo = re.compile('(?:NBR NAME\s+MW BKGAS\(VMRAT\))(?P<active>.*)(?:INACTIVE SPECIES FOR THIS RUN ARE:)(?P<inactive>.*)(?:THE DEAD SPECIES FOR THIS RUN ARE:)(?P<dead>.*?)(?:=====)', re.M | re.DOTALL)
+    reo = re.compile('(?:NBR NAME\s+MW BKGAS\(VMRAT\))(?P<active>.*)' +
+                     '(?:INACTIVE SPECIES FOR THIS RUN ARE:)' +
+                     '(?P<inactive>.*)(?:THE DEAD SPECIES FOR THIS RUN ARE:)' +
+                     '(?P<dead>.*?)(?:=====)', re.M | re.DOTALL)
     gv = reo.search(text).groupdict()
     active = [v.strip().split()[1] for v in gv['active'].strip().split('\n')]
     inactive = gv['inactive'].replace('\n', ' ').split()
@@ -32,11 +35,12 @@ def get_cspec(smvpath):
 def get_info_for_cspec(all):
     out = ""
     for si, spc in enumerate(all):
-        out += "%-8s %-8s cspec                 0.000E-00  1 %-8d 1.000E+00 molec/cm3\n" % (
-            spc, spc, si + 1)
+        out += "%-8s %-8s cspec                 " % (spc, spc)
+        out += "0.000E-00  1 %-8d 1.000E+00 molec/cm3\n" % (si + 1)
 
-    diag = StringIO(
-        "#\n       0 IJ-CHK-$                                 Tracer concentration                    \n")
+    initstr = ("#\n       0 IJ-CHK-$                                 " +
+               "Tracer concentration                    \n")
+    diag = StringIO(initstr)
     return diag, StringIO(out)
 
 

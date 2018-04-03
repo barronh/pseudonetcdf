@@ -25,8 +25,8 @@ def getreader(*args, **kwds):
     global _readers
     format = kwds.pop('format', None)
     if not os.path.isfile(args[0]):
-        warn('The first argument (%s) does not exist as a file.  First arguments are usually paths' % (
-            args[0],))
+        warn(('The first argument (%s) does not exist as a file.  ' +
+              'First arguments are usually paths') % (args[0],))
 
     if format is None:
         _myreaders = _readers
@@ -45,11 +45,20 @@ def getreader(*args, **kwds):
         _myreaders = [(k, v) for k, v in _readers if format == k]
 
     for rn, reader in _myreaders:
-        if getattr(reader, 'isMine', lambda *args, **kwds: testreader(reader, *args, **kwds))(*args, **kwds):
+        if hasattr(reader, 'isMine'):
+            checker = reader.isMine
+        else:
+            def checker(*args, **kwds):
+                try:
+                    testreader(reader, *args, **kwds)
+                    return True
+                except Exception:
+                    return False
+        if checker(*args, **kwds):
             return reader
     else:
-        raise TypeError(
-            'No reader could open a file with these arguments %s %s' % (args, kwds))
+        raise TypeError(('No reader could open a file with these ' +
+                         'arguments %s %s') % (args, kwds))
 
 
 def registerreader(name, reader):
@@ -70,8 +79,10 @@ def pncopen(*args, **kwds):
     args - arguments for opening file
     kwds - keywords for file opener and optional format and addcf
     format - name of reader (not passed to reader)
-    addcf - boolean to add CF conventions (not passed to reader; default: False)
-    diskless - boolean to add CF conventions (not passed to reader; default: False)
+    addcf - boolean to add CF conventions (not passed to
+            reader; default: False)
+    diskless - boolean to add CF conventions (not passed to reader;
+            default: False)
     """
     format = kwds.pop('format', None)
     addcf = kwds.pop('addcf', False)

@@ -17,9 +17,8 @@ from . import Write
 from . import Transforms
 
 if __name__ == '__main__':
-    from PseudoNetCDF.camxfiles.vertical_diffusivity.Memmap import vertical_diffusivity
-    from PseudoNetCDF.pncdump import pncdump_parser, \
-        dump_from_cmd_line
+    vertical_diffusivity = Memmap.vertical_diffusivity
+    from PseudoNetCDF.pncdump import pncdump_parser, dump_from_cmd_line
     parser = pncdump_parser()
     parser.add_argument("cols", int)
     parser.add_argument("rows", int)

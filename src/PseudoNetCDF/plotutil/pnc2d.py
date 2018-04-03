@@ -40,8 +40,9 @@ def make2ds(args):
             variables = [key for key, var in ifile.variables.items()
                          if var.ndim == 2]
         if len(variables) == 0:
-            raise ValueError(
-                'Unable to heuristically determin plottable variables; use -v to specify variables for plotting')
+            raise ValueError('Unable to heuristically determin plottable ' +
+                             'variables; use -v to specify variables for ' +
+                             'plotting')
 
         for varkey in variables:
             var = ifile.variables[varkey]
@@ -55,13 +56,15 @@ def make2ds(args):
                 if normaltest(vals.ravel())[1] < 0.05:
                     cvals = np.ma.compressed(vals)
                     boundaries = np.percentile(cvals, np.arange(0, 110, 10))
-                    warn(
-                        'Autoselect deciles colormap of %s; override width --norm' % varkey)
+                    warn(('Autoselect deciles colormap of %s; override ' +
+                          'width --norm') % varkey)
                 else:
                     boundaries = np.linspace(vmin, vmax, num=11)
-                    warn(
-                        'Autoselect linear colormap of %s; override width --norm' % varkey)
-                if (boundaries.max() / np.ma.masked_values(boundaries, 0).min()) > 10000:
+                    warn(('Autoselect linear colormap of %s; ' +
+                          'override width --norm') % varkey)
+                ordermag = (boundaries.max() /
+                            np.ma.masked_values(boundaries, 0).min())
+                if (ordermag) > 10000:
                     formatter = LogFormatter(labelOnlyBase=False)
                 else:
                     formatter = None
@@ -118,14 +121,22 @@ def make2ds(args):
             cbar = fig.colorbar(patches, orientation=orientation,
                                 cax=cax, extend=extend, format=formatter)
             del cbar.ax.texts[:]
-            cbar.set_label(
-                varkey + ' (' + varunit + '; min=%.3g; max=%.3g)' % (var[:].min(), var[:].max()))
+            minmaxtxt = '; min=%.3g; max=%.3g)' % (var[:].min(), var[:].max())
+            cbar.set_label(varkey + ' (' + varunit + minmaxtxt)
             # if orientation == 'vertical':
-            #     cbar.ax.text(.5, 1.05, '%.3g' % var[:].max(), horizontalalignment = 'center', verticalalignment = 'bottom')
-            #     cbar.ax.text(.5, -.06, '%.3g ' % var[:].min(), horizontalalignment = 'center', verticalalignment = 'top')
+            #     cbar.ax.text(.5, 1.05, '%.3g' % var[:].max(),
+            #                  horizontalalignment = 'center',
+            #                  verticalalignment = 'bottom')
+            #     cbar.ax.text(.5, -.06, '%.3g ' % var[:].min(),
+            #                  horizontalalignment = 'center',
+            #                  verticalalignment = 'top')
             # else:
-            #     cbar.ax.text(1.05, .5, ' %.3g' % var[:].max(), verticalalignment = 'center', horizontalalignment = 'left')
-            #     cbar.ax.text(-.06, .5, '%.3g ' % var[:].min(), verticalalignment = 'center', horizontalalignment = 'right')
+            #     cbar.ax.text(1.05, .5, ' %.3g' % var[:].max(),
+            #                  verticalalignment = 'center',
+            #                  horizontalalignment = 'left')
+            #     cbar.ax.text(-.06, .5, '%.3g ' % var[:].min(),
+            #                  verticalalignment = 'center',
+            #                  horizontalalignment = 'right')
             # cbar.update_ticks()
             fmt = 'png'
             outpath = args.outpath
@@ -147,7 +158,12 @@ def make2ds(args):
 if __name__ == '__main__':
     from PseudoNetCDF.pncparse import getparser
     parser = getparser(has_ofile=True, plot_options=True, interactive=True)
-    # parser.add_argument('--no-squeeze', dest = 'squeeze', default = True, action = 'store_false', help = 'Squeeze automatically removes singleton dimensions; disabling requires user to remove singleton dimensions with --remove-singleton option')
+    # parser.add_argument('--no-squeeze', dest='squeeze', default=True,
+    #                     action='store_false',
+    #                     help=('Squeeze automatically removes singleton ' +
+    #                           'dimensions; disabling requires user to ' +
+    #                           'remove singleton dimensions with ' +
+    #                           '--remove-singleton option'))
     parser.add_argument('--swapaxes', action='store_true',
                         help='Swap x-y axes')
     ifiles, args = pncparse(

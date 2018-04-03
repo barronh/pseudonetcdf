@@ -8,15 +8,16 @@ __doc__ = """
 .. module:: Write
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` variable transformations
-              for CAMx height/pressure files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
+              for CAMx height/pressure files.  See PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
 
 from PseudoNetCDF.MetaNetCDF import add_derived, time_avg_new_unit
 from PseudoNetCDF.sci_var import PseudoNetCDFVariable
-from PseudoNetCDF.camxfiles.height_pressure.Memmap import height_pressure as reg_height_pressure
+from PseudoNetCDF.camxfiles.height_pressure.Memmap import height_pressure
 from PseudoNetCDF.ArrayTransforms import CAMxHeightToDepth
+reg_height_pressure = height_pressure
 
 
 class height_pressure_plus(add_derived):

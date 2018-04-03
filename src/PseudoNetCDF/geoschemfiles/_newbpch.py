@@ -27,14 +27,16 @@ _hdr_size = _datablock_header_type.itemsize
 
 
 def add_vert(self, key):
-    from ._vertcoord import geos_etai_pressure, geos_etam_pressure, geos_hyam, geos_hybm
+    from ._vertcoord import geos_etai_pressure, geos_etam_pressure
+    from ._vertcoord import geos_hyam, geos_hybm
     if key == 'hyai':
         data = self.Ap
         dims = ('layer_bounds', )
         dtype = data.dtype.char
         if dims[0] not in self.dimensions:
             self.createDimension(dims[0], data.size)
-        kwds = dict(units="hPa", long_name="hybrid A coefficient at layer interfaces",
+        kwds = dict(units="hPa",
+                    long_name="hybrid A coefficient at layer interfaces",
                     note="unit consistent with GEOS-Chem pressure outputs")
     elif key == 'hyam':
         data = geos_hyam[self.vertgrid]
@@ -42,7 +44,8 @@ def add_vert(self, key):
         dtype = data.dtype.char
         if dims[0] not in self.dimensions:
             self.createDimension(dims[0], data.size)
-        kwds = dict(units="hPa", long_name="hybrid A coefficient at layer midpoints",
+        kwds = dict(units="hPa",
+                    long_name="hybrid A coefficient at layer midpoints",
                     note="unit consistent with GEOS-Chem pressure outputs")
     elif key == 'hybi':
         data = self.Bp
@@ -140,20 +143,24 @@ class gcvar(object):
         self.nlevels = dim[2]
         self.nlatitudes = dim[1]
         self.nlongitudes = dim[0]
-        self._header = self._parent._data[start:start +
-                                          _hdr_size].view(_datablock_header_type)
+        hslice = slice(start, start + _hdr_size)
+        self._header = self._parent._data[hslice].view(_datablock_header_type)
         self.category = self._header['category'][0].strip()
         self.tracerid = self._header['tracerid'][0]
         self.base_units = self._header['base_units'][0]
         self.catoffset = [row['offset']
-                          for row in self._parent._ddata if row['category'] == self.category][0]
+                          for row in self._parent._ddata
+                          if row['category'] == self.category][0]
         self.noscale = self._parent.noscale
-        self.STARTK, self.STARTJ, self.STARTI = self._header['start'][0][::-1] - 1
+        SK, SJ, SI = self._header['start'][0][::-1] - 1
+        self.STARTK, self.STARTJ, self.STARTI = SK, SJ, SI
         if hasattr(self.category, 'decode'):
             self.category = self.category.decode()
         self.cattracerid = self.catoffset + self.tracerid
-        props = ([row for row in self._parent._tdata if row['tracerid'] == self.cattracerid] +
-                 [row for row in self._parent._tdata if row['tracerid'] == self.tracerid])[0]
+        props = ([row for row in self._parent._tdata
+                  if row['tracerid'] == self.cattracerid] +
+                 [row for row in self._parent._tdata
+                  if row['tracerid'] == self.tracerid])[0]
         for pk in props.dtype.names:
             pv = props[pk]
             if hasattr(pv, 'decode'):
@@ -169,10 +176,12 @@ class gcvar(object):
     def __getitem__(self, k):
         if self._data is None:
             pieces = []
-            for (tstart, tend), (start, end, dim) in self._parent._outpos[self._key].items():
+            outpositems = self._parent._outpos[self._key].items()
+            for (tstart, tend), (start, end, dim) in outpositems:
                 # nelem = end - start - _hdr_size
                 datat = np.dtype([('header', _datablock_header_type),
-                                  ('bpad', '>i'), ('data', '>f', dim[::-1]), ('epad', '>i')])
+                                  ('bpad', '>i'), ('data', '>f', dim[::-1]),
+                                  ('epad', '>i')])
 
                 pieces.append(self._parent._data[start:end])
             tmpdata = np.concatenate(pieces, axis=0).view(datat)
@@ -221,7 +230,8 @@ class bpch2(bpch_base):
         j = inlat.argmax(0)
         return i, j
 
-    def __init__(self, path, nogroup=False, noscale=False, vertgrid='GEOS-5-REDUCED'):
+    def __init__(self, path, nogroup=False, noscale=False,
+                 vertgrid='GEOS-5-REDUCED'):
         self.noscale = noscale
         from ._vertcoord import geos_hyai, geos_hybi
         self.vertgrid = vertgrid
@@ -259,8 +269,11 @@ class bpch2(bpch_base):
             thispos[(tau0, tau1)] = offset, offset + _hdr_size + skip, dim
             offset += skip + _hdr_size
 
-        self.modelname, self.modelres, self.halfpolar, self.center180 = tmp_hdr[0].tolist()[
-            1:5]
+        mn, mr, hp, c180 = tmp_hdr[0].tolist()[1:5]
+        self.modelname = mn
+        self.modelres = mr
+        self.halfpolar = hp
+        self.center180 = c180
 
         tmpvariables = {}
         for key in outpos:
@@ -316,7 +329,10 @@ class bpch2(bpch_base):
         add_vert(self, 'hybi')
         add_vert(self, 'etai_pressure')
         add_vert(self, 'etam_pressure')
-        for k, v in [('tau0', tmpvar._tau0), ('time', tmpvar._tau0), ('tau1', tmpvar._tau1)]:
+        timevars = [('tau0', tmpvar._tau0),
+                    ('time', tmpvar._tau0),
+                    ('tau1', tmpvar._tau1)]
+        for k, v in timevars:
             tvar = self.createVariable(k, 'i', ('time',))
             tvar.units = 'hours since 1985-01-01 00:00:00 UTC'
             tvar[:] = v[:]
@@ -325,15 +341,20 @@ class bpch2(bpch_base):
         tpath = os.path.join(os.path.dirname(path), 'tracerinfo.dat')
         if not os.path.exists(tpath):
             tpath = 'tracerinfo.dat'
-        self._tdata = np.recfromtxt(tpath, dtype=None, comments='#', names=[
-                                    'shortname', 'fullname', 'kgpermole', 'carbon', 'tracerid', 'scale', 'units'], delimiter=[9, 30, 10, 3, 9, 10, 41], autostrip=True)
+        self._tdata = np.recfromtxt(tpath, dtype=None, comments='#',
+                                    names=['shortname', 'fullname',
+                                           'kgpermole', 'carbon', 'tracerid',
+                                           'scale', 'units'],
+                                    delimiter=[9, 30, 10, 3, 9, 10, 41],
+                                    autostrip=True)
 
     def _getdiaginfo(self, path):
         dpath = os.path.join(os.path.dirname(path), 'diaginfo.dat')
         if not os.path.exists(dpath):
             dpath = 'diaginfo.dat'
-        self._ddata = np.recfromtxt(dpath, dtype=None, comments='#', names=[
-                                    'offset', 'category', 'comment'], delimiter=[9, 40, 100], autostrip=True)
+        self._ddata = np.recfromtxt(dpath, dtype=None, comments='#',
+                                    names=['offset', 'category', 'comment'],
+                                    delimiter=[9, 40, 100], autostrip=True)
 
 # OFFSET    (I8 )  Constant to add to tracer numbers in order to distinguish
 #                  for the given diagnostic category, as stored in file
@@ -365,22 +386,88 @@ class TestMemmaps(unittest.TestCase):
     def testBPCH2(self):
         bpchfile = bpch2(self.bpchpath)
         ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']
-        ALD2_check = np.array([1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02, 1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02,
-                               2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02, 1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02]).reshape(ALD2.shape)
+        ALD2_check = np.array([1.60520077e-02, 1.82803553e-02, 2.00258084e-02,
+                               2.01461259e-02, 1.84865110e-02, 2.49667447e-02,
+                               2.73083989e-02, 2.87465211e-02, 2.89694592e-02,
+                               2.87686456e-02, 2.87277419e-02, 3.08121163e-02,
+                               3.22086290e-02, 3.35262120e-02, 3.41329686e-02,
+                               3.05218045e-02, 3.30278911e-02, 3.58164124e-02,
+                               3.93186994e-02, 4.15412188e-02, 1.60520077e-02,
+                               1.82803553e-02, 2.00258084e-02, 2.01461259e-02,
+                               1.84865110e-02, 2.49667447e-02, 2.73083989e-02,
+                               2.87465211e-02, 2.89694592e-02, 2.87686456e-02,
+                               2.87277419e-02, 3.08121163e-02, 3.22086290e-02,
+                               3.35262120e-02, 3.41329686e-02, 3.05218045e-02,
+                               3.30278911e-02, 3.58164124e-02, 3.93186994e-02,
+                               4.15412188e-02, 1.60520077e-02, 1.82803553e-02,
+                               2.00258084e-02, 2.01461259e-02, 1.84865110e-02,
+                               2.49667447e-02, 2.73083989e-02, 2.87465211e-02,
+                               2.89694592e-02, 2.87686456e-02, 2.87277419e-02,
+                               3.08121163e-02, 3.22086290e-02, 3.35262120e-02,
+                               3.41329686e-02, 3.05218045e-02, 3.30278911e-02,
+                               3.58164124e-02, 3.93186994e-02,
+                               4.15412188e-02]).reshape(ALD2.shape)
         np.testing.assert_allclose(ALD2, ALD2_check)
-        np.testing.assert_allclose(bpchfile.variables['hyai'], np.array([0.0, 0.04804826, 6.593752, 13.1348, 19.61311, 26.09201, 32.57081, 38.98201, 45.33901, 51.69611, 58.05321, 64.36264, 70.62198, 78.83422, 89.09992, 99.36521, 109.1817, 118.9586, 128.6959, 142.91, 156.26,
-                                                                         169.609, 181.619, 193.097, 203.259, 212.15, 218.776, 223.898, 224.363, 216.865, 201.192, 176.93, 150.393, 127.837, 108.663, 92.36572, 78.51231, 56.38791, 40.17541, 28.36781, 19.7916, 9.292942, 4.076571, 1.65079, 0.6167791, 0.211349, 0.06600001, 0.01], 'f'))
-        np.testing.assert_allclose(bpchfile.variables['hybi'], np.array([1.0, 0.984952, 0.963406, 0.941865, 0.920387, 0.898908, 0.877429, 0.856018, 0.8346609, 0.8133039, 0.7919469, 0.7706375, 0.7493782, 0.721166, 0.6858999, 0.6506349, 0.6158184, 0.5810415,
-                                                                         0.5463042, 0.4945902, 0.4437402, 0.3928911, 0.3433811, 0.2944031, 0.2467411, 0.2003501, 0.1562241, 0.1136021, 0.06372006, 0.02801004, 0.006960025, 8.175413e-09, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 'f'))
-        np.testing.assert_allclose(bpchfile.variables['etai_pressure'], np.array([1.01325000e+03, 9.98050662e+02, 9.82764882e+02, 9.67479511e+02, 9.52195238e+02, 9.36910541e+02, 9.21625744e+02, 9.06342248e+02, 8.91059167e+02, 8.75776287e+02, 8.60493406e+02, 8.45211087e+02, 8.29929441e+02, 8.09555669e+02, 7.84087994e+02, 7.58621022e+02, 7.33159694e+02, 7.07698900e+02, 6.82238631e+02, 6.44053520e+02, 6.05879758e+02, 5.67705907e+02,
-                                                                                  5.29549900e+02, 4.91400941e+02, 4.53269420e+02, 4.15154739e+02, 3.77070069e+02, 3.39005328e+02, 2.88927351e+02, 2.45246173e+02, 2.08244245e+02, 1.76930008e+02, 1.50393000e+02, 1.27837000e+02, 1.08663000e+02, 9.23657200e+01, 7.85123100e+01, 5.63879100e+01, 4.01754100e+01, 2.83678100e+01, 1.97916000e+01, 9.29294200e+00, 4.07657100e+00, 1.65079000e+00, 6.16779100e-01, 2.11349000e-01, 6.60000100e-02, 1.00000000e-02]))
+        check_hyai = np.array([0.0, 0.04804826, 6.593752, 13.1348, 19.61311,
+                               26.09201, 32.57081, 38.98201, 45.33901,
+                               51.69611, 58.05321, 64.36264, 70.62198,
+                               78.83422, 89.09992, 99.36521, 109.1817,
+                               118.9586, 128.6959, 142.91, 156.26, 169.609,
+                               181.619, 193.097, 203.259, 212.15, 218.776,
+                               223.898, 224.363, 216.865, 201.192, 176.93,
+                               150.393, 127.837, 108.663, 92.36572, 78.51231,
+                               56.38791, 40.17541, 28.36781, 19.7916, 9.292942,
+                               4.076571, 1.65079, 0.6167791, 0.211349,
+                               0.06600001, 0.01], 'f')
+        np.testing.assert_allclose(bpchfile.variables['hyai'], check_hyai)
+        check_hybi = np.array([1.0, 0.984952, 0.963406, 0.941865, 0.920387,
+                               0.898908, 0.877429, 0.856018, 0.8346609,
+                               0.8133039, 0.7919469, 0.7706375,
+                               0.7493782, 0.721166, 0.6858999, 0.6506349,
+                               0.6158184, 0.5810415, 0.5463042,
+                               0.4945902, 0.4437402, 0.3928911,
+                               0.3433811, 0.2944031, 0.2467411,
+                               0.2003501, 0.1562241, 0.1136021,
+                               0.06372006, 0.02801004, 0.006960025,
+                               8.175413e-09, 0.0, 0.0, 0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0], 'f')
+        np.testing.assert_allclose(bpchfile.variables['hybi'], check_hybi)
+        etai_chk = np.array([1.01325000e+03,
+                             9.98050662e+02, 9.82764882e+02,
+                             9.67479511e+02, 9.52195238e+02,
+                             9.36910541e+02, 9.21625744e+02,
+                             9.06342248e+02, 8.91059167e+02,
+                             8.75776287e+02, 8.60493406e+02,
+                             8.45211087e+02, 8.29929441e+02,
+                             8.09555669e+02, 7.84087994e+02,
+                             7.58621022e+02, 7.33159694e+02,
+                             7.07698900e+02, 6.82238631e+02,
+                             6.44053520e+02, 6.05879758e+02,
+                             5.67705907e+02, 5.29549900e+02,
+                             4.91400941e+02, 4.53269420e+02,
+                             4.15154739e+02, 3.77070069e+02,
+                             3.39005328e+02, 2.88927351e+02,
+                             2.45246173e+02, 2.08244245e+02,
+                             1.76930008e+02, 1.50393000e+02,
+                             1.27837000e+02, 1.08663000e+02,
+                             9.23657200e+01, 7.85123100e+01,
+                             5.63879100e+01, 4.01754100e+01,
+                             2.83678100e+01, 1.97916000e+01,
+                             9.29294200e+00, 4.07657100e+00,
+                             1.65079000e+00, 6.16779100e-01,
+                             2.11349000e-01, 6.60000100e-02,
+                             1.00000000e-02])
+
+        np.testing.assert_allclose(bpchfile.variables['etai_pressure'],
+                                   etai_chk)
 
     def runTest(self):
         pass
 
 
 if __name__ == '__main__':
-    f = bpch2(
-        '/Users/barronh/Development/pseudonetcdf/src/PseudoNetCDF/testcase/geoschemfiles/test.bpch')
+    f = bpch2('/Users/barronh/Development/pseudonetcdf/src/PseudoNetCDF/' +
+              'testcase/geoschemfiles/test.bpch')
     var = f.variables['IJ-AVG-$_Ox']
     print(var[:].mean())

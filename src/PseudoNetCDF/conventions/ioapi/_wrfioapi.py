@@ -1,6 +1,8 @@
 import numpy as np
-_coorddict = dict(west_east='longitude', south_north='latitude', Time='time', bottom_top='altitude',
-                  west_east_stag='longitude', south_north_stag='latitude', Time_stag='time', bottom_top_stag='altitude',)
+_coorddict = dict(west_east='longitude', south_north='latitude', Time='time',
+                  bottom_top='altitude', west_east_stag='longitude',
+                  south_north_stag='latitude', Time_stag='time',
+                  bottom_top_stag='altitude',)
 
 
 def add_cf_from_wrfioapi(ifile, coordkeys=[]):
@@ -64,7 +66,8 @@ def add_cf_from_wrfioapi(ifile, coordkeys=[]):
 
 def get_proj(ifile):
     """
-    MAP_PROJ - Model projection [1=Lambert, 2=polar stereographic, 3=mercator, 6=lat-lon]  (required)
+    MAP_PROJ - Model projection [1=Lambert, 2=polar stereographic,
+                                 3=mercator, 6=lat-lon]  (required)
     TRUELAT1 - required for MAP_PROJ = 1, 2, 3 (defaults to 0 otherwise)
     TRUELAT2 - required for MAP_PROJ = 6 (defaults to 0 otherwise)
     STAND_LON - Standard longitude used in model projection (required)

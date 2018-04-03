@@ -13,43 +13,46 @@ unitconvert = {('ppmV', 'ppb'): lambda x: x * 1000.}
 
 
 def add_vertprofile_options(vertparser):
-    vertparser.add_argument("--sigma", dest="sigma", action="store_true", default=False,
-                            help="Plot on sigma coordinate instead of pressure")
+    vpadd = vertparser.add_argument
+    vpadd("--sigma", dest="sigma", action="store_true", default=False,
+          help="Plot on sigma coordinate instead of pressure")
 
-    vertparser.add_argument("--scale", dest="scale", type=str, default='log',
-                            help="Defaults to log, but linear and semilog are also options.")
+    vpadd("--scale", dest="scale", type=str, default='log',
+          help="Defaults to log, but linear and semilog are also options.")
 
-    vertparser.add_argument("--minmax", dest="minmax", type=str, default="None,None",
-                            help="Use values to set range (xmin, xmax); defaults None,None.")
+    vpadd("--minmax", dest="minmax", type=str, default="None,None",
+          help="Use values to set range (xmin, xmax); defaults None,None.")
 
-    vertparser.add_argument("--mask-zeros", dest="maskzeros", action="store_true", default=False,
-                            help="Defaults False.")
+    vpadd("--mask-zeros", dest="maskzeros", action="store_true",
+          default=False, help="Defaults False.")
 
-    vertparser.add_argument("--minmaxq", dest="minmaxq", type=str, default='0,100',
-                            help="Use quartiles to set range (xmin, xmax); defaults 0,100.")
+    vpadd("--minmaxq", dest="minmaxq", type=str, default='0,100',
+          help="Use quartiles to set range (xmin, xmax); defaults 0,100.")
 
-    vertparser.add_argument("--out-unit", dest="outunit", type=str, default='ppb',
-                            help="Defaults ppb.")
+    vpadd("--out-unit", dest="outunit", type=str, default='ppb',
+          help="Defaults ppb.")
 
-    vertparser.add_argument("--tes-paths", dest="tespaths", type=str,
-                            action=AggCommaString, default='',
-                            help="Plot tes on top of boundary from paths; defaults to []")
+    vpadd("--tes-paths", dest="tespaths", type=str,
+          action=AggCommaString, default='',
+          help="Plot tes on top of boundary from paths; defaults to []")
 
-    vertparser.add_argument("--omi-paths", dest="omipaths", type=str,
-                            default='', action=AggCommaString,
-                            help="Plot omi on top of boundary from paths; defaults to []")
+    vpadd("--omi-paths", dest="omipaths", type=str,
+          default='', action=AggCommaString,
+          help="Plot omi on top of boundary from paths; defaults to []")
 
-    vertparser.add_argument("--itertime", dest="itertime", default=False, action='store_true',
-                            help="Iterate over times and plot each one.")
+    vpadd("--itertime", dest="itertime", default=False, action='store_true',
+          help="Iterate over times and plot each one.")
 
-    vertparser.add_argument("--edges", dest="edges", default=False, action="store_true",
-                            help="Plot S,E,N,W edges instead of a single plot.")
+    vpadd("--edges", dest="edges", default=False, action="store_true",
+          help="Plot S,E,N,W edges instead of a single plot.")
 
-# vertparser = getparser(has_ofile = True, plot_options = True, interactive = False)
+# vertparser = getparser(has_ofile = True, plot_options = True,
+#                        interactive = False)
 # add_vertprofile_options(vertparser)
 # vertparser.epilog = """
 # Example:
-# $ pncvertprofile.py outputs/ts20120301.bpch.BCON.nc test_profile -v O3  --edges #--minmaxq .5,99.5 --tes-paths=~/Data/test/*
+# $ pncvertprofile.py outputs/ts20120301.bpch.BCON.nc test_profile -v O3 \
+#    --edges #--minmaxq .5,99.5 --tes-paths=~/Data/test/*
 # """
 
 
@@ -57,7 +60,8 @@ def maskfilled(v):
     return np.ma.masked_values(v[:], v.attrs['_FillValue'])
 
 
-def plot_omi(ax, lon_bnds, lat_bnds, omipaths, key='O3Profile', airden=None, airdenvert=None):
+def plot_omi(ax, lon_bnds, lat_bnds, omipaths, key='O3Profile',
+             airden=None, airdenvert=None):
     import h5py
     # from scipy.constants import Avogadro
     allx = []
@@ -99,8 +103,12 @@ def plot_omi(ax, lon_bnds, lat_bnds, omipaths, key='O3Profile', airden=None, air
             allx.append(x)
             ally.append(y)
         else:
-            warn('No data found for %s: lons (%s, %s) and lats (%s, %s); lonbs (%s, %s) and latbs (%s, %s);' % (
-                path, lons.min(), lons.max(), lats.min(), lats.max(), lon_bnds.min(), lon_bnds.max(), lat_bnds.min(), lat_bnds.max()))
+            wtmp = 'No data found for %s: lons (%s, %s) and lats (%s, %s); '
+            wtmp += 'lonbs (%s, %s) and latbs (%s, %s);'
+            wvals = (path, lons.min(), lons.max(), lats.min(), lats.max())
+            wvals = wvals + (lon_bnds.min(), lon_bnds.max(), lat_bnds.min())
+            wvals = wvals + (lat_bnds.max(),)
+            warn(wtmp % wvals)
 
     if len(allx) == 0:
         print('*' * 80 + '\n\nNo OMI DATA FOUND AT ALL\n\n' + '*' * 80)
@@ -110,18 +118,19 @@ def plot_omi(ax, lon_bnds, lat_bnds, omipaths, key='O3Profile', airden=None, air
     var = var.reshape(-1, var.shape[-1])
     vertcrd = np.ma.masked_values(np.ma.concatenate(
         allx, axis=0), -999.).mean(0)  # .reshape(-1, 2).mean(1)
-    omil, omir = minmaxmean(ax, var.T.repeat(2, 0), vertcrd.repeat(2, 0)[
-                            1:-1], ls='-', lw=2, color='b', facecolor='b', edgecolor='b', alpha=.2, zorder=5, label='OMI')
+    omil, omir = minmaxmean(ax, var.T.repeat(2, 0), vertcrd.repeat(2, 0)[1:-1],
+                            ls='-', lw=2, color='b', facecolor='b',
+                            edgecolor='b', alpha=.2, zorder=5, label='OMI')
     ax.text(.05, .7, 'OMI = %d' % var.shape[0], transform=ax.transAxes)
     return omil, omir
 
 
 def matchspace(lons, lats, lon_bnds, lat_bnds):
     slicer = [slice(None, None)] + [None] * (lon_bnds.ndim - 1)
-    inlon = np.logical_and(
-        lons[slicer] >= lon_bnds[None, ..., 0], lons[slicer] <= lon_bnds[None, ..., 1])
-    inlat = np.logical_and(
-        lats[slicer] >= lat_bnds[None, ..., 0], lats[slicer] <= lat_bnds[None, ..., 1])
+    inlon = np.logical_and(lons[slicer] >= lon_bnds[None, ..., 0],
+                           lons[slicer] <= lon_bnds[None, ..., 1])
+    inlat = np.logical_and(lats[slicer] >= lat_bnds[None, ..., 0],
+                           lats[slicer] <= lat_bnds[None, ..., 1])
     inboth = np.logical_and(inlon, inlat).reshape(inlon.shape[0], -1).any(1)
     return inboth
 
@@ -160,8 +169,9 @@ def plot_tes(ax, lon_bnds, lat_bnds, tespaths):
     var = var.reshape(-1, var.shape[-1])
     vertcrd = np.ma.masked_values(
         np.ma.concatenate(allx, axis=0), -999.).mean(0)
-    tesl, tesr = minmaxmean(ax, var.T, vertcrd, ls='-', lw=2, color='r', facecolor='r',
-                            edgecolor='r', alpha=.2, zorder=2, label='TES (%d)' % var.shape[0])
+    tesl, tesr = minmaxmean(ax, var.T, vertcrd, ls='-', lw=2, color='r',
+                            facecolor='r', edgecolor='r', alpha=.2, zorder=2,
+                            label='TES (%d)' % var.shape[0])
     return tesl, tesr
 
 
@@ -198,7 +208,8 @@ def vertprofileplot(ifiles, args):
     from PseudoNetCDF.coordutil import getsigmamid, getpresmid, gettimes
     import matplotlib.pyplot as plt
     plt.rcParams['text.usetex'] = False
-    # from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm, LogNorm
+    # from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm
+    # from matplotlib.colors import LogNorm
     scale = args.scale
     minmax = eval(args.minmax)
     minmaxq = eval(args.minmaxq)
@@ -211,8 +222,8 @@ def vertprofileplot(ifiles, args):
     try:
         f, = ifiles
     except Exception:
-        raise ValueError(
-            'curtain plot expects one file when done. Try stack time --stack=time to concatenate')
+        raise ValueError('curtain plot expects one file when done. ' +
+                         'Try stack time --stack=time to concatenate')
 
     # Add CF conventions if necessary
     if 'latitude_bounds' not in f.variables.keys():
@@ -289,7 +300,9 @@ def vertprofileplot(ifiles, args):
             ax = fig.add_subplot(111)
             axs = fig.axes
             vars = [var]
-            if lonb.dimensions == ('longitude', 'nv') and latb.dimensions == ('latitude', 'nv'):
+            ismultidimcoord = (lonb.dimensions == ('longitude', 'nv') and
+                               latb.dimensions == ('latitude', 'nv'))
+            if ismultidimcoord:
                 lonbss = [lonb[:][None, :, :]]
                 latbss = [latb[:][:, None, :]]
             else:
@@ -297,15 +310,17 @@ def vertprofileplot(ifiles, args):
                 latbss = [latb[:]]
         for ax, var, lonbs, latbs in zip(axs, vars, lonbss, latbss):
             vals = var.swapaxes(0, 1).reshape(var.shape[1], -1)
-            modl, modr = minmaxmean(ax, vals, vertcrd, facecolor='k', edgecolor='k', alpha=.2,
-                                    zorder=4, label='mod (%d)' % vals.shape[1], ls='-', lw=2, color='k')
+            modl, modr = minmaxmean(ax, vals, vertcrd, facecolor='k',
+                                    edgecolor='k', alpha=.2, zorder=4,
+                                    label='mod (%d)' % vals.shape[1],
+                                    ls='-', lw=2, color='k')
             llines = [(modl, modr)]
             ymin, ymax = vertcrd.min(), vertcrd.max()
             ax.set_ylim(ymax, ymin)
             ax.set_xscale(scale)
             ax.set_xlim(vmin, vmax)
             # if scale == 'log':
-            #    ax.set_xticklabels(['%.1f' % (10**x) for x in ax.get_xticks()])
+            #   ax.set_xticklabels(['%.1f' % (10**x) for x in ax.get_xticks()])
 
             if 'TFLAG' in f.variables.keys():
                 SDATE = f.variables['TFLAG'][:][0, 0, 0]
@@ -334,8 +349,9 @@ def vertprofileplot(ifiles, args):
                 if tesl is not None:
                     llines.append((tesl, tesr))
             if len(omipaths) > 0:
-                omil, omir = plot_omi(ax, lonbs, latbs, omipaths, airden=f.variables['AIRDEN'][:].mean(
-                    0).mean(1), airdenvert=vertcrd)
+                airdenvals = f.variables['AIRDEN'][:].mean(0).mean(1)
+                omil, omir = plot_omi(ax, lonbs, latbs, omipaths,
+                                      airden=airdenvals, airdenvert=vertcrd)
                 if omil is not None:
                     llines.append((omil, omir))
 

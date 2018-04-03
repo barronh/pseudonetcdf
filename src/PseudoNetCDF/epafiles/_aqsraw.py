@@ -23,22 +23,28 @@ def getedate(x):
 
 
 class aqsraw(PseudoNetCDFFile):
-    def __init__(self, yearpath, timeresolution='hourly', bdate=None, edate=None, rdate=datetime(1900, 1, 1), wktpolygon=None, sampleval=None, verbose=0):
+    def __init__(self, yearpath, timeresolution='hourly', bdate=None,
+                 edate=None, rdate=datetime(1900, 1, 1), wktpolygon=None,
+                 sampleval=None, verbose=0):
         """
         yearpath - path to csv file from AQS
-        timeresolution - choices = ['daily', 'hourly'] default = 'hourly', Defaults to hourly'
+        timeresolution - choices = ['daily', 'hourly'] default = 'hourly',
+                         defaults to hourly'
         bdate - Limit output so that the date starts at YYYY-MM-DD
         edate - Limit output so that the date end YYYY-MM-DD (inclusive)
-        rdate - datetime(1900, 1, 1), dest = 'rdate', type = getrdate, help = 'Reference date YYYYMMDD HH:MM:SS')
-        wktpolygon - WKT Polygon (default: None) equivalent to "POLYGON ((-180 -90, 180 -90, 180 90, -180 90, -180 -90))"
-        sampleval - Defaults to "Sample Measurement" for hourly and "Arithmetic Mean" for daily
+        rdate - datetime(1900, 1, 1), dest = 'rdate', type = getrdate,
+                help = 'Reference date YYYYMMDD HH:MM:SS')
+        wktpolygon - WKT Polygon (default: None) equivalent to
+                     "POLYGON ((-180 -90, 180 -90, 180 90, -180 90, -180 -90))"
+        sampleval - Defaults to "Sample Measurement" for hourly and "Arithmetic
+                    Mean" for daily
         verbose - level of verbosity
         """
         try:
             import pandas
         except Exception:
-            raise ImportError(
-                'aqsraw requires pandas; install pandas (e.g., pip install pandas)')
+            raise ImportError('aqsraw requires pandas; install pandas ' +
+                              '(e.g., pip install pandas)')
         if wktpolygon is not None:
             from shapely.wkt import loads
             from shapely.prepared import prep
@@ -68,8 +74,12 @@ class aqsraw(PseudoNetCDFFile):
             else:
                 parse_dates = [11]
                 date_key = 'Date Local'
-            data = pandas.read_csv(yearpath, index_col=False, converters={
-                                   'State Code': str, 'County Code': str, 'Site Num': str}, parse_dates=parse_dates)
+            data = pandas.read_csv(yearpath,
+                                   index_col=False,
+                                   converters={'State Code': str,
+                                               'County Code': str,
+                                               'Site Num': str},
+                                   parse_dates=parse_dates)
             intimes = np.array([True]).repeat(len(data), 0)
             # intimes = intimes & (data['Parameter Code'] == param)
 
@@ -82,14 +92,22 @@ class aqsraw(PseudoNetCDFFile):
                 inspace_and_time = intimes
             else:
                 inspace_and_time = np.array([False]).repeat(len(data), 0)
-                for idx, (intime, plon, plat) in enumerate(zip(intimes, data['Longitude'].values, data['Latitude'].values)):
+                zll = zip(intimes,
+                          data['Longitude'].values,
+                          data['Latitude'].values)
+                for idx, (intime, plon, plat) in enumerate(zll):
                     if intime:
                         inspace_and_time[idx] = pbounds.contains(
                             Point(plon, plat))
             mask = inspace_and_time
+            groupkeys = ['Parameter Code', 'Parameter Name',
+                         'Units of Measure', date_key,
+                         'State Code', 'County Code',
+                         'Site Num']
 
-            hourly = data[mask].groupby(['Parameter Code', 'Parameter Name', 'Units of Measure', date_key, 'State Code', 'County Code', 'Site Num'], as_index=False).aggregate(
-                np.mean).sort_values(by=['Parameter Code', 'Parameter Name', 'Units of Measure', date_key, 'State Code', 'County Code', 'Site Num'])
+            hourly = data[mask].groupby(groupkeys, as_index=False)\
+                               .aggregate(np.mean)\
+                               .sort_values(by=groupkeys)
 
             hourlys.append(hourly)
 
@@ -100,8 +118,8 @@ class aqsraw(PseudoNetCDFFile):
         else:
             hourly = hourlys[0]
 
-        sites = hourly.groupby(
-            ['State Code', 'County Code', 'Site Num'], as_index=False).aggregate(np.mean)
+        sites = hourly.groupby(['State Code', 'County Code', 'Site Num'],
+                               as_index=False).aggregate(np.mean)
         nsites = len(sites)
 
         rawdates = hourly[date_key]
@@ -122,8 +140,9 @@ class aqsraw(PseudoNetCDFFile):
         self.SITENAMES = ';'.join(sitelist)
 
         self.createDimension('points', len(sitelist))
-        self.lonlatcoords = '/'.join(['%f,%f' % (row['Longitude'], row['Latitude'])
-                                      for idx, row in sites.iterrows()])
+        lonlatcoordstrs = ['%f,%f' % (row['Longitude'], row['Latitude'])
+                           for idx, row in sites.iterrows()]
+        self.lonlatcoords = '/'.join(lonlatcoordstrs)
         last_time = hourly[date_key].values.min()
         # end_time = hourly[date_key].values.max()
         temp = {}

@@ -1,6 +1,8 @@
 from __future__ import print_function, unicode_literals
-__all__ = ['platform_is_bigendian', 'freadnumpy', 'freadstruct', 'fread', 'needs_byteswap', 'check_read',
-           'RecordFile', 'unpack_from_file', 'seek_to_record', 'read_into', 'writeline', 'OpenRecordFile', 'Int2Asc', 'Asc2Int']
+__all__ = ['platform_is_bigendian', 'freadnumpy', 'freadstruct', 'fread',
+           'needs_byteswap', 'check_read', 'RecordFile', 'unpack_from_file',
+           'seek_to_record', 'read_into', 'writeline', 'OpenRecordFile',
+           'Int2Asc', 'Asc2Int']
 
 __doc__ = """
 .. _FortranFileUtil
@@ -110,13 +112,15 @@ class RecordFile(object):
     def __init__(self, infile, bigendian=True):
         """
         Arguments:
-        infile --  an open file-like object.  Must be random access.  Must be a real
-          file if the RecordFile.aread method is going to be used.
+        infile --  an open file-like object.  Must be random access.  Must
+          be a real file if the RecordFile.aread method is going to be used.
         bigendian --  boolean, True if file is bigendian
 
         ***Assumes single 4 byte integer pad on either end
         """
-        if hasattr(infile, 'seek') and hasattr(infile, 'tell') and hasattr(infile, 'read'):
+        if hasattr(infile, 'seek') and \
+           hasattr(infile, 'tell') and \
+           hasattr(infile, 'read'):
             self.infile = infile
         else:
             try:
@@ -144,8 +148,8 @@ class RecordFile(object):
             relmov = offset - posnow
             self.infile.seek(relmov, 1)
         else:
-            raise ValueError(
-                "File length = %i; record start requested %f" % (self.length, offset))
+            raise ValueError(("File length = %i; record start " +
+                              "requested %f") % (self.length, offset))
 
     def _newrecord(self, offset):
         """Move to a new record starting at the given offset
@@ -199,7 +203,8 @@ class RecordFile(object):
         # Read size of previous record
         offset = self.unpack("i")[0]
 
-        # actual offset = this  record start - size - previous record length + header
+        # actual offset = this  record start - size -
+        #                 previous record length + header
         offset = self.tell() - offset - 8
         if offset >= 0:
             self._newrecord(offset)
@@ -352,10 +357,26 @@ class TestFileUtils(unittest.TestCase):
         # 1st line is 0-19 as floats
         # 2nd line is 0-19 as ints
         # 3rd line is 0-19 as strings
-        self.tmpfile.write(b'\x00\x00\x00P' + b'\x00\x00\x00\x00?\x80\x00\x00@\x00\x00\x00@@\x00\x00@\x80\x00\x00@\xa0\x00\x00@\xc0\x00\x00@\xe0\x00\x00A\x00\x00\x00A\x10\x00\x00A \x00\x00A0\x00\x00A@\x00\x00AP\x00\x00A`\x00\x00Ap\x00\x00A\x80\x00\x00A\x88\x00\x00A\x90\x00\x00A\x98\x00\x00' + b'\x00\x00\x00P')
-        self.tmpfile.write(b'\x00\x00\x00P' + b'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00\t\x00\x00\x00\n\x00\x00\x00\x0b\x00\x00\x00\x0c\x00\x00\x00\r\x00\x00\x00\x0e\x00\x00\x00\x0f\x00\x00\x00\x10\x00\x00\x00\x11\x00\x00\x00\x12\x00\x00\x00\x13' + b'\x00\x00\x00P')
-        self.tmpfile.write(b'\x00\x00\x00\x14' +
-                           b'The quick brown fox ' + b'\x00\x00\x00\x14')
+        write = self.tmpfile.write
+        write(b'\x00\x00\x00P' +
+              b'\x00\x00\x00\x00?\x80\x00\x00@\x00' +
+              b'\x00\x00@@\x00\x00@\x80\x00\x00@\xa0' +
+              b'\x00\x00@\xc0\x00\x00@\xe0\x00\x00A' +
+              b'\x00\x00\x00A\x10\x00\x00A \x00\x00A0' +
+              b'\x00\x00A@\x00\x00AP\x00\x00A`\x00\x00Ap' +
+              b'\x00\x00A\x80\x00\x00A\x88\x00\x00A' +
+              b'\x90\x00\x00A\x98\x00\x00' + b'\x00\x00\x00P')
+        write(b'\x00\x00\x00P' + b'\x00\x00\x00\x00\x00\x00\x00\x01' +
+              b'\x00\x00\x00\x02\x00\x00\x00\x03' +
+              b'\x00\x00\x00\x04\x00\x00\x00\x05' +
+              b'\x00\x00\x00\x10\x00\x00\x00\x11' +
+              b'\x00\x00\x00\x08\x00\x00\x00\t' +
+              b'\x00\x00\x00\n\x00\x00\x00\x0b\x00\x00\x00\x0c' +
+              b'\x00\x00\x00\r\x00\x00\x00\x0e\x00\x00\x00\x0f' +
+              b'\x00\x00\x00\x10\x00\x00\x00\x11' +
+              b'\x00\x00\x00\x12\x00\x00\x00\x13' + b'\x00\x00\x00P')
+        write(b'\x00\x00\x00\x14' +
+              b'The quick brown fox ' + b'\x00\x00\x00\x14')
         self.tmprf = RecordFile(self.tmpfile)
 
     def testAdvance(self):
@@ -416,8 +437,9 @@ class TestFileUtils(unittest.TestCase):
         self.tmprf._newrecord(0)
         self.tmprf.next()
         self.tmprf.next()
-        self.assert_(
-            np.any(array(["The quick brown fox "]) == self.tmprf.aread('S20', 1)))
+        checkv = array(["The quick brown fox "])
+        testv = self.tmprf.aread('S20', 1)
+        self.assert_(np.any(checkv == testv))
 
     def runTest(self):
         pass

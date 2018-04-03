@@ -25,7 +25,9 @@ from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
 from PseudoNetCDF.camxfiles.timetuple import timediff
 from PseudoNetCDF.camxfiles.util import cartesian
 from PseudoNetCDF.camxfiles.units import get_uamiv_units
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
+from PseudoNetCDF.sci_var import PseudoNetCDFFile
+from PseudoNetCDF.sci_var import PseudoNetCDFVariable as pncvar
+from PseudoNetCDF.sci_var import PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 # for use in identifying uncaught nan
@@ -73,30 +75,44 @@ class ipr(PseudoNetCDFFile):
     __ipr_record_type = {
         24: dtype(
             dict(
-                names=['SPAD', 'DATE', 'TIME', 'SPC', 'PAGRID', 'NEST', 'I', 'J', 'K', 'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG', 'WADV', 'EADV', 'SADV',
-                       'NADV', 'BADV', 'TADV', 'DIL', 'WDIF', 'EDIF', 'SDIF', 'NDIF', 'BDIF', 'TDIF', 'DDEP', 'WDEP', 'AERCHEM', 'FCONC', 'UCNV', 'AVOL', 'EPAD'],
-                formats=['>i', '>i', '>f', '>S10', '>i', '>i', '>i', '>i', '>i', '>f', '>f', '>f', '>f', '>f', '>f', '>f',
-                         '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>i']
+                names=['SPAD', 'DATE', 'TIME', 'SPC', 'PAGRID', 'NEST', 'I',
+                       'J', 'K', 'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG',
+                       'WADV', 'EADV', 'SADV', 'NADV', 'BADV', 'TADV', 'DIL',
+                       'WDIF', 'EDIF', 'SDIF', 'NDIF', 'BDIF', 'TDIF', 'DDEP',
+                       'WDEP', 'AERCHEM', 'FCONC', 'UCNV', 'AVOL', 'EPAD'],
+                formats=['>i', '>i', '>f', '>S10', '>i', '>i', '>i', '>i',
+                         '>i', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f',
+                         '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f',
+                         '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>i']
             )
         ),
         26: dtype(
             dict(
-                names=['SPAD', 'DATE', 'TIME', 'SPC', 'PAGRID', 'NEST', 'I', 'J', 'K', 'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG', 'WADV', 'EADV', 'SADV', 'NADV', 'BADV',
-                       'TADV', 'DIL', 'WDIF', 'EDIF', 'SDIF', 'NDIF', 'BDIF', 'TDIF', 'DDEP', 'WDEP', 'INORGACHEM', 'ORGACHEM', 'AQACHEM', 'FCONC', 'UCNV', 'AVOL', 'EPAD'],
-                formats=['>i', '>i', '>f', '>S10', '>i', '>i', '>i', '>i', '>i', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f',
-                         '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>i']
+                names=['SPAD', 'DATE', 'TIME', 'SPC', 'PAGRID', 'NEST', 'I',
+                       'J', 'K', 'INIT', 'CHEM', 'EMIS', 'PTEMIS', 'PIG',
+                       'WADV', 'EADV', 'SADV', 'NADV', 'BADV', 'TADV', 'DIL',
+                       'WDIF', 'EDIF', 'SDIF', 'NDIF', 'BDIF', 'TDIF', 'DDEP',
+                       'WDEP', 'INORGACHEM', 'ORGACHEM', 'AQACHEM', 'FCONC',
+                       'UCNV', 'AVOL', 'EPAD'],
+                formats=['>i', '>i', '>f', '>S10', '>i', '>i', '>i', '>i',
+                         '>i', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f',
+                         '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f',
+                         '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f', '>f',
+                         '>i']
             )
         )
     }
 
-    def __init__(self, rf, proc_dict=None, units='umol/m**3', oldnames=False, **props):
+    def __init__(self, rf, proc_dict=None, units='umol/m**3',
+                 oldnames=False, **props):
         """
         Initialization included reading the header and learning
         about the format.
 
         see __readheader and __gettimestep() for more info
 
-        Keywords (i.e., props) for projection: P_ALP, P_BET, P_GAM, XCENT, YCENT, XORIG, YORIG, XCELL, YCELL
+        Keywords (i.e., props) for projection: P_ALP, P_BET, P_GAM, XCENT,
+            YCENT, XORIG, YORIG, XCELL, YCELL
         """
         if proc_dict is not None:
             self.proc_dict = proc_dict
@@ -115,8 +131,11 @@ class ipr(PseudoNetCDFFile):
         tdim.setunlimited(True)
         self.createDimension('DATE-TIME', 2)
         self.createDimension('VAR', self.NSPCS * self.NPROCESS)
-        varkeys = ["_".join([j[1], j[0]]) for j in [i for i in cartesian([i.strip() for i in char.decode(
-            self.spcnames['SPECIES']).tolist()], self.proc_dict.keys())]] + ['TFLAG']
+        spcstrs = char.decode(self.spcnames['SPECIES']).tolist()
+        spcstrs = [s.strip() for s in spcstrs]
+        prcstrs = self.proc_dict.keys()
+        varkeys = ["_".join([j[1], j[0]]) for j in cartesian(spcstrs, prcstrs)]
+        varkeys += ['TFLAG']
         self.variables = PseudoNetCDFVariables(self.__variables, varkeys)
         for k, v in props.items():
             setattr(self, k, v)
@@ -131,16 +150,22 @@ class ipr(PseudoNetCDFFile):
                                   char.decode(self.spcnames)[0][1].strip()]
             date = self.variables['DATE_%s' %
                                   char.decode(self.spcnames[0])[1].strip()]
-            self.variables['TFLAG'] = PseudoNetCDFVariable(self, 'proc_spc', 'i', (
-                'TSTEP', 'VAR', 'DATE-TIME'), values=ConvertCAMxTime(date[:, 0, 0, 0], time[:, 0, 0, 0], len(self.dimensions['VAR'])))
+            tmpvals = ConvertCAMxTime(date[:, 0, 0, 0],
+                                      time[:, 0, 0, 0],
+                                      len(self.dimensions['VAR']))
+            tmpvar = pncvar(self, 'proc_spc', 'i',
+                            ('TSTEP', 'VAR', 'DATE-TIME'),
+                            values=tmpvals)
+            self.variables['TFLAG'] = tmpvar
             return self.variables['TFLAG']
 
         self.variables.clear()
 
+        spcstrs = char.decode(self.spcnames['SPECIES']).tolist()
         for k in self.proc_dict:
             proc = proc_spc[:len(k)]
             spc = proc_spc[len(k) + 1:]
-            if proc == k and spc.ljust(10) in char.decode(self.spcnames['SPECIES']).tolist():
+            if proc == k and spc.ljust(10) in spcstrs:
                 spcprocs = self.__readalltime(spc)
                 for p, plong in self.proc_dict.items():
                     var_name = p + '_' + spc
@@ -151,12 +176,13 @@ class ipr(PseudoNetCDFFile):
                         units = 'm**3'
                     else:
                         units = get_uamiv_units('IPR', spc)
-                    self.variables[var_name] = PseudoNetCDFVariable(self, var_name, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'),
-                                                                    values=spcprocs[p],
-                                                                    units=units,
-                                                                    var_desc=(
-                                                                        var_name).ljust(16),
-                                                                    long_name=(var_name).ljust(16))
+                    tmpvar = pncvar(self, var_name, 'f',
+                                    ('TSTEP', 'LAY', 'ROW', 'COL'),
+                                    values=spcprocs[p],
+                                    units=units,
+                                    var_desc=var_name.ljust(16),
+                                    long_name=var_name.ljust(16))
+                    self.variables[var_name] = tmpvar
                 del spcprocs
                 return self.variables[proc_spc]
         raise KeyError("Bad!")
@@ -166,7 +192,12 @@ class ipr(PseudoNetCDFFile):
         oldpos = self.__rffile.tell()
         relmove = newpos - oldpos
         self.__rffile.seek(relmove, 1)
-        return fromfile(self.__rffile, dtype=self.__ipr_record_type, count=self.__block3d).reshape(self.NROWS, self.NCOLS, self.NLAYS).swapaxes(0, 2).swapaxes(1, 2)
+        tmpout = fromfile(self.__rffile, dtype=self.__ipr_record_type,
+                          count=self.__block3d)
+
+        return tmpout.reshape(self.NROWS, self.NCOLS, self.NLAYS)\
+                     .swapaxes(0, 2)\
+                     .swapaxes(1, 2)
 
     def __readalltime(self, spc):
         out = zeros((self.NSTEPS, self.NLAYS, self.NROWS,
@@ -178,7 +209,9 @@ class ipr(PseudoNetCDFFile):
     def __start(self, ntime, spc):
         nspec = char.decode(
             self.spcnames['SPECIES']).tolist().index(spc.ljust(10))
-        return self.__data_start_byte + (int(ntime) * self.__block4d + self.__block3d * nspec) * self.__ipr_record_type.itemsize
+        return (self.__data_start_byte +
+                (int(ntime) * self.__block4d + self.__block3d * nspec) *
+                self.__ipr_record_type.itemsize)
 
     def __readheader(self):
         """
@@ -188,9 +221,11 @@ class ipr(PseudoNetCDFFile):
         """
 
         self.runmessage = fromfile(self.__rffile, dtype=dtype(dict(
-            names=['SPAD', 'RUNMESSAGE', 'EPAD'], formats=['>i', '>80S', '>i'])), count=1)['RUNMESSAGE']
-        dates = fromfile(self.__rffile, dtype=dtype(dict(names=[
-                         'SPAD', 'SDATE', 'STIME', 'EDATE', 'ETIME', 'EPAD'], formats=['>i', '>i', '>f', '>i', '>f', '>i'])), count=1)
+            names=['SPAD', 'RUNMESSAGE', 'EPAD'],
+            formats=['>i', '>80S', '>i'])), count=1)['RUNMESSAGE']
+        dates = fromfile(self.__rffile, dtype=dtype(
+            dict(names=['SPAD', 'SDATE', 'STIME', 'EDATE', 'ETIME', 'EPAD'],
+                 formats=['>i', '>i', '>f', '>i', '>f', '>i'])), count=1)
         self.SDATE = dates['SDATE'] + 2000000
         self.STIME = dates['STIME']
         self.EDATE = dates['EDATE'] + 2000000
@@ -198,28 +233,40 @@ class ipr(PseudoNetCDFFile):
 
         self.__grids = []
         self.NGRIDS = fromfile(self.__rffile, dtype=dtype(
-            dict(names=['SPAD', 'NGRIDS', 'EPAD'], formats=['>i'] * 3)), count=1)['NGRIDS']
+            dict(names=['SPAD', 'NGRIDS', 'EPAD'],
+                 formats=['>i'] * 3)), count=1)['NGRIDS']
         for grid in range(self.NGRIDS):
+            gddt = dtype(dict(names=['SPAD', 'orgx', 'orgy', 'ncol', 'nrow',
+                                     'xsize', 'ysize', 'EPAD'],
+                              formats=['>i', '>i', '>i', '>i', '>i', '>i',
+                                       '>i', '>i']))
             self.__grids.append(
-                fromfile(self.__rffile, dtype=dtype(dict(names=['SPAD', 'orgx', 'orgy', 'ncol', 'nrow', 'xsize', 'ysize', 'EPAD'], formats=[
-                         '>i', '>i', '>i', '>i', '>i', '>i', '>i', '>i'])), count=1)
+                fromfile(self.__rffile, dtype=gddt, count=1)
             )
 
         self.spcnames = []
         self.NSPCS = fromfile(self.__rffile, dtype=dtype(dict(
-            names=['SPAD', 'NSPCS', 'EPAD'], formats=['>i', '>i', '>i'])), count=1)['NSPCS'][0]
+            names=['SPAD', 'NSPCS', 'EPAD'],
+            formats=['>i', '>i', '>i'])), count=1)['NSPCS'][0]
         self.spcnames = fromfile(self.__rffile, dtype=dtype(dict(
-            names=['SPAD', 'SPECIES', 'EPAD'], formats=['>i', '>10S', '>i'])), count=self.NSPCS)
+            names=['SPAD', 'SPECIES', 'EPAD'],
+            formats=['>i', '>10S', '>i'])), count=self.NSPCS)
 
         self.padomains = []
         self.NPADOMAINS = fromfile(self.__rffile, dtype=dtype(dict(
-            names=['SPAD', 'NPADOMAINS', 'EPAD'], formats=['>i', '>i', '>i'])), count=1)['NPADOMAINS'][0]
-        self.__padomains = fromfile(self.__rffile, dtype=dtype(dict(names=['SPAD', 'grid', 'istart', 'iend', 'jstart', 'jend', 'blay', 'tlay', 'EPAD'], formats=[
-                                    '>i', '>i', '>i', '>i', '>i', '>i', '>i', '>i', '>i'])), count=self.NPADOMAINS)
+            names=['SPAD', 'NPADOMAINS', 'EPAD'],
+            formats=['>i', '>i', '>i'])), count=1)['NPADOMAINS'][0]
+        self.__padomains = fromfile(self.__rffile, dtype=dtype(dict(
+                names=['SPAD', 'grid', 'istart', 'iend', 'jstart', 'jend',
+                       'blay', 'tlay', 'EPAD'],
+                formats=['>i', '>i', '>i', '>i', '>i', '>i', '>i', '>i',
+                         '>i'])),
+            count=self.NPADOMAINS)
         self.__activedomain = self.__padomains[0]
         self.prcnames = []
         self.NPROCESS = fromfile(self.__rffile, dtype=dtype(dict(
-            names=['SPAD', 'NPRCS', 'EPAD'], formats=['>i', '>i', '>i'])), count=1)['NPRCS']
+            names=['SPAD', 'NPRCS', 'EPAD'],
+            formats=['>i', '>i', '>i'])), count=1)['NPRCS']
 
         self.__ipr_record_type = self.__ipr_record_type[self.NPROCESS[0]]
 
@@ -263,18 +310,20 @@ class ipr(PseudoNetCDFFile):
             else:
                 warn('Unknown version; cannot add aerosol chemistry')
 
-        self.prcnames = fromfile(self.__rffile, dtype=dtype(dict(names=[
-                                 'SPAD', 'PROCESS', 'EPAD'], formats=['>i', '>25S', '>i'])), count=self.NPROCESS)
+        prdt = dtype(dict(names=['SPAD', 'PROCESS', 'EPAD'],
+                          formats=['>i', '>25S', '>i']))
+        self.prcnames = fromfile(self.__rffile, dtype=prdt,
+                                 count=self.NPROCESS)
         self.__data_start_byte = self.__rffile.tell()
 
     def __setDomain__(self, id=0):
         self.__activedomain = self.__padomains[id]
-        self.createDimension(
-            'COL', self.__activedomain['iend'] - self.__activedomain['istart'] + 1)
-        self.createDimension(
-            'ROW', self.__activedomain['jend'] - self.__activedomain['jstart'] + 1)
-        self.createDimension(
-            'LAY', self.__activedomain['tlay'] - self.__activedomain['blay'] + 1)
+        ncols = self.__activedomain['iend'] - self.__activedomain['istart'] + 1
+        self.createDimension('COL', ncols)
+        nrows = self.__activedomain['jend'] - self.__activedomain['jstart'] + 1
+        self.createDimension('ROW', nrows)
+        nlays = self.__activedomain['tlay'] - self.__activedomain['blay'] + 1
+        self.createDimension('LAY', nlays)
         self.NCOLS = len(self.dimensions['COL'])
         self.NROWS = len(self.dimensions['ROW'])
         self.NLAYS = len(self.dimensions['LAY'])
@@ -289,8 +338,12 @@ class ipr(PseudoNetCDFFile):
         timestep length and the anticipated number.
         """
         self.__rffile.seek(self.__data_start_byte, 0)
-        temp = fromfile(self.__rffile, dtype=self.__ipr_record_type, count=len(
-            self.dimensions['LAY']) * len(self.dimensions['ROW']) * len(self.dimensions['COL']) + 1)
+        rcount = (len(self.dimensions['LAY']) *
+                  len(self.dimensions['ROW']) *
+                  len(self.dimensions['COL']) + 1)
+        temp = fromfile(self.__rffile,
+                        dtype=self.__ipr_record_type,
+                        count=rcount)
         self.TSTEP = timediff((self.SDATE, self.STIME),
                               (temp[-1]['DATE'] + 2000000, temp[-1]['TIME']))
         self.NSTEPS = int(timediff((self.SDATE, self.STIME),

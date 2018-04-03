@@ -5,7 +5,8 @@
 
 .. module:: cloud_rain
    :platform: Unix, Windows
-   :synopsis: Provides :ref:`PseudoNetCDF` file interfaces for CAMx cloud/rain files.
+   :synopsis: Provides :ref:`PseudoNetCDF` file interfaces for CAMx cloud/rain
+              files.
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
 __all__ = ['Memmap', 'Transforms']

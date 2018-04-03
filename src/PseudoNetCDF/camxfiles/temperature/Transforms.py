@@ -7,7 +7,7 @@ __doc__ = """
 .. module:: Write
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` variable transformations
-              for CAMx temperature files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
+              for CAMx temperature files.  See pnc.sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """

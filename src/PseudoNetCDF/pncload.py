@@ -60,8 +60,10 @@ class PNCConsole(code.InteractiveConsole):
         readline.write_history_file(histfile)
 
 
-_torem = ['(', ')', '[', ']', '{', '}', '@', ',', ':', '.', '`', '=', ';', '+=', '-=', '*=', '/=', '//=', '%=', '&=', '|=', '^=',
-          '>>=', '<<=', '**=', '+', '-', '*', '**', '/', '//', '%', '<<', '>>', '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!=', '<>']
+_torem = ['(', ')', '[', ']', '{', '}', '@', ',', ':', '.', '`', '=', ';',
+          '+=', '-=', '*=', '/=', '//=', '%=', '&=', '|=', '^=', '>>=',
+          '<<=', '**=', '+', '-', '*', '**', '/', '//', '%', '<<', '>>',
+          '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!=', '<>']
 
 
 def _clean(p):
@@ -84,7 +86,8 @@ def createconsole(ifiles, options):
     """
     console = PNCConsole()
     exec("from pylab import *", None, console.locals)
-    exec("from PseudoNetCDF.pncview import *; interactive(True)", None, console.locals)
+    exec("from PseudoNetCDF.pncview import *; interactive(True)",
+         None, console.locals)
     exec("from PseudoNetCDF.coordutil import *; interactive(True)",
          None, console.locals)
     ipaths = [_clean(ipath) for ipath in options.ipath]
@@ -98,7 +101,8 @@ def createconsole(ifiles, options):
         npathso.append('ifile%d' % filei)
     for rpath, npath, spath in zip(options.ipath, npathso, spathso):
         print('# ' + spath + ' = ' + npath + ' = ' + rpath)
-    for filei, (ipath, npath, spath, ifile) in enumerate(zip(ipaths, npathso, spathso, ifiles)):
+    epaths_files = enumerate(zip(ipaths, npathso, spathso, ifiles))
+    for filei, (ipath, npath, spath, ifile) in epaths_files:
         console.locals[npath] = ifile
         try:
             exec(ipath + ' = ' + npath, None, console.locals)
@@ -109,7 +113,8 @@ def createconsole(ifiles, options):
         except Exception:
             pass
         console.locals.update(
-            dict([('%s_%d' % (k, filei), v) for k, v in ifile.variables.items()]))
+            dict([('%s_%d' % (k, filei), v)
+                  for k, v in ifile.variables.items()]))
     return console
 
 

@@ -6,12 +6,15 @@ from PseudoNetCDF import PseudoNetCDFFile
 from re import compile
 from numpy import array, arange
 # from datetime import datetime
-dayre = compile(
-    ' Day:\s+(?P<jday>\d+) (?P<daystring>.{12})\s+EP/TOMS CORRECTED OZONE GEN:\d+\.\d+\sV\d ALECT:\s+\d+:\d+ [AP]M ')
-lonre = compile(
-    ' Longitudes:\s+(?P<lonbins>\d+)\s+bins centered on\s+(?P<blon>\d+\.\d+\s+[WE]) to\s+(?P<elon>\d+\.\d+\s+[WE])\s+\((?P<lonbinsize>\d+.\d+) degree steps\)  ')
-latre = compile(
-    ' Latitudes\s:\s+(?P<latbins>\d+)\s+bins centered on\s+(?P<blat>\d+\.\d+\s+[SN]) to\s+(?P<elat>\d+\.\d+\s+[SN])\s+\((?P<latbinsize>\d+.\d+) degree steps\)  ')
+dayre = compile(' Day:\s+(?P<jday>\d+) (?P<daystring>.{12})\s+EP/' +
+                'TOMS CORRECTED OZONE GEN:\d+\.\d+\sV\d ALECT:\s+\d+' +
+                ':\d+ [AP]M ')
+lonre = compile(' Longitudes:\s+(?P<lonbins>\d+)\s+bins centered ' +
+                'on\s+(?P<blon>\d+\.\d+\s+[WE]) to\s+(?P<elon>\d+\.' +
+                '\d+\s+[WE])\s+\((?P<lonbinsize>\d+.\d+) degree steps\)  ')
+latre = compile(' Latitudes\s:\s+(?P<latbins>\d+)\s+bins centered on' +
+                '\s+(?P<blat>\d+\.\d+\s+[SN]) to\s+(?P<elat>\d+\.\d+\s+[SN])' +
+                '\s+\((?P<latbinsize>\d+.\d+) degree steps\)  ')
 
 
 def cdtoms(path):

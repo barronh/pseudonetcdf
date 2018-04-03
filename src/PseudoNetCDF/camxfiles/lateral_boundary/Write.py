@@ -5,17 +5,27 @@ __all__ = ['ncf2lateral_boundary']
 import numpy as np
 from PseudoNetCDF._getwriter import registerwriter
 
-_emiss_hdr_fmt = np.dtype(dict(names=['SPAD', 'name', 'note', 'itzon', 'nspec', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[
-                          '>i', '(10,4)>S1', '(60,4)>S1', '>i', '>i', '>i', '>f', '>i', '>f', '>i']))
+_emiss_hdr_fmt = np.dtype(dict(names=['SPAD', 'name', 'note', 'itzon', 'nspec',
+                                      'ibdate', 'btime', 'iedate', 'etime',
+                                      'EPAD'],
+                               formats=['>i', '(10,4)>S1', '(60,4)>S1', '>i',
+                                        '>i', '>i', '>f', '>i', '>f', '>i']))
 
-_grid_hdr_fmt = np.dtype(dict(names=['SPAD', 'plon', 'plat', 'iutm', 'xorg', 'yorg', 'delx', 'dely', 'nx', 'ny', 'nz', 'iproj', 'istag', 'tlat1',
-                                     'tlat2', 'rdum5', 'EPAD'], formats=['>i', '>f', '>f', '>i', '>f', '>f', '>f', '>f', '>i', '>i', '>i', '>i', '>i', '>f', '>f', '>f', '>i']))
+_grid_hdr_fmt = np.dtype(dict(names=['SPAD', 'plon', 'plat', 'iutm', 'xorg',
+                                     'yorg', 'delx', 'dely', 'nx', 'ny', 'nz',
+                                     'iproj', 'istag', 'tlat1', 'tlat2',
+                                     'rdum5', 'EPAD'],
+                              formats=['>i', '>f', '>f', '>i', '>f', '>f',
+                                       '>f', '>f', '>i', '>i', '>i', '>i',
+                                       '>i', '>f', '>f', '>f', '>i']))
 
-_cell_hdr_fmt = np.dtype(dict(names=['SPAD', 'ione1', 'ione2', 'nx', 'ny', 'EPAD'], formats=[
-                         '>i', '>i', '>i', '>i', '>i', '>i']))
+_cell_hdr_fmt = np.dtype(dict(names=['SPAD', 'ione1', 'ione2', 'nx', 'ny',
+                                     'EPAD'],
+                              formats=['>i', '>i', '>i', '>i', '>i', '>i']))
 
-_time_hdr_fmt = np.dtype(dict(names=['SPAD', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[
-                         '>i', '>i', '>f', '>i', '>f', '>i']))
+_time_hdr_fmt = np.dtype(dict(names=['SPAD', 'ibdate', 'btime', 'iedate',
+                                     'etime', 'EPAD'],
+                              formats=['>i', '>i', '>f', '>i', '>f', '>i']))
 
 _spc_fmt = np.dtype("(10,4)>S1")
 
@@ -87,8 +97,9 @@ def ncf2lateral_boundary(ncffile, outpath):
     emiss_hdr['SPAD'] = _emiss_hdr_fmt.itemsize - 8
     emiss_hdr['EPAD'] = _emiss_hdr_fmt.itemsize - 8
 
-    spc_hdr = np.zeros(shape=(1,), dtype=dict(names=['SPAD1', 'DATA', 'EPAD1'], formats=[
-                       '>i', np.dtype("(%d,10,4)>S1" % nspec), '>i']))
+    spcstrfmt = np.dtype("(%d,10,4)>S1" % nspec)
+    spc_hdr = np.zeros(shape=(1,), dtype=dict(names=['SPAD1', 'DATA', 'EPAD1'],
+                                              formats=['>i', spcstrfmt, '>i']))
     spc_hdr['SPAD1'] = nspec * 40
     spc_hdr['EPAD1'] = nspec * 40
     spc_names = np.array(getattr(ncffile, 'VAR-LIST'),
@@ -118,12 +129,14 @@ def ncf2lateral_boundary(ncffile, outpath):
                 raise KeyError(
                     'WEST, EAST, SOUTH, or NORTH: received %s' % ename)
             np.array([buf, 1, ei, nbcell, 0, 0, 0, 0] + [icell, 0, 0, 0] *
-                     (nbcell - 2) + [0, 0, 0, 0, buf]).astype('>i').tofile(outfile)
+                     (nbcell - 2) + [0, 0, 0, 0, buf]
+                     ).astype('>i').tofile(outfile)
     for di, (d, t) in enumerate(ncffile.variables['TFLAG'][:, 0]):
         tempout = b''
         tempout += time_hdr[di].tobytes()
         for spc_key, spc_name in zip(spc_names, spc_hdr[0]['DATA']):
-            for ename, ei in [('WEST', 1), ('EAST', 2), ('SOUTH', 3), ('NORTH', 4)]:
+            for ename, ei in [('WEST', 1), ('EAST', 2),
+                              ('SOUTH', 3), ('NORTH', 4)]:
                 var = ncffile.variables[ename +
                                         '_' + spc_key[0].decode().strip()]
                 data = var[di].astype('>f')

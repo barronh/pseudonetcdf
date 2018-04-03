@@ -7,7 +7,8 @@ from PseudoNetCDF._getwriter import registerwriter
 def ncf2cloud_rain(ncffile, outpath, tflag='TFLAG'):
     outfile = open(outpath, 'wb')
     varkeys = [vk for vk in ['CLOUD', 'PRECIP', 'RAIN', 'SNOW',
-                             'GRAUPEL', 'COD'] if vk in ncffile.variables.keys()]
+                             'GRAUPEL', 'COD']
+               if vk in ncffile.variables.keys()]
     buf = np.array(len(ncffile.FILEDESC) + 12, dtype='>i').tostring()
     outfile.write(buf)
     outfile.write(np.array(ncffile.FILEDESC, dtype='c'))
@@ -26,7 +27,8 @@ def ncf2cloud_rain(ncffile, outpath, tflag='TFLAG'):
         for zi in range(nzcl):
             for varkey in varkeys:
                 vals = ncffile.variables[varkey][di, zi].astype('>f')
-                buf = np.array((vals.size) * 4, ndmin=1).astype('>i').tostring()
+                buf = np.array((vals.size) * 4, ndmin=1).astype('>i')
+                buf = buf.tostring()
                 outfile.write(buf)
                 vals.tofile(outfile)
                 outfile.write(buf)

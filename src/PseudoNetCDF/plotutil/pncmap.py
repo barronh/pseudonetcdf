@@ -4,7 +4,8 @@ from __future__ import print_function
 import os
 
 from PseudoNetCDF.pncload import PNCConsole
-from PseudoNetCDF.coordutil import getmap, getlatbnds, getlonbnds, getybnds, getxbnds
+from PseudoNetCDF.coordutil import getmap, getlatbnds, getlonbnds
+from PseudoNetCDF.coordutil import getybnds, getxbnds
 from PseudoNetCDF.sci_var import getvarpnc, slice_dim
 
 import warnings
@@ -74,11 +75,17 @@ def makemaps(args):
 
         variables = args.variables
         if variables is None:
-            variables = [key for key, var in ifile.variables.items() if len(set(
-                ['latitude', 'longitude']).intersection(getattr(var, 'coordinates', '').split())) == 2]
+            def isgeo(var):
+                geo2d = set(['latitude', 'longitude'])
+                vard = getattr(var, 'coordinates', '').split()
+                hasgeo2d = len(geo2d.intersection(vard)) == 2
+                return hasgeo2d
+            variables = [key for key, var in ifile.variables.items()
+                         if isgeo(var)]
         if len(variables) == 0:
-            raise ValueError(
-                'Unable to heuristically determin plottable variables; use -v to specify variables for plotting')
+            raise ValueError('Unable to heuristically determin plottable ' +
+                             'variables; use -v to specify variables for ' +
+                             'plotting')
         for varkey in variables:
             ax = plt.gca()
 
@@ -95,13 +102,15 @@ def makemaps(args):
                 if normaltest(vals.ravel())[1] < 0.001:
                     cvals = np.ma.compressed(vals)
                     boundaries = np.percentile(cvals, np.arange(0, 110, 10))
-                    warn(
-                        'Autoselect deciles colormap of %s; override width --norm' % varkey)
+                    warn('Autoselect deciles colormap of %s; override ' +
+                         'width --norm' % varkey)
                 else:
                     boundaries = np.linspace(vmin, vmax, num=11)
-                    warn(
-                        'Autoselect linear colormap of %s; override width --norm' % varkey)
-                if (boundaries.max() / np.ma.masked_values(boundaries, 0).min()) > 10000:
+                    warn(('Autoselect linear colormap of %s; override ' +
+                          'width --norm') % varkey)
+                ordermag = (boundaries.max() /
+                            np.ma.masked_values(boundaries, 0).min())
+                if (ordermag) > 10000:
                     formatter = LogFormatter(labelOnlyBase=False)
                 else:
                     formatter = None
@@ -123,17 +132,20 @@ def makemaps(args):
             if args.verbose > 0:
                 print(varkey, sep='')
             if vals.ndim == 1:
-                notmasked = ~(np.ma.getmaskarray(lon[:]) | np.ma.getmaskarray(
-                    lat[:]) | np.ma.getmaskarray(vals[:]))
+                notmasked = ~(np.ma.getmaskarray(lon[:]) |
+                              np.ma.getmaskarray(lat[:]) |
+                              np.ma.getmaskarray(vals[:]))
                 scatlon = lon[:][notmasked]
                 scatlat = lat[:][notmasked]
                 scatvals = vals[:][notmasked]
-                patches = map.scatter(
-                    scatlon[:], scatlat[:], c=scatvals, edgecolors='none', s=24, norm=norm, ax=ax, zorder=2)
+                patches = map.scatter(scatlon[:], scatlat[:], c=scatvals,
+                                      edgecolors='none', s=24, norm=norm,
+                                      ax=ax, zorder=2)
             else:
                 if vals.ndim != 2:
+                    dimlendictstr = str(dict(zip(var.dimensions, var.shape)))
                     warn('Maps require 2-d data; values right now %s %s' %
-                         (str(vals.shape), str(dict(zip(var.dimensions, var.shape)))))
+                         (str(vals.shape), dimlendictstr))
                 patches = map.pcolor(LON, LAT, vals, norm=norm, ax=ax)
             if lonunit == 'x (m)':
                 ax.xaxis.get_major_formatter().set_scientific(True)
@@ -167,14 +179,23 @@ def makemaps(args):
                                       cax=cax, extend=extend, format=formatter,
                                       spacing='proportional')
             del cbar.ax.texts[:]
-            cbar.set_label(
-                varkey + ' (' + varunit + '; min=%.3g; max=%.3g)' % (var[:].min(), var[:].max()))
+            varminmaxtxt = ('; min=%.3g; max=%.3g)' %
+                            (var[:].min(), var[:].max()))
+            cbar.set_label(varkey + ' (' + varunit + varminmaxtxt)
             # if orientation == 'vertical':
-            #     cbar.ax.text(.5, 1.05, '%.3g' % var[:].max(), horizontalalignment = 'center', verticalalignment = 'bottom')
-            #     cbar.ax.text(.5, -.06, '%.3g ' % var[:].min(), horizontalalignment = 'center', verticalalignment = 'top')
+            #     cbar.ax.text(.5, 1.05, '%.3g' % var[:].max(),
+            #                  horizontalalignment = 'center',
+            #                  verticalalignment = 'bottom')
+            #     cbar.ax.text(.5, -.06, '%.3g ' % var[:].min(),
+            #                  horizontalalignment = 'center',
+            #                  verticalalignment = 'top')
             # else:
-            #     cbar.ax.text(1.05, .5, ' %.3g' % var[:].max(), verticalalignment = 'center', horizontalalignment = 'left')
-            #     cbar.ax.text(-.06, .5, '%.3g ' % var[:].min(), verticalalignment = 'center', horizontalalignment = 'right')
+            #     cbar.ax.text(1.05, .5, ' %.3g' % var[:].max(),
+            #                  verticalalignment = 'center',
+            #                  horizontalalignment = 'left')
+            #     cbar.ax.text(-.06, .5, '%.3g ' % var[:].min(),
+            #                  verticalalignment = 'center',
+            #                  horizontalalignment = 'right')
             cbar.update_ticks()
             fmt = args.figformat
             outpath = args.outpath

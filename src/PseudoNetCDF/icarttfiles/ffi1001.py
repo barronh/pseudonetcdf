@@ -1,7 +1,8 @@
 from __future__ import print_function
 import sys
 import unittest
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFMaskedVariable as PseudoNetCDFVariable
+from PseudoNetCDF.sci_var import PseudoNetCDFFile
+from PseudoNetCDF.sci_var import PseudoNetCDFMaskedVariable
 from PseudoNetCDF._getwriter import registerwriter
 from numpy import vectorize, ndarray, array, genfromtxt
 from numpy.ma import MaskedArray, filled
@@ -19,6 +20,8 @@ if (sys.version_info > (3, 0)):
 else:
     def openf(path, mode, encoding):
         return open(path, mode)
+
+PseudoNetCDFVariable = PseudoNetCDFMaskedVariable
 
 
 def get_lodval(v):
@@ -47,8 +50,8 @@ class ffi1001(PseudoNetCDFFile):
     """
 Overview:
   ffi1001 is a reader object for the NASA AMES format also
-  known as the ICARTT file format. The format is defined
-  in detail at https://www-air.larc.nasa.gov/missions/etc/IcarttDataFormat.htm
+  known as the ICARTT file format. The format is defined in detail
+  at https://www-air.larc.nasa.gov/missions/etc/IcarttDataFormat.htm
   Standard of practice is to write files in UTF-8 encoding.
   However, it is not uncommon to receive files with special
   characters. To specify an encoding use the encoding keyword.
@@ -68,16 +71,21 @@ Example:
         except Exception:
             return False
 
-    def __init__(self, path, keysubs={'/': '_'}, encoding='utf-8', default_llod_flag=-8888, default_llod_value='N/A', default_ulod_flag=-7777, default_ulod_value='N/A'):
+    def __init__(self, path, keysubs={'/': '_'}, encoding='utf-8',
+                 default_llod_flag=-8888, default_llod_value='N/A',
+                 default_ulod_flag=-7777, default_ulod_value='N/A'):
         """
 Arguments:
    self - implied input (not supplied in call)
    path - path to file
-   keysubs - dictionary of characters to remove from variable keys and their replacements
+   keysubs - dictionary of characters to remove from variable keys and
+             their replacements
    encoding - file encoding (utf-8, latin1, cp1252, etc.)
-   default_llod_flag - flag value for lower limit of detections if not specified
+   default_llod_flag - flag value for lower limit of detections if not
+                       specified
    default_llod_value - default value to use for replacement of llod_flag
-   default_ulod_flag - flag value for upper limit of detections if not specified
+   default_ulod_flag - flag value for upper limit of detections if not
+                       specified
    default_ulod_value - default value to use for replacement of ulod_flag
 Returns:
    out - PseudoNetCDFFile interface to data in file.
@@ -98,7 +106,8 @@ Returns:
 
         if split(line)[-1] != '1001':
             raise TypeError(
-                "File is the wrong format.  Expected 1001; got %s" % (split(line)[-1],))
+                "File is the wrong format.  " +
+                "Expected 1001; got %s" % (split(line)[-1],))
 
         n, self.fmt = split(line)
         # n_user_comments = 0
@@ -110,8 +119,10 @@ Returns:
                 line = f.readline()
                 LAST_VAR_DESC_LINE = 12 + len(missing)
                 SPECIAL_COMMENT_COUNT_LINE = LAST_VAR_DESC_LINE + 1
-                LAST_SPECIAL_COMMENT_LINE = SPECIAL_COMMENT_COUNT_LINE + n_special_comments
-                USER_COMMENT_COUNT_LINE = 12 + len(missing) + 2 + n_special_comments
+                LAST_SPECIAL_COMMENT_LINE = (SPECIAL_COMMENT_COUNT_LINE +
+                                             n_special_comments)
+                USER_COMMENT_COUNT_LINE = (12 + len(missing) + 2 +
+                                           n_special_comments)
                 if li == PI_LINE:
                     self.PI_NAME = line.strip()
                 elif li == ORG_LINE:
@@ -134,13 +145,15 @@ Returns:
                 elif li == TIME_INT_LINE:
                     self.TIME_INTERVAL = line.strip()
                 elif li == UNIT_LINE:
-                    units.append(line.replace('\n', '').replace('\r', '').strip())
+                    unitstr = line.replace('\n', '').replace('\r', '').strip()
+                    units.append(unitstr)
                     self.INDEPENDENT_VARIABLE = units[-1]
                 elif li == SCALE_LINE:
                     scales = [eval(i) for i in split(line)]
                     if set([float(s) for s in scales]) != set([1.]):
                         raise ValueError(
-                            "Unsupported: scaling is unsupported.  data is scaled by %s" % (str(scales),))
+                            "Unsupported: scaling is unsupported. " +
+                            " data is scaled by %s" % (str(scales),))
                 elif li == MISSING_LINE:
                     missing = [eval(i) for i in split(line)]
                 elif li > MISSING_LINE and li <= LAST_VAR_DESC_LINE:
@@ -160,7 +173,8 @@ Returns:
                         units.append(name.strip())
                 elif li == SPECIAL_COMMENT_COUNT_LINE:
                     n_special_comments = int(line.replace('\n', ''))
-                elif li > SPECIAL_COMMENT_COUNT_LINE and li <= LAST_SPECIAL_COMMENT_LINE:
+                elif (li > SPECIAL_COMMENT_COUNT_LINE and
+                      li <= LAST_SPECIAL_COMMENT_LINE):
                     colon_pos = line.find(':')
                     if line[:1] == ' ':
                         k = lastattr
@@ -173,7 +187,8 @@ Returns:
                 elif li == USER_COMMENT_COUNT_LINE:
                     lastattr = None
                     # n_user_comments = int(line.replace('\n', ''))
-                elif li > USER_COMMENT_COUNT_LINE and li < self.n_header_lines:
+                elif (li > USER_COMMENT_COUNT_LINE and
+                      li < self.n_header_lines):
                     colon_pos = line.find(':')
                     if line[:1] == ' ':
                         k = lastattr
@@ -184,7 +199,8 @@ Returns:
                     setattr(self, k, v)
                     lastattr = k
                 elif li == self.n_header_lines:
-                    variables = line.replace(',', ' ').replace('  ', ' ').split()
+                    varstr = line.replace(',', ' ').replace('  ', ' ')
+                    variables = varstr.split()
                     for oc, nc in keysubs.items():
                         variables = [vn.replace(oc, nc) for vn in variables]
                     self.TFLAG = variables[0]
@@ -239,7 +255,15 @@ Returns:
         data = data.reshape(ndatalines, len(variables))
         data = data.swapaxes(0, 1)
         self.createDimension('POINTS', ndatalines)
-        for var, scale, miss, unit, dat, llod_flag, llod_val, ulod_flag, ulod_val in zip(variables, scales, missing, units, data, llod_flags, llod_values, ulod_flags, ulod_values):
+        for vi, var in enumerate(variables):
+            scale = scales[vi]
+            miss = missing[vi]
+            unit = units[vi]
+            dat = data[vi]
+            llod_flag = llod_flags[vi]
+            llod_val = llod_values[vi]
+            ulod_flag = ulod_flags[vi]
+            ulod_val = ulod_values[vi]
             vals = MaskedArray(dat, mask=dat == miss, fill_value=miss)
             tmpvar = self.variables[var] = PseudoNetCDFVariable(
                 self, var, 'd', ('POINTS',), values=vals)
@@ -257,8 +281,13 @@ Returns:
                 tmpvar.ulod_flag = ulod_flag
                 tmpvar.ulod_value = ulod_val
 
-        self._date_objs = self._SDATE + vectorize(lambda s: timedelta(seconds=int(
-            s), microseconds=(s - int(s)) * 1.E6))(self.variables[self.TFLAG]).view(type=ndarray)
+        def dtime(s):
+            return timedelta(seconds=int(s),
+                             microseconds=(s - int(s)) * 1.E6)
+        vtime = vectorize(dtime)
+        tvar = self.variables[self.TFLAG]
+        self._date_objs = (self._SDATE +
+                           vtime(tvar).view(type=ndarray))
 
 
 def ncf2ffi1001(f, outpath, mode='w', delim=', '):
@@ -278,9 +307,15 @@ Returns:
     if len(missing_attrs) > 0:
         warn('Missing import attributes filling with "Unknown": ' +
              ';'.join(missing_attrs))
-    # header_keys = "PI_CONTACT_INFO PLATFORM LOCATION ASSOCIATED_DATA INSTRUMENT_INFO DATA_INFO UNCERTAINTY ULOD_FLAG ULOD_VALUE LLOD_FLAG LLOD_VALUE DM_CONTACT_INFO PROJECT_INFO STIPULATIONS_ON_USE OTHER_COMMENTS REVISION".split()
-    IGNORE_ATTRS = ['fmt', 'n_header_lines', 'PI_NAME', 'ORGANIZATION_NAME', 'SOURCE_DESCRIPTION',
-                    'MISSION_NAME', 'VOLUME_INFO', 'SDATE', 'WDATE', 'TIME_INTERVAL', 'INDEPENDENT_VARIABLE', 'TFLAG']
+    # header_keys = ("PI_CONTACT_INFO PLATFORM LOCATION ASSOCIATED_DATA " +
+    #                "INSTRUMENT_INFO DATA_INFO UNCERTAINTY ULOD_FLAG " +
+    #                "ULOD_VALUE LLOD_FLAG LLOD_VALUE DM_CONTACT_INFO " +
+    #                "PROJECT_INFO STIPULATIONS_ON_USE OTHER_COMMENTS " +
+    #                "REVISION").split()
+    IGNORE_ATTRS = ['fmt', 'n_header_lines', 'PI_NAME', 'ORGANIZATION_NAME',
+                    'SOURCE_DESCRIPTION', 'MISSION_NAME', 'VOLUME_INFO',
+                    'SDATE', 'WDATE', 'TIME_INTERVAL', 'INDEPENDENT_VARIABLE',
+                    'TFLAG']
     depvarkeys = [k for k in f.variables.keys() if k != f.INDEPENDENT_VARIABLE]
     myattrs = [k for k in f.ncattrs() if k not in IGNORE_ATTRS]
     print('%d, %d' % (len(myattrs) + len(depvarkeys) + 15, 1001), file=outfile)
@@ -290,7 +325,8 @@ Returns:
     print(getattr(f, 'MISSION_NAME', 'Unknown'), file=outfile)
     print(getattr(f, 'VOLUME_INFO', '1, 1'), file=outfile)
     print(f.SDATE, getattr(f, 'WDATE',
-                           datetime.today().strftime('%Y, %m, %d')), file=outfile)
+                           datetime.today().strftime('%Y, %m, %d')),
+          file=outfile)
     print(getattr(f, 'TIME_INTERVAL', 0), file=outfile)
     print(f.INDEPENDENT_VARIABLE, file=outfile)
     print('%d' % len(depvarkeys), file=outfile)

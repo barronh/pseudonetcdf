@@ -19,6 +19,9 @@ _coastlines_opt = True
 _countries_opt = True
 _states_opt = True
 _counties_opt = False
+_coordkeys = ('time', 'latitude', 'longitude', 'latitude_bounds',
+              'longitude_bounds', 'time_bounds', 'tau0', 'tau1',
+              'TFLAG')
 
 
 class OptionDict(dict):
@@ -33,8 +36,11 @@ class OptionDict(dict):
         after_txt = Code to run after each plot (%(_after_code)s)
         post_txt = Code to run after all plots (%(_post_code)s)
         """ % globals()
-        dict.__init__(self, coastlines=_coastlines_opt, countries=_countries_opt, states=_states_opt,
-                      counties=_counties_opt, pre_txt=_pre_code, before_txt=_before_code, after_txt=_after_code, post_txt=_post_code)
+        dict.__init__(self, coastlines=_coastlines_opt,
+                      countries=_countries_opt, states=_states_opt,
+                      counties=_counties_opt, pre_txt=_pre_code,
+                      before_txt=_before_code, after_txt=_after_code,
+                      post_txt=_post_code)
         dict.__init__(self, *args, **kwds)
         if 'outpath' not in self:
             raise KeyError('outpath is a required option')
@@ -49,10 +55,16 @@ defaultoption = OptionDict(outpath='pncview')
 class TkApp:
     def __init__(self, ncffile, options):
         try:
-            from Tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar, Text, DISABLED, LEFT
+            from Tkinter import Checkbutton, Frame, Label, Scrollbar
+            from Tkinter import Listbox, Button, IntVar, Tk, VERTICAL
+            from Tkinter import EXTENDED, END, N, S, SINGLE, Entry
+            from Tkinter import StringVar, Text, DISABLED, LEFT
         except Exception:
             try:
-                from tkinter import Checkbutton, Frame, Label, Scrollbar, Listbox, Button, IntVar, Tk, VERTICAL, EXTENDED, END, N, S, SINGLE, Entry, StringVar, Text, DISABLED, LEFT
+                from tkinter import Checkbutton, Frame, Label, Scrollbar
+                from tkinter import Listbox, Button, IntVar, Tk, VERTICAL
+                from tkinter import EXTENDED, END, N, S, SINGLE, Entry
+                from tkinter import StringVar, Text, DISABLED, LEFT
             except Exception:
                 warn('tkinter unavailable')
 
@@ -74,7 +86,8 @@ class TkApp:
         var_scrollbar = Scrollbar(frame, orient=VERTICAL)
         var_scrollbar.grid(column=1, row=1, sticky=N + S)
         self.var = Listbox(frame, selectmode=EXTENDED,
-                           exportselection=0, yscrollcommand=var_scrollbar.set)
+                           exportselection=0,
+                           yscrollcommand=var_scrollbar.set)
         self.var.grid(column=0, row=1)
         var_scrollbar.config(command=self.var.yview)
 
@@ -121,7 +134,8 @@ class TkApp:
         self.coastlines = IntVar()
         self.coastlines.set(_coastlines_opt)
         coastlines = Checkbutton(
-            goframe, text="coastlines?", variable=self.coastlines, justify=LEFT)
+            goframe, text="coastlines?", variable=self.coastlines,
+            justify=LEFT)
         coastlines.grid(column=0, row=3, sticky='W')
 
         self.countries = IntVar()
@@ -148,13 +162,13 @@ class TkApp:
 
         self.methods = ['mapplot', 'presslat', 'presslon', 'time-lat',
                         'profile', 'timeseries', 'pressx', 'tileplot', 'plot']
-        method_labels = ['lat-lon', 'press-lat', 'press-lon', 'time-lat', 'Vertical Profile',
-                         'Time Series', 'press-? (2-D)', 'Tile Plot (2-D)', 'Plot (1-D)']
+        method_labels = ['lat-lon', 'press-lat', 'press-lon', 'time-lat',
+                         'Vertical Profile', 'Time Series', 'press-? (2-D)',
+                         'Tile Plot (2-D)', 'Plot (1-D)']
         for method in method_labels:
             self.method_list.insert(END, method)
-
-        var_keys = [k for k, v in self.ncffile.variables.items() if k not in (
-            'time', 'latitude', 'longitude', 'latitude_bounds', 'longitude_bounds', 'time_bounds', 'tau0', 'tau1', 'TFLAG')]
+        var_keys = [k for k, v in self.ncffile.variables.items()
+                    if k not in _coordkeys]
         var_keys.sort()
         self.vars = []
         for spc in var_keys:
@@ -234,9 +248,10 @@ def plotwithopts(ifile, method, vars, options=defaultoption):
     exec(options.pre_txt)
     for varkey in vars:
         figpath = eval(method)(ifile=ifile, varkey=varkey, options=options,
-                               before=options.before_txt, after=options.after_txt)
-        pncgen(getvarpnc(ifile, list(vars) + ['TFLAG', 'time', 'latitude', 'longitude',
-                                              'latitude_bounds', 'longitude_bounds']), figpath + '.nc', verbose=0)
+                               before=options.before_txt,
+                               after=options.after_txt)
+        pncgen(getvarpnc(ifile, list(vars) + _coordkeys),
+               figpath + '.nc', verbose=0)
     exec(options.post_txt)
 
 
@@ -265,7 +280,8 @@ def gettime(ifile):
         for axi in range(1, x.ndim - 1):
             x = x[:, 0]
         time = np.array(
-            [(datetime.strptime('%07d %06d' % (d, t), '%Y%j %H%M%S')) for d, t in x])
+            [(datetime.strptime('%07d %06d' % (d, t), '%Y%j %H%M%S'))
+             for d, t in x])
         unit = 'time'
     elif 'time' in ifile.dimensions:
         time = np.arange(len(ifile.dimensions['time']))
@@ -275,7 +291,8 @@ def gettime(ifile):
         unit = 'steps'
     else:
         raise KeyError('No time found')
-    return PseudoNetCDFVariable(None, 'time', 'f', ('time',), values=time[:], units=unit)
+    return PseudoNetCDFVariable(None, 'time', 'f', ('time',),
+                                values=time[:], units=unit)
 
 
 def timeseries(ifile, varkey, options, before='', after=''):
@@ -286,7 +303,8 @@ def timeseries(ifile, varkey, options, before='', after=''):
     dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
     if len(dims) > 1:
         raise ValueError(
-            'Time series can have 1 non-unity dimensions; got %d - %s' % (len(dims), str(dims)))
+            'Time series can have 1 non-unity dimensions; got %d - %s' %
+            (len(dims), str(dims)))
     exec(before)
     ax = pl.gca()
     print(varkey, end='')
@@ -312,7 +330,8 @@ def plot(ifile, varkey, options, before='', after=''):
     dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
     if len(dims) > 1:
         raise ValueError(
-            'Plots can have only 1 non-unity dimensions; got %d - %s' % (len(dims), str(dims)))
+            'Plots can have only 1 non-unity dimensions; got %d - %s' %
+            (len(dims), str(dims)))
     exec(before)
     ax = pl.gca()
     print(varkey, end='')
@@ -340,7 +359,8 @@ def pressx(ifile, varkey, options, before='', after=''):
     dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
     if len(dims) > 2:
         raise ValueError(
-            'Press-x can have 2 non-unity dimensions; got %d - %s' % (len(dims), str(dims)))
+            'Press-x can have 2 non-unity dimensions; got %d - %s' %
+            (len(dims), str(dims)))
     if options.logscale:
         norm = LogNorm()
     else:
@@ -376,7 +396,8 @@ def presslat(ifile, varkey, options, before='', after=''):
     dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
     if len(dims) > 2:
         raise ValueError(
-            'Press-lat can have 2 non-unity dimensions; got %d - %s' % (len(dims), str(dims)))
+            'Press-lat can have 2 non-unity dimensions; got %d - %s' %
+            (len(dims), str(dims)))
     if options.logscale:
         norm = LogNorm()
     else:
@@ -416,7 +437,8 @@ def presslon(ifile, varkey, options, before='', after=''):
     dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
     if len(dims) > 2:
         raise ValueError(
-            'Press-lon plots can have 2 non-unity dimensions; got %d - %s' % (len(dims), str(dims)))
+            'Press-lon plots can have 2 non-unity dimensions; got %d - %s' %
+            (len(dims), str(dims)))
     if options.logscale:
         norm = LogNorm()
     else:
@@ -460,7 +482,8 @@ def tileplot(ifile, varkey, options, before='', after=''):
     dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
     if len(dims) > 2:
         raise ValueError(
-            'Tile plots can have 2 non-unity dimensions; got %d - %s' % (len(dims), str(dims)))
+            'Tile plots can have 2 non-unity dimensions; got %d - %s' %
+            (len(dims), str(dims)))
     patches = ax.pcolor(var[:].squeeze(), norm=norm)
     ax.set_xlim(0, var[:].squeeze().shape[1])
     ax.set_ylim(0, var[:].squeeze().shape[0])
@@ -638,7 +661,8 @@ def main():
         has_ofile=True, plot_options=True, interactive=False)
     if len(ifiles) != 1:
         raise IOError(
-            'pncview can operate on only 1 file; user requested %d' % len(ifiles))
+            'pncview can operate on only 1 file; user requested %d' %
+            len(ifiles))
     ifile, = ifiles
     plt.interactive(True)
     for method_vars in options.plotcommands:

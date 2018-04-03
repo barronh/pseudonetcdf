@@ -5,9 +5,15 @@ from warnings import warn
 from PseudoNetCDF._getwriter import registerwriter
 import unittest
 
+_coordkeys = ("time time_bounds TFLAG ETFLAG latitude latitude_bounds " +
+              "longitude longitude_bounds lat lat_bnds lon lon_bnds " +
+              "etam_pressure etai_pressure layer_bounds layer47 " +
+              "layer").split()
+
 
 class csv(PseudoNetCDFFile):
-    def __init__(self, path, coordkeys="time time_bounds TFLAG ETFLAG latitude latitude_bounds longitude longitude_bounds lat lat_bnds lon lon_bnds etam_pressure etai_pressure layer_bounds layer47 layer".split(), delimiter=',', names=True, **kwds):
+    def __init__(self, path, coordkeys=_coordkeys, delimiter=',',
+                 names=True, **kwds):
         """
         path - place to find csv file
         coordkeys - use these keys as dimensions and coordinate variables
@@ -64,16 +70,17 @@ class csv(PseudoNetCDFFile):
             ov[myidx] = vv
 
 
-def ncf2csv(ifile, outpath, delimiter=',', coordkeys="time time_bounds TFLAG ETFLAG latitude latitude_bounds longitude longitude_bounds lat lat_bnds lon lon_bnds etam_pressure etai_pressure layer_bounds layer47 layer".split()):
+def ncf2csv(ifile, outpath, delimiter=',', coordkeys=_coordkeys):
     header = [k for k, v in ifile.variables.items(
     ) if k not in coordkeys and v.size > 1 and k not in ifile.dimensions]
     dims = set([ifile.variables[k].dimensions for k in header])
     if len(dims) > 1:
         if hasattr(outpath, 'write'):
-            warn('Multiple csv outputs will be separated by ### because not all output variables have the same dimensions')
+            warn('Multiple csv outputs will be separated by ### because ' +
+                 'not all output variables have the same dimensions')
         else:
-            warn(
-                'Making multiple csv outputs because not all output variables have the same dimensions')
+            warn('Making multiple csv outputs because not all output ' +
+                 'variables have the same dimensions')
     dimsets = {}
     for di, dim in enumerate(dims):
         if len(dims) > 1:

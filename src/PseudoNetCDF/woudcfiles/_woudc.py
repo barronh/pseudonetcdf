@@ -6,9 +6,9 @@ from datetime import datetime
 
 _units = dict(
     Pressure='hPa', O3PartialPressure='mPa',
-    Temperature='C', WindSpeed='m/s', WindDirection='degrees from north', RelativeHumidity='%',
-    LevelCode='?', Duration='s', GPHeight='m', SampleTemperature='C',
-    Latitude='degrees_north', Longitude='degrees_east')
+    Temperature='C', WindSpeed='m/s', WindDirection='degrees from north',
+    RelativeHumidity='%', LevelCode='?', Duration='s', GPHeight='m',
+    SampleTemperature='C', Latitude='degrees_north', Longitude='degrees_east')
 
 
 class woudcsonde(PseudoNetCDFFile):
@@ -25,7 +25,8 @@ class woudcsonde(PseudoNetCDFFile):
             import pandas as pd
         except Exception:
             raise ImportError(
-                'woudcsonde requires pandas; install pandas (e.g., pip install pandas)')
+                'woudcsonde requires pandas; ' +
+                'install pandas (e.g., pip install pandas)')
         metalines = myf.readline()
         nmetalines = 2
         newblock = ''
@@ -49,9 +50,6 @@ class woudcsonde(PseudoNetCDFFile):
             else:
                 metalines += nextline
 
-        # try:
-        #    locdata = np.recfromcsv(io.BytesIO((metalines).encode()), case_sensitive = True)
-        # except ValueError as e:
         if key == 'TIMESTAMP_':
             dtype = 'S64'
         else:
@@ -94,7 +92,8 @@ class woudcsonde(PseudoNetCDFFile):
             import pandas as pd
         except Exception:
             raise ImportError(
-                'woudcsonde requires pandas; install pandas (e.g., pip install pandas)')
+                'woudcsonde requires pandas; ' +
+                'install pandas (e.g., pip install pandas)')
         if hasattr(path, 'readline'):
             myf = path
         else:
@@ -140,10 +139,12 @@ class woudcsonde(PseudoNetCDFFile):
             except Exception as e:
                 warn(str(e) + '; ' + key + ' will not be written')
 
-        date = '-'.join(['%02d' % int(v) for v in self.variables['TIMESTAMP_Date'].view(
-            'S64')[0, 0].decode().strip().split('-')])
-        time = (self.variables['TIMESTAMP_Time'].view(
-            'S64')[0, 0].decode().strip() + ':00')[:8]
+        datebytes = self.variables['TIMESTAMP_Date'].view('S64')[0, 0]
+        datestr = datebytes.decode().strip()
+        date = '-'.join(['%02d' % int(v) for v in datestr.split('-')])
+        timebytes = self.variables['TIMESTAMP_Time'].view('S64')[0, 0]
+        timestr = timebytes.decode().strip()
+        time = (timestr + ':00')[:8]
         if time == ':00':
             time = '00:00:00'
         z = self.variables['TIMESTAMP_UTCOffset'].view(
@@ -164,7 +165,8 @@ class woudcsonde(PseudoNetCDFFile):
         tvar.units = 'seconds since ' + rdatestr
         tvar[...] = dt
 
-    def avgSigma(self, vglvls=None, vgtop=None, hyai=None, hybi=None, inplace=False, copyall=True, levelname='LAY'):
+    def avgSigma(self, vglvls=None, vgtop=None, hyai=None, hybi=None,
+                 inplace=False, copyall=True, levelname='LAY'):
         """
         vglvls - sigma coordinate
         vgtop - top in Pa

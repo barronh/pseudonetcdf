@@ -85,8 +85,9 @@ class one3d(PseudoNetCDFFile):
             cols = self.cell_count / rows
         else:
             if cols * rows != self.cell_count:
-                raise ValueError("The product of cols (%d) and rows (%d) must equal cells (%d)" % (
-                    cols, rows, self.cell_count))
+                raise ValueError(("The product of cols (%d) and rows (%d) " +
+                                  "must equal cells (%d)") % (cols, rows,
+                                                              self.cell_count))
 
         self.createDimension('TSTEP', self.time_step_count)
         self.createDimension('COL', cols)
@@ -191,12 +192,21 @@ class one3d(PseudoNetCDFFile):
         if time is None:
             time = self.start_time
 
-        if chkvar and timediff((self.end_date, self.end_time), (date, time)) > 0 or timediff((self.start_date, self.start_time), (date, time)) < 0:
-            raise KeyError("Vertical Diffusivity file includes (%i,%6.1f) thru (%i,%6.1f); you requested (%i,%6.1f)" % (
-                self.start_date, self.start_time, self.end_date, self.end_time, date, time))
-        if chkvar and k < 1 or k > self.nlayers:
-            raise KeyError(
-                "Vertical Diffusivity file include layers 1 thru %i; you requested %i" % (self.nlayers, k))
+        if chkvar:
+            chkt1 = timediff((self.end_date, self.end_time), (date, time)) > 0
+            chkt2 = timediff((self.start_date, self.start_time),
+                             (date, time)) < 0
+            if chkt1 or chkt2:
+                raise KeyError(("Vertical Diffusivity file includes " +
+                                "(%i,%6.1f) thru (%i,%6.1f); you requested " +
+                                "(%i,%6.1f)") % (self.start_date,
+                                                 self.start_time,
+                                                 self.end_date,
+                                                 self.end_time, date, time))
+            if k < 1 or k > self.nlayers:
+                raise KeyError(("Vertical Diffusivity file include layers 1" +
+                                "thru %i; you requested %i") % (self.nlayers,
+                                                                k))
         self.rffile._newrecord(self.__recordposition(date, time, k))
 
     def read(self):
@@ -250,7 +260,9 @@ class one3d(PseudoNetCDFFile):
         return a
 
     def timerange(self):
-        return timerange((self.start_date, self.start_time), (self.end_date, self.end_time + self.time_step), self.time_step)
+        return timerange((self.start_date, self.start_time),
+                         (self.end_date, self.end_time + self.time_step),
+                         self.time_step)
 
 
 class TestRead(unittest.TestCase):
@@ -262,10 +274,50 @@ class TestRead(unittest.TestCase):
 
     def testKV(self):
         import PseudoNetCDF.testcase
-        vdfile = one3d(
-            PseudoNetCDF.testcase.camxfiles_paths['vertical_diffusivity'], 4, 5)
-        self.assert_((vdfile.variables['UNKNOWN'] == array([1.00000000e+00, 4.76359320e+00, 1.92715893e+01, 1.52158489e+01, 7.20601225e+00, 1.84097159e+00, 2.63084507e+01, 1.27621298e+01, 1.06348248e+01, 2.22587357e+01, 1.00000000e+00, 1.69009724e+01, 1.00000000e+00, 2.23075104e+01, 1.27485418e+01, 1.45508013e+01, 1.45637455e+01, 2.95294094e+01, 3.02676849e+01, 2.84974957e+01, 1.00000000e+00, 6.93706131e+00, 3.07418957e+01, 3.41300621e+01, 1.66266994e+01, 1.00000000e+00, 2.53920174e+01, 1.92539787e+01, 2.32906532e+01, 5.96702042e+01, 1.00000000e+00, 2.24458847e+01, 1.00000000e+00, 5.45038452e+01, 3.45825729e+01, 3.43578224e+01, 3.76071548e+01, 6.76799850e+01, 7.33648529e+01, 7.35801239e+01, 1.00000000e+00, 6.38178444e+00, 4.39327278e+01, 5.00754166e+01, 2.44474106e+01, 1.00000000e+00, 3.51700935e+01, 2.71137428e+01, 3.40312347e+01, 8.85775909e+01, 1.00000000e+00, 3.13994522e+01, 1.00000000e+00, 8.07169266e+01, 5.12892876e+01, 5.05734329e+01, 5.56603966e+01, 1.00394188e+02, 1.08980370e+02, 1.09251083e+02,
-                                                            1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.64916098e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.22205174e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.05408611e+01, 1.26687222e+01, 1.21386652e+01, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.93040049e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.39350021e+00, 1.02697349e+00, 1.00000000e+00, 1.00000000e+00, 1.82250175e+01, 2.90407104e+01, 2.83827496e+01, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 2.02609706e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 1.44422662e+00, 1.02998519e+00, 1.00000000e+00, 1.00000000e+00, 2.60322971e+01, 4.26534195e+01, 4.17046585e+01], dtype='f').reshape(2, 3, 4, 5)).all())
+        inpath = PseudoNetCDF.testcase.camxfiles_paths['vertical_diffusivity']
+        vdfile = one3d(inpath, 4, 5)
+        checkv = array([1.00000000e+00, 4.76359320e+00, 1.92715893e+01,
+                        1.52158489e+01, 7.20601225e+00, 1.84097159e+00,
+                        2.63084507e+01, 1.27621298e+01, 1.06348248e+01,
+                        2.22587357e+01, 1.00000000e+00, 1.69009724e+01,
+                        1.00000000e+00, 2.23075104e+01, 1.27485418e+01,
+                        1.45508013e+01, 1.45637455e+01, 2.95294094e+01,
+                        3.02676849e+01, 2.84974957e+01, 1.00000000e+00,
+                        6.93706131e+00, 3.07418957e+01, 3.41300621e+01,
+                        1.66266994e+01, 1.00000000e+00, 2.53920174e+01,
+                        1.92539787e+01, 2.32906532e+01, 5.96702042e+01,
+                        1.00000000e+00, 2.24458847e+01, 1.00000000e+00,
+                        5.45038452e+01, 3.45825729e+01, 3.43578224e+01,
+                        3.76071548e+01, 6.76799850e+01, 7.33648529e+01,
+                        7.35801239e+01, 1.00000000e+00, 6.38178444e+00,
+                        4.39327278e+01, 5.00754166e+01, 2.44474106e+01,
+                        1.00000000e+00, 3.51700935e+01, 2.71137428e+01,
+                        3.40312347e+01, 8.85775909e+01, 1.00000000e+00,
+                        3.13994522e+01, 1.00000000e+00, 8.07169266e+01,
+                        5.12892876e+01, 5.05734329e+01, 5.56603966e+01,
+                        1.00394188e+02, 1.08980370e+02, 1.09251083e+02,
+                        1.00000000e+00, 1.00000000e+00, 1.00000000e+00,
+                        1.00000000e+00, 1.00000000e+00, 1.00000000e+00,
+                        1.00000000e+00, 1.00000000e+00, 1.00000000e+00,
+                        1.64916098e+00, 1.00000000e+00, 1.00000000e+00,
+                        1.00000000e+00, 1.22205174e+00, 1.00000000e+00,
+                        1.00000000e+00, 1.00000000e+00, 1.05408611e+01,
+                        1.26687222e+01, 1.21386652e+01, 1.00000000e+00,
+                        1.00000000e+00, 1.00000000e+00, 1.00000000e+00,
+                        1.00000000e+00, 1.00000000e+00, 1.00000000e+00,
+                        1.00000000e+00, 1.00000000e+00, 1.93040049e+00,
+                        1.00000000e+00, 1.00000000e+00, 1.00000000e+00,
+                        1.39350021e+00, 1.02697349e+00, 1.00000000e+00,
+                        1.00000000e+00, 1.82250175e+01, 2.90407104e+01,
+                        2.83827496e+01, 1.00000000e+00, 1.00000000e+00,
+                        1.00000000e+00, 1.00000000e+00, 1.00000000e+00,
+                        1.00000000e+00, 1.00000000e+00, 1.00000000e+00,
+                        1.00000000e+00, 2.02609706e+00, 1.00000000e+00,
+                        1.00000000e+00, 1.00000000e+00, 1.44422662e+00,
+                        1.02998519e+00, 1.00000000e+00, 1.00000000e+00,
+                        2.60322971e+01, 4.26534195e+01, 4.17046585e+01],
+                       dtype='f').reshape(2, 3, 4, 5)
+        self.assert_((vdfile.variables['UNKNOWN'] == checkv).all())
 
 
 if __name__ == '__main__':

@@ -20,7 +20,8 @@ from warnings import warn
 from numpy import array, memmap, dtype, linspace
 
 # This Package modules
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoIOAPIVariable, PseudoNetCDFVariables
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoIOAPIVariable
+from PseudoNetCDF.sci_var import PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 from PseudoNetCDF.camxfiles.units import get_uamiv_units, get_chemparam_names
 from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
@@ -61,17 +62,28 @@ class uamiv(PseudoNetCDFFile):
     def _make_header_fmt(self, ep=None):
         if ep is None:
             ep = self.__endianprefix
-        self.__emiss_hdr_fmt = dtype(dict(names=['SPAD', 'name', 'note', 'itzon', 'nspec', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[
-                                     ep + 'i', '(10, 4)%sS1' % ep, '(60,4)%sS1' % ep, ep + 'i', ep + 'i', ep + 'i', ep + 'f', ep + 'i', ep + 'f', ep + 'i']))
-        self.__grid_hdr_fmt = dtype(dict(names=['SPAD', 'plon', 'plat', 'iutm', 'xorg', 'yorg', 'delx', 'dely', 'nx', 'ny', 'nz', 'iproj', 'istag', 'tlat1', 'tlat2', 'rdum', 'EPAD'], formats=[
-                                    ep + 'i', ep + 'f', ep + 'f', ep + 'i', ep + 'f', ep + 'f', ep + 'f', ep + 'f', ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'f', ep + 'f', ep + 'f', ep + 'i']))
-        self.__cell_hdr_fmt = dtype(dict(names=['SPAD', 'ione1', 'ione2', 'nx', 'ny', 'EPAD'], formats=[
-                                    ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'i', ep + 'i']))
-        self.__time_hdr_fmt = dtype(dict(names=['SPAD', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[
-                                    ep + 'i', ep + 'i', ep + 'f', ep + 'i', ep + 'f', ep + 'i']))
-        self.__spc_fmt = dtype("(10,4)%sS1" % ep)
+        self.__emiss_hdr_fmt = dtype(dict(
+            names=['SPAD', 'name', 'note', 'itzon', 'nspec', 'ibdate', 'btime',
+                   'iedate', 'etime', 'EPAD'],
+            formats=['i', '(10, 4)S1', '(60,4)S1', 'i', 'i', 'i', 'f', 'i',
+                     'f', 'i'])).newbyteorder(ep)
+        self.__grid_hdr_fmt = dtype(dict(
+            names=['SPAD', 'plon', 'plat', 'iutm', 'xorg', 'yorg', 'delx',
+                   'dely', 'nx', 'ny', 'nz', 'iproj', 'istag', 'tlat1',
+                   'tlat2', 'rdum', 'EPAD'],
+            formats=['i', 'f', 'f', 'i', 'f', 'f', 'f', 'f', 'i', 'i', 'i',
+                     'i', 'i', 'f', 'f', 'f', 'i'])).newbyteorder(ep)
+        self.__cell_hdr_fmt = dtype(dict(
+            names=['SPAD', 'ione1', 'ione2', 'nx', 'ny', 'EPAD'],
+            formats=['i', 'i', 'i', 'i', 'i', 'i'])).newbyteorder(ep)
+        self.__time_hdr_fmt = dtype(dict(
+            names=['SPAD', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'],
+            formats=['i', 'i', 'f', 'i', 'f', 'i'])).newbyteorder(ep)
+        self.__spc_fmt = dtype("(10,4)S1").newbyteorder(ep)
 
-    def __init__(self, rf, mode='r', P_ALP=None, P_BET=None, P_GAM=None, XCENT=None, YCENT=None, GDTYP=None, endian='big', chemparam=None):
+    def __init__(self, rf, mode='r', P_ALP=None, P_BET=None, P_GAM=None,
+                 XCENT=None, YCENT=None, GDTYP=None, endian='big',
+                 chemparam=None):
         """
         Initialization included reading the header and learning
         about the format.
@@ -115,10 +127,12 @@ class uamiv(PseudoNetCDFFile):
         # Create variables
         self.variables = PseudoNetCDFVariables(
             self.__variables, ['TFLAG', 'ETFLAG'] + self.__var_names__)
-        tflag = ConvertCAMxTime(self.__memmap__['DATE']['BDATE'], self.__memmap__[
-                                'DATE']['BTIME'], self.NVARS)
-        etflag = ConvertCAMxTime(self.__memmap__['DATE']['EDATE'], self.__memmap__[
-                                 'DATE']['ETIME'], self.NVARS)
+        tflag = ConvertCAMxTime(self.__memmap__['DATE']['BDATE'],
+                                self.__memmap__['DATE']['BTIME'],
+                                self.NVARS)
+        etflag = ConvertCAMxTime(self.__memmap__['DATE']['EDATE'],
+                                 self.__memmap__['DATE']['ETIME'],
+                                 self.NVARS)
         tflagv = self.createVariable('TFLAG', 'i',
                                      ('TSTEP', 'VAR', 'DATE-TIME'),
                                      values=tflag, units='DATE-TIME',
@@ -169,18 +183,27 @@ class uamiv(PseudoNetCDFFile):
         if name in ('BOUNDARY', 'PTSOURCE'):
             return False
 
-        if not emiss_hdr['SPAD'] == emiss_hdr['EPAD'] and emiss_hdr['SPAD'] == emiss_hdr.dtype.itemsize - 8:
+        if (
+            not emiss_hdr['SPAD'] == emiss_hdr['EPAD'] and
+            emiss_hdr['SPAD'] == emiss_hdr.dtype.itemsize - 8
+        ):
             return False
         offset += emiss_hdr.dtype.itemsize * emiss_hdr.size
 
         grid_hdr = memmap(
             path, mode='r', dtype=self.__grid_hdr_fmt, shape=1, offset=offset)
-        if not grid_hdr['SPAD'] == grid_hdr['EPAD'] and grid_hdr['SPAD'] == grid_hdr.dtype.itemsize - 8:
+        if (
+            not grid_hdr['SPAD'] == grid_hdr['EPAD'] and
+            grid_hdr['SPAD'] == grid_hdr.dtype.itemsize - 8
+        ):
             return False
         offset += grid_hdr.dtype.itemsize * grid_hdr.size
         cell_hdr = memmap(
             path, mode='r', dtype=self.__cell_hdr_fmt, shape=1, offset=offset)
-        if not cell_hdr['SPAD'] == cell_hdr['EPAD'] and cell_hdr['SPAD'] == cell_hdr.dtype.itemsize - 8:
+        if (
+            not cell_hdr['SPAD'] == cell_hdr['EPAD'] and
+            cell_hdr['SPAD'] == cell_hdr.dtype.itemsize - 8
+        ):
             return False
         return name in ('AIRQUALITY', 'EMISSIONS', 'INSTANT', 'AVERAGE')
 
@@ -188,12 +211,14 @@ class uamiv(PseudoNetCDFFile):
         ep = self.__endianprefix
         offset = 0
         self.__emiss_hdr = memmap(
-            self.__rffile, mode=self.__mode, dtype=self.__emiss_hdr_fmt, shape=1, offset=offset)
+            self.__rffile, mode=self.__mode, dtype=self.__emiss_hdr_fmt,
+            shape=1, offset=offset)
         nspec = self.__emiss_hdr['nspec'][0]
         offset += self.__emiss_hdr.dtype.itemsize * self.__emiss_hdr.size
 
         self.__grid_hdr = memmap(
-            self.__rffile, mode=self.__mode, dtype=self.__grid_hdr_fmt, shape=1, offset=offset)
+            self.__rffile, mode=self.__mode, dtype=self.__grid_hdr_fmt,
+            shape=1, offset=offset)
 
         self.XORIG = self.__grid_hdr['xorg'][0]
         self.YORIG = self.__grid_hdr['yorg'][0]
@@ -210,7 +235,10 @@ class uamiv(PseudoNetCDFFile):
             GDTYPE = self.GDTYP
         else:
             GDTYPE = self.GDTYP = {0: 1, 1: 5, 2: 2, 3: 6}[cproj]
-        if cproj == 0 or not all(list(map(lambda x: x == 0, [plon, plat, tlat1, tlat2, iutm, cproj]))):
+        if (
+            cproj == 0 or
+            not all([x == 0 for x in [plon, plat, tlat1, tlat2, iutm, cproj]])
+        ):
             # Map CAMx projection constants to IOAPI
             self.XCENT = plon
             self.YCENT = plat
@@ -235,19 +263,24 @@ class uamiv(PseudoNetCDFFile):
 
         offset += self.__grid_hdr.dtype.itemsize * self.__grid_hdr.size
         self.__cell_hdr = memmap(
-            self.__rffile, mode=self.__mode, dtype=self.__cell_hdr_fmt, shape=1, offset=offset)
+            self.__rffile, mode=self.__mode, dtype=self.__cell_hdr_fmt,
+            shape=1, offset=offset)
 
         offset += self.__cell_hdr.dtype.itemsize * self.__cell_hdr.size + 4
         self.__spc_hdr = memmap(self.__rffile, mode=self.__mode,
-                                dtype=self.__spc_fmt, shape=nspec, offset=offset)
+                                dtype=self.__spc_fmt, shape=nspec,
+                                offset=offset)
 
         offset += self.__spc_hdr.dtype.itemsize * self.__spc_hdr.size + 4
 
-        date_time_fmt = dtype(dict(names=['SPAD', 'BDATE', 'BTIME', 'EDATE', 'ETIME', 'EPAD'], formats=[
-                              ep + 'i', ep + 'i', ep + 'f', ep + 'i', ep + 'f', ep + 'i']))
+        date_time_fmt = dtype(dict(
+            names=['SPAD', 'BDATE', 'BTIME', 'EDATE', 'ETIME', 'EPAD'],
+            formats=['i', 'i', 'f', 'i', 'f', 'i'])).newbyteorder(ep)
         date_time_block_size = 6
-        spc_1_lay_fmt = dtype(dict(names=['SPAD', 'IONE', 'SPC', 'DATA', 'EPAD'], formats=[
-                              ep + 'i', ep + 'i', '(10,4)%sS1' % ep, '(%d,%d)%sf' % (ny, nx, ep), ep + 'i']))
+        spc_1_lay_fmt = dtype(dict(
+            names=['SPAD', 'IONE', 'SPC', 'DATA', 'EPAD'],
+            formats=['i', 'i', '(10,4)S1',
+                     '(%d,%d)f' % (ny, nx), 'i'])).newbyteorder(ep)
         spc_1_lay_block_size = 13 + nx * ny
         spc_3d_fmt = dtype((spc_1_lay_fmt, (nz,)))
 
@@ -258,9 +291,11 @@ class uamiv(PseudoNetCDFFile):
         self.__var_names__ = [''.join(v).strip() for v in var_names]
 
         data_block_fmt = dtype(dict(
-            names=['DATE'] + self.__var_names__, formats=[date_time_fmt] + [spc_3d_fmt] * nspec))
+            names=['DATE'] + self.__var_names__,
+            formats=[date_time_fmt] + [spc_3d_fmt] * nspec))
 
-        data_block_size = date_time_block_size + nspec * nz * spc_1_lay_block_size
+        data_block_size = (date_time_block_size + nspec * nz *
+                           spc_1_lay_block_size)
         f = open(self.__rffile)
         f.seek(0, 2)
         size = f.tell()
@@ -269,7 +304,8 @@ class uamiv(PseudoNetCDFFile):
         ntimes = float(size - offset) / 4. / data_block_size
         if int(ntimes) != ntimes:
             raise ValueError(
-                "Partial time output (%f times); partial time indicates incomplete file." % ntimes)
+                ("Partial time output (%f times); partial time indicates " +
+                 "incomplete file.") % ntimes)
         ntimes = int(ntimes)
 
         self.createDimension('LAY', nz)
@@ -279,15 +315,16 @@ class uamiv(PseudoNetCDFFile):
         tstep.setunlimited(True)
         self.createDimension('VAR', nspec)
 
-        self.__memmap__ = memmap(
-            self.__rffile, mode=self.__mode, dtype=data_block_fmt, offset=offset)
+        self.__memmap__ = memmap(self.__rffile, mode=self.__mode,
+                                 dtype=data_block_fmt, offset=offset)
 
     def __variables(self, k):
         dimensions = ('TSTEP', 'LAY', 'ROW', 'COL')
         outvals = self.__memmap__[k]['DATA']
         units = get_uamiv_units(self.NAME, k, self._aerosol_names)
 
-        return PseudoIOAPIVariable(self, k, 'f', dimensions, values=outvals, units=units)
+        return PseudoIOAPIVariable(self, k, 'f', dimensions, values=outvals,
+                                   units=units)
 
     def sync(self):
         pass
@@ -311,8 +348,14 @@ class TestMemmap(unittest.TestCase):
         emissfile = uamiv(PseudoNetCDF.testcase.camxfiles_paths['uamiv'])
         emissfile.variables['TFLAG']
         v = emissfile.variables['NO2']
-        self.assert_((v == array([0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.24175494e-04, 2.79196858e-04, 1.01672206e-03, 4.36782313e-04, 0.00000000e+00,
-                                  1.54810550e-04, 3.90250643e-04, 6.18023798e-04, 3.36963218e-04, 0.00000000e+00, 1.85579920e-04, 1.96825975e-04, 2.16468165e-04, 2.19882189e-04], dtype='f').reshape(1, 1, 4, 5)).all())
+        checkv = array(
+            [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+             0.00000000e+00, 0.00000000e+00, 1.24175494e-04, 2.79196858e-04,
+             1.01672206e-03, 4.36782313e-04, 0.00000000e+00, 1.54810550e-04,
+             3.90250643e-04, 6.18023798e-04, 3.36963218e-04, 0.00000000e+00,
+             1.85579920e-04, 1.96825975e-04, 2.16468165e-04, 2.19882189e-04],
+            dtype='f').reshape(1, 1, 4, 5)
+        self.assert_((v == checkv).all())
 
 
 if __name__ == '__main__':

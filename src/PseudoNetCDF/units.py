@@ -11,8 +11,10 @@ __doc__ = r"""
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
 
-__all__ = ['F2C', 'F2K', 'K2C', 'K2F', 'KCMAQ2F', 'M2km', 'MPS2kph', 'convert', 'converter', 'converters_dict', 'km2m', 'm2ft',
-           'm2km', 'm2miles', 'min2h', 'molespsCMAQ2molesph', 'mps2kmps', 'mps2kph', 'mps2milesph', 'mps2milesps', 's2h', 's2min']
+__all__ = ['F2C', 'F2K', 'K2C', 'K2F', 'KCMAQ2F', 'M2km', 'MPS2kph',
+           'convert', 'converter', 'converters_dict', 'km2m', 'm2ft',
+           'm2km', 'm2miles', 'min2h', 'molespsCMAQ2molesph', 'mps2kmps',
+           'mps2kph', 'mps2milesph', 'mps2milesps', 's2h', 's2min']
 
 
 def s2min(a):
@@ -125,32 +127,32 @@ class converters_dict(defaultdict):
             return lambda a: a
 
 
-converter = converters_dict({('s', 'min'): s2min,
-                             ('min', 'h'): min2h,
-                             ('s', 'h'): s2h,
-                             ('m/s', 'km/h'): mps2kph,
-                             ('M/S             ', 'km/h'): MPS2kph,
-                             ('m/s', 'miles/h'): mps2milesph,
-                             ('m/s', 'miles/s'): mps2milesps,
-                             ('m', 'km'): m2km,
-                             ('M               ', 'km'): M2km,
-                             ('km', 'm'): km2m,
-                             ('m', 'ft'): m2ft,
-                             ('m', 'miles'): m2miles,
-                             ('moles/s         ', 'moles/h'): molespsCMAQ2molesph,
-                             ('F', 'K'): F2K,
-                             ('F', 'C'): F2C,
-                             ('K', 'C'): K2C,
-                             ('K', 'F'): K2F,
-                             ('K               ', 'deg_F'): KCMAQ2F,
-                             ('K', 'deg_F'): K2F,
-                             ('ppm', 'ppb'): ppm2ppb,
-                             ('ppb', 'ppt'): ppb2ppt,
-                             ('ppt', 'ppb'): ppt2ppb,
-                             ('ppb', 'ppm'): ppb2ppm,
-                             ('ppt', 'ppm'): ppt2ppm,
-                             ('ppm', 'ppt'): ppm2ppt
-                             })
+converter = converters_dict({
+    ('s', 'min'): s2min,
+    ('min', 'h'): min2h,
+    ('s', 'h'): s2h,
+    ('m/s', 'km/h'): mps2kph,
+    ('M/S             ', 'km/h'): MPS2kph,
+    ('m/s', 'miles/h'): mps2milesph,
+    ('m/s', 'miles/s'): mps2milesps,
+    ('m', 'km'): m2km,
+    ('M               ', 'km'): M2km,
+    ('km', 'm'): km2m,
+    ('m', 'ft'): m2ft,
+    ('m', 'miles'): m2miles,
+    ('moles/s         ', 'moles/h'): molespsCMAQ2molesph,
+    ('F', 'K'): F2K,
+    ('F', 'C'): F2C,
+    ('K', 'C'): K2C,
+    ('K', 'F'): K2F,
+    ('K               ', 'deg_F'): KCMAQ2F,
+    ('K', 'deg_F'): K2F,
+    ('ppm', 'ppb'): ppm2ppb,
+    ('ppb', 'ppt'): ppb2ppt,
+    ('ppt', 'ppb'): ppt2ppb,
+    ('ppb', 'ppm'): ppb2ppm,
+    ('ppt', 'ppm'): ppt2ppm,
+    ('ppm', 'ppt'): ppm2ppt})
 
 
 def convert(var, inunit, outunit):

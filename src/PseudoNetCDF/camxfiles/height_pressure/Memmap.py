@@ -7,7 +7,7 @@ __doc__ = """
 .. module:: Memmap
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx
-              height/pressure files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
+              height/pressure files.  See PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -20,7 +20,8 @@ import struct
 from numpy import zeros, array, memmap
 
 # This Package modules
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
+from PseudoNetCDF.sci_var import PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 # for use in identifying uncaught nan
@@ -39,11 +40,11 @@ class height_pressure(PseudoNetCDFFile):
     ex:
         >>> height_pressure_path = 'camx_height_pressure.bin'
         >>> rows,cols = 65,83
-        >>> height_pressurefile = height_pressure(height_pressure_path,rows,cols)
-        >>> height_pressurefile.variables.keys()
+        >>> hpf = height_pressure(height_pressure_path,rows,cols)
+        >>> hpf.variables.keys()
         ['TFLAG', 'HGHT', 'PRES']
-        >>> v = height_pressurefile.variables['V']
-        >>> tflag = height_pressurefile.variables['TFLAG']
+        >>> v = hpf.variables['V']
+        >>> tflag = hpf.variables['TFLAG']
         >>> tflag.dimensions
         ('TSTEP', 'VAR', 'DATE-TIME')
         >>> tflag[0,0,:]
@@ -54,7 +55,7 @@ class height_pressure(PseudoNetCDFFile):
         ('TSTEP', 'LAY', 'ROW', 'COL')
         >>> v.shape
         (25, 28, 65, 83)
-        >>> height_pressurefile.dimensions
+        >>> hpf.dimensions
         {'TSTEP': 25, 'LAY': 28, 'ROW': 65, 'COL': 83}
     """
 
@@ -85,8 +86,9 @@ class height_pressure(PseudoNetCDFFile):
             cols = rowsXcols / rows
         else:
             if cols * rows != rowsXcols:
-                raise ValueError("The product of cols (%d) and rows (%d) must equal cells (%d)" % (
-                    cols, rows, rowsXcols))
+                raise ValueError(("The product of cols (%d) and rows (%d) " +
+                                  "must equal cells (%d)") % (
+                                 cols, rows, rowsXcols))
 
         self.createDimension('ROW', rows)
         self.createDimension('COL', cols)
@@ -123,18 +125,23 @@ class height_pressure(PseudoNetCDFFile):
         buf = self.__memmap[out_idx == 0].reshape(lays * 2 * times, 2)
         if not (buf[:, 0] == buf[:, 1]).all():
             raise ValueError("Buffer")
+        tmpvals = self.__memmap[out_idx == 1].reshape(times, lays, rows, cols)
         v = self.variables['HGHT'] = PseudoNetCDFVariable(
-            self, 'HGHT', 'f', ('TSTEP', 'LAY', 'ROW', 'COL'), values=self.__memmap[out_idx == 1].reshape(times, lays, rows, cols))
+            self, 'HGHT', 'f', ('TSTEP', 'LAY', 'ROW', 'COL'), values=tmpvals)
         v.units = 'm'
         v.long_name = 'HGHT'.ljust(16)
         v.var_desc = 'Top Height'
+        tmpvals = self.__memmap[out_idx == 2].reshape(times, lays, rows, cols)
         v = self.variables['PRES'] = PseudoNetCDFVariable(
-            self, 'PRES', 'f', ('TSTEP', 'LAY', 'ROW', 'COL'), values=self.__memmap[out_idx == 2].reshape(times, lays, rows, cols))
+            self, 'PRES', 'f', ('TSTEP', 'LAY', 'ROW', 'COL'), values=tmpvals)
         v.units = 'hPA'
         v.long_name = 'PRES'.ljust(16)
         v.var_desc = 'Pressure at center'
-        self.variables['TFLAG'] = ConvertCAMxTime(self.__memmap[out_idx == 4][slice(None, None, len(self.dimensions['LAY']) * 2)].view(
-            '>i'), self.__memmap[out_idx == 3][slice(None, None, len(self.dimensions['LAY']) * 2)], len(self.dimensions['VAR']))
+        tslice = slice(None, None, len(self.dimensions['LAY']) * 2)
+        dateblock = self.__memmap[out_idx == 4][tslice].view('>i')
+        hourblock = self.__memmap[out_idx == 3][tslice]
+        self.variables['TFLAG'] = ConvertCAMxTime(dateblock, hourblock,
+                                                  len(self.dimensions['VAR']))
 
         return self.variables[key]
 
@@ -151,15 +158,55 @@ class TestMemmap(unittest.TestCase):
         hpfile = height_pressure(
             PseudoNetCDF.testcase.camxfiles_paths['height_pressure'], 4, 5)
         hpfile.variables['TFLAG']
-        self.assert_((hpfile.variables['HGHT'] == array([3.38721924e+01, 3.40657959e+01, 3.41392822e+01, 3.42358398e+01, 3.42543945e+01, 3.38868408e+01, 3.40622559e+01, 3.42358398e+01, 3.44768066e+01, 3.46112061e+01, 3.37558594e+01, 3.39323730e+01, 3.42663574e+01, 3.46854248e+01, 3.48144531e+01, 3.39472656e+01, 3.41900635e+01, 3.46160889e+01, 3.48209229e+01, 3.47874756e+01, 6.78652344e+01, 6.82532959e+01, 6.84020996e+01, 6.85950928e+01, 6.86304932e+01, 6.78945312e+01, 6.82465820e+01, 6.85941162e+01, 6.90783691e+01, 6.93474121e+01, 6.76313477e+01, 6.79859619e+01, 6.86558838e+01, 6.94960938e+01, 6.97552490e+01, 6.80159912e+01, 6.85028076e+01, 6.93570557e+01, 6.97674561e+01, 6.97009277e+01, 1.01980713e+02, 1.02563843e+02, 1.02787109e+02, 1.03077759e+02, 1.03131104e+02, 1.02022949e+02, 1.02553101e+02, 1.03076904e+02, 1.03804565e+02, 1.04208984e+02, 1.01628662e+02, 1.02162842e+02, 1.03169922e+02, 1.04433838e+02, 1.04823120e+02, 1.02206909e+02, 1.02940186e+02, 1.04224609e+02, 1.04841797e+02, 1.04740723e+02,
-                                                         3.38721924e+01, 3.40657959e+01, 3.41392822e+01, 3.42358398e+01, 3.42543945e+01, 3.38868408e+01, 3.40622559e+01, 3.42358398e+01, 3.44768066e+01, 3.46112061e+01, 3.37558594e+01, 3.39323730e+01, 3.42663574e+01, 3.46854248e+01, 3.48144531e+01, 3.39472656e+01, 3.41900635e+01, 3.46160889e+01, 3.48209229e+01, 3.47874756e+01, 6.78652344e+01, 6.82532959e+01, 6.84020996e+01, 6.85950928e+01, 6.86304932e+01, 6.78945312e+01, 6.82465820e+01, 6.85941162e+01, 6.90783691e+01, 6.93474121e+01, 6.76313477e+01, 6.79859619e+01, 6.86558838e+01, 6.94960938e+01, 6.97552490e+01, 6.80159912e+01, 6.85028076e+01, 6.93570557e+01, 6.97674561e+01, 6.97009277e+01, 1.01980713e+02, 1.02563843e+02, 1.02787109e+02, 1.03077759e+02, 1.03131104e+02, 1.02022949e+02, 1.02553101e+02, 1.03076904e+02, 1.03804565e+02, 1.04208984e+02, 1.01628662e+02, 1.02162842e+02, 1.03169922e+02, 1.04433838e+02, 1.04823120e+02, 1.02206909e+02, 1.02940186e+02, 1.04224609e+02, 1.04841797e+02, 1.04740723e+02], dtype='f').reshape(2, 3, 4, 5)).all())
+        checkv = array([3.38721924e+01, 3.40657959e+01, 3.41392822e+01,
+                        3.42358398e+01, 3.42543945e+01, 3.38868408e+01,
+                        3.40622559e+01, 3.42358398e+01, 3.44768066e+01,
+                        3.46112061e+01, 3.37558594e+01, 3.39323730e+01,
+                        3.42663574e+01, 3.46854248e+01, 3.48144531e+01,
+                        3.39472656e+01, 3.41900635e+01, 3.46160889e+01,
+                        3.48209229e+01, 3.47874756e+01, 6.78652344e+01,
+                        6.82532959e+01, 6.84020996e+01, 6.85950928e+01,
+                        6.86304932e+01, 6.78945312e+01, 6.82465820e+01,
+                        6.85941162e+01, 6.90783691e+01, 6.93474121e+01,
+                        6.76313477e+01, 6.79859619e+01, 6.86558838e+01,
+                        6.94960938e+01, 6.97552490e+01, 6.80159912e+01,
+                        6.85028076e+01, 6.93570557e+01, 6.97674561e+01,
+                        6.97009277e+01, 1.01980713e+02, 1.02563843e+02,
+                        1.02787109e+02, 1.03077759e+02, 1.03131104e+02,
+                        1.02022949e+02, 1.02553101e+02, 1.03076904e+02,
+                        1.03804565e+02, 1.04208984e+02, 1.01628662e+02,
+                        1.02162842e+02, 1.03169922e+02, 1.04433838e+02,
+                        1.04823120e+02, 1.02206909e+02, 1.02940186e+02,
+                        1.04224609e+02, 1.04841797e+02, 1.04740723e+02,
+                        3.38721924e+01, 3.40657959e+01, 3.41392822e+01,
+                        3.42358398e+01, 3.42543945e+01, 3.38868408e+01,
+                        3.40622559e+01, 3.42358398e+01, 3.44768066e+01,
+                        3.46112061e+01, 3.37558594e+01, 3.39323730e+01,
+                        3.42663574e+01, 3.46854248e+01, 3.48144531e+01,
+                        3.39472656e+01, 3.41900635e+01, 3.46160889e+01,
+                        3.48209229e+01, 3.47874756e+01, 6.78652344e+01,
+                        6.82532959e+01, 6.84020996e+01, 6.85950928e+01,
+                        6.86304932e+01, 6.78945312e+01, 6.82465820e+01,
+                        6.85941162e+01, 6.90783691e+01, 6.93474121e+01,
+                        6.76313477e+01, 6.79859619e+01, 6.86558838e+01,
+                        6.94960938e+01, 6.97552490e+01, 6.80159912e+01,
+                        6.85028076e+01, 6.93570557e+01, 6.97674561e+01,
+                        6.97009277e+01, 1.01980713e+02, 1.02563843e+02,
+                        1.02787109e+02, 1.03077759e+02, 1.03131104e+02,
+                        1.02022949e+02, 1.02553101e+02, 1.03076904e+02,
+                        1.03804565e+02, 1.04208984e+02, 1.01628662e+02,
+                        1.02162842e+02, 1.03169922e+02, 1.04433838e+02,
+                        1.04823120e+02, 1.02206909e+02, 1.02940186e+02,
+                        1.04224609e+02, 1.04841797e+02, 1.04740723e+02],
+                       dtype='f').reshape(2, 3, 4, 5)
+        self.assert_((hpfile.variables['HGHT'] == checkv).all())
 
     def testNCF2HP(self):
         import PseudoNetCDF.testcase
         from PseudoNetCDF.pncgen import pncgen
         import os
         inpath = PseudoNetCDF.testcase.camxfiles_paths['height_pressure']
-        outpath = PseudoNetCDF.testcase.camxfiles_paths['height_pressure'] + '.check'
+        outpath = inpath + '.check'
         infile = height_pressure(inpath, 4, 5)
         pncgen(infile, outpath, format='camxfiles.height_pressure')
         orig = open(inpath, 'rb').read()

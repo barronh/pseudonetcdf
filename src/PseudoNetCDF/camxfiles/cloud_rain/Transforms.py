@@ -8,7 +8,7 @@ __doc__ = """
 .. module:: Write
    :platform: Unix, Windows
    :synopsis: Provides :ref:`PseudoNetCDF` variable transformations
-              for CAMx cloud/rain files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile
+              for CAMx cloud/rain files. See sci_var.PseudoNetCDFFile
               for interface details
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
@@ -36,7 +36,8 @@ class cloud_rain_plus(add_derived):
             val = self.variables['RAIN'] + \
                 self.variables['SNOW'] + self.variables['GRAUPEL']
         var = PseudoNetCDFVariable(
-            self, 'PRECIP_RATE', 'f', ('TSTEP', 'LAY', 'ROW', 'COL'), values=(val * 10)**1.27)
+            self, 'PRECIP_RATE', 'f', ('TSTEP', 'LAY', 'ROW', 'COL'),
+            values=(val * 10)**1.27)
         var.units = 'mm/h'
         var.long_name = 'PRECIP_RATE'.ljust(16)
         var.var_desc = 'PRECIP_RATE'.ljust(16)
@@ -45,7 +46,8 @@ class cloud_rain_plus(add_derived):
     def __FCLOUD__(self):
         val = self.variables['CLOUD'] >= 5
         var = PseudoNetCDFVariable(
-            self, 'FCLOUD', 'i', ('TSTEP', 'LAY', 'ROW', 'COL'), values=array(val, dtype='i'))
+            self, 'FCLOUD', 'i', ('TSTEP', 'LAY', 'ROW', 'COL'),
+            values=array(val, dtype='i'))
         var.units = 'None'
         var.long_name = 'FCLOUD'.ljust(16)
         var.var_desc = 'FCLOUD'.ljust(16)

@@ -25,7 +25,8 @@ from numpy import zeros, memmap, dtype
 # This Package modules
 from PseudoNetCDF.camxfiles.timetuple import timeadd, timerange
 from PseudoNetCDF.camxfiles.FortranFileUtil import OpenRecordFile
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable, PseudoNetCDFVariables
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariable
+from PseudoNetCDF.sci_var import PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 
 # for use in identifying uncaught nan
@@ -91,7 +92,8 @@ class irr(PseudoNetCDFFile):
         self.__rffile = OpenRecordFile(rf)
         self.__readheader()
         irr_record_type = dtype(
-            dict(names=(['SPAD', 'DATE', 'TIME', 'PAGRID', 'NEST', 'I', 'J', 'K'] +
+            dict(names=(['SPAD', 'DATE', 'TIME', 'PAGRID', 'NEST', 'I', 'J',
+                         'K'] +
                         ['RXN_%02d' % i for i in range(1, self.nrxns + 1)] +
                         ['EPAD']),
                  formats=(['>i', '>i', '>f', '>i', '>i', '>i', '>i', '>i'] +
@@ -118,12 +120,17 @@ class irr(PseudoNetCDFFile):
             grp.createDimension('COL', domain['iend'] - domain['istart'] + 1)
             grp.createDimension('ROW', domain['jend'] - domain['jstart'] + 1)
             grp.createDimension('LAY', domain['tlay'] - domain['blay'] + 1)
-            padatatype.append((dk, irr_record_type, (len(grp.dimensions['ROW']), len(
-                grp.dimensions['COL']), len(grp.dimensions['LAY']))))
+            padatatype.append((dk, irr_record_type,
+                               (len(grp.dimensions['ROW']),
+                                len(grp.dimensions['COL']),
+                                len(grp.dimensions['LAY']))))
             if len(self._padomains) == 1:
-                self.createDimension('COL', domain['iend'] - domain['istart'] + 1)
-                self.createDimension('ROW', domain['jend'] - domain['jstart'] + 1)
-                self.createDimension('LAY', domain['tlay'] - domain['blay'] + 1)
+                pncols = domain['iend'] - domain['istart'] + 1
+                pnrows = domain['jend'] - domain['jstart'] + 1
+                pnlays = domain['tlay'] - domain['blay'] + 1
+                self.createDimension('COL', pncols)
+                self.createDimension('ROW', pnrows)
+                self.createDimension('LAY', pnlays)
                 for propk, propv in domain.items():
                     setattr(grp, propk, propv)
 
@@ -151,9 +158,16 @@ class irr(PseudoNetCDFFile):
         return pncfv
 
     def __variables(self, pk, rxn):
+        pncvar = PseudoNetCDFVariable
         if rxn == 'TFLAG':
-            return ConvertCAMxTime(self.__memmaps[pk][:, 0, 0, 0]['DATE'], self.__memmaps[pk][:, 0, 0, 0]['TIME'], len(self.groups[pk].dimensions['VAR']))
-        return self.__decorator(rxn, PseudoNetCDFVariable(self, rxn, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'), values=self.__memmaps[pk][rxn].swapaxes(1, 3).swapaxes(2, 3)))
+            return ConvertCAMxTime(self.__memmaps[pk][:, 0, 0, 0]['DATE'],
+                                   self.__memmaps[pk][:, 0, 0, 0]['TIME'],
+                                   len(self.groups[pk].dimensions['VAR']))
+        tmpvals = self.__memmaps[pk][rxn].swapaxes(1, 3).swapaxes(2, 3)
+        return self.__decorator(rxn,
+                                pncvar(self, rxn, 'f',
+                                       ('TSTEP', 'LAY', 'ROW', 'COL'),
+                                       values=tmpvals))
 
     def __readheader(self):
         """
@@ -163,8 +177,8 @@ class irr(PseudoNetCDFFile):
         """
         assert(self.__rffile.record_size == 80)
         self.runmessage = self.__rffile.read("80s")
-        self.start_date, self.start_time, self.end_date, self.end_time = self.__rffile.read(
-            "ifif")
+        self.start_date, self.start_time, self.end_date, self.end_time = \
+            self.__rffile.read("ifif")
         self.time_step = 100.
         self.time_step_count = len([i for i in self.timerange()])
         self._grids = []
@@ -172,7 +186,8 @@ class irr(PseudoNetCDFFile):
             self._grids.append(
                 dict(
                     zip(
-                        ['orgx', 'orgy', 'ncol', 'nrow', 'xsize', 'ysize', 'iutm'],
+                        ['orgx', 'orgy', 'ncol', 'nrow', 'xsize', 'ysize',
+                         'iutm'],
                         self.__rffile.read("iiiiiii")
                     )
                 )
@@ -183,7 +198,8 @@ class irr(PseudoNetCDFFile):
             self._padomains.append(
                 dict(
                     zip(
-                        ['grid', 'istart', 'iend', 'jstart', 'jend', 'blay', 'tlay'],
+                        ['grid', 'istart', 'iend', 'jstart', 'jend', 'blay',
+                         'tlay'],
                         self.__rffile.read("iiiiiii")
                     )
                 )
@@ -195,13 +211,16 @@ class irr(PseudoNetCDFFile):
         self.record_size = self.__rffile.record_size
         self.padded_size = self.record_size + 8
         domain = self._padomains[0]
-        self.records_per_time = (domain['iend'] - domain['istart'] + 1) * (
-            domain['jend'] - domain['jstart'] + 1) * (domain['tlay'] - domain['blay'] + 1)
+        self.records_per_time = (domain['iend'] - domain['istart'] + 1) *\
+                                (domain['jend'] - domain['jstart'] + 1) *\
+                                (domain['tlay'] - domain['blay'] + 1)
         self.time_data_block = self.padded_size * self.records_per_time
         self.time_step = 100.
 
     def timerange(self):
-        return timerange((self.start_date, self.start_time + self.time_step), timeadd((self.end_date, self.end_time), (0, self.time_step)), self.time_step)
+        return timerange((self.start_date, self.start_time + self.time_step),
+                         timeadd((self.end_date, self.end_time),
+                         (0, self.time_step)), self.time_step)
 
 
 class TestMemmap(unittest.TestCase):

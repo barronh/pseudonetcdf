@@ -21,9 +21,13 @@ from PseudoNetCDF.camxfiles.FortranFileUtil import writeline
 from PseudoNetCDF._getwriter import registerwriter
 
 
-def ncf2height_pressure(ncffile, outpath, hght='HGHT', pres='PRES', tflag='TFLAG'):
+def ncf2height_pressure(ncffile, outpath, hght='HGHT', pres='PRES',
+                        tflag='TFLAG'):
     outfile = open(outpath, 'wb')
-    for (d, t), h3d, p3d in zip(ncffile.variables[tflag][:, 0, :], ncffile.variables[hght], ncffile.variables[pres]):
+    thp = zip(ncffile.variables[tflag][:, 0, :],
+              ncffile.variables[hght],
+              ncffile.variables[pres])
+    for (d, t), h3d, p3d in thp:
         t = array(t.astype('>f') / 100, ndmin=1).astype('>f')
         d = array(d, ndmin=1).astype('>i')
         d = (d % (d // 100000 * 100000)).astype('>i')
@@ -59,7 +63,12 @@ def write_hgtprss(sdate, stime, time_step, vals):
     hp_string = ""
     edate, etime = timeadd((sdate, stime), (0, vals.shape[0] * time_step))
 
-    for i, (d, t) in enumerate(timerange((sdate, stime), timeadd((edate, etime), (0, 0)), time_step, (2400, 24)[int(time_step % 2)])):
+    tind = (2400, 24)[int(time_step % 2)]
+    tenum = enumerate(timerange((sdate, stime),
+                                timeadd((edate, etime), (0, 0)),
+                                time_step,
+                                tind))
+    for i, (d, t) in tenum:
         for k in range(vals.shape[-1]):
             for hp in range(2):
                 hpvals = [t, d]

@@ -28,17 +28,26 @@ from PseudoNetCDF.camxfiles.timetuple import timeadd, timerange
 from PseudoNetCDF.camxfiles.FortranFileUtil import writeline, Asc2Int
 from PseudoNetCDF._getwriter import registerwriter
 
-_emiss_hdr_fmt = np.dtype(dict(names=['SPAD', 'name', 'note', 'itzon', 'nspec', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[
-                          '>i', '(10,4)>S1', '(60,4)>S1', '>i', '>i', '>i', '>f', '>i', '>f', '>i']))
+_emiss_hdr_fmt = np.dtype(dict(
+    names=['SPAD', 'name', 'note', 'itzon', 'nspec', 'ibdate', 'btime',
+           'iedate', 'etime', 'EPAD'],
+    formats=['>i', '(10,4)>S1', '(60,4)>S1', '>i', '>i', '>i', '>f', '>i',
+             '>f', '>i']))
 
-_grid_hdr_fmt = np.dtype(dict(names=['SPAD', 'plon', 'plat', 'iutm', 'xorg', 'yorg', 'delx', 'dely', 'nx', 'ny', 'nz', 'iproj', 'istag', 'tlat1',
-                                     'tlat2', 'rdum5', 'EPAD'], formats=['>i', '>f', '>f', '>i', '>f', '>f', '>f', '>f', '>i', '>i', '>i', '>i', '>i', '>f', '>f', '>f', '>i']))
+_grid_hdr_fmt = np.dtype(dict(
+    names=['SPAD', 'plon', 'plat', 'iutm', 'xorg', 'yorg', 'delx', 'dely',
+           'nx', 'ny', 'nz', 'iproj', 'istag', 'tlat1',
+           'tlat2', 'rdum5', 'EPAD'],
+    formats=['>i', '>f', '>f', '>i', '>f', '>f', '>f', '>f', '>i', '>i', '>i',
+             '>i', '>i', '>f', '>f', '>f', '>i']))
 
-_cell_hdr_fmt = np.dtype(dict(names=['SPAD', 'ione1', 'ione2', 'nx', 'ny', 'EPAD'], formats=[
-                         '>i', '>i', '>i', '>i', '>i', '>i']))
+_cell_hdr_fmt = np.dtype(dict(
+    names=['SPAD', 'ione1', 'ione2', 'nx', 'ny', 'EPAD'],
+    formats=['>i', '>i', '>i', '>i', '>i', '>i']))
 
-_time_hdr_fmt = np.dtype(dict(names=['SPAD', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[
-                         '>i', '>i', '>f', '>i', '>f', '>i']))
+_time_hdr_fmt = np.dtype(dict(
+    names=['SPAD', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'],
+    formats=['>i', '>i', '>f', '>i', '>f', '>i']))
 
 _spc_fmt = np.dtype("(10,4)>S1")
 
@@ -81,7 +90,7 @@ def ncf2uamiv(ncffile, outpath):
 
         # If uamivpath includes EOD, the diff may yield difference.
         # The ONLY difference will be time flags for the end of a day.
-        # Most time software agrees that there is no such thing as 2002154T24:00.
+        # Most time software agrees -- there is no such thing as 2002154T24:00.
         # Some CAMx files, however, have a 2400 time.
         # PseudoNetCDF interprets this equivalently as 2002155T00:00
         $ python -c "from PseudoNetCDF.camxfiles.Memmaps import uamiv
@@ -172,8 +181,9 @@ def ncf2uamiv(ncffile, outpath):
     emiss_hdr['SPAD'] = _emiss_hdr_fmt.itemsize - 8
     emiss_hdr['EPAD'] = _emiss_hdr_fmt.itemsize - 8
 
-    spc_hdr = np.zeros(shape=(1,), dtype=dict(names=['SPAD1', 'DATA', 'EPAD1'], formats=[
-                       '>i', np.dtype("(%d,10,4)>S1" % nspec), '>i']))
+    spc_hdr = np.zeros(shape=(1,), dtype=dict(
+        names=['SPAD1', 'DATA', 'EPAD1'],
+        formats=['>i', np.dtype("(%d,10,4)>S1" % nspec), '>i']))
     spc_hdr['SPAD1'] = nspec * 40
     spc_hdr['EPAD1'] = nspec * 40
     spc_names = np.array(getattr(ncffile, 'VAR-LIST'),
@@ -215,11 +225,16 @@ def write_emissions_ncf(infile, outfile):
                 "iiii", "10i" * len(infile.variables.keys())]
     hdrlines = []
 
-    hdrlines.append(reduce(concat, [Asc2Int(s) for s in [infile.name, infile.note]]) + [infile.ione, len(
-        infile.variables.keys()), infile.start_date, infile.start_time, infile.end_date, infile.end_time])
+    hdrlines.append(
+        reduce(concat, [Asc2Int(s) for s in [infile.name, infile.note]]) +
+        [infile.ione, len(infile.variables.keys()), infile.start_date,
+         infile.start_time, infile.end_date, infile.end_time])
 
-    hdrlines.append([infile.rdum, infile.rdum, infile.iutm, infile.xorg, infile.yorg, infile.delx, infile.dely, len(infile.dimensions['COL']), len(
-        infile.dimensions['ROW']), len(infile.dimensions['LAY']), infile.idum, infile.idum, infile.rdum, infile.rdum, infile.rdum])
+    hdrlines.append(
+        [infile.rdum, infile.rdum, infile.iutm, infile.xorg, infile.yorg,
+         infile.delx, infile.dely, len(infile.dimensions['COL']),
+         len(infile.dimensions['ROW']), len(infile.dimensions['LAY']),
+         infile.idum, infile.idum, infile.rdum, infile.rdum, infile.rdum])
 
     hdrlines.append([infile.ione, infile.ione, len(
         infile.dimensions['COL']), len(infile.dimensions['ROW'])])
@@ -233,9 +248,13 @@ def write_emissions_ncf(infile, outfile):
         ed, et = timeadd((d, t), (0, infile.time_step))
         outfile.write(writeline((d, t, ed, et), 'ifif'))
         for spc in infile.variables.keys():
+            var = infile.variables[spc]
             for k in range(len(infile.dimensions['LAY'])):
-                outfile.write(writeline([infile.ione] + Asc2Int(spc.ljust(10)) + infile.variables[spc]
-                                        [ti, :, :, k].transpose().ravel().tolist(), '11i' + infile.cell_count * 'f'))
+                outfile.write(writeline(
+                    [infile.ione] +
+                    Asc2Int(spc.ljust(10)) +
+                    var[ti, :, :, k].transpose().ravel().tolist(),
+                    '11i' + infile.cell_count * 'f'))
 
 
 def write_emissions(start_date, start_time, time_step, hdr, vals):
@@ -275,7 +294,9 @@ def write_emissions(start_date, start_time, time_step, hdr, vals):
         print("Header doesn't match end date/time", file=sys.stderr)
 
     # Write out values
-    for ti, (d, t) in enumerate(timerange((start_date, start_time), (end_date, end_time), time_step)):
+    for ti, (d, t) in enumerate(timerange((start_date, start_time),
+                                          (end_date, end_time),
+                                          time_step)):
         ed, et = timeadd((d, t), (0, time_step))
         emis_string += writeline((d, t, ed, et), 'ifif')
         for si, spc in enumerate(species):

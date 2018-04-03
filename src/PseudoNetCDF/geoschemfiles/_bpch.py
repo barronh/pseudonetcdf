@@ -9,7 +9,8 @@ import unittest
 
 # numpy is a very common installed library
 import numpy as np
-from numpy import fromfile, memmap, dtype, arange, zeros, diff, concatenate, append, pi, sin
+from numpy import fromfile, memmap, dtype, arange, zeros, diff, concatenate
+from numpy import append, pi, sin
 
 from PseudoNetCDF.sci_var import PseudoNetCDFVariable, PseudoNetCDFFile
 from PseudoNetCDF._getwriter import registerwriter
@@ -36,9 +37,10 @@ class OrderedDefaultDict(OrderedDict):
 # These variables define the binary format of the header blocks
 # and are only for internal
 _general_header_type = dtype('>i4, S40, >i4, >i4, S80, >i4')
-_datablock_header_type = dtype(
-    '>i4, S20, 2>f4, >i4, >i4, >i4, >i4, S40, >i4, S40, >f8, >f8, S40, 3>i4, 3>i4, >i4, >i4')
-_first_header_size = _general_header_type.itemsize + _datablock_header_type.itemsize
+_datablock_header_type = dtype('>i4, S20, 2>f4, >i4, >i4, >i4, >i4, S40, ' +
+                               '>i4, S40, >f8, >f8, S40, 3>i4, 3>i4, >i4, >i4')
+_first_header_size = (_general_header_type.itemsize +
+                      _datablock_header_type.itemsize)
 
 
 class defaultdictfromkey(OrderedDefaultDict):
@@ -90,7 +92,8 @@ class defaultdictfromthesekeys(OrderedDefaultDict):
 
     def items(self):
         """
-        Just like dictionary, but iterates through pre-defined keys and their calculated values
+        Just like dictionary, but iterates through pre-defined keys and their
+        calculated values
         """
         for k in self.keys():
             yield (k, self[k])
@@ -163,7 +166,8 @@ class defaultpseudonetcdfvariable(defaultdictfromthesekeys):
 
 class _diag_group(PseudoNetCDFFile):
     """
-    This object acts as a PseudoNetCDF file that gets data from the parent object.
+    This object acts as a PseudoNetCDF file that gets data from the parent
+    object.
     """
 
     def __init__(self, parent, groupname, groupvariables):
@@ -205,10 +209,12 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                     netcdf like variable
     """
 
-    def __init__(self, parent, datamap, tracerinfo, diaginfo, keys, noscale=False, nogroup=False):
+    def __init__(self, parent, datamap, tracerinfo, diaginfo, keys,
+                 noscale=False, nogroup=False):
         """
         parent: NetCDF-like object to serve dimensions
-        datamap: array of pre-dimensioned and datatyped values dim(tstep, i, j, k)
+        datamap: array of pre-dimensioned and datatyped values
+                 dim(tstep, i, j, k)
         tracerinfo: dictionary of tracer data keyed by ordinal
         keys: list of keys to serve
         """
@@ -227,7 +233,8 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
         self._example_key = keys[0]
 
     def __missing__(self, key):
-        from ._vertcoord import geos_etai_pressure, geos_etam_pressure, geos_hyam, geos_hybm
+        from ._vertcoord import geos_etai_pressure, geos_etam_pressure
+        from ._vertcoord import geos_hyam, geos_hybm
         if key in ('latitude', 'latitude_bounds'):
             yres = self._parent.modelres[1]
             if self._parent.halfpolar == 1:
@@ -239,7 +246,8 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             dims = ('latitude',)
             dtype = 'f'
             kwds = dict(standard_name="latitude", long_name="latitude",
-                        units="degrees_north", base_units="degrees_north", axis="Y")
+                        units="degrees_north", base_units="degrees_north",
+                        axis="Y")
             if key == 'latitude':
                 data = data[:-1] + diff(data) / 2.
                 kwds['bounds'] = 'latitude_bounds'
@@ -256,7 +264,8 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             dims = ('longitude',)
             dtype = 'f'
             kwds = dict(standard_name="longitude", long_name="longitude",
-                        units="degrees_east", base_units="degrees_east", axis="X")
+                        units="degrees_east", base_units="degrees_east",
+                        axis="X")
             if key == 'longitude':
                 data = data[:-1] + diff(data) / 2.
                 kwds['bounds'] = 'longitude_bounds'
@@ -311,7 +320,8 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
 
             dtype = 'd'
             kwds = dict(units='hours since 1985-01-01 00:00:00 UTC',
-                        base_units='hours since 1985-01-01 00:00:00 UTC', standard_name=key, long_name=key, var_desc=key)
+                        base_units='hours since 1985-01-01 00:00:00 UTC',
+                        standard_name=key, long_name=key, var_desc=key)
             if key == 'time':
                 kwds['bounds'] = 'time_bounds'
         elif key == 'hyai':
@@ -320,7 +330,8 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             dtype = data.dtype.char
             if dims[0] not in self._parent.dimensions:
                 self._parent.createDimension(dims[0], data.size)
-            kwds = dict(units="hPa", long_name="hybrid A coefficient at layer interfaces",
+            kwds = dict(units="hPa",
+                        long_name="hybrid A coefficient at layer interfaces",
                         note="unit consistent with GEOS-Chem pressure outputs")
         elif key == 'hyam':
             data = geos_hyam[self._parent.vertgrid]
@@ -328,7 +339,8 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             dtype = data.dtype.char
             if dims[0] not in self._parent.dimensions:
                 self._parent.createDimension(dims[0], data.size)
-            kwds = dict(units="hPa", long_name="hybrid B coefficient at layer midpoints",
+            kwds = dict(units="hPa",
+                        long_name="hybrid B coefficient at layer midpoints",
                         note="unit consistent with GEOS-Chem pressure outputs")
         elif key == 'hybi':
             data = self._parent.Bp
@@ -336,8 +348,8 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             dtype = data.dtype.char
             if dims[0] not in self._parent.dimensions:
                 self._parent.createDimension(dims[0], data.size)
-            kwds = dict(
-                units="1", long_name="hybrid B coefficient at layer interfaces")
+            kwds = dict(units="1",
+                        long_name="hybrid B coefficient at layer interfaces")
         elif key == 'hybm':
             data = geos_hybm[self._parent.vertgrid]
             dims = ('layer', )
@@ -358,7 +370,8 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             dims = (key,)
             dtype = 'f'
             kwds = dict(units='level', base_units='model layer',
-                        standard_name='model layer', long_name=key, var_desc=key, axis="Z")
+                        standard_name='model layer', long_name=key,
+                        var_desc=key, axis="Z")
             kwds = dict(standard_name="hybrid_sigma_pressure",
                         long_name="hybrid level at layer midpoints",
                         units="level",
@@ -378,21 +391,25 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                 dims = ('layer',)
             dtype = 'f'
             kwds = dict(units='hPa', base_units='hPa',
-                        standard_name='atmosphere_hybrid_sigma_pressure_coordinate', long_name=key, var_desc=key)
+                        standard_name=('atmosphere_hybrid_sigma_pressure_' +
+                                       'coordinate'),
+                        long_name=key, var_desc=key)
         elif key == 'tau0':
             tmp_key = self._example_key
             data = self._memmap[tmp_key]['header']['f10']
             dims = ('time',)
             dtype = 'd'
             kwds = dict(units='hours since 1985-01-01 00:00:00 UTC',
-                        base_units='hours since 1985-01-01 00:00:00 UTC', standard_name=key, long_name=key, var_desc=key)
+                        base_units='hours since 1985-01-01 00:00:00 UTC',
+                        standard_name=key, long_name=key, var_desc=key)
         elif key == 'tau1':
             tmp_key = self._example_key
             data = self._memmap[tmp_key]['header']['f11']
             dims = ('time',)
             dtype = 'd'
             kwds = dict(units='hours since 1985-01-01 00:00:00 UTC',
-                        base_units='hours since 1985-01-01 00:00:00 UTC', standard_name=key, long_name=key, var_desc=key)
+                        base_units='hours since 1985-01-01 00:00:00 UTC',
+                        standard_name=key, long_name=key, var_desc=key)
         else:
             dtype = 'f'
             key = str(key)
@@ -413,8 +430,11 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
             if len(['layer' in dk_ for dk_ in self._parent.dimensions]) > 1:
                 dims = ('time', 'layer%d' %
                         tmp_data.dtype['f1'].shape[0], 'latitude', 'longitude')
-            kwds = dict(scale=scale, kgpermole=molwt, carbon=carbon, units=units, base_units=base_units, standard_name=key, long_name=key,
-                        var_desc=key, coordinates=' '.join(dims), grid_mapping="crs", reserved=reserved, tracerid=tracerid, category=group)
+            kwds = dict(scale=scale, kgpermole=molwt, carbon=carbon,
+                        units=units, base_units=base_units, standard_name=key,
+                        long_name=key, var_desc=key,
+                        coordinates=' '.join(dims), grid_mapping="crs",
+                        reserved=reserved, tracerid=tracerid, category=group)
 
             try:
                 assert((tmp_data['f0'] == tmp_data['f2']).all())
@@ -432,11 +452,16 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                 kwds['STARTI'] = si
                 kwds['STARTJ'] = sj
                 kwds['STARTK'] = sl
-        return PseudoNetCDFVariable(self._parent, key, dtype, dims, values=data, **kwds)
+        return PseudoNetCDFVariable(self._parent, key, dtype, dims,
+                                    values=data, **kwds)
 
 
-coordkeys = 'time latitude longitude layer time_bounds latitude_bounds longitude_bounds crs'.split()
-metakeys = ['VOL', 'AREA', 'tau0', 'tau1'] + coordkeys
+coordkeys = ['time', 'latitude', 'longitude', 'layer',
+             'time_bounds', 'layer_bounds',
+             'latitude_bounds', 'longitude_bounds', 'crs']
+metakeys = ['VOL', 'AREA', 'tau0', 'tau1',
+            'etai_pressure', 'etai_pressure', 'hyam', 'hybm',
+            'hyai', 'hybi'] + coordkeys
 
 
 class bpch_base(PseudoNetCDFFile):
@@ -463,16 +488,19 @@ class bpch_base(PseudoNetCDFFile):
         else:
             return time
 
-    def plot(self, varkey, plottype='longitude-latitude', ax_kw={}, plot_kw={}, cbar_kw={}, dimreduction='mean', laykey=None):
+    def plot(self, varkey, plottype='longitude-latitude', ax_kw={}, plot_kw={},
+             cbar_kw={}, dimreduction='mean', laykey=None):
         """
         Parameters
         ----------
         self : the bpch file
         varkey : the variable to plot
-        plottype : longitude-latitude, latitude-pressure, longitude-pressure, vertical-profile,
-                   time-longitude, time-latitude, time-pressure, default, longitude-latitude
+        plottype : longitude-latitude, latitude-pressure, longitude-pressure,
+                   vertical-profile, time-longitude, time-latitude,
+                   time-pressure, default, longitude-latitude
         ax_kw : keywords for the axes to be created
-        plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be created
+        plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be
+                  created
         cbar_kw : keywords for the colorbar
         dimreduction : default function for removing dimensions
         laykey : name of the layer dimension (e.g., layer47)
@@ -573,7 +601,9 @@ class bpch_base(PseudoNetCDFFile):
             ax.set_ylabel(ykey)
         return ax
 
-    def interpSigma(self, vglvls, vgtop=None, interptype='linear', extrapolate=False, fill_value='extrapolate', approach='eta'):
+    def interpSigma(self, vglvls, vgtop=None, interptype='linear',
+                    extrapolate=False, fill_value='extrapolate',
+                    approach='eta'):
         """
         Parameters
         ----------
@@ -583,11 +613,13 @@ class bpch_base(PseudoNetCDFFile):
         interptype : 'linear' or 'conserve'
              linear : uses a linear interpolation
              conserve : uses a mass conserving interpolation
-        extrapolate : allow extrapolation beyond bounds with linear, default False
+        extrapolate : allow extrapolation beyond bounds with linear,
+                      default False
         fill_value : set fill value (e.g, nan) to prevent extrapolation or edge
                      continuation
         approach :
-             eta : use simple eta coordinates to calculate sigma and interpolate
+             eta : use simple eta coordinates to calculate sigma and
+                   interpolate
              pressure : requires surface pressure
         Returns
         -------
@@ -609,7 +641,8 @@ class bpch_base(PseudoNetCDFFile):
         if interptype == 'linear':
             from ..coordutil import getinterpweights
             weights = getinterpweights(
-                zs, nzs, kind=interptype, fill_value=fill_value, extrapolate=extrapolate)
+                zs, nzs, kind=interptype, fill_value=fill_value,
+                extrapolate=extrapolate)
             # Create a function for interpolation
 
             def interpsigma(data):
@@ -629,8 +662,9 @@ class bpch_base(PseudoNetCDFFile):
 
     def subsetVariables(self, varkeys, inplace=False, keepcoords=True):
         if keepcoords:
-            varkeys = [
-                key for key in coordkeys if key not in varkeys and key in self.variables] + varkeys
+            varkeys = ([key for key in coordkeys
+                        if key not in varkeys and key in self.variables] +
+                       varkeys)
         return PseudoNetCDFFile.subsetVariables(self, varkeys, inplace=inplace)
 
     def xy2ll(self, x, y):
@@ -707,9 +741,11 @@ class bpch(bpch_base):
                 path, dtype='bool', count=_first_header_size)
 
             # combine data for convenience
-            header = tuple(header_block[:_general_header_type.itemsize].view(_general_header_type)[0]) + \
-                tuple(header_block[_general_header_type.itemsize:].view(
-                    _datablock_header_type)[0])
+            ght = _general_header_type
+            ghts = ght.itemsize
+            dht = _datablock_header_type
+            header = (tuple(header_block[:ghts].view(ght)[0]) +
+                      tuple(header_block[ghts:].view(dht)[0]))
 
             # Verify that all Fortran unformatted buffers match
             try:
@@ -729,7 +765,9 @@ class bpch(bpch_base):
             outf = PseudoNetCDFFile()
         return outf
 
-    def __init__(self, bpch_path, tracerinfo=None, diaginfo=None, mode='r', timeslice=slice(None), noscale=False, vertgrid='GEOS-5-REDUCED', nogroup=False):
+    def __init__(self, bpch_path, tracerinfo=None, diaginfo=None, mode='r',
+                 timeslice=slice(None), noscale=False,
+                 vertgrid='GEOS-5-REDUCED', nogroup=False):
         """
         bpch_path: path to binary punch file
         tracerinfo: path to ascii file with tracer definitions
@@ -737,25 +775,32 @@ class bpch(bpch_base):
         mode : {'r+', 'r', 'w+', 'c'}, optional
          |      The file is opened in this mode:
          |
-         |      +------+-------------------------------------------------------------+
-         |      | 'r'  | Open existing file for reading only.                        |
-         |      +------+-------------------------------------------------------------+
-         |      | 'r+' | Open existing file for reading and writing.                 |
-         |      +------+-------------------------------------------------------------+
-         |      | 'w+' | Create or overwrite existing file for reading and writing.  |
-         |      +------+-------------------------------------------------------------+
-         |      | 'c'  | Copy-on-write: assignments affect data in memory, but       |
-         |      |      | changes are not saved to disk.  The file on disk is         |
-         |      |      | read-only.                                                  |
-         |      +------+-------------------------------------------------------------+
-         timeslice: If the file is larger than 2GB, timeslice provides a way to subset results.
-                    The subset requested depends on the data type of timeslice:
-                        - int: return the a part of the file if it was broken into 2GB chunks (0..N-1)
-                        - slice: return the times that correspond to that slice (i.e., range(ntimes)[timeslice])
-                        - list/tuple/set: return specified times where each time is in the set (0..N-1)
+         | +------+-----------------------------------------------------------+
+         | | 'r'  | Open existing file for reading only.                      |
+         | +------+-----------------------------------------------------------+
+         | | 'r+' | Open existing file for reading and writing.               |
+         | +------+-----------------------------------------------------------+
+         | | 'w+' | Create or overwrite existing file for reading and writing.|
+         | +------+-----------------------------------------------------------+
+         | | 'c'  | Copy-on-write: assignments affect data in memory, but     |
+         | |      | changes are not saved to disk.  The file on disk is       |
+         | |      | read-only.                                                |
+         | +------+-----------------------------------------------------------+
+         timeslice: If the file is larger than 2GB, timeslice provides a way
+                    to subset results. The subset requested depends on the
+                    data type of timeslice:
+                        - int: return the a part of the file if it was broken
+                               into 2GB chunks (0..N-1)
+                        - slice: return the times that correspond to that slice
+                                 (i.e., range(ntimes)[timeslice])
+                        - list/tuple/set: return specified times where each
+                                          time is in the set (0..N-1)
          noscale: Do not apply scaling factors
-         vertgrid: vertical coordinate system (options: 'GEOS-5-REDUCED', 'GEOS-5-NATIVE', 'MERRA-REDUCED', 'MERRA-NATIVE', 'GEOS-4-REDUCED', 'GEOS-4-NATIVE' -- default 'GEOS-5-REDUCED')
-         nogroup: False - use all groups, True - use no groups, list of groups to ignore
+         vertgrid: vertical coordinate system (options: 'GEOS-5-REDUCED',
+                   'GEOS-5-NATIVE', 'MERRA-REDUCED', 'MERRA-NATIVE',
+                   'GEOS-4-REDUCED', 'GEOS-4-NATIVE', default 'GEOS-5-REDUCED')
+         nogroup: False - use all groups, True - use no groups, list of groups
+                  to ignore
         """
         from ._vertcoord import geos_hyai, geos_hybi
         self._ncattrs = ()
@@ -766,9 +811,10 @@ class bpch(bpch_base):
                                 count=_first_header_size)
 
         # combine data for convenience
-        header = tuple(header_block[:_general_header_type.itemsize].view(_general_header_type)[0]) + \
-            tuple(header_block[_general_header_type.itemsize:].view(
-                _datablock_header_type)[0])
+        ght = _general_header_type
+        dht = _datablock_header_type
+        header = (tuple(header_block[:ght.itemsize].view(ght)[0]) +
+                  tuple(header_block[ght.itemsize:].view(dht)[0]))
 
         # Verify that all Fortran unformatted buffers match
         try:
@@ -780,16 +826,22 @@ class bpch(bpch_base):
         # Assign data from header to global attributes
         self.ftype = header[1]
         self.toptitle = header[4]
-        self.modelname, self.modelres, self.halfpolar, self.center180 = header[7:11]
-        dummy, dummy, dummy, self.start_tau0, self.start_tau1, dummy, dim, dummy, dummy = header[
-            13:-1]
+        self.modelname, self.modelres = header[7:9]
+        self.halfpolar, self.center180 = header[9:11]
+        dummy, dummy, dummy = header[13:16]
+        self.start_tau0, self.start_tau1 = header[16:18]
+        dummy, dim = header[18:20]
+        dummy, dummy = header[20:22]
         for dk, dv in zip('longitude latitude layer'.split(), dim):
             self.createDimension(dk, dv)
         self.createDimension('nv', 2)
         self.createDimension('tnv', 2)
         tracerinfo = tracerinfo or os.path.join(
             os.path.dirname(bpch_path), 'tracerinfo.dat')
-        if not hasattr(tracerinfo, 'seek') or not hasattr(tracerinfo, 'readlines'):
+        if (
+            not hasattr(tracerinfo, 'seek') or
+            not hasattr(tracerinfo, 'readlines')
+        ):
             if not os.path.exists(tracerinfo) and tracerinfo != ' ':
                 tracerinfo = 'tracerinfo.dat'
             if os.path.exists(tracerinfo):
@@ -799,20 +851,36 @@ class bpch(bpch_base):
             tracerinfo = open(tracerinfo)
         self._tracerinfofile = tracerinfo
         if hasattr(tracerinfo, 'readlines') and hasattr(tracerinfo, 'seek'):
-            tracer_data = dict([(int(l[52:61].strip()), dict(NAME=l[:8].strip(), FULLNAME=l[9:39].strip(), MOLWT=float(l[39:49]), C=int(
-                l[49:52]), TRACER=int(l[52:61]), SCALE=float(l[61:71]), UNIT=l[72:].strip())) for l in tracerinfo.readlines() if l[0] not in ('#', ' ')])
+            tracer_data = dict()
+            for l in tracerinfo.readlines():
+                if l[0] not in ('#', ' '):
+                    tkey = int(l[52:61].strip())
+                    tdict = dict()
+                    tdict['NAME'] = l[:8].strip()
+                    tdict['FULLNAME'] = l[9:39].strip()
+                    tdict['MOLWT'] = float(l[39:49])
+                    tdict['C'] = int(l[49:52]),
+                    tdict['TRACER'] = int(l[52:61])
+                    tdict['SCALE'] = float(l[61:71])
+                    tdict['UNIT'] = l[72:].strip()
+                    tracer_data[tkey] = tdict
+
             tracer_names = dict([(k, v['NAME'])
                                  for k, v in tracer_data.items()])
         else:
-            warn(
-                'Reading file without tracerinfo.dat means that names and scaling are unknown')
+            warn('Reading file without tracerinfo.dat means that names ' +
+                 'and scaling are unknown')
             tracer_data = OrderedDefaultDict(lambda: dict(
-                SCALE=1., C=1., MOLWT=1., UNIT='unknown', FULLNAME='unknown', NAME='unknown'))
+                SCALE=1., C=1., MOLWT=1., UNIT='unknown',
+                FULLNAME='unknown', NAME='unknown'))
             tracer_names = defaultdictfromkey(lambda key: key)
 
         diaginfo = diaginfo or os.path.join(
             os.path.dirname(bpch_path), 'diaginfo.dat')
-        if not hasattr(diaginfo, 'readlines') or not hasattr(diaginfo, 'seek'):
+        if (
+            not hasattr(diaginfo, 'readlines') or
+            not hasattr(diaginfo, 'seek')
+        ):
             if not os.path.exists(diaginfo):
                 diaginfo = 'diaginfo.dat'
             if os.path.exists(diaginfo):
@@ -823,14 +891,20 @@ class bpch(bpch_base):
         self._diaginfofile = diaginfo
 
         if hasattr(diaginfo, 'read') and hasattr(diaginfo, 'seek'):
-            diag_data = dict([(l[9:49].strip(), dict(offset=int(l[:8]), desc=l[50:].strip(
-            ))) for l in diaginfo.read().strip().split('\n') if l[0] != '#'])
+            diag_data = dict([(l[9:49].strip(),
+                               dict(offset=int(l[:8]), desc=l[50:].strip()))
+                              for l in diaginfo.read().strip().split('\n')
+                              if l[0] != '#'])
         else:
-            warn('Reading file without diaginfo.dat loses descriptive information')
+            warn('Reading file without diaginfo.dat loses descriptive ' +
+                 'information')
             diag_data = defaultdictfromkey(
                 lambda key: dict(offset=0, desc=key))
 
-        if len(tracer_names) == 0 and not isinstance(tracer_names, defaultdictfromkey):
+        if (
+            len(tracer_names) == 0 and
+            not isinstance(tracer_names, defaultdictfromkey)
+        ):
             raise IOError("Error parsing %s for Tracer data" % tracerinfo)
         file_size = os.stat(bpch_path).st_size
         offset = _general_header_type.itemsize
@@ -851,22 +925,26 @@ class bpch(bpch_base):
                 try:
                     tracername = tracer_names[tracer_number + goffset]
                 except Exception:
-                    # There are some cases like with the adjoint where the tracer does not have
-                    # a tracerinfo.dat line.  In this case, the name matches the tracer with that
-                    # number (no offset).  The scaling, however, is not intended to be used.
-                    # The unit for adjoint, for instance, is unitless.
+                    # There are some cases like with the adjoint where the
+                    # tracer does not have a tracerinfo.dat line.  In this
+                    # case, the name matches the tracer with that number
+                    # (no offset).  The scaling, however, is not intended
+                    # to be used. The unit for adjoint, for instance, is
+                    # unitless.
                     if tracer_number not in tracer_names:
                         tracername = str(tracer_number)
                         tracer_data[tracer_number + goffset] = dict(
-                            SCALE=1., C=0, UNIT=unit, MOLWT=1., FULLNAME='unknown', NAME='unknown')
+                            SCALE=1., C=0, UNIT=unit, MOLWT=1.,
+                            FULLNAME='unknown', NAME='unknown')
                     else:
                         tracername = tracer_names[tracer_number]
                         tracer_data[tracer_number + goffset] = dict(
-                            SCALE=1., C=tracer_data[tracer_number]['C'], UNIT=unit, MOLWT=1.)
+                            SCALE=1., C=tracer_data[tracer_number]['C'],
+                            UNIT=unit, MOLWT=1.)
 
             else:
-                warn(
-                    '%s is not in diaginfo.dat; names and scaling cannot be resolved' % group)
+                warn(('%s is not in diaginfo.dat; ' % group) +
+                     'names and scaling cannot be resolved')
                 goffset = 0
                 tracername = str(tracer_number)
                 diag_data[group] = dict(offset=0, desc=group)
@@ -878,7 +956,10 @@ class bpch(bpch_base):
 
             if first_header is None:
                 first_header = header
-            elif (header[7], header[8]) == (first_header[7], first_header[8]) or offset == file_size:
+            elif (
+                (header[7], header[8]) == (first_header[7], first_header[8]) or
+                offset == file_size
+            ):
                 if offset == file_size:
                     dim = header[13][::-1]
                     # start = header[14][::-1]
@@ -911,8 +992,10 @@ class bpch(bpch_base):
 
         # Repeating tracer indicates end of timestep
         keys = [str(k) for k in keys]
-        time_type = dtype([(k, dtype([(str('header'), _datablock_header_type), (str(
-            'data'), d)])) for k, d in zip(keys, data_types)])
+        time_type = dtype(
+            [(k, dtype([(str('header'), _datablock_header_type),
+                        (str('data'), d)]))
+             for k, d in zip(keys, data_types)])
         field_shapes = set([v[0].fields['data'][0].fields['f1']
                             [0].shape for k, v in time_type.fields.items()])
         field_levs = set([s_[0] for s_ in field_shapes])
@@ -926,13 +1009,15 @@ class bpch(bpch_base):
         itemcount = int((float(os.path.getsize(bpch_path)) -
                          _general_header_type.itemsize) // time_type.itemsize)
         if (itemcount % 1) != 0:
-            warn("Cannot read whole file; assuming partial time block is at the end; skipping partial time record")
+            warn("Cannot read whole file; assuming partial time block is at " +
+                 "the end; skipping partial time record")
             itemcount = int(np.floor(itemcount))
 
         # load all data blocks
         try:
             datamap = memmap(bpch_path, dtype=time_type,
-                             offset=_general_header_type.itemsize, mode=mode, shape=(itemcount,))
+                             offset=_general_header_type.itemsize, mode=mode,
+                             shape=(itemcount,))
             if timeslice is not None:
                 datamap = datamap[timeslice]
         except OverflowError:
@@ -956,8 +1041,8 @@ class bpch(bpch_base):
                 nt = maxt - mint + 1
 
                 if nt > items:
-                    warn('Requested %d items; only returning %d items due to 2GB limitation' % (
-                        nt, items))
+                    warn(('Requested %d items; only returning %d items due ' +
+                          'to 2GB limitation') % (nt, items))
                     times = times[:items]
 
                 outfile = open(outpath, 'w')
@@ -1002,7 +1087,10 @@ class bpch(bpch_base):
         self.Bp = geos_hybi[self.vertgrid]
 
         if max(layerns) > self.Ap.size:
-            warn("vertgrid selected (%s) and output layers are not consistent; update to GEOS-5-NATIVE (e.g., bpch(..., vertgrid='GEOS-5-NATIVE') -f \"bpch,vertgrid='GEOS-5-NATIVE'\"" % vertgrid)
+            warn("vertgrid selected (%s) and output layers are not " +
+                 "consistent; update to GEOS-5-NATIVE (e.g., bpch(..., " +
+                 "vertgrid='GEOS-5-NATIVE') -f \"bpch," +
+                 "vertgrid='GEOS-5-NATIVE'\"" % vertgrid)
 
         layerkeys = ['layer_bounds'] + ['layer%d' % l for l in layerns]
         keys.extend(layerkeys)
@@ -1012,8 +1100,11 @@ class bpch(bpch_base):
         self.createDimension('layer', self.Ap.size - 1)
         self.createDimension('layer_bounds', self.Ap.size)
 
-        self.variables = _tracer_lookup(parent=self, datamap=datamap, tracerinfo=tracer_data,
-                                        diaginfo=diag_data, keys=keys, noscale=self.noscale, nogroup=self.nogroup)
+        self.variables = _tracer_lookup(parent=self, datamap=datamap,
+                                        tracerinfo=tracer_data,
+                                        diaginfo=diag_data, keys=keys,
+                                        noscale=self.noscale,
+                                        nogroup=self.nogroup)
         del datamap
         tdim = self.createDimension('time', self.variables['tau0'].shape[0])
         tdim.setunlimited(True)
@@ -1032,17 +1123,28 @@ class bpch(bpch_base):
 def ncf2bpch(ncffile, outpath, verbose=0):
     outfile = open(outpath, 'wb')
     _general_header_type = np.dtype(dict(
-        names=['SPAD1', 'ftype', 'EPAD1', 'SPAD2', 'toptitle', 'EPAD2'], formats='>i4, S40, >i4, >i4, S80, >i4'.split()))
-    _datablock_header_type = np.dtype(dict(names=['SPAD1', 'modelname', 'modelres', 'halfpolar', 'center180', 'EPAD1', 'SPAD2', 'category', 'tracerid', 'unit',
-                                                  'tau0', 'tau1', 'reserved', 'dim', 'skip', 'EPAD2'], formats='>i4, S20, 2>f4, >i4, >i4, >i4, >i4, S40, >i4, S40, >f8, >f8, S40, 6>i4, >i4, >i4'.split(', ')))
-    varkeys = [k for k, v in ncffile.variables.items() if hasattr(v, 'tracerid') and k not in ['tau0', 'tau1', 'time', 'time_bounds', 'latitude', 'longitude', 'latitude_bounds',
-                                                                                               'longitude_bounds', 'AREA', 'crs', 'layer', 'layer_edges', 'layer_bounds', 'hyam', 'hyai', 'etai_pressure', 'etam_pressure'] + ['layer%d' % i for i in range(200)]]
+        names=['SPAD1', 'ftype', 'EPAD1', 'SPAD2', 'toptitle', 'EPAD2'],
+        formats='>i4, S40, >i4, >i4, S80, >i4'.split()))
+    _datablock_header_type = np.dtype(
+        dict(names=['SPAD1', 'modelname', 'modelres', 'halfpolar',
+                    'center180', 'EPAD1', 'SPAD2', 'category', 'tracerid',
+                    'unit', 'tau0', 'tau1', 'reserved', 'dim', 'skip',
+                    'EPAD2'],
+             formats=['>i4', 'S20', '2>f4', '>i4', '>i4', '>i4', '>i4',
+                      'S40', '>i4', 'S40', '>f8', '>f8', 'S40', '6>i4',
+                      '>i4', '>i4']))
+    varkeys = [k for k, v in ncffile.variables.items()
+               if (hasattr(v, 'tracerid') and
+                   (k not in metakeys and
+                   not k.startswith('layer')))]
+
     var_types = []
     for varkey in varkeys:
         var = ncffile.variables[varkey]
         data_type = '%s>f' % str(tuple(var[0].shape))
-        var_types.append(np.dtype(dict(names=['header', 'SPAD1', 'data', 'EPAD1'], formats=[
-                         _datablock_header_type, '>i', data_type, '>i'])))
+        var_types.append(np.dtype(
+            dict(names=['header', 'SPAD1', 'data', 'EPAD1'],
+                 formats=[_datablock_header_type, '>i', data_type, '>i'])))
     general_header = np.zeros((1,), dtype=_general_header_type)
     general_header['SPAD1'] = general_header['EPAD1'] = 40
     general_header['SPAD2'] = general_header['EPAD2'] = 80
@@ -1053,13 +1155,15 @@ def ncf2bpch(ncffile, outpath, verbose=0):
         dict(names=varkeys, formats=var_types)))
 
     for varkey in varkeys:
+        tdv = time_data[varkey]
         for attrk in _datablock_header_type.names[1:5]:
-            time_data[varkey]['header'][attrk] = getattr(ncffile, attrk)
+            tdv['header'][attrk] = getattr(ncffile, attrk)
 
-        time_data[varkey]['header']['SPAD1'] = time_data[varkey]['header']['EPAD1'] = 36
-        time_data[varkey]['header']['SPAD2'] = time_data[varkey]['header']['EPAD2'] = 168
+        tdv['header']['SPAD1'] = tdv['header']['EPAD1'] = 36
+        tdv['header']['SPAD2'] = tdv['header']['EPAD2'] = 168
 
-    for ti, (tau0, tau1) in enumerate(zip(ncffile.variables['tau0'], ncffile.variables['tau0'])):
+    ttz = zip(ncffile.variables['tau0'], ncffile.variables['tau0'])
+    for ti, (tau0, tau1) in enumerate(ttz):
         for varkey in varkeys:
             var = ncffile.variables[varkey]
             if not hasattr(var, 'tracerid'):
@@ -1067,19 +1171,21 @@ def ncf2bpch(ncffile, outpath, verbose=0):
             if verbose:
                 print(ti, tau0, tau1, varkey)
             vals = var[ti]
-            header = time_data[varkey]['header']
-            data = time_data[varkey]['data']
+            tdv = time_data[varkey]
+            header = tdv['header']
+            data = tdv['data']
             header['tau0'] = tau0
             header['tau1'] = tau1
             header['reserved'] = getattr(var, 'reserved', ' ').ljust(40)
             header['tracerid'] = var.tracerid
             header['category'] = var.category.ljust(40)
             header['unit'] = var.base_units
-            header['dim'] = list(vals.shape[::-1]) + [getattr(var,
-                                                              k_, 0) + 1 for k_ in 'STARTI STARTJ STARTK'.split()]
-            time_data[varkey]['SPAD1'] = time_data[varkey]['EPAD1'] = np.prod(
-                vals.shape) * 4
-            header['skip'] = time_data[varkey]['SPAD1'] + 8
+            header['dim'] = (list(vals.shape[::-1]) +
+                             [getattr(var, k_, 0) + 1
+                              for k_ in 'STARTI STARTJ STARTK'.split()])
+
+            tdv['SPAD1'] = tdv['EPAD1'] = np.prod(vals.shape) * 4
+            header['skip'] = tdv['SPAD1'] + 8
             if ncffile.noscale:
                 data[:] = vals
             else:
@@ -1126,8 +1232,23 @@ class TestMemmaps(unittest.TestCase):
         os.remove(outpath)
         from PseudoNetCDF.sci_var import reduce_dim, slice_dim
         ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']
-        ALD2_check = np.array([1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02, 1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02,
-                               2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02, 1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02]).reshape(ALD2.shape)
+        ALD2_check = np.array(
+            [1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02,
+             1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02,
+             2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02,
+             3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02,
+             3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02,
+             1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02,
+             1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02,
+             2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02,
+             3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02,
+             3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02,
+             1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02,
+             1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02,
+             2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02,
+             3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02,
+             3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02])\
+            .reshape(ALD2.shape)
         slided_reduced_bpchfile = slice_dim(
             reduce_dim(bpchfile, 'layer,mean'), 'time,0')
         pncgen(slided_reduced_bpchfile, outpath, inmode='r',
@@ -1143,16 +1264,57 @@ class TestMemmaps(unittest.TestCase):
         bpchfile = bpch(self.bpchpath)
         ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']
         ALD2g = bpchfile.groups['IJ-AVG-$'].variables['ALD2']
-        ALD2_check = np.array([1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02, 1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02,
-                               2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02, 1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02, 1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02, 2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02, 3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02, 3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02]).reshape(ALD2.shape)
+        ALD2_check = np.array(
+            [1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02,
+             1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02,
+             2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02,
+             3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02,
+             3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02,
+             1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02,
+             1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02,
+             2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02,
+             3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02,
+             3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02,
+             1.60520077e-02, 1.82803553e-02, 2.00258084e-02, 2.01461259e-02,
+             1.84865110e-02, 2.49667447e-02, 2.73083989e-02, 2.87465211e-02,
+             2.89694592e-02, 2.87686456e-02, 2.87277419e-02, 3.08121163e-02,
+             3.22086290e-02, 3.35262120e-02, 3.41329686e-02, 3.05218045e-02,
+             3.30278911e-02, 3.58164124e-02, 3.93186994e-02, 4.15412188e-02])\
+            .reshape(ALD2.shape)
         np.testing.assert_allclose(ALD2, ALD2_check)
         np.testing.assert_allclose(ALD2g, ALD2_check)
-        np.testing.assert_allclose(bpchfile.variables['hyai'], np.array([0.0, 0.04804826, 6.593752, 13.1348, 19.61311, 26.09201, 32.57081, 38.98201, 45.33901, 51.69611, 58.05321, 64.36264, 70.62198, 78.83422, 89.09992, 99.36521, 109.1817, 118.9586, 128.6959, 142.91, 156.26,
-                                                                         169.609, 181.619, 193.097, 203.259, 212.15, 218.776, 223.898, 224.363, 216.865, 201.192, 176.93, 150.393, 127.837, 108.663, 92.36572, 78.51231, 56.38791, 40.17541, 28.36781, 19.7916, 9.292942, 4.076571, 1.65079, 0.6167791, 0.211349, 0.06600001, 0.01], 'f'))
-        np.testing.assert_allclose(bpchfile.variables['hybi'], np.array([1.0, 0.984952, 0.963406, 0.941865, 0.920387, 0.898908, 0.877429, 0.856018, 0.8346609, 0.8133039, 0.7919469, 0.7706375, 0.7493782, 0.721166, 0.6858999, 0.6506349, 0.6158184, 0.5810415,
-                                                                         0.5463042, 0.4945902, 0.4437402, 0.3928911, 0.3433811, 0.2944031, 0.2467411, 0.2003501, 0.1562241, 0.1136021, 0.06372006, 0.02801004, 0.006960025, 8.175413e-09, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 'f'))
-        np.testing.assert_allclose(bpchfile.variables['etai_pressure'], np.array([1.01325000e+03, 9.98050662e+02, 9.82764882e+02, 9.67479511e+02, 9.52195238e+02, 9.36910541e+02, 9.21625744e+02, 9.06342248e+02, 8.91059167e+02, 8.75776287e+02, 8.60493406e+02, 8.45211087e+02, 8.29929441e+02, 8.09555669e+02, 7.84087994e+02, 7.58621022e+02, 7.33159694e+02, 7.07698900e+02, 6.82238631e+02, 6.44053520e+02, 6.05879758e+02, 5.67705907e+02,
-                                                                                  5.29549900e+02, 4.91400941e+02, 4.53269420e+02, 4.15154739e+02, 3.77070069e+02, 3.39005328e+02, 2.88927351e+02, 2.45246173e+02, 2.08244245e+02, 1.76930008e+02, 1.50393000e+02, 1.27837000e+02, 1.08663000e+02, 9.23657200e+01, 7.85123100e+01, 5.63879100e+01, 4.01754100e+01, 2.83678100e+01, 1.97916000e+01, 9.29294200e+00, 4.07657100e+00, 1.65079000e+00, 6.16779100e-01, 2.11349000e-01, 6.60000100e-02, 1.00000000e-02]))
+        np.testing.assert_allclose(bpchfile.variables['hyai'], np.array(
+            [0.0, 0.04804826, 6.593752, 13.1348, 19.61311, 26.09201, 32.57081,
+             38.98201, 45.33901, 51.69611, 58.05321, 64.36264, 70.62198,
+             78.83422, 89.09992, 99.36521, 109.1817, 118.9586, 128.6959,
+             142.91, 156.26, 169.609, 181.619, 193.097, 203.259, 212.15,
+             218.776, 223.898, 224.363, 216.865, 201.192, 176.93, 150.393,
+             127.837, 108.663, 92.36572, 78.51231, 56.38791, 40.17541,
+             28.36781, 19.7916, 9.292942, 4.076571, 1.65079, 0.6167791,
+             0.211349, 0.06600001, 0.01], 'f'))
+        np.testing.assert_allclose(bpchfile.variables['hybi'], np.array(
+            [1.0, 0.984952, 0.963406, 0.941865, 0.920387, 0.898908, 0.877429,
+             0.856018, 0.8346609, 0.8133039, 0.7919469, 0.7706375, 0.7493782,
+             0.721166, 0.6858999, 0.6506349, 0.6158184, 0.5810415, 0.5463042,
+             0.4945902, 0.4437402, 0.3928911, 0.3433811, 0.2944031, 0.2467411,
+             0.2003501, 0.1562241, 0.1136021, 0.06372006, 0.02801004,
+             0.006960025, 8.175413e-09, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 'f'))
+        etai_check = np.array(
+            [1.01325000e+03, 9.98050662e+02, 9.82764882e+02, 9.67479511e+02,
+             9.52195238e+02, 9.36910541e+02, 9.21625744e+02, 9.06342248e+02,
+             8.91059167e+02, 8.75776287e+02, 8.60493406e+02, 8.45211087e+02,
+             8.29929441e+02, 8.09555669e+02, 7.84087994e+02, 7.58621022e+02,
+             7.33159694e+02, 7.07698900e+02, 6.82238631e+02, 6.44053520e+02,
+             6.05879758e+02, 5.67705907e+02, 5.29549900e+02, 4.91400941e+02,
+             4.53269420e+02, 4.15154739e+02, 3.77070069e+02, 3.39005328e+02,
+             2.88927351e+02, 2.45246173e+02, 2.08244245e+02, 1.76930008e+02,
+             1.50393000e+02, 1.27837000e+02, 1.08663000e+02, 9.23657200e+01,
+             7.85123100e+01, 5.63879100e+01, 4.01754100e+01, 2.83678100e+01,
+             1.97916000e+01, 9.29294200e+00, 4.07657100e+00, 1.65079000e+00,
+             6.16779100e-01, 2.11349000e-01, 6.60000100e-02, 1.00000000e-02])
+        np.testing.assert_allclose(bpchfile.variables['etai_pressure'],
+                                   etai_check)
 
     def runTest(self):
         pass
