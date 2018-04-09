@@ -24,21 +24,31 @@ from PseudoNetCDF.camxfiles.timetuple import timeadd, timerange
 from PseudoNetCDF.camxfiles.FortranFileUtil import writeline, Asc2Int
 from PseudoNetCDF._getwriter import registerwriter
 
-_emiss_hdr_fmt = np.dtype(dict(names=['SPAD', 'name', 'note', 'itzon', 'nspec', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[
-                          '>i', '(10,4)>S1', '(60,4)>S1', '>i', '>i', '>i', '>f', '>i', '>f', '>i']))
+_emiss_hdr_fmt = np.dtype(dict(
+    names=['SPAD', 'name', 'note', 'itzon', 'nspec', 'ibdate', 'btime',
+           'iedate', 'etime', 'EPAD'],
+    formats=['>i', '(10,4)>S1', '(60,4)>S1', '>i', '>i', '>i', '>f', '>i',
+             '>f', '>i']))
 
-_grid_hdr_fmt = np.dtype(dict(names=['SPAD', 'plon', 'plat', 'iutm', 'xorg', 'yorg', 'delx', 'dely', 'nx', 'ny', 'nz', 'iproj', 'istag', 'tlat1',
-                                     'tlat2', 'rdum5', 'EPAD'], formats=['>i', '>f', '>f', '>i', '>f', '>f', '>f', '>f', '>i', '>i', '>i', '>i', '>i', '>f', '>f', '>f', '>i']))
+_grid_hdr_fmt = np.dtype(dict(
+    names=['SPAD', 'plon', 'plat', 'iutm', 'xorg', 'yorg', 'delx', 'dely',
+           'nx', 'ny', 'nz', 'iproj', 'istag', 'tlat1', 'tlat2', 'rdum5',
+           'EPAD'],
+    formats=['>i', '>f', '>f', '>i', '>f', '>f', '>f', '>f', '>i', '>i',
+             '>i', '>i', '>i', '>f', '>f', '>f', '>i']))
 
-_cell_hdr_fmt = np.dtype(dict(names=['SPAD', 'ione1', 'ione2', 'nx', 'ny', 'EPAD'], formats=[
-                         '>i', '>i', '>i', '>i', '>i', '>i']))
+_cell_hdr_fmt = np.dtype(dict(
+    names=['SPAD', 'ione1', 'ione2', 'nx', 'ny', 'EPAD'],
+    formats=['>i', '>i', '>i', '>i', '>i', '>i']))
 
-_time_hdr_fmt = np.dtype(dict(names=['SPAD', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'], formats=[
-                         '>i', '>i', '>f', '>i', '>f', '>i']))
+_time_hdr_fmt = np.dtype(dict(
+    names=['SPAD', 'ibdate', 'btime', 'iedate', 'etime', 'EPAD'],
+    formats=['>i', '>i', '>f', '>i', '>f', '>i']))
 
 
-_nstk_hdr_fmt = np.dtype(
-    dict(names=['SPAD', 'ione', 'nstk', 'EPAD'], formats=['>i', '>i', '>i', '>i']))
+_nstk_hdr_fmt = np.dtype(dict(
+    names=['SPAD', 'ione', 'nstk', 'EPAD'],
+    formats=['>i', '>i', '>i', '>i']))
 
 
 def ncf2point_source(ncffile, outpath):
@@ -53,8 +63,9 @@ def ncf2point_source(ncffile, outpath):
         [c for c in ncffile.NOTE], dtype='>S1')
     # gdtype = getattr(ncffile, 'GDTYPE', -999)
     emiss_hdr['itzon'][0] = ncffile.ITZON
-    SPC_NAMES = [s.decode() for s in np.array([c for c in ncffile.SPC_NAMES],
-                                              dtype='S1').reshape(-1, 16)[:, :10].copy().view('>S10')[:, 0]]
+    tmps1 = np.array([c for c in ncffile.SPC_NAMES], dtype='S1')
+    tmps1 = tmps1.reshape(-1, 16)[:, :10].copy().view('>S10')[:, 0]
+    SPC_NAMES = [s.decode() for s in tmps1]
     nspec = len(SPC_NAMES)
     emiss_hdr['nspec'] = nspec
 
@@ -119,8 +130,9 @@ def ncf2point_source(ncffile, outpath):
 
     nstk = nstk_hdr['nstk'][0]
     # (xstk(n),ystk(n),hstk(n),dstk(n),tstk(n),vstk(n),n=1,nstk)
-    stk_prop_fmt = np.dtype(dict(names=['xstk', 'ystk', 'hstk', 'dstk', 'tstk', 'vstk'], formats=[
-                            '>f', '>f', '>f', '>f', '>f', '>f']))
+    stk_prop_fmt = np.dtype(dict(
+        names=['xstk', 'ystk', 'hstk', 'dstk', 'tstk', 'vstk'],
+        formats=['>f', '>f', '>f', '>f', '>f', '>f']))
     stk_prop = np.ones((1,), dtype=np.dtype(
         [('SPAD', '>i', 1), ('DATA', stk_prop_fmt, nstk), ('EPAD', '>i', 1)]))
     stk_prop['SPAD'] = stk_prop['EPAD'] = stk_prop.dtype.itemsize - 8
@@ -146,10 +158,13 @@ def ncf2point_source(ncffile, outpath):
         tempout += time_hdr[di].tobytes()
         tempout += np.array([8, 1, nstk, 8], dtype='>i').tobytes()
         # (idum,idum,kcell(n),flow(n),plmht(n),n=1,nstk)
-        time_prop_fmt = np.dtype(dict(names=['ione1', 'ione2', 'kcell', 'flow', 'plmht'], formats=[
-                                 '>i', '>i', '>i', '>f', '>f']))
+        time_prop_fmt = np.dtype(dict(
+            names=['ione1', 'ione2', 'kcell', 'flow', 'plmht'],
+            formats=['>i', '>i', '>i', '>f', '>f']))
         props = np.ones((1,), dtype=np.dtype(
-            [('SPAD', '>i', 1), ('DATA', time_prop_fmt, nstk), ('EPAD', '>i', 1)]))
+            [('SPAD', '>i', 1),
+             ('DATA', time_prop_fmt, nstk),
+             ('EPAD', '>i', 1)]))
         props['SPAD'] = props['EPAD'] = props.dtype.itemsize - 8
         props['DATA']['ione1'] = ncffile.variables['IONE'][di]
         props['DATA']['ione2'] = ncffile.variables['ITWO'][di]
@@ -220,7 +235,9 @@ def write_point(start_date, start_time, time_step, hdr, vals):
         (start_date, start_time), (0, time_step * vals.shape[0]))
 
     # Write out values
-    for ti, (d, t) in enumerate(timerange((start_date, start_time), (end_date, end_time), time_step)):
+    for ti, (d, t) in enumerate(timerange((start_date, start_time),
+                                          (end_date, end_time),
+                                          time_step)):
         ed, et = timeadd((d, t), (0, time_step))
         pt_string += writeline((d, t, ed, et), 'ifif', False)
         pt_string += writeline((1, nstk), 'ii', False)

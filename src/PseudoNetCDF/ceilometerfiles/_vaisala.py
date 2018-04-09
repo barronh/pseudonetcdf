@@ -19,11 +19,12 @@ class ceilometerl2(PseudoNetCDFFile):
         try:
             import pandas as pd
         except Exception:
-            raise ImportError(
-                'ceilometerl2 requires pandas; install pandas (e.g., pip install pandas)')
+            raise ImportError('ceilometerl2 requires pandas; ' +
+                              'install pandas (e.g., pip install pandas)')
         self._path = path
-        self._data = pd.read_csv(path, skiprows=1, parse_dates=[
-                                 'CREATEDATE']).rename(columns=lambda x: x.strip())
+        self._data = pd.read_csv(
+            path, skiprows=1,
+            parse_dates=['CREATEDATE']).rename(columns=lambda x: x.strip())
         self._data['BS_PROFILE'] = self._data['BS_PROFILE'].str.strip()
         nchar = len(self._data['BS_PROFILE'][0])
         nlays = nchar / 5
@@ -31,7 +32,7 @@ class ceilometerl2(PseudoNetCDFFile):
             ''.join(self._data['BS_PROFILE']), dtype='c').reshape(-1, nlays, 5)
         BS_PROFILE = (np.vectorize(int)(data, 16) *
                       16**np.arange(5)[::-1]).sum(2)
-        # BS_PROFILE = np.vectorize(lambda x: eval(b'0x' + x))(data.view('S5')[:,:,0])
+
         self.createDimension('time', data.shape[0])
         self.createDimension('altitude_tops', nlays)
         self.createDimension('altitude_edges', nlays + 1)
@@ -44,7 +45,8 @@ class ceilometerl2(PseudoNetCDFFile):
         var.units = 'seconds'
         altitude_tops = self.createVariable(
             'altitude_tops', 'd', ('altitude_tops',))
-        altitude_tops.description = "Profile bin altitude, meters above ground level"
+        altitude_tops.description = ("Profile bin altitude, meters above " +
+                                     "ground level")
         altitude_tops.units = "meters"
         altitude_tops.valid_range = np.array([0, 4500])
         altitude_tops[:] = np.arange(10, 4510, 10)
@@ -52,26 +54,30 @@ class ceilometerl2(PseudoNetCDFFile):
             'altitude_edges', 'd', ('altitude_edges',))
         altitude_edges.units = "meters"
         altitude_edges.valid_range = np.array([0, 4500])
-        altitude_edges.description = "Profile bin altitude, meters above ground level"
+        altitude_edges.description = ("Profile bin altitude, meters above " +
+                                      "ground level")
         altitude_edges[:] = np.arange(0, 4510, 10)
-        blview_backscatter_profile = self.createVariable(
-            'blview_backscatter_profile', 'd', ('time', 'altitude_tops'), fill_value=-999)
-        blview_backscatter_profile.description = "Backscatter profile at 910 nm not more than 4,500 m above ground level"
-        blview_backscatter_profile.units = "10^-9/m/sr"
-        blview_backscatter_profile.valid_range = np.array([10, 540000])
-        blview_backscatter_profile[:] = np.ma.masked_greater(
-            np.ma.masked_less(BS_PROFILE, 10), 540000)
+        bscatprof = self.createVariable('blview_backscatter_profile', 'd',
+                                        ('time', 'altitude_tops'),
+                                        fill_value=-999)
+        bscatprof.description = ("Backscatter profile at 910 nm not more " +
+                                 "than 4,500 m above ground level")
+        bscatprof.units = "10^-9/m/sr"
+        bscatprof.valid_range = np.array([10, 540000])
+        bscatprof[:] = np.ma.masked_greater(np.ma.masked_less(BS_PROFILE, 10),
+                                            540000)
 
-    def plot(self, fig_kw={'figsize': (12, 6)}, ax_kw={}, cax_kw={}, pcolor_kw={}):
+    def plot(self, fig_kw={'figsize': (12, 6)}, ax_kw={}, cax_kw={},
+             pcolor_kw={}):
         """
         Parameters
         ----------
         fig_kw : keywords for figure creation, default {'figsize': (12, 6)}
         ax_kw  : keywords for axes creation of the primary axis, default {}
         cax_kw  : keywords for axes creation of the colorbar axis, default {}
-        pcolor_kw : keywords for axes creation of the pseudo-color mesh, default {}.
-                    the default value for norm is added as matplotlib.colors.LogNorm()
-                    if not provided
+        pcolor_kw : keywords for axes creation of pseudo-color, default {}.
+                    the default value for norm is added as
+                    matplotlib.colors.LogNorm() if not provided
 
         Retruns
         -------
@@ -125,5 +131,6 @@ class ceilometerl2(PseudoNetCDFFile):
 
 if __name__ == '__main__':
     from PseudoNetCDF import pncopen
-    f = pncopen(
-        '/work/ROMO/users/kpc/flintfx/convceilometer/CEILOMETER_1_LEVEL_2_20.his', format='ceilometerl2')
+    testdir = '/work/ROMO/users/kpc/flintfx/convceilometer/'
+    testpath = testdir + 'CEILOMETER_1_LEVEL_2_20.his'
+    f = pncopen(testpath, format='ceilometerl2')

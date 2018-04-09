@@ -6,9 +6,9 @@ import numpy as np
 
 class PseudoNetCDFVariable(np.ndarray):
     """
-    PseudoNetCDFVariable presents the Scientific.IO.NetCDF.NetCDFVariable interface,
-    but unlike that type, provides a contructor for variables that could be used
-    without adding it to the parent file
+    PseudoNetCDFVariable presents the Scientific.IO.NetCDF.NetCDFVariable
+    interface, but unlike that type, provides a contructor for variables
+    that could be used without adding it to the parent file
     """
     __array_priority__ = 10000000.
 
@@ -31,7 +31,8 @@ Notes:
             coordd = dict([(k, self.get_coord(k))
                            for k in self.get_coord_names() if k != myname])
         attrs = dict([(k, getattr(self, k)) for k in self.ncattrs()])
-        return xr.DataArray(self[:], dims=self.dimensions, coords=coordd, attrs=attrs)
+        return xr.DataArray(self[:], dims=self.dimensions, coords=coordd,
+                            attrs=attrs)
 
     def get_coord_names(self):
         dims = list(self.dimensions)
@@ -50,7 +51,8 @@ Notes:
             v = self._parent.variables[coordn]
             if len(v.dimensions) > 1 and coordn in v.dimensions:
                 warn(coordn + ' has dimensions ' + str(v.dimensions) +
-                     '; so it will use a standard linear coordinate. Consider manually adding coords')
+                     '; so it will use a standard linear coordinate. ' +
+                     'Consider manually adding coords')
                 coordi = list(self.dimensions).index(coordn)
                 coordv = np.arange(self.shape[coordi])
             else:
@@ -95,8 +97,14 @@ Notes:
         out = ""
         indent = "    "
         startindent = ""
-        out += startindent + 1 * indent + ("%s %s%s; // shape: %s\n" % (var_type, var_name, str(
-            self.dimensions).replace('u\'', '').replace('\'', '').replace(',)', ')'), str(self.shape)))
+        out += (
+            startindent + 1 * indent +
+            ("%s %s%s; // shape: %s\n" % (var_type, var_name,
+                                          str(self.dimensions)
+                                          .replace('u\'', '')
+                                          .replace('\'', '')
+                                          .replace(',)', ')'),
+                                          str(self.shape))))
         for prop_name in self.ncattrs():
             prop = getattr(self, prop_name)
             out += startindent + 2 * indent + \
@@ -263,7 +271,8 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
                 shape.append(dim)
 
             result = np.ma.zeros(shape, dtype='S1' if typecode ==
-                                 'c' else typecode, fill_value=kwds.get('fill_value', None))
+                                 'c' else typecode,
+                                 fill_value=kwds.get('fill_value', None))
 
         result = result.view(subtype)
         result._ncattrs = ()
@@ -379,7 +388,8 @@ def PseudoIOAPIVariable(parent, name, typecode, dimensions, **kwds):
     retval = PseudoNetCDFVariable(parent, name, typecode, dimensions, **kwds)
 
     if 'units' not in kwds:
-        warn('IOAPI variables must have units; %s has been initialized with "None" units')
+        warn('IOAPI variables must have units; %s has been initialized ' +
+             'with "None" units')
         retval.units = 'None'
 
     if 'long_name' not in kwds:

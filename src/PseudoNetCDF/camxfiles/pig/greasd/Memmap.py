@@ -1,5 +1,6 @@
 from numpy import memmap, dtype
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoNetCDFVariable
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables
+from PseudoNetCDF.sci_var import PseudoNetCDFVariable
 import os
 
 
@@ -13,14 +14,14 @@ class greasd(PseudoNetCDFFile):
         record_length = int(tmpmap[-1] / 4)
         per_pig = record_length / self.NPIG
 
-        pig_dtype = dtype(
-            dict(
-                names='SPAD1 IDATE TIME NPIG IDUM EPAD1'.split(
-                ) + ['SPAD2'] + ['P%d_%d' % (i / per_pig, i % per_pig) for i in range(record_length)] + ['EPAD2'],
-                formats='>i >i >f >i >i >i >i'.split(
-                ) + ['>f'] * record_length + ['>i']
-            )
-        )
+        pig_dtype = dtype(dict(
+            names='SPAD1 IDATE TIME NPIG IDUM EPAD1'.split() +
+                  ['SPAD2'] +
+                  ['P%d_%d' % (i / per_pig, i % per_pig)
+                   for i in range(record_length)] +
+                  ['EPAD2'],
+            formats='>i >i >f >i >i >i >i'.split() +
+                    ['>f'] * record_length + ['>i']))
         items = float(file_size) / float(pig_dtype.itemsize)
         assert(items == int(items))
         self.NSTEPS = items = int(items)
@@ -30,4 +31,7 @@ class greasd(PseudoNetCDFFile):
             self.__variables, pig_dtype.fields.keys())
 
     def __variables(self, k):
-        return PseudoNetCDFVariable(self, k, 'f', ('TSTEP',), values=self.__memmap__[k], var_desc=k.ljust(16), long_name=k.ljust(16))
+        return PseudoNetCDFVariable(self, k, 'f', ('TSTEP',),
+                                    values=self.__memmap__[k],
+                                    var_desc=k.ljust(16),
+                                    long_name=k.ljust(16))

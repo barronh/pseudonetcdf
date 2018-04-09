@@ -1,5 +1,7 @@
-from PseudoNetCDF.sci_var import PseudoNetCDFMaskedVariable as PseudoNetCDFVariable
+from PseudoNetCDF.sci_var import PseudoNetCDFMaskedVariable
 import numpy as np
+
+PseudoNetCDFVariable = PseudoNetCDFMaskedVariable
 
 
 def add_derived_met(ifile, func, *args, **kwds):
@@ -30,7 +32,8 @@ def wmr_ptd(p, td, gkg=False):
     else:
         units = 'kg/kg'
     Q = PseudoNetCDFVariable(None, 'Q', q.dtype.char, dimensions, units=units,
-                             long_name='specific humidity in kg/kg', short_name='Q', values=q)
+                             long_name='specific humidity in kg/kg',
+                             short_name='Q', values=q)
     return Q
 
 
@@ -110,8 +113,8 @@ def wmrq_ptd(p, td, dry=False, kgkg=False):
         units = 'g/kg'
     else:
         units = 'kg/kg'
-    wmr = PseudoNetCDFVariable(
-        None, name, 'f', dimensions, values=WMR, units=units, long_name=long_name)
+    wmr = PseudoNetCDFVariable(None, name, 'f', dimensions, values=WMR,
+                               units=units, long_name=long_name)
     wmr.short_name = name
     return wmr
 
@@ -201,7 +204,8 @@ def uv_wswd(ws, wd, isradians=False):
     Returns:
         U, V - u-component and v-component winds
 
-    https://www.eol.ucar.edu/projects/ceop/dm/documents/refdata_report/eqns.html
+    https://www.eol.ucar.edu/projects/ceop/dm/documents/
+    refdata_report/eqns.html
     """
     dimensions = getattr(ws, 'dimensions', getattr(
         wd, 'dimensions', ('unknown',)))
@@ -229,7 +233,8 @@ def wswd_uv(u, v, return_radians=False):
     Returns:
         ws, wd - wind speed and direction (from direction)
 
-    https://www.eol.ucar.edu/projects/ceop/dm/documents/refdata_report/eqns.html
+    https://www.eol.ucar.edu/projects/ceop/dm/documents/refdata_report/
+    eqns.html
     """
     dimensions = getattr(u, 'dimensions', getattr(
         v, 'dimensions', ('unknown',)))
@@ -241,7 +246,10 @@ def wswd_uv(u, v, return_radians=False):
     if return_radians:
         wind_direction = np.radians(wind_direction)
     ws = PseudoNetCDFVariable(None, 'WS', wind_speed.dtype.char,
-                              dimensions, values=wind_speed, units=units, short_name='WS')
-    wd = PseudoNetCDFVariable(None, 'WD', wind_speed.dtype.char, dimensions, values=wind_direction,
-                              units='radians' if return_radians else 'degrees', short_name='WD')
+                              dimensions, values=wind_speed,
+                              units=units, short_name='WS')
+    dirunit = 'radians' if return_radians else 'degrees'
+    wd = PseudoNetCDFVariable(None, 'WD', wind_speed.dtype.char, dimensions,
+                              values=wind_direction,
+                              units=dirunit, short_name='WD')
     return ws, wd

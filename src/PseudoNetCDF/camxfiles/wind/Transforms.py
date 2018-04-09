@@ -12,7 +12,9 @@ __doc__ = """
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
 from warnings import warn
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables, PseudoNetCDFVariable, PseudoNetCDFVariableConvertUnit
+from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoNetCDFVariables
+from PseudoNetCDF.sci_var import PseudoNetCDFVariable
+from PseudoNetCDF.sci_var import PseudoNetCDFVariableConvertUnit
 from PseudoNetCDF.camxfiles.wind.Memmap import wind as reg_wind
 from PseudoNetCDF.ArrayTransforms import CenterTime, CenterCAMxU, CenterCAMxV
 
@@ -22,7 +24,8 @@ class wind_center_time_cell(PseudoNetCDFFile):
     CAMx Files
     """
 
-    def __init__(self, rffile, rows, cols, outunit='m/s', endhour=True, forcestaggered=False):
+    def __init__(self, rffile, rows, cols, outunit='m/s', endhour=True,
+                 forcestaggered=False):
         self.__windfile = reg_wind(rffile, rows, cols)
 
         self.createDimension('TSTEP', self.__windfile.dimensions['TSTEP'] - 1)
@@ -50,8 +53,9 @@ class wind_center_time_cell(PseudoNetCDFFile):
         v.long_name = 'Time flag'
         v.units = 'DATE-TIME'
         if self.__force_stagger and self.__windfile.LSTAGGER == 0:
-            warn('Cell centered values are being averaged as though staggered' +
-                 'Could just be pre v4.3 file that was actually staggered')
+            warn('Cell centered values are being averaged as though ' +
+                 'staggered. Could just be pre v4.3 file that was actually ' +
+                 'staggered')
 
         for k in ['U', 'V']:
             if self.__force_stagger or self.__windfile.LSTAGGER != 0:
@@ -64,7 +68,8 @@ class wind_center_time_cell(PseudoNetCDFFile):
 
             var = self.__windfile.variables[k]
             v = PseudoNetCDFVariable(
-                self, k, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'), values=preproc(var))
+                self, k, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'),
+                values=preproc(var))
             v.units = var.units
             v.long_name = k.ljust(16)
             v.var_desc = (k + ' at center').ljust(16)

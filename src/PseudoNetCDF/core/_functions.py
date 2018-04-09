@@ -25,6 +25,12 @@ else:
     unicode = str
 
 
+# TODO: replace with dynamic values
+_metakeys = ['time', 'layer', 'level', 'latitude', 'longitude',
+             'time_bounds', 'latitude_bounds', 'longitude_bounds',
+             'ROW', 'COL', 'LAY', 'TFLAG', 'ETFLAG']
+
+
 def pncrename(ifile, type_old_new):
     outf = getvarpnc(ifile, None)
     t, o, n = type_old_new.split(',')
@@ -153,7 +159,8 @@ def getvarpnc(f, varkeys, coordkeys=[], copy=True):
             propd = dict([(k, getattr(coordvar, k))
                           for k in coordvar.ncattrs()])
             outf.createVariable(coordkey, coordvar.dtype.char,
-                                coordvar.dimensions, values=coordvar[...], **propd)
+                                coordvar.dimensions,
+                                values=coordvar[...], **propd)
             for dk in coordvar.dimensions:
                 if dk not in outf.dimensions:
                     dv = outf.createDimension(dk, len(f.dimensions[dk]))
@@ -215,15 +222,18 @@ def interpvars(f, weights, dimension, loginterp=[]):
     return outf
 
 
-def extract_from_file(f, lonlatfs, unique=False, gridded=None, method='nn', passthrough=True):
+def extract_from_file(f, lonlatfs, unique=False, gridded=None, method='nn',
+                      passthrough=True):
     from ..coordutil import getlonlatcoordstr
     lonlatcoordstr = ""
     for lonlatf in lonlatfs:
         lonlatcoordstr += getlonlatcoordstr(lonlatf)
-    return extract_lonlat(f, lonlatcoordstr, unique=unique, gridded=gridded, method=method, passthrough=passthrough)
+    return extract_lonlat(f, lonlatcoordstr, unique=unique, gridded=gridded,
+                          method=method, passthrough=passthrough)
 
 
-def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn', passthrough=True):
+def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn',
+                   passthrough=True):
     from PseudoNetCDF.sci_var import Pseudo2NetCDF
     try:
         from StringIO import StringIO as BytesIO
@@ -242,9 +252,11 @@ def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn', passthrou
     p2p.addGlobalProperties(f, outf)
 
     if gridded is None:
-        gridded = ('longitude' in f.dimensions and 'latitude' in f.dimensions) or \
-                  ('COL' in f.dimensions and 'ROW' in f.dimensions) or \
-                  ('x' in f.dimensions and 'y' in f.dimensions)
+        gridded = (
+            ('longitude' in f.dimensions and 'latitude' in f.dimensions) or
+            ('COL' in f.dimensions and 'ROW' in f.dimensions) or
+            ('x' in f.dimensions and 'y' in f.dimensions)
+        )
     if isinstance(lonlat, (str, )):
         lonlat = [lonlat]
     lonlatout = []
@@ -260,7 +272,8 @@ def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn', passthrou
     lonlat = ('/'.join(lonlatout))
     try:
         lons, lats = np.genfromtxt(
-            BytesIO(bytes(lonlat.replace('/', '\n'), 'ASCII')), delimiter=',').T
+            BytesIO(bytes(lonlat.replace('/', '\n'), 'ASCII')),
+            delimiter=',').T
     except Exception as e:
         print(str(e))
         raise e
@@ -273,8 +286,11 @@ def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn', passthrou
         lonidxs, latidxs = f.ll2ij(lons, lats)
 
         def extractfunc(v, thiscoords):
-            newslice = tuple([{'ROW': latidxs, 'COL': lonidxs, 'latitude': latidxs, 'longitude': lonidxs,
-                               'points': latidxs, 'PERIM': latidxs}.get(d, slice(None)) for d in thiscoords])
+            newslice = tuple([{'ROW': latidxs, 'COL': lonidxs,
+                               'latitude': latidxs, 'longitude': lonidxs,
+                               'points': latidxs,
+                               'PERIM': latidxs}.get(d, slice(None))
+                              for d in thiscoords])
             if newslice == ():
                 return v
             else:
@@ -293,14 +309,18 @@ def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn', passthrou
         totaldists = ((latdists**2 + londists**2)**.5)
         if latlon1d and not gridded:
             latidxs, = lonidxs, = np.unravel_index(
-                totaldists.reshape(-1, latdists.shape[-1]).argmin(0), totaldists.shape[:-1])
+                totaldists.reshape(-1, latdists.shape[-1]).argmin(0),
+                totaldists.shape[:-1])
         else:
             latidxs, lonidxs = np.unravel_index(
-                totaldists.reshape(-1, latdists.shape[-1]).argmin(0), totaldists.shape[:-1])
+                totaldists.reshape(-1, latdists.shape[-1]).argmin(0),
+                totaldists.shape[:-1])
 
         def extractfunc(v, thiscoords):
-            newslice = tuple([{'latitude': latidxs, 'longitude': lonidxs, 'points': latidxs,
-                               'PERIM': latidxs}.get(d, slice(None)) for d in thiscoords])
+            newslice = tuple([{'latitude': latidxs, 'longitude': lonidxs,
+                               'points': latidxs,
+                               'PERIM': latidxs}.get(d, slice(None))
+                              for d in thiscoords])
             if newslice == ():
                 return v
             else:
@@ -317,11 +337,14 @@ def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn', passthrou
             latidxs, lonidxs = np.unravel_index(idxs, latitude.shape)
 
         def extractfunc(v, thiscoords):
-            newslice = tuple([{'latitude': latidxs, 'longitude': lonidxs, 'points': latidxs,
-                               'PERIM': latidxs}.get(d, slice(None)) for d in thiscoords])
+            newslice = tuple([{'latitude': latidxs, 'longitude': lonidxs,
+                               'points': latidxs,
+                               'PERIM': latidxs}.get(d, slice(None))
+                              for d in thiscoords])
             return v[newslice]
     elif method in ('linear', 'cubic'):
-        from scipy.interpolate import LinearNDInterpolator, CloughTocher2DInterpolator
+        from scipy.interpolate import LinearNDInterpolator
+        from scipy.interpolate import CloughTocher2DInterpolator
         if method == 'cubic':
             interpclass = CloughTocher2DInterpolator
         else:
@@ -333,8 +356,8 @@ def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn', passthrou
         def extractfunc(v, thiscoords):
             if 'latitude' not in thiscoords or 'longitude' not in thiscoords:
                 return v
-            newshape = [dl if d not in (
-                'latitude', 'longitude') else -1 for di, (d, dl) in enumerate(zip(thiscoords, v.shape))]
+            newshape = [dl if d not in ('latitude', 'longitude') else -1
+                        for di, (d, dl) in enumerate(zip(thiscoords, v.shape))]
             i1 = newshape.index(-1)
             if newshape.count(-1) > 1:
                 i2 = newshape.index(-1, i1 + 1)
@@ -342,8 +365,9 @@ def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn', passthrou
                 newshape.pop(i2)
             i2df = interpclass(points, np.rollaxis(
                 v.reshape(*newshape), i1, 0))
-            out = np.rollaxis(np.ma.array(
-                [i2df(lon, lat) for lat, lon in zip(lats, lons)]), 0, len(newshape))
+            out = np.rollaxis(
+                np.ma.array([i2df(lon, lat) for lat, lon in zip(lats, lons)]),
+                0, len(newshape))
             return out
         latidxs = extractfunc(latitude, ('latitude', 'longitude'))
     elif method in ('cubic', 'quintic'):
@@ -353,13 +377,15 @@ def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn', passthrou
 
         def extractfunc(v, thiscoords):
             i2df = interp2d(latitude, longitude, v, kind=method)
-            return np.ma.array([i2df(lat, lon) for lat, lon in zip(lats, lons)])
+            return np.ma.array([i2df(lat, lon)
+                                for lat, lon in zip(lats, lons)])
         latidxs = extractfunc(latitude, '')
     else:
         raise ValueError('method must be: nn, KDTree')
     if unique:
         tmpx = OrderedDict()
-        for lon, lat, lonlatstr in zip(lonidxs, latidxs, outf.lonlatcoords.split('/')):
+        tmplonlat = outf.lonlatcoords.split('/')
+        for lon, lat, lonlatstr in zip(lonidxs, latidxs, tmplonlat):
             if (lon, lat) not in tmpx:
                 tmpx[(lon, lat)] = lonlatstr
 
@@ -387,7 +413,10 @@ def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn', passthrou
             else:
                 thiscoords = coords
             for d, c in zip(dims, thiscoords):
-                if d not in ('longitude', 'latitude') and c not in ('longitude', 'latitude'):
+                if (
+                    d not in ('longitude', 'latitude') and
+                    c not in ('longitude', 'latitude')
+                ):
                     newdims.append(d)
                 else:
                     if 'points' not in newdims:
@@ -410,7 +439,7 @@ def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn', passthrou
 extract = extract_lonlat
 
 
-def mask_vals(f, maskdef, metakeys='time layer level latitude longitude time_bounds latitude_bounds longitude_bounds ROW COL LAY TFLAG ETFLAG'.split()):
+def mask_vals(f, maskdef, metakeys=_metakeys):
     mtype = maskdef.split(',')[0]
     mval = ','.join(maskdef.split(',')[1:])
     if mtype == 'where':
@@ -423,7 +452,8 @@ def mask_vals(f, maskdef, metakeys='time layer level latitude longitude time_bou
             try:
                 vout = eval(maskexpr)
                 f.variables[varkey] = PseudoNetCDFMaskedVariable(
-                    f, varkey, var.dtype.char, var.dimensions, values=vout, **dict([(pk, getattr(var, pk)) for pk in var.ncattrs()]))
+                    f, varkey, var.dtype.char, var.dimensions, values=vout,
+                    **dict([(pk, getattr(var, pk)) for pk in var.ncattrs()]))
             except Exception as e:
                 warn('Cannot mask %s: %s' % (varkey, str(e)))
     return f
@@ -431,10 +461,13 @@ def mask_vals(f, maskdef, metakeys='time layer level latitude longitude time_bou
 
 def slice_dim(f, slicedef, fuzzydim=True):
     """
-    variables have dimensions (e.g., time, layer, lat, lon), which can be subset using
+    variables have dimensions (e.g., time, layer, lat, lon), which can be
+    subset using:
+
         slice_dim(f, 'dim,start,stop,stride')
 
-    e.g., slice_dim(f, 'layer,0,47,5') would sample every fifth layer starting at 0
+    e.g., slice_dim(f, 'layer,0,47,5') would sample every fifth layer
+    starting at 0
     """
     inf = f
 
@@ -514,7 +547,7 @@ def _getfunc(a, func):
     return outfunc
 
 
-def reduce_dim(f, reducedef, fuzzydim=True, metakeys='time layer level latitude longitude time_bounds latitude_bounds longitude_bounds ROW COL LAY TFLAG ETFLAG'.split()):
+def reduce_dim(f, reducedef, fuzzydim=True, metakeys=_metakeys):
     """
     variable dimensions can be reduced using
 
@@ -592,17 +625,25 @@ def reduce_dim(f, reducedef, fuzzydim=True, metakeys='time layer level latitude 
                 wvar = var * \
                     np.array(numweight, ndmin=var.ndim)[
                         (slice(None),) * axis + (slice(0, var.shape[axis]),)]
-                vout = getattr(
-                    wvar[(slice(None),) * (axis + 1) + (None,)], func)(axis=axis)
-                vout.units = vout.units.strip() + ' * ' + numweight.units.strip()
+                tmpslicenum = (slice(None),) * (axis + 1) + (None,)
+                vout = getattr(wvar[tmpslicenum], func)(axis=axis)
+                vout.units = (vout.units.strip() + ' * ' +
+                              numweight.units.strip())
                 if hasattr(vout, 'base_units'):
-                    vout.base_units = vout.base_units.strip() + ' * ' + numweight.base_units.strip()
+                    vout.base_units = (vout.base_units.strip() + ' * ' +
+                                       numweight.base_units.strip())
             else:
                 nwvar = var * \
                     np.array(numweight, ndmin=var.ndim)[
                         (slice(None),) * axis + (slice(0, var.shape[axis]),)]
-                vout = getattr(nwvar[(slice(None),) * (axis + 1) + (None,)], func)(axis=axis) / getattr(np.array(
-                    denweight, ndmin=var.ndim)[(slice(None),) * axis + (slice(0, var.shape[axis]), None)], func)(axis=axis)
+                tmpslicenum = (slice(None),) * (axis + 1) + (None,)
+                tmpsliceden = ((slice(None),) * axis +
+                               (slice(0, var.shape[axis]), None))
+                vout = (
+                    getattr(nwvar[tmpslicenum], func)(axis=axis) /
+                    getattr(np.array(denweight, ndmin=var.ndim)[tmpsliceden],
+                            func)(axis=axis)
+                    )
         else:
             if '_bounds' not in varkey and '_bnds' not in varkey:
                 vout = _getfunc(vreshape, func)(axis=axis, keepdims=True)
@@ -636,7 +677,8 @@ def reduce_dim(f, reducedef, fuzzydim=True, metakeys='time layer level latitude 
 
 def pncfunc(func, ifile1, coordkeys=[], verbose=0):
     """
-    Perform function (func) on all variables in ifile1.  The returned file (rfile) contains the result
+    Perform function (func) on all variables in ifile1.  The returned file
+    (rfile) contains the result
 
     rfile = ifile1 <op>
 
@@ -702,7 +744,8 @@ def pncbo(op, ifile1, ifile2, coordkeys=[], verbose=0):
             outval = np.ma.masked_invalid(
                 eval('in1var[...] %s in2var[...]' % op).view(np.ndarray))
             outvar = tmpfile.createVariable(
-                k, in1var.dtype.char, in1var.dimensions, fill_value=-999, values=outval)
+                k, in1var.dtype.char, in1var.dimensions, fill_value=-999,
+                values=outval)
             outvar.setncatts(propd)
     return tmpfile
 
@@ -851,7 +894,8 @@ def mesh_dim(f, mesh_def):
         oldres = 1
     from PseudoNetCDF.MetaNetCDF import newresolution
     nrf = newresolution(f, dimension=dimkey, oldres=oldres,
-                        newres=newres, repeat_method=aggfunc, condense_method=aggfunc)
+                        newres=newres, repeat_method=aggfunc,
+                        condense_method=aggfunc)
     f.dimensions[dimkey] = nrf.dimensions[dimkey]
     for k, v in f.variables.items():
         if dimkey in v.dimensions:
@@ -922,7 +966,10 @@ def merge(fs):
                 nv.setunlimited(v.isunlimited())
         for k, v in f.variables.items():
             if k in outf.variables:
-                if v.shape != outf.variables[k].shape or not (v[...] == outf.variables[k][...]).all():
+                if (
+                    v.shape != outf.variables[k].shape or
+                    not (v[...] == outf.variables[k][...]).all()
+                ):
                     warn('%s already in output' % k)
             else:
                 propd = dict([(p, getattr(v, p)) for p in v.ncattrs()])
@@ -964,7 +1011,9 @@ def stack_files(fs, stackdim, coordkeys=[]):
                 if varkey in f.variables:
                     if varkey not in coordkeys:
                         warn(
-                            'Got duplicate variables for %s without stackable dimension; first value retained' % varkey)
+                            ('Got duplicate variables for %s ' % varkey) +
+                            'without stackable dimension; first value ' +
+                            'retained')
                 else:
                     p2p.addVariable(tmpf, f, varkey, data=True)
             else:
@@ -982,8 +1031,8 @@ def splitdim(inf, olddim, newdims, newshape):
     oldsize = len(inf.dimensions[olddim])
     newsize = np.prod(newshape)
     if newsize != oldsize:
-        raise ValueError('New shape, must match old dimension length: %d %d %s' % (
-            oldsize, newsize, newshape))
+        raise ValueError('New shape, must match old dimension length: ' +
+                         '%d %d %s' % (oldsize, newsize, newshape))
     if len(newdims) != len(newshape):
         raise ValueError('Shape and dimensions must match in length')
     from PseudoNetCDF.sci_var import Pseudo2NetCDF

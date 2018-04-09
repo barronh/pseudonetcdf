@@ -54,19 +54,20 @@ def mrgidx(ipr_paths, irr_paths, idx):
     outf.createDimension("VAR", 3)
     outf.createDimension("DATE-TIME", 2)
     tflag = outf.createVariable("TFLAG", "i", ('TSTEP', 'VAR', 'DATE-TIME'))
-    tflag.__dict__.update(dict(units="<YYYYJJJ,HHDDMM>", var_desc='TFLAG'.ljust(
-        16), long_name='TFLAG'.ljust(16)))
+    tflag.__dict__.update(dict(units="<YYYYJJJ,HHDDMM>",
+                               var_desc='TFLAG'.ljust(16),
+                               long_name='TFLAG'.ljust(16)))
     tflag[:, :, :] = iprf.variables['TFLAG'][:][:, [0], :]
     shape = outf.createVariable("SHAPE", "i", ("TSTEP", "LAY", "ROW", "COL"))
-    shape.__dict__.update(
-        dict(units="ON/OFF", var_desc="SHAPE".ljust(16), long_name="SHAPE".ljust(16)))
+    shape.__dict__.update(dict(units="ON/OFF", var_desc="SHAPE".ljust(16),
+                               long_name="SHAPE".ljust(16)))
     shape[:] = 1
     irr = outf.createVariable("IRR", "f", ("TSTEP", "RXN"))
-    irr.__dict__.update(
-        dict(units=pr_tmp.units, var_desc="IRR".ljust(16), long_name="IRR".ljust(16)))
+    irr.__dict__.update(dict(units=pr_tmp.units, var_desc="IRR".ljust(16),
+                             long_name="IRR".ljust(16)))
     ipr = outf.createVariable("IPR", "f", ("TSTEP", "SPECIES", "PROCESS"))
-    irr.__dict__.update(
-        dict(units=pr_tmp.units, var_desc="IPR".ljust(16), long_name="IPR".ljust(16)))
+    irr.__dict__.update(dict(units=pr_tmp.units, var_desc="IPR".ljust(16),
+                             long_name="IPR".ljust(16)))
 
     for rr, var in zip(rr_keys, irr.swapaxes(0, 1)):
         var[:] = irrf.variables[rr][:][idx]
@@ -89,5 +90,10 @@ if __name__ == '__main__':
     try:
         pncdump(eval('mrgidx(%s)' % (x,)), name=mrgidx)
     except Exception:
-        print(
-            "\nUsage: python -m PseudoNetCDF.cmaqfiles.pa \"ipr_paths, irr_paths, idx\"\n  ipr_paths - a single string or list of strings\n  irr_paths - a single string or list of strings\n  idx - 4D numpy slice indexes a time series\n\n\nExample:\n  $ python -m PseudoNetCDF.cmaqfiles.pa \"['CMAQ_IPR1.nc','CMAQ_IPR2.nc'], 'CMAQ_IRR.nc', (slice(None),0,1,1)\"", file=sys.stderr)
+        print("\nUsage: python -m PseudoNetCDF.cmaqfiles.pa \"ipr_paths, " +
+              "irr_paths, idx\"\n  ipr_paths - a single string or list of " +
+              "strings\n  irr_paths - a single string or list of strings\n " +
+              " idx - 4D numpy slice indexes a time series\n\n\nExample:\n " +
+              " $ python -m PseudoNetCDF.cmaqfiles.pa \"['CMAQ_IPR1.nc'," +
+              "'CMAQ_IPR2.nc'], 'CMAQ_IRR.nc', (slice(None),0,1,1)\"",
+              file=sys.stderr)

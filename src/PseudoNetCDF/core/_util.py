@@ -16,8 +16,8 @@ def get_ncf_object(path_or_object, mode, format='NETCDF4_CLASSIC'):
             if isfile(path_or_object):
                 ncf_object = NetCDFFile(path_or_object, mode, format=format)
             elif isdir(path_or_object):
-                raise ValueError(
-                    "Got directory at %s; not sure what to do" % path_or_object)
+                raise ValueError(("Got directory at %s; not sure what " +
+                                  "to do") % path_or_object)
             else:
                 raise ValueError(
                     "Expected file or directory at %s" % path_or_object)
@@ -25,15 +25,18 @@ def get_ncf_object(path_or_object, mode, format='NETCDF4_CLASSIC'):
             ncf_object = NetCDFFile(path_or_object, mode, format=format)
         else:
             raise IOError("Cannot open missing file for reading")
-    elif isinstance(path_or_object, NetCDFFile) or isinstance(path_or_object, PseudoNetCDFFile):
+    elif (
+        isinstance(path_or_object, NetCDFFile) or
+        isinstance(path_or_object, PseudoNetCDFFile)
+    ):
         return path_or_object
     elif path_or_object is None and mode not in read_only:
         tfile = tnf(mode='w+b')
         npath = tfile.name
         ncf_object = NetCDFFile(npath, mode)
     else:
-        raise ValueError(
-            "Not a path; not a netCDF file; not a PseudoNetCDF file... I don't know what to do")
+        raise ValueError("Not a path; not a netCDF file; not a " +
+                         "PseudoNetCDF file... I don't know what to do")
     return ncf_object
 
 

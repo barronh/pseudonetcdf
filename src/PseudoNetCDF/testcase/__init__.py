@@ -8,7 +8,8 @@ camxfiles_paths = dict(
     landuse='camxfiles/landuse/test.landuse',
     temperature='camxfiles/temperature/test.temperature',
     cloud_rain='camxfiles/cloud_rain/test.cloud_rain',
-    vertical_diffusivity='camxfiles/vertical_diffusivity/test.vertical_diffusivity',
+    vertical_diffusivity=('camxfiles/vertical_diffusivity/' +
+                          'test.vertical_diffusivity'),
     humidity='camxfiles/humidity/test.humidity',
     height_pressure='camxfiles/height_pressure/test.height_pressure',
     uamiv='camxfiles/uamiv/test.uamiv',
@@ -39,7 +40,8 @@ all_paths.update(camxfiles_paths, **geoschemfiles_paths)
 all_paths.update(icarttfiles_paths, **net_balance_paths)
 
 self_described_paths = dict()
-for k in 'uamiv point_source lateral_boundary humidity vertical_diffusivity'.split():
+for k in ['uamiv', 'point_source', 'lateral_boundary', 'humidity',
+          'vertical_diffusivity']:
     self_described_paths[k] = camxfiles_paths[k]
 
 self_described_paths['bpch'] = geoschemfiles_paths['bpch']

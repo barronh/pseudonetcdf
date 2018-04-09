@@ -17,7 +17,8 @@ def getbounds(ifile, dimkey):
         dd = np.diff(d)
         ddm = dd.mean()
         if not (ddm == dd).all():
-            warn('Bounds is an approximation assuming %s variable is cell centers' % dimkey)
+            warn('Bounds is an approximation assuming ' +
+                 '%s variable is cell centers' % dimkey)
         else:
             db = (d[:-1] + d[1:]) / 2.
             db = np.append(
@@ -45,7 +46,10 @@ def getlonlatcoordstr(ifile, makemesh=None):
     lon = ifile.variables['longitude']
     lat = ifile.variables['latitude']
 
-    if lon.dimensions != lat.dimensions or (lon.dimensions == ('longitude',) and lat.dimensions == ('latitude',)):
+    if (
+        lon.dimensions != lat.dimensions or
+        (lon.dimensions == ('longitude',) and lat.dimensions == ('latitude',))
+    ):
         lon, lat = np.meshgrid(lon[:], lat[:])
 
     return '/'.join(['%s,%s' % ll for ll in zip(lon[:].flat, lat[:].flat)])
@@ -98,8 +102,8 @@ def _parse_ref_date(base):
             sdate = ut.num2date(0.)
             return sdate
         except Exception as e:
-            raise ValueError(
-                'Could not find appropriate date; tried and failed to use netcdftime' + str(e))
+            raise ValueError('Could not find appropriate date; tried and ' +
+                             'failed to use netcdftime' + str(e))
 
 
 def gettimes(ifile):
@@ -127,8 +131,9 @@ def gettimes(ifile):
                         for yyyy, day in zip(yyyys, days)])
         return out
     elif 'tau0' in ifile.variables.keys():
-        out = datetime(
-            1985, 1, 1, 0) + np.array([timedelta(hours=i) for i in ifile.variables['tau0'][:]])
+        out = (datetime(1985, 1, 1, 0) +
+               np.array([timedelta(hours=i)
+                         for i in ifile.variables['tau0'][:]]))
         return out
     else:
         raise ValueError('cannot understand time for file')
@@ -154,10 +159,12 @@ def gettimebnds(ifile):
         hours = (hours + minutes / 60. + seconds / 3600.)
         return np.array([out, out + timedelta(hours=hours)]).T
     elif 'tau0' in ifile.variables.keys() and 'tau1' in ifile.variables.keys():
-        out1 = datetime(
-            1985, 1, 1, 0) + np.array([timedelta(hours=i) for i in ifile.variables['tau0'][:]])
-        out2 = datetime(
-            1985, 1, 1, 0) + np.array([timedelta(hours=i) for i in ifile.variables['tau1'][:]])
+        out1 = (datetime(1985, 1, 1, 0) +
+                np.array([timedelta(hours=i)
+                         for i in ifile.variables['tau0'][:]]))
+        out2 = (datetime(1985, 1, 1, 0) +
+                np.array([timedelta(hours=i)
+                          for i in ifile.variables['tau1'][:]]))
         return np.array([out1, out2]).T
     elif 'time' in ifile.variables.keys():
         time = ifile.variables['time']
@@ -183,14 +190,16 @@ def getsigmabnds(ifile):
         return ifile.VGLVLS[:]
     elif 'etai_pressure' in ifile.variables:
         etai_pressure = ifile.variables['etai_pressure']
-        return (etai_pressure - etai_pressure[-1]) / (etai_pressure[0] - etai_pressure[-1])
+        return ((etai_pressure - etai_pressure[-1]) /
+                (etai_pressure[0] - etai_pressure[-1]))
     elif 'layer_bounds' in ifile.variables:
         lay = ifile.variables['layer_bounds']
         if lay.units.strip() in ('Pa', 'hPa'):
             sigma = (lay[:] - lay[-1]) / (lay[0] - lay[-1])
             return sigma
         else:
-            warn("Unknown tranform of layer to sigma; sigma units %s" % lay.units)
+            warn("Unknown tranform of layer to sigma; " +
+                 "sigma units %s" % lay.units)
             return lay
     else:
         warn("Unknown vertical coordinate")
@@ -268,8 +277,8 @@ def getlatbnds(ifile):
 
     elif 'ROW' in ifile.dimensions:
         unit = 'x (m)'
-        latb = np.arange(
-            len(ifile.dimensions['ROW']) + 1) * getattr(ifile, 'YCELL', 1) / 1000.
+        latb = (np.arange(len(ifile.dimensions['ROW']) + 1) *
+                getattr(ifile, 'YCELL', 1) / 1000.)
     else:
         raise KeyError('latitude bounds not found')
     return latb, unit
@@ -315,13 +324,17 @@ def getlonbnds(ifile):
             londiff = np.diff(lonb, axis=1)
             if not (londiff == londiff[:, [0]]).all():
                 warn('Longitude bounds are approximate')
-            lonb = np.concatenate([lonb, lonb[:, [-1]]], axis=1) - .5 * np.concatenate(
-                [londiff[:, :], londiff[:, [-1]], -londiff[:, [-1]]], axis=1)
+            lonb = (np.concatenate([lonb, lonb[:, [-1]]], axis=1) -
+                    .5 * np.concatenate([londiff[:, :],
+                                         londiff[:, [-1]],
+                                         -londiff[:, [-1]]], axis=1))
             lonb = np.append(lonb, lonb[[-1], :], axis=0)
         else:
             londiff = np.diff(lonb, axis=0)
-            lonb = np.concatenate([lonb, lonb[[-1]]], axis=0) - .5 * np.concatenate(
-                [londiff[:], londiff[[-1]], -londiff[[-1]]], axis=0)
+            lonb = (np.concatenate([lonb, lonb[[-1]]], axis=0) -
+                    .5 * np.concatenate([londiff[:],
+                                         londiff[[-1]],
+                                         -londiff[[-1]]], axis=0))
 
     else:
         raise KeyError('longitude bounds not found')
@@ -344,7 +357,8 @@ def getxbnds(ifile):
 
 def getcdo(ifile):
     """
-    ifile - file containing latitude, longitude and optionally latitude_bounds and longitude_bounds
+    ifile - file containing latitude, longitude and optionally latitude_bounds
+            and longitude_bounds
     """
     import textwrap
 
@@ -376,10 +390,14 @@ def getcdo(ifile):
                       for row in ifile.variables['longitude'][:])
     LATSTR = ' '.join(' '.join(['%f' % lat for lat in row])
                       for row in ifile.variables['latitude'][:])
-    LONBSTR = ' '.join(' '.join([' '.join(['%f' % lon for lon in cell])
-                                 for cell in row]) for row in ifile.variables['longitude_bounds'][:])
-    LATBSTR = ' '.join(' '.join([' '.join(['%f' % lat for lat in cell])
-                                 for cell in row]) for row in ifile.variables['latitude_bounds'][:])
+    LONBSTR = ' '.join(
+        ' '.join([' '.join(['%f' % lon for lon in cell])
+                  for cell in row])
+        for row in ifile.variables['longitude_bounds'][:])
+    LATBSTR = ' '.join(
+        ' '.join([' '.join(['%f' % lat for lat in cell])
+                  for cell in row])
+        for row in ifile.variables['latitude_bounds'][:])
     outdict['LONSTR'] = wrapper('xvals     = ', LONSTR)
     outdict['LONBSTR'] = wrapper('xbounds   = ', LONBSTR)
     outdict['LATSTR'] = wrapper('yvals     = ', LATSTR)
@@ -428,7 +446,8 @@ def basemap_from_file(ifile, withgrid=False, **kwds):
             basemap_options['urcrnrx'] = urx
         else:
             raise KeyError(
-                'When a false_easting is available, the file must contain an x variable or the user must supply width or urcrnrx')
+                'When a false_easting is available, the file must contain ' +
+                'an x variable or the user must supply width or urcrnrx')
     if 'llcrnry' in basemap_options:
         if 'urcrnry' in kwds:
             basemap_options['urcrnry'] = kwds['urcrnry']
@@ -441,7 +460,8 @@ def basemap_from_file(ifile, withgrid=False, **kwds):
             basemap_options['urcrnry'] = ury
         else:
             raise KeyError(
-                'When a false_northing is available, the file must contain a y variable or the user must supply height or urcrnry')
+                'When a false_northing is available, the file must contain ' +
+                'a y variable or the user must supply height or urcrnry')
 
     from mpl_toolkits.basemap import Basemap
     print(basemap_options)
@@ -474,7 +494,8 @@ def basemap_options_from_proj4(proj4, **kwds):
         basemap_options['rsphere'] = (proj4_options['a'], proj4_options['b'])
     elif 'a' in proj4_options and 'f' in proj4_options:
         basemap_options['rsphere'] = (
-            proj4_options['a'], -(proj4_options['f'] * proj4_options['a'] - proj4_options['a']))
+            proj4_options['a'],
+            -(proj4_options['f'] * proj4_options['a'] - proj4_options['a']))
     elif 'a' in proj4_options:
         basemap_options['rsphere'] = (proj4_options['a'], proj4_options['a'])
 
@@ -572,12 +593,19 @@ def getproj4(ifile, withgrid=False):
       proj4str - string with proj4 parameters
     """
     from .conventions.ioapi import getmapdef
-    if getattr(ifile, 'GDTYP', 0) in (2, 6, 7) and all([hasattr(ifile, k) for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()]):
+    if (
+        getattr(ifile, 'GDTYP', 0) in (2, 6, 7) and
+        all([hasattr(ifile, k)
+             for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()])
+    ):
         gridmapping = getmapdef(ifile, add=False)
         mapstr = getproj4_from_cf_var(gridmapping, withgrid=withgrid)
         if withgrid:
             mapstr += ' +to_meter=%s' % ifile.XCELL
-    elif getattr(ifile, 'Conventions', getattr(ifile, 'CONVENTIONS', ''))[:2].upper() == 'CF':
+    elif (
+        getattr(ifile, 'Conventions',
+                getattr(ifile, 'CONVENTIONS', ''))[:2].upper() == 'CF'
+    ):
         gridmappings = []
         for k, v in ifile.variables.items():
             if hasattr(v, 'grid_mapping'):
@@ -604,7 +632,11 @@ def getproj4(ifile, withgrid=False):
 def getmap(ifile, resolution='i'):
     from mpl_toolkits.basemap import Basemap
     from .conventions.ioapi import get_ioapi_sphere
-    if getattr(ifile, 'GDTYP', 0) in (2, 6, 7) and all([hasattr(ifile, k) for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()]):
+    if (
+        getattr(ifile, 'GDTYP', 0) in (2, 6, 7) and
+        all([hasattr(ifile, k)
+             for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()])
+    ):
         try:
             NROWS = len(ifile.dimensions['ROW'])
             NCOLS = len(ifile.dimensions['COL'])
@@ -621,11 +653,17 @@ def getmap(ifile, resolution='i'):
         if ifile.GDTYP == 2:
             from mpl_toolkits.basemap import pyproj
             p = pyproj.Proj(proj='lcc', a=semi_major_axis, b=semi_major_axis,
-                            lon_0=ifile.P_GAM, lat_1=ifile.P_ALP, lat_2=ifile.P_BET, lat_0=ifile.YCENT)
+                            lon_0=ifile.P_GAM, lat_1=ifile.P_ALP,
+                            lat_2=ifile.P_BET, lat_0=ifile.YCENT)
             llcrnrlon, llcrnrlat = p(llcrnrx, llcrnry, inverse=True)
             urcrnrlon, urcrnrlat = p(urcrnrx, urcrnry, inverse=True)
-            m = Basemap(projection='lcc', rsphere=(semi_major_axis, semi_major_axis), lon_0=ifile.P_GAM, lat_1=ifile.P_ALP, lat_2=ifile.P_BET, lat_0=ifile.YCENT,
-                        llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlat=urcrnrlat, urcrnrlon=urcrnrlon, resolution=resolution, suppress_ticks=False)
+            m = Basemap(projection='lcc',
+                        rsphere=(semi_major_axis, semi_major_axis),
+                        lon_0=ifile.P_GAM, lat_1=ifile.P_ALP,
+                        lat_2=ifile.P_BET, lat_0=ifile.YCENT,
+                        llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
+                        urcrnrlat=urcrnrlat, urcrnrlon=urcrnrlon,
+                        resolution=resolution, suppress_ticks=False)
         elif ifile.GDTYP == 6:
             p = getproj(ifile, withgrid=True)
             lclon, lclat = p(ifile.NCOLS / 2., 0, inverse=True)
@@ -634,18 +672,23 @@ def getmap(ifile, resolution='i'):
             print(lclon, lclat)
             print(lllon, lllat)
             print(urlon, urlat)
-            m = Basemap(projection='stere', lat_0=ifile.P_ALP * 90, lat_ts=ifile.P_BET, lon_0=ifile.P_GAM, llcrnrlon=lllon,
-                        llcrnrlat=lllat, urcrnrlon=urlon, urcrnrlat=urlat, rsphere=(semi_major_axis, semi_major_axis))
+            m = Basemap(projection='stere', lat_0=ifile.P_ALP * 90,
+                        lat_ts=ifile.P_BET, lon_0=ifile.P_GAM, llcrnrlon=lllon,
+                        llcrnrlat=lllat, urcrnrlon=urlon, urcrnrlat=urlat,
+                        rsphere=(semi_major_axis, semi_major_axis))
         elif ifile.GDTYP == 7:
             from mpl_toolkits.basemap import pyproj
             mapstr = '+proj=merc +a=%s +b=%s +lat_ts=0 +lon_0=%s' % (
                 semi_major_axis, semi_major_axis, ifile.XCENT)
             p = pyproj.Proj(mapstr)
-            # p = Proj(proj='merc',rsphere = (semi_major_axis, semi_major_axis), lat_ts = ifile.P_ALP, lat_0 = ifile.YCENT, lon_0 = ifile.XCENT)
             llcrnrlon, llcrnrlat = p(llcrnrx, llcrnry, inverse=True)
             urcrnrlon, urcrnrlat = p(urcrnrx, urcrnry, inverse=True)
-            m = Basemap(projection='merc', rsphere=(semi_major_axis, semi_major_axis), lon_0=ifile.XCENT, lat_ts=0, llcrnrlon=llcrnrlon,
-                        llcrnrlat=llcrnrlat, urcrnrlat=urcrnrlat, urcrnrlon=urcrnrlon, resolution=resolution, suppress_ticks=False)
+            m = Basemap(projection='merc',
+                        rsphere=(semi_major_axis, semi_major_axis),
+                        lon_0=ifile.XCENT, lat_ts=0, llcrnrlon=llcrnrlon,
+                        llcrnrlat=llcrnrlat, urcrnrlat=urcrnrlat,
+                        urcrnrlon=urcrnrlon, resolution=resolution,
+                        suppress_ticks=False)
         print('Found IO/API Mapping parameters')
     else:
         kwds = dict(suppress_ticks=False)
@@ -664,7 +707,8 @@ def getmap(ifile, resolution='i'):
     return m
 
 
-def getinterpweights(xs, nxs, kind='linear', fill_value='extrapolate', extrapolate=False):
+def getinterpweights(xs, nxs, kind='linear', fill_value='extrapolate',
+                     extrapolate=False):
     """
     Get weights for interpolation by matrix multiplication
 
@@ -717,8 +761,11 @@ def sigma2coeff(fromvglvls, tovglvls):
     Calculate fraction of pressure from each layer in fromfile
     that is in each layer in tofile and return matrix
     """
-    edges = np.interp(tovglvls[::-1], fromvglvls[::-1], np.arange(fromvglvls.size)[
-                      ::-1])[::-1].repeat(2, 0)[1:-1].reshape(-1, 2).astype('d')
+    edges = np.interp(
+        tovglvls[::-1],
+        fromvglvls[::-1],
+        np.arange(fromvglvls.size)[::-1])[::-1]\
+        .repeat(2, 0)[1:-1].reshape(-1, 2).astype('d')
     coeff = np.zeros((fromvglvls.size - 1, tovglvls.size - 1), dtype='d')
     for li, (b, t) in enumerate(edges):
         ll = np.floor(b).astype('i')

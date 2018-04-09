@@ -9,7 +9,8 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile as pncf
 net_num_re = '(?<=\s)[-]?\d+[.]?\d+'
 net_output_re = re.compile('^\w+(\s+' + net_num_re + '){24}$')
 net_name_re = re.compile(
-    '[+]|source|termination|production|Source|Termination|Production|Oxidation|oxidation|Radical|radical')
+    '[+]|source|termination|production|Source|Termination|Production|' +
+    'Oxidation|oxidation|Radical|radical')
 net_time_dim_re = re.compile('^Ending Hour')
 net_spc_name_re = re.compile('^\w+')
 net_time_re = re.compile(net_num_re + '|daily|Daily')
@@ -230,8 +231,9 @@ class mrgaloft(pncf):
         v[:] = array(self.ipr)
         v.units = 'ppb'
         v = self.createVariable('TFLAG', 'I', ('TSTEP', 'VAR', 'DATE-TIME'))
-        v[:, :, :] = array((zeros(len(self.times), 'i'), self.times), 'i').swapaxes(
-            0, 1)[:, newaxis, :]
+        v[:, :, :] = array(
+            (zeros(len(self.times), 'i'),
+             self.times), 'i').swapaxes(0, 1)[:, newaxis, :]
         v[:, :, 1]
 
     def readline(self):

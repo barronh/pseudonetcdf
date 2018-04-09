@@ -37,7 +37,8 @@ class Pseudo2NetCDF:
         self.datafirst = datafirst
         self.verbose = verbose
 
-    def convert(self, pfile, npath=None, inmode='r', outmode='w', format='NETCDF4'):
+    def convert(self, pfile, npath=None, inmode='r', outmode='w',
+                format='NETCDF4'):
         pfile = get_ncf_object(pfile, inmode)
         nfile = get_ncf_object(npath, outmode, format=format)
         if self.verbose:
@@ -74,7 +75,9 @@ class Pseudo2NetCDF:
         nfile.sync()
 
     def addGlobalProperties(self, pfile, nfile):
-        for k in [k for k in pfile.ncattrs() if k not in self.ignore_global_properties and self.ignore_global_re.match(k) is None]:
+        for k in [k for k in pfile.ncattrs()
+                  if (k not in self.ignore_global_properties and
+                      self.ignore_global_re.match(k) is None)]:
             value = getattr(pfile, k)
             if not isinstance(value, MethodType):
                 try:
@@ -88,7 +91,10 @@ class Pseudo2NetCDF:
                     warn("Could not add %s to file; %s: %s" % (k, type(e), e))
 
     def addVariableProperties(self, pvar, nvar):
-        for a in [k for k in pvar.ncattrs() if (k not in self.ignore_variable_properties and self.ignore_variable_re.match(k) is None) or k in self.special_properties]:
+        for a in [k for k in pvar.ncattrs()
+                  if ((k not in self.ignore_variable_properties and
+                       self.ignore_variable_re.match(k) is None) or
+                      k in self.special_properties)]:
             value = getattr(pvar, a)
             if isinstance(nvar, NetCDFVariable) and a == '_FillValue':
                 continue
@@ -214,7 +220,8 @@ outfile = Dataset(outpath, 'w')
             print("var[:] = %s" % (repr(v[:].view(type=vtype))))
 
 
-def pncgen(ifile, outpath, inmode='r', outmode='w', format='NETCDF4_CLASSIC', verbose=1):
+def pncgen(ifile, outpath, inmode='r', outmode='w', format='NETCDF4_CLASSIC',
+           verbose=1):
     """
     ifile - input file to write out
     outpath - path to outputfile
@@ -225,7 +232,8 @@ def pncgen(ifile, outpath, inmode='r', outmode='w', format='NETCDF4_CLASSIC', ve
     if format[:6] == 'NETCDF':
         p2n = Pseudo2NetCDF()
         p2n.verbose = verbose
-        return p2n.convert(ifile, outpath, inmode=inmode, outmode=outmode, format=format)
+        return p2n.convert(ifile, outpath, inmode=inmode, outmode=outmode,
+                           format=format)
 
     from ._getwriter import getwriterdict
     writerdict = getwriterdict()
@@ -254,7 +262,8 @@ def main():
         raise IOError(
             'pncgen can output only 1 file; user requested %d' % len(ifiles))
     ifile, = ifiles
-    return pncgen(ifile, options.outpath, outmode=options.mode, format=options.outformat, verbose=options.verbose), options
+    return pncgen(ifile, options.outpath, outmode=options.mode,
+                  format=options.outformat, verbose=options.verbose), options
 
 
 if __name__ == '__main__':

@@ -9,12 +9,15 @@ from PseudoNetCDF import PseudoNetCDFFile
 
 #  20 lines reads hourly irr
 
+_split1 = 'Environment Tables for'
+
 
 def MorphoIRRt(irrpath):
     mrglines = open(irrpath).readlines()
     try:
-        jday = int(datetime.strptime([l for l in mrglines if 'Environment Tables for' in l][0].split(
-            'Environment Tables for')[-1].strip(), '%d-%b-%y').strftime('%Y%j'))
+        datelines = [l for l in mrglines if _split1 in l]
+        datestr = datelines[0].split(_split1)[-1].strip()
+        jday = int(datetime.strptime(datestr, '%d-%b-%y').strftime('%Y%j'))
     except Exception:
         warn('Could not find/parse date; using 1900001')
         jday = 1900001
@@ -89,10 +92,14 @@ def MorphoPERMM(concpath, irrtpath):
     concf = MorphoConc(concpath)
     for key, var in concf.variables.items():
         initvar = mrgf.createVariable('INIT_%s' % key, 'f', ('TSTEP',))
-        initvar.long_name, initvar.var_desc, initvar.units = var.long_name, var.var_desc, var.units
+        initvar.long_name = var.long_name
+        initvar.var_desc = var.var_desc
+        initvar.units = var.units
         initvar[:] = var[:-1]
         finalvar = mrgf.createVariable('FINAL_%s' % key, 'f', ('TSTEP',))
-        finalvar.long_name, finalvar.var_desc, finalvar.units = var.long_name, var.var_desc, var.units
+        finalvar.long_name = var.long_name
+        finalvar.var_desc = var.var_desc
+        finalvar.units = var.units
         finalvar[:] = var[1:]
     mrgf.Species = ' '.join([k.ljust(16) for k in concf.variables.keys()])
     mrgf.Processes = 'INIT'.ljust(17) + 'FINAL'.ljust(16)

@@ -107,7 +107,7 @@ class time_avg_new_unit(PseudoNetCDFFile):
             outunit = var.units
         tmpvar = PseudoNetCDFVariable(self, k, var.typecode(), var.dimensions,
                                       values=CenterTime(var))
-        
+
         return PseudoNetCDFVariableConvertUnit(self.__decorator(var, tmpvar),
                                                outunit)
 

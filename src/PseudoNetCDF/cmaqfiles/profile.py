@@ -38,8 +38,11 @@ class icon_profile(ioapi_base):
         ends = [s + nspc for s in starts]
         keys = ['all']
         fieldnames = ('name',) + tuple(['s%f' % i for i in sigmas])
-        data = dict([(k, csv2rec(StringIO('\n'.join(lines[s:e])), delimiter=' ', names=fieldnames,
-                                 converterd=dict(names=lambda x: str(x).strip()))) for k, s, e in zip(keys, starts, ends)])
+        data = dict(
+            [(k, csv2rec(StringIO('\n'.join(lines[s:e])),
+                         delimiter=' ', names=fieldnames,
+                         converterd=dict(names=lambda x: str(x).strip())))
+             for k, s, e in zip(keys, starts, ends)])
         profile_spcs = np.char.strip(data[keys[0]]['name'])
         data_type = data[keys[0]].dtype
         self.createDimension('sigma', nsigmas)
@@ -61,8 +64,10 @@ class icon_profile(ioapi_base):
         varlist = []
         for a in data['all']:
             varkey = a[0].strip()
-            self.createVariable(varkey, 'f', ('LAY',), units=_getunit(varkey), values=np.array(
-                [tuple(a)[1:]])[0].astype('f'), long_name=varkey.ljust(16), var_desc=varkey.ljust(16))
+            self.createVariable(
+                varkey, 'f', ('LAY',), units=_getunit(varkey),
+                values=np.array([tuple(a)[1:]])[0].astype('f'),
+                long_name=varkey.ljust(16), var_desc=varkey.ljust(16))
             varlist.append(varkey.ljust(16))
         self.NVARS = len(varlist)
         self.createDimension('VAR', self.NVARS)
@@ -118,8 +123,11 @@ class bcon_profile(ioapi_base):
         ends = [s + 1 + nspc for s in starts]
         keys = [lines[s].strip().lower() for s in starts]
         fieldnames = ('name',) + tuple(['s%f' % i for i in sigmas])
-        data = dict([(k, csv2rec(StringIO('\n'.join(lines[s + 1:e])), delimiter=' ', names=fieldnames,
-                                 converterd=dict(names=lambda x: str(x).strip()))) for k, s, e in zip(keys, starts, ends)])
+        data = dict(
+            [(k, csv2rec(StringIO('\n'.join(lines[s + 1:e])), delimiter=' ',
+                         names=fieldnames,
+                         converterd=dict(names=lambda x: str(x).strip())))
+             for k, s, e in zip(keys, starts, ends)])
         profile_spcs = np.char.strip(data[keys[0]]['name'])
         data_type = data[keys[0]].dtype
         self.createDimension('sigma', nsigmas)
@@ -140,11 +148,18 @@ class bcon_profile(ioapi_base):
             except AssertionError:
                 raise IOError('File is corrupt or inconsistent')
         varlist = []
-        for w, s, e, n in zip(data['west'], data['south'], data['east'], data['north']):
+        zwsen = zip(data['west'], data['south'], data['east'], data['north'])
+        for w, s, e, n in zwsen:
             assert(w[0] == s[0] and e[0] == n[0] and n[0] == s[0])
             varkey = w[0].strip()
-            self.createVariable(varkey, 'f', ('LAY', 'south_east_north_west'), units=_getunit(varkey), values=np.array(
-                [(lambda x: tuple(x)[1:])(_v) for _v in[s, e, n, w]]).T.astype('f'), long_name=varkey.ljust(16), var_desc=varkey.ljust(16))
+            tmpvals = np.array(
+                [(lambda x: tuple(x)[1:])(_v) for _v in[s, e, n, w]]
+                ).T.astype('f')
+            self.createVariable(
+                varkey, 'f', ('LAY', 'south_east_north_west'),
+                units=_getunit(varkey),
+                values=tmpvals,
+                long_name=varkey.ljust(16), var_desc=varkey.ljust(16))
             varlist.append(varkey.ljust(16))
         self.NVARS = len(varlist)
         self.createDimension('VAR', self.NVARS)

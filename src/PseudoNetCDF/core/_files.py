@@ -34,13 +34,15 @@ class PseudoNetCDFType(type):
     def __init__(cls, name, bases, clsdict):
         pieces = str(cls).split('\'')[1].split('.')
         longname = '.'.join(
-            [p for p in pieces[1:-1] if '_' != p[0] and p not in ('core',)] + [pieces[-1]])
+            [p for p in pieces[1:-1] if '_' != p[0] and p not in ('core',)] +
+            [pieces[-1]])
         if len(cls.mro()) > 2:
             if name not in ('PseudoNetCDFFile', 'WrapPnc'):
                 shortl = registerreader(name, cls)
                 longl = registerreader(longname, cls)
                 if not (shortl or longl):
-                    warn('Not registered either as ' + name + ' or ' + longname)
+                    warn('Not registered either as ' + name +
+                         ' or ' + longname)
         super(PseudoNetCDFType, cls).__init__(name, bases, clsdict)
 
 
@@ -61,9 +63,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         Parameters
         ----------
         maptype : choices : 'basemap', 'basemap_auto', 'cartopy' (not yet)
-                  basemap : attempts to open a basemap with only the supplied kwds
-                  basemap_auto : automatically adds llcrnrlon,llcrnrlat,urcrnrlon,urcrnrlat
-                                 based on longitude_bounds
+                  basemap : attempts to open a basemap with only supplied kwds
+                  basemap_auto : automatically adds llcrnrlon,llcrnrlat,u
+                                 rcrnrlon,urcrnrlat based on longitude_bounds
         kwds : keywords for basemap or cartopy
 
         Returns
@@ -97,7 +99,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                 edges = dict(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
                              urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
                 kwds.update(edges)
-            return basemap_from_proj4(self.getproj(withgrid=True, projformat='proj4'), **kwds)
+            myproj = self.getproj(withgrid=True, projformat='proj4')
+            return basemap_from_proj4(myproj, **kwds)
         elif maptype == 'cartopy':
             raise ValueError('cartopy is not yet implemented')
         else:
@@ -111,8 +114,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         Parameters
         ----------
         withgrid : use grid units instead of meters
-        projformat : 'pyproj' (default), 'proj4' or 'wkt' allows function to return
-                     a pyproj projection object or a string in the format of proj4 or WKT
+        projformat : 'pyproj' (default), 'proj4' or 'wkt' allows function to
+                     return a pyproj projection object or a string in the
+                     format of proj4 or WKT
 
         Returns
         -------
@@ -205,7 +209,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
         Returns
         -------
-        lon, lat : scalars or iterables of longitudes and latitudes in decimal degrees
+        lon, lat : scalars or iterables of longitudes and latitudes in decimal
+                   degrees
         """
         p = self.getproj()
         lon, lat = p(x, y, inverse=True)
@@ -218,12 +223,13 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
         Parameters
         ----------
-        i : scalar or iterable of indicies (0-based) for the west-east dimension
-        j : scalar or iterable of indicies (0-based) for the south-north dimension
+        i : scalar/iterable of indicies (0-based) for the west-east dimension
+        j : scalar/iterable of indicies (0-based) for the south-north dimension
 
         Returns
         -------
-        lon, lat : scalars or iterables of longitudes and latitudes in decimal degrees
+        lon, lat : scalars or iterables of longitudes and latitudes in decimal
+                   degrees
         """
         p = self.getproj(withgrid=True)
         lon, lat = p(i + 0.5, j + 0.5, inverse=True)
@@ -231,7 +237,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
     def _newlike(self):
         """
-        Internal function to return a file of the same class if a PsueoNetCDFFile
+        Internal function to return a file of the same class if a
+        PsueoNetCDFFile
         """
         if isinstance(self, PseudoNetCDFFile):
             outt = type(self)
@@ -253,7 +260,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
         Returns
         -------
-        outf : PseudoNetCDFFile instance with renamed variable (this file if inplace = True)
+        outf : PseudoNetCDFFile instance with renamed variable (this file if
+               inplace = True)
         """
         return self.renameVariables(**{oldkey: newkey})
 
@@ -269,7 +277,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
         Returns
         -------
-        outf : PseudoNetCDFFile instance with renamed variable (this file if inplace = True)
+        outf : PseudoNetCDFFile instance with renamed variable (this file if
+               inplace = True)
         """
         if inplace:
             outf = self
@@ -296,7 +305,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
         Returns
         -------
-        outf : PseudoNetCDFFile instance with renamed variable (this file if inplace = True)
+        outf : PseudoNetCDFFile instance with renamed variable (this file if
+               inplace = True)
         """
         return self.renameDimensions(**{oldkey: newkey})
 
@@ -311,7 +321,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
         Returns
         -------
-        outf : PseudoNetCDFFile instance with renamed variable (this file if inplace = True)
+        outf : PseudoNetCDFFile instance with renamed variable (this file if
+               inplace = True)
         """
         if inplace:
             outf = self
@@ -331,29 +342,33 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
         return outf
 
-    def insertDimension(self, newonly=True, multionly=False, before=None, after=None, inplace=False, **newdims):
+    def insertDimension(self, newonly=True, multionly=False, before=None,
+                        after=None, inplace=False, **newdims):
         """
         Insert dimensions with keys and lengths from newdims
 
 
         Parameters
         ----------
-        newdims   : dictionary where key is the new dimension and value is the length
-        newonly   : Only add dimension to variables that do not already have it,
-                    default True
-        multionly : Only add dimension if there are already more than one (good for
-                    ignoring coordinate dimensions)
-        before    : if variable has this dimension, insert the new dimension before
-                    it. Otherwise, add to the beginning. (before take precedence
+        newdims   : dictionary where key is the new dimension and value is the
+                    length
+        newonly   : Only add dimension to variables that do not already have
+                    it, default True
+        multionly : Only add dimension if there are already more than one (good
+                    for ignoring coordinate dimensions)
+        before    : if variable has this dimension, insert the new dimension
+                    before it. Otherwise, add to the beginning. (before takes
+                    precedence)
 
-        after     : if variable has this dimension, insert the new dimension after
-                    it. Otherwise, add to the beginning.
+        after     : if variable has this dimension, insert the new dimension
+                    after it. Otherwise, add to the beginning.
 
         inplace   : create the new variable in this netcdf file (default False)
 
         Returns
         -------
-        outf : PseudoNetCDFFile instance will new dimension in dimensions and variables
+        outf : PseudoNetCDFFile instance will new dimension in dimensions and
+               variables
 
         Notes
         -----
@@ -374,7 +389,10 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
             for vk, vv in self.variables.items():
                 vdims = list(vv.dimensions)
-                if (newonly and dk in vdims) or (multionly and len(vdims) == 1):
+                if (
+                    (newonly and dk in vdims) or
+                    (multionly and len(vdims) == 1)
+                ):
                     outf.copyVariable(vv, key=vk, withdata=True)
                     continue
                 ndims = [_dk for _dk in vdims]
@@ -406,7 +424,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
         Returns
         -------
-        outf : PseudoNetCDFFile instance with renamed variable (this file if inplace = True)
+        outf : PseudoNetCDFFile instance with renamed variable (this file if
+               inplace = True)
         """
         import numpy as np
         # Copy file to temporary PseudoNetCDF file
@@ -453,9 +472,13 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         assignedkeys = [k for k in assignedkeys if k in vardict]
         for key in assignedkeys:
             val = vardict[key]
-            # if the output variable has no dimensions, there is likely a problem
-            # and the output should be defined.
-            if isinstance(val, (PseudoNetCDFVariable,)) and val.dimensions != ():
+            # if the output variable has no dimensions,
+            # there is likely a problem and the output
+            # should be defined.
+            if (
+                isinstance(val, (PseudoNetCDFVariable,)) and
+                val.dimensions != ()
+            ):
                 outf.variables[key] = val
             else:
                 outf.createVariable(key, val.dtype.char,
@@ -463,16 +486,19 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
         return outf
 
-    def plot(self, varkey, plottype='longitude-latitude', ax_kw={}, plot_kw={}, cbar_kw={}, dimreduction='mean'):
+    def plot(self, varkey, plottype='longitude-latitude', ax_kw={}, plot_kw={},
+             cbar_kw={}, dimreduction='mean'):
         """
         Parameters
         ----------
         self : the PseudoNetCDF file instance
         varkey : the variable to plot
-        plottype : longitude-latitude, latitude-pressure, longitude-pressure, vertical-profile,
-                   time-longitude, time-latitude, time-pressure, default, longitude-latitude
+        plottype : longitude-latitude, latitude-pressure, longitude-pressure,
+                   vertical-profile, time-longitude, time-latitude,
+                   time-pressure, default, longitude-latitude
         ax_kw : keywords for the axes to be created
-        plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be created
+        plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be
+                  created
         cbar_kw : keywords for the colorbar
         """
         import matplotlib.pyplot as plt
@@ -539,11 +565,17 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         p = ax.pcolormesh(x, y, vals, **plot_kw)
         ax.figure.colorbar(p, label=varunit, **cbar_kw)
         if xkey == 'time':
-            ax.xaxis.set_major_formatter(plt.matplotlib.dates.AutoDateFormatter(
-                plt.matplotlib.dates.AutoDateLocator()))
+            ax.xaxis.set_major_formatter(
+                plt.matplotlib.dates.AutoDateFormatter(
+                    plt.matplotlib.dates.AutoDateLocator()
+                )
+            )
         if ykey == 'time':
-            ax.yaxis.set_major_formatter(plt.matplotlib.dates.AutoDateFormatter(
-                plt.matplotlib.dates.AutoDateLocator()))
+            ax.yaxis.set_major_formatter(
+                plt.matplotlib.dates.AutoDateFormatter(
+                    plt.matplotlib.dates.AutoDateLocator()
+                )
+            )
         if plottype == 'longitude-latitude':
             try:
                 bmap = myf.getMap()
@@ -584,7 +616,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
             outd[pk] = getattr(self, pk)
         return outd
 
-    def _copywith(self, props=True, dimensions=True, variables=False, data=False):
+    def _copywith(self, props=True, dimensions=True, variables=False,
+                  data=False):
         """
         Internal function for making copies of the same type
 
@@ -636,7 +669,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         -------
         outf : PseudoNetCDFFile instance
         """
-        return self._copywith(props=props, dimensions=dimensions, variables=variables, data=data)
+        return self._copywith(props=props, dimensions=dimensions,
+                              variables=variables, data=data)
 
     def interpDimension(self, dimkey, newdimvals, coordkey=None, **interpkwds):
         """
@@ -649,7 +683,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         interptype : 'linear' or 'conserve'
              linear : uses a linear interpolation
              conserve : uses a mass conserving interpolation
-        extrapolate : allow extrapolation beyond bounds with linear, default False
+        extrapolate : allow extrapolation beyond bounds with linear, default
+                      False
         fill_value : set fill value (e.g, nan) to prevent extrapolation or edge
                      continuation
 
@@ -684,8 +719,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
             olddim = olddimvals.dimensions
             newdim = newdimvals.dimensions
             if olddim != newdim:
-                raise ValueError(
-                    'Can only interpolate if coordinate variable have the same named dimensions')
+                raise ValueError('Can only interpolate if coordinate ' +
+                                 'variable have the same named dimensions')
             dimaxis = olddim.index(dimkey)
             ndl = newdimvals.shape[dimaxis]
             for dk, dv in self.dimensions.items():
@@ -711,8 +746,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                         if nvv.dimensions != newdim:
                             continue
                         vv = self.variables[nvk]
-                        nvv[ii + s_[..., ] +
-                            kk] = (weights * vv[ii + s_[:, ] + kk][:, None]).sum(0)
+                        interpedv = (weights *
+                                     vv[ii + s_[:, ] + kk][:, None]).sum(0)
+                        nvv[ii + s_[..., ] + kk] = interpedv
         return outf
 
     def applyAlongDimensions(self, **dimfuncs):
@@ -723,13 +759,14 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         Parameters
         ----------
         dimfuncs : key value pairs where the key is a dimensions and the value
-                   is a 1D function (func1d) or a dictionary. If the value is a dictionary
-                   it must include func1d as a function and any keyword arguments
-                   as additional options
+                   is a 1D function (func1d) or a dictionary. If the value is a
+                   dictionary it must include func1d as a function and any
+                   keyword arguments as additional options
 
         Returns
         -------
-        outf : PseudoNetCDFFile instance with variables and dimensions after processing
+        outf : PseudoNetCDFFile instance with variables and dimensions after
+               processing
         """
         outf = self._copywith(props=True, dimensions=True)
         for dk, df in dimfuncs.items():
@@ -794,8 +831,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         from datetime import date, datetime, timedelta, timezone
         utc = timezone.utc
 
-        _calendaryearlike = {'noleap': 1970,
-                             '365_day': 1970, 'all_leap': 1972, '366_day': 1972}
+        _calendaryearlike = {'noleap': 1970, '365_day': 1970,
+                             'all_leap': 1972, '366_day': 1972}
 
         if 'time' in self.variables.keys():
             time = self.variables['time']
@@ -826,9 +863,13 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                             crefdate - refcdate).total_seconds() / yearseconds
                     else:
                         addyears = 0
-                    # Convert time to fractional years, including change in reference
-                    fracyearincrs = time[:] / {'years': 1, 'days': yeardays, 'hours': yeardays *
-                                               24, 'minutes': yeardays * 24 * 60, 'seconds': yeardays * 24 * 60}[unit] + addyears
+                    # Convert time to fractional years, including change in
+                    # reference
+                    incrdenom = {'years': 1, 'days': yeardays,
+                                 'hours': yeardays * 24,
+                                 'minutes': yeardays * 24 * 60,
+                                 'seconds': yeardays * 24 * 60}[unit]
+                    fracyearincrs = time[:] / incrdenom + addyears
                     # Split into years and days
                     yearincrs = np.array(fracyearincrs // 1).astype('i')
                     dayincrs = (fracyearincrs % 1) * yeardays
@@ -837,12 +878,19 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                              for dayinc in dayincrs]
                     try:
                         # Combine calendar specific month and day with new year
-                        out = np.array([datetime(refyear + yearinc, cday.month, cday.day, tzinfo=utc)
-                                        for yearinc, cday in zip(yearincrs, cdays)])
+                        out = np.array([
+                            datetime(refyear + yearinc, cday.month,
+                                     cday.day, tzinfo=utc)
+                            for yearinc, cday in zip(yearincrs, cdays)])
                     except Exception:
-                        warn('Years calculated from %d day year, but month/days calculated for actual year. Usually means data has Feb 29th in a non leap year' % yeardays)
-                        out = np.array([datetime(refyear + yearinc, 1, 1, tzinfo=utc) + timedelta(
-                            days=float(dayinc)) for yearinc, dayinc in zip(yearincrs, dayincrs)])
+                        warn(('Years calculated from %d day year, but ' +
+                              'month/days calculated for actual year. ' +
+                              'Usually means data has Feb 29th in a non ' +
+                              'leap year') % yeardays)
+                        out = np.array([
+                            datetime(refyear + yearinc, 1, 1, tzinfo=utc) +
+                            timedelta(days=float(dayinc))
+                            for yearinc, dayinc in zip(yearincrs, dayincrs)])
 
                 else:
                     out = refdate + \
@@ -861,7 +909,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
             seconds = times % 100
             days = jjj + (hours + minutes / 60. + seconds / 3600.) / 24.
             out = np.array([datetime(yyyy, 1, 1, tzinfo=utc) +
-                            timedelta(days=day - 1) for yyyy, day in zip(yyyys, days)])
+                            timedelta(days=day - 1)
+                            for yyyy, day in zip(yyyys, days)])
         elif hasattr(self, 'SDATE') and hasattr(self, 'STIME') and \
                 hasattr(self, 'TSTEP') and 'TSTEP' in self.dimensions:
             refdate = datetime.strptime(
@@ -898,7 +947,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
         Returns
         -------
-        outf : PseudoNetCDFFile instance with stacked variables and dimension equal to new lenght
+        outf : PseudoNetCDFFile instance with stacked variables and dimension
+               equal to new lenght
         """
         outf = self._copywith(props=True, dimensions=False)
         fs = [self, other]
@@ -925,11 +975,15 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
             for varkey, var in tmpf.variables.items():
                 if stackdim not in var.dimensions:
                     if varkey in outf.variables:
-                        if np.array_equal(outf.variables[varkey][...], var[...]):
+                        if (
+                            np.array_equal(outf.variables[varkey][...],
+                                           var[...])
+                        ):
                             pass
                         elif varkey not in self.dimensions:
-                            warn(
-                                'Got duplicate variables for %s without stackable dimension; first value retained' % varkey)
+                            warn(('Got duplicate variables for %s without ' +
+                                  'stackable dimension; first value retained')
+                                 % varkey)
                         continue
                     else:
                         outvals = var[...]
@@ -952,7 +1006,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         Parameters
         ----------
         varkeys : iterable of keys to keep
-        inplace : if true (default false), then remove other variable from this file
+        inplace : if true (default false), then remove other variable from
+                  this file
         exclude : if True (default False), then remove just these variables
 
         Returns
@@ -983,11 +1038,11 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         dimslices : key value pairs where the key is a dimension and the
                     value is a valid slice object (slices, ints or iterables)
                     if iterables are provided, all iterables must be the same
-                    size and shape. If the arrays are not 1D, newdims must have ndim
-                    names
-        newdims : names for new dimensions. When more than one iterable applies to
-                 a variable slice, fancy indexing removes both dimensions and creates
-                 a new one of the iterable lengths
+                    size and shape. If the arrays are not 1D, newdims must
+                    have ndim names
+        newdims : names for new dimensions. When more than one iterable
+                  applies to a variable slice, fancy indexing removes both
+                  dimensions and creates a new one of the iterable lengths
         Returns
         -------
         outf : PseudoNetCDFFile instance with variables and dimensions sliced
@@ -999,14 +1054,20 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
         if anyisarray:
             arraylens = np.array(
-                [np.asarray(da).size for dk, da in dimslices.items() if isarray[dk]])
+                [np.asarray(da).size
+                 for dk, da in dimslices.items() if isarray[dk]])
             arrayshapes = np.array(
-                [np.asarray(da).shape for dk, da in dimslices.items() if isarray[dk]])
+                [np.asarray(da).shape
+                 for dk, da in dimslices.items() if isarray[dk]])
             arraylen = arraylens[0]
             arrayshape = arrayshapes[0]
-            if not (arraylens == arraylen).all() or not (arrayshapes == arrayshape).all():
+            if (
+                not (arraylens == arraylen).all() or
+                not (arrayshapes == arrayshape).all()
+            ):
                 raise ValueError(
-                    'If slicing with arrays, they must all be the same size and shape')
+                    'If slicing with arrays, they must all be the same size ' +
+                    'and shape')
             for dk, ia in isarray.items():
                 if ia:
                     dimslices[dk] = np.asarray(dimslices[dk])
@@ -1074,8 +1135,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
         Parameters
         ----------
-        dimkey : key of dimension to be evaluated for removal; if None, evaluate all.
-                 only singleton dimensions will be removed.
+        dimkey : key of dimension to be evaluated for removal; if None,
+                 evaluate all. only singleton dimensions will be removed.
 
         Returns
         -------
@@ -1167,7 +1228,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
         dim = self.dimensions[name] = PseudoNetCDFDimension(self, name, length)
         return dim
 
-    def copyVariable(self, var, key=None, dtype=None, dimensions=None, fill_value=None, withdata=True):
+    def copyVariable(self, var, key=None, dtype=None, dimensions=None,
+                     fill_value=None, withdata=True):
         """
         Copy var into self as vark
 
@@ -1191,7 +1253,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                     key = getattr(var, propk)
             else:
                 raise AttributeError(
-                    'varkey must be supplied because var has no name, standard_name or long_name')
+                    'varkey must be supplied because var has no name, ' +
+                    'standard_name or long_name')
 
         if dtype is None:
             dtype = var.dtype
@@ -1216,7 +1279,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                 myvar[...] = var[...]
         return myvar
 
-    def createVariable(self, name, type, dimensions, fill_value=None, **properties):
+    def createVariable(self, name, type, dimensions, fill_value=None,
+                       **properties):
         """
         Create a variable
 
@@ -1240,7 +1304,10 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
                     break
         if type == 'S':
             type = 'c'
-        if isinstance(properties.get('values', 1), np.ma.MaskedArray) or fill_value is not None:
+        if (
+            isinstance(properties.get('values', 1), np.ma.MaskedArray) or
+            fill_value is not None
+        ):
             var = self.variables[name] = PseudoNetCDFMaskedVariable(
                 self, name, type, dimensions, **properties)
         else:
@@ -1280,70 +1347,86 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg):
 
     def __add__(self, lhs):
         from ._functions import pncbo
-        return pncbo(op='+', ifile1=self, ifile2=lhs, verbose=0, coordkeys=self._operator_exclude_vars)
+        return pncbo(op='+', ifile1=self, ifile2=lhs, verbose=0,
+                     coordkeys=self._operator_exclude_vars)
 
     def __sub__(self, lhs):
         from _functions import pncbo
-        return pncbo(op='-', ifile1=self, ifile2=lhs, verbose=0, coordkeys=self._operator_exclude_vars)
+        return pncbo(op='-', ifile1=self, ifile2=lhs, verbose=0,
+                     coordkeys=self._operator_exclude_vars)
 
     def __mul__(self, lhs):
         from _functions import pncbo
-        return pncbo(op='*', ifile1=self, ifile2=lhs, verbose=0, coordkeys=self._operator_exclude_vars)
+        return pncbo(op='*', ifile1=self, ifile2=lhs, verbose=0,
+                     coordkeys=self._operator_exclude_vars)
 
     def __div__(self, lhs):
         from _functions import pncbo
-        return pncbo(op='/', ifile1=self, ifile2=lhs, verbose=0, coordkeys=self._operator_exclude_vars)
+        return pncbo(op='/', ifile1=self, ifile2=lhs, verbose=0,
+                     coordkeys=self._operator_exclude_vars)
 
     def __floordiv__(self, lhs):
         from _functions import pncbo
-        return pncbo(op='//', ifile1=self, ifile2=lhs, verbose=0, coordkeys=self._operator_exclude_vars)
+        return pncbo(op='//', ifile1=self, ifile2=lhs, verbose=0,
+                     coordkeys=self._operator_exclude_vars)
 
     def __pow__(self, lhs):
         from _functions import pncbo
-        return pncbo(op='**', ifile1=self, ifile2=lhs, verbose=0, coordkeys=self._operator_exclude_vars)
+        return pncbo(op='**', ifile1=self, ifile2=lhs, verbose=0,
+                     coordkeys=self._operator_exclude_vars)
 
     def __and__(self, lhs):
         from _functions import pncbo
-        return pncbo(op='&', ifile1=self, ifile2=lhs, verbose=0, coordkeys=self._operator_exclude_vars)
+        return pncbo(op='&', ifile1=self, ifile2=lhs, verbose=0,
+                     coordkeys=self._operator_exclude_vars)
 
     def __or__(self, lhs):
         from _functions import pncbo
-        return pncbo(op='|', ifile1=self, ifile2=lhs, verbose=0, coordkeys=self._operator_exclude_vars)
+        return pncbo(op='|', ifile1=self, ifile2=lhs, verbose=0,
+                     coordkeys=self._operator_exclude_vars)
 
     def __xor__(self, lhs):
         from _functions import pncbo
-        return pncbo(op='^', ifile1=self, ifile2=lhs, verbose=0, coordkeys=self._operator_exclude_vars)
+        return pncbo(op='^', ifile1=self, ifile2=lhs, verbose=0,
+                     coordkeys=self._operator_exclude_vars)
 
     def __mod__(self, lhs):
         from _functions import pncbo
-        return pncbo(op='%', ifile1=self, ifile2=lhs, verbose=0, coordkeys=self._operator_exclude_vars)
+        return pncbo(op='%', ifile1=self, ifile2=lhs, verbose=0,
+                     coordkeys=self._operator_exclude_vars)
 
     def __lt__(self, lhs):
         from _functions import pncbo
-        return pncbo(op='<', ifile1=self, ifile2=lhs, verbose=0, coordkeys=self._operator_exclude_vars)
+        return pncbo(op='<', ifile1=self, ifile2=lhs, verbose=0,
+                     coordkeys=self._operator_exclude_vars)
 
     def __gt__(self, lhs):
         from _functions import pncbo
-        return pncbo(op='>', ifile1=self, ifile2=lhs, verbose=0, coordkeys=self._operator_exclude_vars)
+        return pncbo(op='>', ifile1=self, ifile2=lhs, verbose=0,
+                     coordkeys=self._operator_exclude_vars)
 
     def __eq__(self, lhs):
         if isinstance(lhs, (NetCDFFile, PseudoNetCDFFile)):
             from _functions import pncbo
-            return pncbo(op=' == ', ifile1=self, ifile2=lhs, verbose=0, coordkeys=self._operator_exclude_vars)
+            return pncbo(op=' == ', ifile1=self, ifile2=lhs, verbose=0,
+                         coordkeys=self._operator_exclude_vars)
         else:
             return lhs.__eq__(self)
 
     def __le__(self, lhs):
         from _functions import pncbo
-        return pncbo(op='<=', ifile1=self, ifile2=lhs, verbose=0, coordkeys=self._operator_exclude_vars)
+        return pncbo(op='<=', ifile1=self, ifile2=lhs, verbose=0,
+                     coordkeys=self._operator_exclude_vars)
 
     def __ge__(self, lhs):
         from _functions import pncbo
-        return pncbo(op='>=', ifile1=self, ifile2=lhs, verbose=0, coordkeys=self._operator_exclude_vars)
+        return pncbo(op='>=', ifile1=self, ifile2=lhs, verbose=0,
+                     coordkeys=self._operator_exclude_vars)
 
     def __ne__(self, lhs):
         from _functions import pncbo
-        return pncbo(op='!=', ifile1=self, ifile2=lhs, verbose=0, coordkeys=self._operator_exclude_vars)
+        return pncbo(op='!=', ifile1=self, ifile2=lhs, verbose=0,
+                     coordkeys=self._operator_exclude_vars)
 
     sync = close
     flush = close
@@ -1373,7 +1456,8 @@ class netcdf(PseudoNetCDFFile, NetCDFFile):
 
     def _newlike(self):
         """
-        Internal function to return a file of the same class if a PsueoNetCDFFile
+        Internal function to return a file of the same class if a
+        PsueoNetCDFFile
         """
         outf = PseudoNetCDFFile()
         return outf
@@ -1448,7 +1532,9 @@ class PseudoNetCDFVariables(OrderedDefaultDict):
             self.__keys.append(k)
 
     def keys(self):
-        return tuple(self.__keys + [k for k in dict.keys(self) if k not in self.__keys])
+        return tuple(
+            self.__keys +
+            [k for k in dict.keys(self) if k not in self.__keys])
 
     def __len__(self):
         return len([k for k in self.keys()])

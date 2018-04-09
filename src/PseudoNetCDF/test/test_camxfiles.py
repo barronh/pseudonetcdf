@@ -23,29 +23,29 @@ __all__ = ['test_cloud_rain_Memmap',
            'test_wind_Memmap',
            'test_wind_Read']
 
-
-from PseudoNetCDF.camxfiles.cloud_rain.Memmap import TestMemmap as test_cloud_rain_Memmap
-# from PseudoNetCDF.camxfiles.finst.Memmap import TestMemmap as test_finst_Memmap
-from PseudoNetCDF.camxfiles.height_pressure.Memmap import TestMemmap as test_height_pressure_Memmap
-from PseudoNetCDF.camxfiles.height_pressure.Read import TestRead as test_height_pressure_Read
-from PseudoNetCDF.camxfiles.humidity.Memmap import TestMemmap as test_humidity_Memmap
-from PseudoNetCDF.camxfiles.humidity.Read import TestRead as test_humidity_Read
-from PseudoNetCDF.camxfiles.ipr.Memmap import TestMemmap as test_ipr_Memmap
-from PseudoNetCDF.camxfiles.ipr.Read import TestRead as test_ipr_Read
-from PseudoNetCDF.camxfiles.irr.Read import TestRead as test_irr_Read
-from PseudoNetCDF.camxfiles.irr.Memmap import TestMemmap as test_irr_Memmap
-from PseudoNetCDF.camxfiles.landuse.Memmap import TestMemmap as test_landuse_Memmap
-from PseudoNetCDF.camxfiles.lateral_boundary.Memmap import TestMemmap as test_lateral_boundary_Memmap
-from PseudoNetCDF.camxfiles.one3d.Memmap import TestMemmap as test_one3d_Memmap
-from PseudoNetCDF.camxfiles.one3d.Read import TestRead as test_one3d_Read
-from PseudoNetCDF.camxfiles.point_source.Memmap import TestMemmap as test_point_source_Memmap
-from PseudoNetCDF.camxfiles.point_source.Read import TestRead as test_point_source_Read
-from PseudoNetCDF.camxfiles.temperature.Memmap import TestMemmap as test_temperature_Memmap
-from PseudoNetCDF.camxfiles.temperature.Read import TestRead as test_temperature_Read
-from PseudoNetCDF.camxfiles.uamiv.Memmap import TestMemmap as test_uamiv_Memmap
-from PseudoNetCDF.camxfiles.uamiv.Read import TestuamivRead as test_uamiv_Read
-from PseudoNetCDF.camxfiles.uamiv.Write import TestMemmaps as test_uamiv_Write
-from PseudoNetCDF.camxfiles.vertical_diffusivity.Memmap import TestMemmap as test_vertical_diffusivity_Memmap
-from PseudoNetCDF.camxfiles.vertical_diffusivity.Read import TestRead as test_vertical_diffusivity_Read
-from PseudoNetCDF.camxfiles.wind.Memmap import TestMemmap as test_wind_Memmap
-from PseudoNetCDF.camxfiles.wind.Read import TestRead as test_wind_Read
+import PseudoNetCDF.camxfiles as cx
+test_cloud_rain_Memmap = cx.cloud_rain.Memmap.TestMemmap
+# test_finst_Memmap = cx.finst.Memmap.TestMemmap
+test_height_pressure_Memmap = cx.height_pressure.Memmap.TestMemmap
+test_height_pressure_Read = cx.height_pressure.Read.TestRead
+test_humidity_Memmap = cx.humidity.Memmap.TestMemmap
+test_humidity_Read = cx.humidity.Read.TestRead
+test_ipr_Memmap = cx.ipr.Memmap.TestMemmap
+test_ipr_Read = cx.ipr.Read.TestRead
+test_irr_Read = cx.irr.Read.TestRead
+test_irr_Memmap = cx.irr.Memmap.TestMemmap
+test_landuse_Memmap = cx.landuse.Memmap.TestMemmap
+test_lateral_boundary_Memmap = cx.lateral_boundary.Memmap.TestMemmap
+test_one3d_Memmap = cx.one3d.Memmap.TestMemmap
+test_one3d_Read = cx.one3d.Read.TestRead
+test_point_source_Memmap = cx.point_source.Memmap.TestMemmap
+test_point_source_Read = cx.point_source.Read.TestRead
+test_temperature_Memmap = cx.temperature.Memmap.TestMemmap
+test_temperature_Read = cx.temperature.Read.TestRead
+test_uamiv_Memmap = cx.uamiv.Memmap.TestMemmap
+test_uamiv_Read = cx.uamiv.Read.TestuamivRead
+test_uamiv_Write = cx.uamiv.Write.TestMemmaps
+test_vertical_diffusivity_Memmap = cx.vertical_diffusivity.Memmap.TestMemmap
+test_vertical_diffusivity_Read = cx.vertical_diffusivity.Read.TestRead
+test_wind_Memmap = cx.wind.Memmap.TestMemmap
+test_wind_Read = cx.wind.Read.TestRead

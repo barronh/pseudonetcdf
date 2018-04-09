@@ -24,5 +24,6 @@ if __name__ == '__main__':
     parser.add_argument("rows", int)
     (file_path, options, extra_args_dict) = parser.parse_args()
 
-    dump_from_cmd_line(
-        file_path, options, lambda path: vertical_diffusivity(path, **extra_args_dict))
+    dump_from_cmd_line(file_path, options,
+                       lambda path: vertical_diffusivity(path,
+                                                         **extra_args_dict))

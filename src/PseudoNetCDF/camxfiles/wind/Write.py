@@ -75,7 +75,8 @@ def write_wind(sdate, stime, time_step, vals, lstagger=None):
     wind_string = ""
     edate, etime = timeadd((sdate, stime), (0, vals.shape[0] * time_step))
 
-    for i, (d, t) in enumerate(timerange((sdate, stime), (edate, etime), time_step)):
+    for i, (d, t) in enumerate(timerange((sdate, stime), (edate, etime),
+                                         time_step)):
         if lstagger is not None:
             wind_string += writeline((t, d, lstagger), "fii")
         else:

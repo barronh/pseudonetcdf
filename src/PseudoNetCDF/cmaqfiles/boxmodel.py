@@ -68,10 +68,12 @@ def box_model_mrg(conc_path, irr_path, start_datetime):
     var = result.createVariable('IPR', 'f', ('TSTEP', 'SPECIES', 'PROCESS'))
     var.units = 'ppm'
     var[:, :, 0] = conc.view('f').reshape(
-        len(result.dimensions['TSTEP']) + 1, len(result.dimensions['SPECIES']) + 2)[:-1, 1:-1]
+        len(result.dimensions['TSTEP']) + 1,
+        len(result.dimensions['SPECIES']) + 2)[:-1, 1:-1]
 
     var[:, :, 2] = conc.view('f').reshape(
-        len(result.dimensions['TSTEP']) + 1, len(result.dimensions['SPECIES']) + 2)[1:, 1:-1]
+        len(result.dimensions['TSTEP']) + 1,
+        len(result.dimensions['SPECIES']) + 2)[1:, 1:-1]
     var[:, :, 1] = var[:, :, 2] - var[:, :, 0]
 
     tflag = result.createVariable('TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))

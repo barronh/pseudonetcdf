@@ -47,17 +47,21 @@ class jtable(PseudoNetCDFFile):
         self.NRXNS = nrxns
         self.createDimension('LAY', nlevels)
         self.variables['LAY'] = PseudoNetCDFVariable(
-            self, 'LAY', 'f', ('LAY',), values=np.array(levels, dtype='f'), units='m')
+            self, 'LAY', 'f', ('LAY',),
+            values=np.array(levels, dtype='f'), units='m')
         self.createDimension('LAT', nlats)
         self.variables['LAT'] = PseudoNetCDFVariable(
-            self, 'LAT', 'f', ('LAT',), values=np.array(lats, dtype='f'), units='degrees')
+            self, 'LAT', 'f', ('LAT',), values=np.array(lats, dtype='f'),
+            units='degrees')
         self.createDimension('ANGLE', nangles)
         self.variables['ANGLE'] = PseudoNetCDFVariable(
-            self, 'ANGLE', 'f', ('ANGLE',), values=np.array(angles, dtype='f'), units='hours from noon')
+            self, 'ANGLE', 'f', ('ANGLE',), values=np.array(angles, dtype='f'),
+            units='hours from noon')
 
         for rxni, rxn in enumerate(rxns):
             self.variables[rxn] = PseudoNetCDFVariable(
-                self, rxn, 'f', ('LAY', 'LAT', 'ANGLE'), values=data[..., rxni, :].copy(), units='s**-1')
+                self, rxn, 'f', ('LAY', 'LAT', 'ANGLE'),
+                values=data[..., rxni, :].copy(), units='s**-1')
 
     def interpj(self, key_or_var, lay, lat, angle):
         from scipy.interpolate import griddata

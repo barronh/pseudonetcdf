@@ -84,7 +84,8 @@ class ioapi_base(PseudoNetCDFFile):
         PseudoNetCDFFile.setncatts(self, attdict)
         self._updatetime()
 
-    def createVariable(self, name, type, dimensions, fill_value=None, **properties):
+    def createVariable(self, name, type, dimensions,
+                       fill_value=None, **properties):
         """
         Wrapper on PseudoNetCDF.createVariable that updates VAR-LIST,
         NVARS, VAR, and TFLAG
@@ -94,11 +95,13 @@ class ioapi_base(PseudoNetCDFFile):
         see PseudoNetCDFFile.createVariable
         """
         out = PseudoNetCDFFile.createVariable(
-            self, name=name, type=type, dimensions=dimensions, fill_value=fill_value, **properties)
+            self, name=name, type=type, dimensions=dimensions,
+            fill_value=fill_value, **properties)
         self._add2Varlist([name])
         return out
 
-    def copyVariable(self, var, key=None, dtype=None, dimensions=None, fill_value=None, withdata=True):
+    def copyVariable(self, var, key=None, dtype=None, dimensions=None,
+                     fill_value=None, withdata=True):
         """
         Wrapper on PseudoNetCDF.copyVariable that updates VAR-LIST,
         NVARS, VAR, and TFLAG
@@ -108,14 +111,16 @@ class ioapi_base(PseudoNetCDFFile):
         see PseudoNetCDFFile.copyVariable
         """
         outvar = PseudoNetCDFFile.copyVariable(
-            self, var, key=key, dtype=dtype, dimensions=dimensions, fill_value=fill_value, withdata=withdata)
+            self, var, key=key, dtype=dtype, dimensions=dimensions,
+            fill_value=fill_value, withdata=withdata)
         if key is None:
             for propk in ['name', 'standard_name', 'long_name']:
                 if hasattr(var, propk):
                     key = getattr(var, propk)
             else:
                 raise AttributeError(
-                    'varkey must be supplied because var has no name, standard_name or long_name')
+                    'varkey must be supplied because var has no name, ' +
+                    'standard_name or long_name')
         self._add2Varlist([key])
         return outvar
 
@@ -204,12 +209,14 @@ class ioapi_base(PseudoNetCDFFile):
                 if not (dt[0] == dt).all():
                     warn('New time is unstructured')
                 outf.TSTEP = int(
-                    (datetime.datetime(1900, 1, 1, 0) + dt[0]).strftime('%H%M%S'))
+                    (datetime.datetime(1900, 1, 1, 0) +
+                     dt[0]).strftime('%H%M%S'))
 
         outf.updatemeta()
         return outf
 
-    def interpSigma(self, vglvls, vgtop=None, interptype='linear', extrapolate=False, fill_value='extrapolate'):
+    def interpSigma(self, vglvls, vgtop=None, interptype='linear',
+                    extrapolate=False, fill_value='extrapolate'):
         """
         Parameters
         ----------
@@ -219,7 +226,8 @@ class ioapi_base(PseudoNetCDFFile):
         interptype : 'linear' or 'conserve'
              linear : uses a linear interpolation
              conserve : uses a mass conserving interpolation
-        extrapolate : allow extrapolation beyond bounds with linear, default False
+        extrapolate : allow extrapolation beyond bounds with linear, default
+                      False
         fill_value : set fill value (e.g, nan) to prevent extrapolation or edge
                      continuation
 
@@ -248,7 +256,8 @@ class ioapi_base(PseudoNetCDFFile):
         if interptype == 'linear':
             from ..coordutil import getinterpweights
             weights = getinterpweights(
-                zs, nzs, kind=interptype, fill_value=fill_value, extrapolate=extrapolate)
+                zs, nzs, kind=interptype, fill_value=fill_value,
+                extrapolate=extrapolate)
             # Create a function for interpolation
 
             def interpsigma(data):
@@ -347,7 +356,8 @@ class ioapi_base(PseudoNetCDFFile):
 
         Notes
         -----
-        Meta data not provided or present will be inferred or made up. (See _ioapi_defaults)
+        Meta data not provided or present will be inferred or made up.
+        (See _ioapi_defaults)
         """
         attdict.update(_ioapi_defaults)
         for pk, pv in attdict.items():
@@ -393,7 +403,8 @@ class ioapi_base(PseudoNetCDFFile):
                 'TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
             tvar.units = '<YYYYDDD,HHMMSS>'.ljust(16)
             tvar.long_name = 'TFLAG'.ljust(16)
-            tvar.var_desc = "Timestep-valid flags:  (1) YYYYDDD or (2) HHMMSS                                "
+            tvar.var_desc = ("Timestep-valid flags:  (1) YYYYDDD or (2) " +
+                             "HHMMSS                                ")
         else:
             tvar = self.variables['TFLAG']
             dotflag = ~((self.SDATE == tvar[0, 0, 0]) and (
@@ -460,16 +471,19 @@ class ioapi_base(PseudoNetCDFFile):
 
         return PseudoNetCDFFile.getMap(self, maptype=maptype, **kwds)
 
-    def plot(self, varkey, plottype='longitude-latitude', ax_kw={}, plot_kw={}, cbar_kw={}, dimreduction='mean'):
+    def plot(self, varkey, plottype='longitude-latitude', ax_kw={}, plot_kw={},
+             cbar_kw={}, dimreduction='mean'):
         """
         Parameters
         ----------
         self : the ioapi file instance
         varkey : the variable to plot
-        plottype : longitude-latitude, latitude-pressure, longitude-pressure, vertical-profile,
-                   time-longitude, time-latitude, time-pressure, default, longitude-latitude
+        plottype : longitude-latitude, latitude-pressure, longitude-pressure,
+                   vertical-profile, time-longitude, time-latitude,
+                   time-pressure, default, longitude-latitude
         ax_kw : keywords for the axes to be created
-        plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be created
+        plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be
+                  created
         cbar_kw : keywords for the colorbar
         """
         import matplotlib.pyplot as plt
@@ -539,11 +553,13 @@ class ioapi_base(PseudoNetCDFFile):
         p = ax.pcolormesh(x, y, vals, **plot_kw)
         ax.figure.colorbar(p, label=varunit, **cbar_kw)
         if xkey == 'TSTEP':
-            ax.xaxis.set_major_formatter(plt.matplotlib.dates.AutoDateFormatter(
-                plt.matplotlib.dates.AutoDateLocator()))
+            ax.xaxis.set_major_formatter(
+                plt.matplotlib.dates.AutoDateFormatter(
+                    plt.matplotlib.dates.AutoDateLocator()))
         if ykey == 'TSTEP':
-            ax.yaxis.set_major_formatter(plt.matplotlib.dates.AutoDateFormatter(
-                plt.matplotlib.dates.AutoDateLocator()))
+            ax.yaxis.set_major_formatter(
+                plt.matplotlib.dates.AutoDateFormatter(
+                    plt.matplotlib.dates.AutoDateLocator()))
         if plottype == 'longitude-latitude':
             try:
                 bmap = myf.getMap()

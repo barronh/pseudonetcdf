@@ -106,8 +106,10 @@ outf.createDimension('LAY', 1)
 outf.createDimension('points', len(sites))
 outf.SDATE = int(startts.strftime('%Y%j'))
 outf.STIME = 0
-time_bounds = [(startts + datetime.timedelta(hours=i), startts + datetime.timedelta(hours=i + 1))
-               for i in range(int((endts - startts).total_seconds() // 3600) + 24)]
+tmpnhours = int((endts - startts).total_seconds() // 3600) + 24
+time_bounds = [(startts + datetime.timedelta(hours=i),
+                startts + datetime.timedelta(hours=i + 1))
+               for i in range(tmpnhours)]
 
 tflag = outf.createVariable('TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
 nstep = len(time_bounds)
