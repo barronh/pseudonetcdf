@@ -1212,6 +1212,39 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             self._ncattrs = tuple([k_ for k_ in self._ncattrs if k_ != k])
         object.__delattr__(self, k)
 
+    def setCoords(self, keys, missing='ignore'):
+        """
+        Set a variable as a coordinate variable
+
+        Parameters
+        ----------
+        keys : iterable of string keys for coord variables
+        missing : action if missing 'ignore', 'skip' or 'error'
+                    ignore - add in case used later
+                    skip   - do not add
+                    error  - raise an error
+
+        Notes
+        -----
+        Coordinate variables are excluded from math
+        """
+
+        if missing == 'ignore':
+            pass
+        elif missing == 'skip':
+            keys = [key for key in keys if key in self.variables]
+        elif missing == 'error':
+            invalid_keys = [key for key in keys if key not in self.variables]
+            if len(invalid_keys) > 0:
+                raise KeyError('File does not contain the variables: ' +
+                               '{}'.format(invalid_keys))
+        else:
+            raise ValueError(
+                'Must be ignore, skip or error; received {}'.format(missing))
+
+        for key in keys:
+            self._operator_exclude_vars = self._operator_exclude_vars + (key,)
+
     def createDimension(self, name, length):
         """
         Create a dimension
