@@ -1,7 +1,11 @@
 import numpy as np
-_coorddict = dict(west_east = 'longitude', south_north = 'latitude', Time = 'time', bottom_top = 'altitude',
-                  west_east_stag = 'longitude', south_north_stag = 'latitude', Time_stag = 'time', bottom_top_stag = 'altitude',)
-def add_cf_from_wrfioapi(ifile, coordkeys = []):
+_coorddict = dict(west_east='longitude', south_north='latitude', Time='time',
+                  bottom_top='altitude', west_east_stag='longitude',
+                  south_north_stag='latitude', Time_stag='time',
+                  bottom_top_stag='altitude',)
+
+
+def add_cf_from_wrfioapi(ifile, coordkeys=[]):
     try:
         for invark, outvark in [('XLONG', 'longitude'), ('XLAT', 'latitude')]:
             try:
@@ -9,14 +13,15 @@ def add_cf_from_wrfioapi(ifile, coordkeys = []):
             except KeyError:
                 invark += '_M'
                 invar = ifile.variables[invark]
-            outvar = ifile.createVariable(outvark, invar.dtype.char, invar.dimensions[1:])
+            outvar = ifile.createVariable(
+                outvark, invar.dtype.char, invar.dimensions[1:])
             for pk in invar.ncattrs():
                 setattr(outvar, pk, getattr(invar, pk))
             outvar[:] = invar[0]
     except Exception as e:
         print(e)
         pass
-    
+
     # Add time coordinate if not available.
     try:
         outvar = ifile.createVariable('time', 'i', ('Time',))
@@ -26,9 +31,11 @@ def add_cf_from_wrfioapi(ifile, coordkeys = []):
         outvar.units = 'seconds since 1985-01-01T00:00:00Z'
         invals = invar[:].copy().view('S19')
         sdate = np.datetime64('1985-01-01T00:00:00Z')
-        timesince = (np.array([np.datetime64(time[0].replace('_', 'T') + 'Z') for time in invals]) - sdate).astype('l')
+        timesince = (np.array([np.datetime64(time[0].replace(
+            '_', 'T') + 'Z') for time in invals]) - sdate).astype('l')
         outvar[:] = timesince
-    except: pass
+    except Exception:
+        pass
     # add projection
     grid_mapping_name = get_proj(ifile)
     # Add x and y coordinates
@@ -37,11 +44,13 @@ def add_cf_from_wrfioapi(ifile, coordkeys = []):
         xvar = ifile.createVariable('x', 'd', ('west_east',))
         xvar.units = 'm'
         xvar.standard_name = 'x'
-        xvar[:] = np.arange(xvar.size, dtype = 'd')*ifile.DX-gridvar.false_easting  + ifile.DX/2
+        xvar[:] = np.arange(xvar.size, dtype='d') * ifile.DX - \
+            gridvar.false_easting + ifile.DX / 2
         yvar = ifile.createVariable('y', 'd', ('south_north',))
         yvar.units = 'm'
         yvar.standard_name = 'y'
-        yvar[:] = np.arange(yvar.size, dtype = 'd')*ifile.DY-gridvar.false_northing  + ifile.DY/2
+        yvar[:] = np.arange(yvar.size, dtype='d') * ifile.DY - \
+            gridvar.false_northing + ifile.DY / 2
     except Exception as e:
         raise e
     for k in ifile.variables.keys():
@@ -51,13 +60,14 @@ def add_cf_from_wrfioapi(ifile, coordkeys = []):
         if olddims != newdims:
             var.coordinates = ' '.join(newdims)
             var.grid_mapping = grid_mapping_name
-    
 
     ifile.Conventions = 'CF-1.6'
-    
+
+
 def get_proj(ifile):
     """
-    MAP_PROJ - Model projection [1=Lambert, 2=polar stereographic, 3=mercator, 6=lat-lon]  (required)
+    MAP_PROJ - Model projection [1=Lambert, 2=polar stereographic,
+                                 3=mercator, 6=lat-lon]  (required)
     TRUELAT1 - required for MAP_PROJ = 1, 2, 3 (defaults to 0 otherwise)
     TRUELAT2 - required for MAP_PROJ = 6 (defaults to 0 otherwise)
     STAND_LON - Standard longitude used in model projection (required)
@@ -68,8 +78,9 @@ def get_proj(ifile):
     DX, DY - required for MAP_PROJ = 1, 2, 3 (defaults to 0 otherwise)
     LATINC, LONINC - required for MAP_PROJ = 6 (defaults to 0 otherwise)
     """
-    
-    projname = {1: "lambert_conformal_conic", 2: 'polar_stereographic', 3: 'mercator'}[ifile.MAP_PROJ]
+
+    projname = {1: "lambert_conformal_conic",
+                2: 'polar_stereographic', 3: 'mercator'}[ifile.MAP_PROJ]
     var = ifile.createVariable(projname, 'i', ())
     var.grid_mapping_name = projname
     var.earth_radius = 6370000.
@@ -88,7 +99,7 @@ def get_proj(ifile):
         var.straight_vertical_longitude_from_pole = ifile.STAND_LON
         var.latitude_of_projection_origin = ifile.TRUELAT1
         var.standard_parallel = ifile.MOAD_CEN_LAT
-    
+
     from PseudoNetCDF.coordutil import getproj4_from_cf_var
     from mpl_toolkits.basemap import pyproj
     projstr = getproj4_from_cf_var(var)

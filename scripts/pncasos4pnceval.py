@@ -7,7 +7,7 @@ import json
 import datetime
 try:
     from urllib.request import urlopen
-except:
+except Exception:
     from urllib2 import urlopen
 
 
@@ -16,18 +16,25 @@ from shapely.geometry import Polygon, Point
 import numpy as np
 import argparse
 from netCDF4 import Dataset
-parser = argparse.ArgumentParser(prog = 'METAR', description = "Downloads met data from http://mesonet.agron.iastate.edu for a CMAQ domain")
-parser.add_argument('--network', default = 'US__ASOS', help = 'Network follwing country_state_type conventions e.g., US_FL_ASOS')
-spacegroup = parser.add_mutually_exclusive_group(required = True)
-spacegroup.add_argument('--gridcro2d', dest = 'GRIDCRO2D', help = 'CMAQ MCIP GRIDCRO2D file or any file that has LAT and LON variables')
+parser = argparse.ArgumentParser(
+    prog='METAR',
+    description="Downloads met data from " +
+                "http://mesonet.agron.iastate.edu for a CMAQ domain")
+parser.add_argument('--network', default='US__ASOS',
+                    help='Network follwing country_state_type ' +
+                         'conventions e.g., US_FL_ASOS')
+spacegroup = parser.add_mutually_exclusive_group(required=True)
+spacegroup.add_argument('--gridcro2d', dest='GRIDCRO2D',
+                        help='CMAQ MCIP GRIDCRO2D file or any ' +
+                             'file that has LAT and LON variables')
 spacegroup.add_argument('--wktpolygon')
-parser.add_argument('--START_DATE', default = None, help = 'YYYY-MM-DD')
-parser.add_argument('--END_DATE', default = None, help = 'YYYY-MM-DD')
-parser.add_argument('outpath', help = 'Root outpath')
+parser.add_argument('--START_DATE', default=None, help='YYYY-MM-DD')
+parser.add_argument('--END_DATE', default=None, help='YYYY-MM-DD')
+parser.add_argument('outpath', help='Root outpath')
 args = parser.parse_args()
 print(args)
 
-if not args.GRIDCRO2D is None:
+if args.GRIDCRO2D is not None:
     f = Dataset(args.GRIDCRO2D)
     lon = f.variables['LON'][0, 0]
     lat = f.variables['LAT'][0, 0]
@@ -35,7 +42,8 @@ if not args.GRIDCRO2D is None:
     urcrnrlon = lon[:, -1].min()
     llcrnrlat = lat[0, :].max()
     urcrnrlat = lat[-1, :].min()
-    bounds = Polygon([(llcrnrlon, llcrnrlat), (llcrnrlon, urcrnrlat), (urcrnrlon, urcrnrlat), (urcrnrlon, llcrnrlat)])
+    bounds = Polygon([(llcrnrlon, llcrnrlat), (llcrnrlon, urcrnrlat),
+                      (urcrnrlon, urcrnrlat), (urcrnrlon, llcrnrlat)])
 else:
     from shapely.wkt import loads
     bounds = loads(args.wktpolygon)
@@ -63,12 +71,15 @@ sitelocs = {}
 for network in args.network.split(','):
     # Get metadata
     uri = "http://mesonet.agron.iastate.edu/geojson/network.php?network=%s" % (
-                                                                    network,)
+        network,)
     data = urlopen(uri).read().decode('ascii')
     jdict = json.loads(data)
 
-    nsites = [f['properties']['sid'] for f in jdict['features'] if bounds.intersects(Point(f['geometry']['coordinates']))]
-    nlocs = dict([(f['properties']['sid'], f['geometry']['coordinates']) for f in jdict['features'] if bounds.intersects(Point(f['geometry']['coordinates']))])
+    nsites = [f['properties']['sid'] for f in jdict['features']
+              if bounds.intersects(Point(f['geometry']['coordinates']))]
+    nlocs = dict([(f['properties']['sid'], f['geometry']['coordinates'])
+                  for f in jdict['features']
+                  if bounds.intersects(Point(f['geometry']['coordinates']))])
     print(nsites)
     for site in nsites:
         sitelocs[site] = nlocs[site]
@@ -84,9 +95,9 @@ for network in args.network.split(','):
         out.write(data.read().decode('ascii'))
         out.close()
     sites += nsites
-    
-    
-outf = Dataset(args.outpath, mode = 'w')
+
+
+outf = Dataset(args.outpath, mode='w')
 outf.createDimension('TSTEP', None)
 outf.createDimension('VAR', 4)
 outf.createDimension('DATE-TIME', 2)
@@ -95,38 +106,52 @@ outf.createDimension('LAY', 1)
 outf.createDimension('points', len(sites))
 outf.SDATE = int(startts.strftime('%Y%j'))
 outf.STIME = 0
-time_bounds = [(startts + datetime.timedelta(hours = i), startts + datetime.timedelta(hours = i + 1)) for i in range(int((endts - startts).total_seconds() // 3600) + 24)]
+tmpnhours = int((endts - startts).total_seconds() // 3600) + 24
+time_bounds = [(startts + datetime.timedelta(hours=i),
+                startts + datetime.timedelta(hours=i + 1))
+               for i in range(tmpnhours)]
 
 tflag = outf.createVariable('TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
 nstep = len(time_bounds)
 tflag[0:nstep, :, 0] = 0
-tflag[0:nstep, :, 0] = np.array([int(t[0].strftime('%Y%j')) for t in time_bounds])[:, None].repeat(4, 1)
-tflag[0:nstep, :, 1] = np.array([int(t[0].strftime('%H%M%S')) for t in time_bounds])[:, None].repeat(4, 1)
+tflag[0:nstep, :, 0] = np.array(
+    [int(t[0].strftime('%Y%j')) for t in time_bounds])[:, None].repeat(4, 1)
+tflag[0:nstep, :, 1] = np.array(
+    [int(t[0].strftime('%H%M%S')) for t in time_bounds])[:, None].repeat(4, 1)
 
 rtime = datetime.datetime(1970, 1, 1, 0)
-time = outf.createVariable('time', 'd', ('TSTEP',), fill_value = -999.)
-time[:] = np.array([(ts - rtime + datetime.timedelta(hours = .5)).total_seconds() for ts, te in time_bounds])
+time = outf.createVariable('time', 'd', ('TSTEP',), fill_value=-999.)
+time[:] = np.array([(ts - rtime + datetime.timedelta(hours=.5)
+                     ).total_seconds() for ts, te in time_bounds])
 time.units = 'seconds since 1970-01-01 00:00:00 UTC'
 
-time_bounds_var = outf.createVariable('time_bounds', 'd', ('TSTEP','tnv'), fill_value = -999.)
-time_bounds_var[:, 0] = np.array([(ts - rtime).total_seconds() for ts, te in time_bounds])
-time_bounds_var[:, 1] = np.array([(te - rtime).total_seconds() for ts, te in time_bounds])
+time_bounds_var = outf.createVariable(
+    'time_bounds', 'd', ('TSTEP', 'tnv'), fill_value=-999.)
+time_bounds_var[:, 0] = np.array(
+    [(ts - rtime).total_seconds() for ts, te in time_bounds])
+time_bounds_var[:, 1] = np.array(
+    [(te - rtime).total_seconds() for ts, te in time_bounds])
 time_bounds_var.units = 'seconds since 1970-01-01 00:00:00 UTC'
 
-temp2 = outf.createVariable('TEMP2', 'f', ('TSTEP', 'LAY', 'points'), fill_value = -999)
+temp2 = outf.createVariable(
+    'TEMP2', 'f', ('TSTEP', 'LAY', 'points'), fill_value=-999)
 temp2.units = 'K'.ljust(16)
 
-wdir10 = outf.createVariable('WDIR10', 'f', ('TSTEP', 'LAY', 'points'), fill_value = -999)
+wdir10 = outf.createVariable(
+    'WDIR10', 'f', ('TSTEP', 'LAY', 'points'), fill_value=-999)
 wdir10.units = 'degrees from N'.ljust(16)
 
-wspd10 = outf.createVariable('WSPD10', 'f', ('TSTEP', 'LAY', 'points'), fill_value = -999)
+wspd10 = outf.createVariable(
+    'WSPD10', 'f', ('TSTEP', 'LAY', 'points'), fill_value=-999)
 wspd10.units = 'M/S'.ljust(16)
 
-prsfc = outf.createVariable('PRSFC', 'f', ('TSTEP', 'LAY', 'points'), fill_value = -999)
+prsfc = outf.createVariable(
+    'PRSFC', 'f', ('TSTEP', 'LAY', 'points'), fill_value=-999)
 prsfc.units = 'Pa'.ljust(16)
 
 
-rn = outf.createVariable('RN', 'f', ('TSTEP', 'LAY', 'points'), fill_value = -999)
+rn = outf.createVariable(
+    'RN', 'f', ('TSTEP', 'LAY', 'points'), fill_value=-999)
 rn.units = 'CM'.ljust(16)
 
 lat = outf.createVariable('LAT', 'f', ('points'))
@@ -136,14 +161,17 @@ lon.units = 'degrees_east'.ljust(16)
 
 for si, site in enumerate(sites):
     outfn = '%s_%s_%s.txt' % (site, startts.strftime("%Y%m%d%H%M"),
-                                  endts.strftime("%Y%m%d%H%M"))
-    data = np.recfromtxt(outfn, missing_values = 'M', delimiter = '\t', names = True, comments = '#', skip_header = 5, usemask = True)
+                              endts.strftime("%Y%m%d%H%M"))
+    data = np.recfromtxt(outfn, missing_values='M', delimiter='\t',
+                         names=True, comments='#', skip_header=5, usemask=True)
     lat[si] = sitelocs[site][1]
     lon[si] = sitelocs[site][0]
-    if data.size == 0: continue
-    times = np.array([datetime.datetime.strptime(d.decode('ascii'), '%Y-%m-%d %H:%M') for d in data['valid']])
+    if data.size == 0:
+        continue
+    times = np.array([datetime.datetime.strptime(
+        d.decode('ascii'), '%Y-%m-%d %H:%M') for d in data['valid']])
     for ti, (sh, eh) in enumerate(time_bounds):
-        tdata = data[(times > sh) & (times <=  eh)]
+        tdata = data[(times > sh) & (times <= eh)]
         if 'tmpf' in data.dtype.names:
             val = F2K(tdata['tmpf']).mean()
             if not np.ma.is_masked(val):
@@ -153,15 +181,16 @@ for si, site in enumerate(sites):
             if not np.ma.is_masked(val):
                 wdir10[ti, 0, si] = val
         if 'sknt' in data.dtype.names:
-            val = tdata['sknt'].mean() * 0.514444444 # convert knot to m/s
+            val = tdata['sknt'].mean() * 0.514444444  # convert knot to m/s
             if not np.ma.is_masked(val):
                 wspd10[ti, 0, si] = val
         if 'alti' in data.dtype.names:
-            val = tdata['alti'].mean() * 760/29.9213*101325./760. # convert inches to Pa
+            val = tdata['alti'].mean() * 760 / 29.9213 * 101325. / \
+                760.  # convert inches to Pa
             if not np.ma.is_masked(val):
                 prsfc[ti, 0, si] = val
         if 'p01i' in data.dtype.names:
-            val = tdata['p01i'].mean() * 2.54 # convert inches to cm
+            val = tdata['p01i'].mean() * 2.54  # convert inches to cm
             if not np.ma.is_masked(val):
                 rn[ti, 0, si] = val
     outf.sync()

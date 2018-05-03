@@ -1,2 +1,4 @@
-from ._grids import griddes
+__all__ = ['griddes']
 
+
+from ._grids import griddes

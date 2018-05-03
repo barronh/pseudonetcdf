@@ -12,19 +12,20 @@ __doc__ = """
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
 __all__ = ['cloud_rain',
-    'height_pressure',
-    'humidity',
-    'ipr',
-    'irr',
-    'landuse',
-    'one3d',
-    'point_source',
-    'temperature',
-    'uamiv',
-    'vertical_diffusivity',
-    'wind',
-    'lateral_boundary']
-    
+           'height_pressure',
+           'humidity',
+           'ipr',
+           'irr',
+           'landuse',
+           'one3d',
+           'point_source',
+           'temperature',
+           'uamiv',
+           'vertical_diffusivity',
+           'wind',
+           'lateral_boundary',
+           'finst']
+
 from .uamiv.Memmap import uamiv
 from .cloud_rain.Memmap import cloud_rain
 from .height_pressure.Memmap import height_pressure

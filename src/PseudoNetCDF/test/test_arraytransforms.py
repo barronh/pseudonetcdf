@@ -1,1 +1,4 @@
-from PseudoNetCDF.ArrayTransforms import TestInteriorVertex as test_interiorvertex
+__all__ = ['test_interiorvertex']
+
+from PseudoNetCDF.ArrayTransforms import TestInteriorVertex
+test_interiorvertex = TestInteriorVertex

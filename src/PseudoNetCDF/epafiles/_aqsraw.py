@@ -3,6 +3,7 @@ from PseudoNetCDF.sci_var import PseudoNetCDFFile
 import numpy as np
 from datetime import datetime, timedelta
 
+
 def getbdate(x):
     if x is None:
         return x
@@ -10,6 +11,7 @@ def getbdate(x):
         return x
     else:
         return datetime.strptime(x + ' 00:00', '%Y-%m-%d %H:%M')
+
 
 def getedate(x):
     if x is None:
@@ -21,22 +23,29 @@ def getedate(x):
 
 
 class aqsraw(PseudoNetCDFFile):
-    def __init__(self, yearpath, timeresolution = 'hourly', bdate = None, edate = None, rdate = datetime(1900, 1, 1), wktpolygon = None, sampleval = None, verbose = 0):
+    def __init__(self, yearpath, timeresolution='hourly', bdate=None,
+                 edate=None, rdate=datetime(1900, 1, 1), wktpolygon=None,
+                 sampleval=None, verbose=0):
         """
         yearpath - path to csv file from AQS
-        timeresolution - choices = ['daily', 'hourly'] default = 'hourly', Defaults to hourly'
+        timeresolution - choices = ['daily', 'hourly'] default = 'hourly',
+                         defaults to hourly'
         bdate - Limit output so that the date starts at YYYY-MM-DD
         edate - Limit output so that the date end YYYY-MM-DD (inclusive)
-        rdate - datetime(1900, 1, 1), dest = 'rdate', type = getrdate, help = 'Reference date YYYYMMDD HH:MM:SS')
-        wktpolygon - WKT Polygon (default: None) equivalent to "POLYGON ((-180 -90, 180 -90, 180 90, -180 90, -180 -90))"
-        sampleval - Defaults to "Sample Measurement" for hourly and "Arithmetic Mean" for daily
+        rdate - datetime(1900, 1, 1), dest = 'rdate', type = getrdate,
+                help = 'Reference date YYYYMMDD HH:MM:SS')
+        wktpolygon - WKT Polygon (default: None) equivalent to
+                     "POLYGON ((-180 -90, 180 -90, 180 90, -180 90, -180 -90))"
+        sampleval - Defaults to "Sample Measurement" for hourly and "Arithmetic
+                    Mean" for daily
         verbose - level of verbosity
         """
         try:
             import pandas
-        except:
-            raise ImportError('aqsraw requires pandas; install pandas (e.g., pip install pandas)')
-        if not wktpolygon is None:
+        except Exception:
+            raise ImportError('aqsraw requires pandas; install pandas ' +
+                              '(e.g., pip install pandas)')
+        if wktpolygon is not None:
             from shapely.wkt import loads
             from shapely.prepared import prep
             bounds = loads(wktpolygon)
@@ -45,7 +54,7 @@ class aqsraw(PseudoNetCDFFile):
             from shapely.geometry import Point
         bdate = getbdate(bdate)
         edate = getedate(edate)
-        nseconds = {'hourly': 3600, 'daily': 3600*24}[timeresolution]
+        nseconds = {'hourly': 3600, 'daily': 3600 * 24}[timeresolution]
         tunit = {'hourly': 'hours', 'daily': 'days'}[timeresolution]
 
         if sampleval is None:
@@ -57,44 +66,60 @@ class aqsraw(PseudoNetCDFFile):
                 raise KeyError(sampleval + ' not appropriate sampleval value')
         hourlys = []
         for yearpath in [yearpath]:
-            if verbose > 0: print('Reading', yearpath)
+            if verbose > 0:
+                print('Reading', yearpath)
             if timeresolution == 'hourly':
                 parse_dates = [[11, 12]]
                 date_key = 'Date GMT_Time GMT'
             else:
                 parse_dates = [11]
                 date_key = 'Date Local'
-            data = pandas.read_csv(yearpath, index_col = False, converters = {'State Code': str, 'County Code': str, 'Site Num': str}, parse_dates = parse_dates)
+            data = pandas.read_csv(yearpath,
+                                   index_col=False,
+                                   converters={'State Code': str,
+                                               'County Code': str,
+                                               'Site Num': str},
+                                   parse_dates=parse_dates)
             intimes = np.array([True]).repeat(len(data), 0)
-            #intimes = intimes & (data['Parameter Code'] == param)
-            
-            if not bdate is None:
+            # intimes = intimes & (data['Parameter Code'] == param)
+
+            if bdate is not None:
                 intimes = intimes & (data[date_key] >= bdate)
-            if not edate is None:
+            if edate is not None:
                 intimes = intimes & (data[date_key] < edate)
-            
+
             if wktpolygon is None:
                 inspace_and_time = intimes
             else:
                 inspace_and_time = np.array([False]).repeat(len(data), 0)
-                for idx, (intime, plon, plat) in enumerate(zip(intimes, data['Longitude'].values, data['Latitude'].values)):
+                zll = zip(intimes,
+                          data['Longitude'].values,
+                          data['Latitude'].values)
+                for idx, (intime, plon, plat) in enumerate(zll):
                     if intime:
-                        inspace_and_time[idx] = pbounds.contains(Point(plon, plat))
+                        inspace_and_time[idx] = pbounds.contains(
+                            Point(plon, plat))
             mask = inspace_and_time
-       
+            groupkeys = ['Parameter Code', 'Parameter Name',
+                         'Units of Measure', date_key,
+                         'State Code', 'County Code',
+                         'Site Num']
 
-            hourly = data[mask].groupby(['Parameter Code', 'Parameter Name', 'Units of Measure', date_key, 'State Code', 'County Code', 'Site Num'], as_index = False).aggregate(np.mean).sort_values(by = ['Parameter Code', 'Parameter Name', 'Units of Measure', date_key, 'State Code', 'County Code', 'Site Num'])
-    
+            hourly = data[mask].groupby(groupkeys, as_index=False)\
+                               .aggregate(np.mean)\
+                               .sort_values(by=groupkeys)
+
             hourlys.append(hourly)
 
-        if verbose > 0: print('Concatenating files')
+        if verbose > 0:
+            print('Concatenating files')
         if len(hourlys) > 1:
             hourly = pandas.concat(hourlys)
         else:
             hourly = hourlys[0]
 
-
-        sites = hourly.groupby(['State Code', 'County Code', 'Site Num'], as_index = False).aggregate(np.mean)
+        sites = hourly.groupby(['State Code', 'County Code', 'Site Num'],
+                               as_index=False).aggregate(np.mean)
         nsites = len(sites)
 
         rawdates = hourly[date_key]
@@ -105,17 +130,21 @@ class aqsraw(PseudoNetCDFFile):
         ntimes = int((edate - bdate).total_seconds() // nseconds) + 1
         alltimes = [timedelta(**{tunit: i}) + bdate for i in range(ntimes)]
 
-        if verbose > 0: print('Creating output file')
+        if verbose > 0:
+            print('Creating output file')
         tdim = self.createDimension('time', ntimes)
         tdim.setunlimited(True)
         self.createDimension('LAY', 1)
-        sitelist = [row['State Code'] + row['County Code'] + row['Site Num'] for idx, row in sites.iterrows()]
+        sitelist = [row['State Code'] + row['County Code'] +
+                    row['Site Num'] for idx, row in sites.iterrows()]
         self.SITENAMES = ';'.join(sitelist)
 
         self.createDimension('points', len(sitelist))
-        self.lonlatcoords = '/'.join(['%f,%f' % (row['Longitude'], row['Latitude']) for idx, row in sites.iterrows()])
-        last_time = start_time = hourly[date_key].values.min()
-        end_time = hourly[date_key].values.max()
+        lonlatcoordstrs = ['%f,%f' % (row['Longitude'], row['Latitude'])
+                           for idx, row in sites.iterrows()]
+        self.lonlatcoords = '/'.join(lonlatcoordstrs)
+        last_time = hourly[date_key].values.min()
+        # end_time = hourly[date_key].values.max()
         temp = {}
         lat = self.createVariable('latitude', 'f', ('points',))
         lat.units = 'degrees_north'
@@ -126,7 +155,8 @@ class aqsraw(PseudoNetCDFFile):
         lon.standard_name = 'longitude'
         lon[:] = sites['Longitude'].values
 
-        if verbose > 0: print('Processing data rows')
+        if verbose > 0:
+            print('Processing data rows')
 
         for idx, row in hourly.iterrows():
             this_time = row[date_key]
@@ -135,11 +165,13 @@ class aqsraw(PseudoNetCDFFile):
             aqsid = row['State Code'] + row['County Code'] + row['Site Num']
             sidx = sitelist.index(aqsid)
             var_name = row['Parameter Name']
-            if not var_name in self.variables.keys():
-                var = self.createVariable(var_name, 'f', ('time', 'LAY', 'points'), fill_value = -999)
+            if var_name not in self.variables.keys():
+                var = self.createVariable(
+                    var_name, 'f', ('time', 'LAY', 'points'), fill_value=-999)
                 var.units = unit
                 var.standard_name = var_name
-                temp[var_name] = np.ma.masked_all((ntimes, 1, nsites), dtype = 'f')
+                temp[var_name] = np.ma.masked_all(
+                    (ntimes, 1, nsites), dtype='f')
                 temp[var_name].set_fill_value(-999)
             tmpvar = temp[var_name]
             var = self.variables[var_name]
@@ -147,22 +179,30 @@ class aqsraw(PseudoNetCDFFile):
             if last_time != this_time:
                 last_time = this_time
                 tidx = alltimes.index(this_time.to_pydatetime())
-                if verbose > 0: print('\b\b\b\b\b\b %3d%%' % int(tidx / float(ntimes) * 100), end = '', flush = True)
+                if verbose > 0:
+                    print('\b\b\b\b\b\b %3d%%' %
+                          int(tidx / float(ntimes) * 100), end='', flush=True)
             if tidx > ntimes:
-                raise ValueError('Times (%d) exceed expected (%d)' % (tidx, ntimes))
-    
+                raise ValueError(
+                    'Times (%d) exceed expected (%d)' % (tidx, ntimes))
+
             tmpvar[tidx, 0, sidx] = val
-        if verbose > 0: print('')
-        if verbose > 0: print('Writing to file')
+        if verbose > 0:
+            print('')
+        if verbose > 0:
+            print('Writing to file')
         for varkey, tempvals in temp.items():
             self.variables[varkey][:] = tempvals
 
-        outtimes = np.array([(t - rdate).total_seconds() / nseconds for t in alltimes])
+        outtimes = np.array(
+            [(t - rdate).total_seconds() / nseconds for t in alltimes])
         time = self.createVariable('time', outtimes.dtype.char, ('time',))
         time.units = rdate.strftime(tunit + ' since %F')
         time.standard_name = 'time'
         time[:] = outtimes
 
+
 if __name__ == '__main__':
     import sys
-    f = aqsraw(sys.argv[1], bdate = datetime(2015,1,1), edate = datetime(2015,2,1))
+    f = aqsraw(sys.argv[1], bdate=datetime(
+        2015, 1, 1), edate=datetime(2015, 2, 1))

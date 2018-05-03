@@ -5,7 +5,7 @@ __doc__ = """
 
 .. module:: CAMx
    :platform: Unix, Windows
-   :synopsis: Provides :ref:`PseudoNetCDF` memory map and random access read 
+   :synopsis: Provides :ref:`PseudoNetCDF` memory map and random access read
               based file interfaces for all CAMx related files.  See
               PseudoNetCDF.sci_var.PseudoNetCDFFile for interface details.
               Each camx file level module (i.e. uamiv, cloud_rain, etc) can
@@ -13,24 +13,25 @@ __doc__ = """
               python -m PseudoNetCDF.camxfiles.uamiv
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-__all__=['Memmaps',
-    'Readers',
-    'cloud_rain',
-    'height_pressure',
-    'humidity',
-    'ipr',
-    'irr',
-    'landuse',
-    'lateral_boundary',
-    'one3d',
-    'point_source',
-    'temperature',
-    'uamiv',
-    'vertical_diffusivity',
-    'wind',
-    'FortranFileUtil',
-    'util',
-    'timetuple']
+__all__ = ['Memmaps',
+           'Readers',
+           'Writers',
+           'cloud_rain',
+           'height_pressure',
+           'humidity',
+           'ipr',
+           'irr',
+           'landuse',
+           'lateral_boundary',
+           'one3d',
+           'point_source',
+           'temperature',
+           'uamiv',
+           'vertical_diffusivity',
+           'wind',
+           'FortranFileUtil',
+           'util',
+           'timetuple']
 
 from . import cloud_rain
 from . import height_pressure

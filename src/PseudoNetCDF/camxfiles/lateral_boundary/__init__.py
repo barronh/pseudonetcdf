@@ -5,11 +5,11 @@ __doc__ = """
 
 .. module:: uamiv
    :platform: Unix, Windows
-   :synopsis: Provides :ref:`PseudoNetCDF` memory map and random access read 
+   :synopsis: Provides :ref:`PseudoNetCDF` memory map and random access read
    based file interfaces for CAMx UAM-IV files.
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-__all__=['Memmap','Read','Write','Transforms']
+__all__ = ['Memmap', 'Read', 'Write', 'Transforms']
 
 from . import Memmap
 
@@ -17,7 +17,7 @@ from . import Memmap
 if __name__ == '__main__':
     from PseudoNetCDF.camxfiles.lateral_boundary.Memmap import lateral_boundary
     from PseudoNetCDF.pncdump import pncdump_parser, \
-                                    dump_from_cmd_line
+        dump_from_cmd_line
     parser = pncdump_parser()
     (file_path, options, extra_args_dict) = parser.parse_args()
 

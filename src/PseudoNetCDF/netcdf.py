@@ -1,5 +1,5 @@
 
-__all__ = ['NetCDFFile']
+__all__ = ['NetCDFFile', 'NetCDFVariable']
 __doc__ = """
 .. _netcdf
 :mod:`netcdf` -- netcdf import point
@@ -14,4 +14,3 @@ __doc__ = """
 """
 from netCDF4 import Dataset as NetCDFFile
 from netCDF4 import Variable as NetCDFVariable
-

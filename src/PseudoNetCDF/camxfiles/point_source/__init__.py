@@ -5,11 +5,11 @@ __doc__ = """
 
 .. module:: point_source
    :platform: Unix, Windows
-   :synopsis: Provides :ref:`PseudoNetCDF` memory map and random access read 
+   :synopsis: Provides :ref:`PseudoNetCDF` memory map and random access read
    based file interfaces for CAMx point source files.
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
-__all__=['Memmap','Read','Write']
+__all__ = ['Memmap', 'Read', 'Write']
 
 from . import Memmap
 from . import Read
@@ -18,7 +18,7 @@ from . import Write
 if __name__ == '__main__':
     from PseudoNetCDF.camxfiles.point_source.Memmap import point_source
     from PseudoNetCDF.pncdump import pncdump_parser, \
-                                    dump_from_cmd_line
+        dump_from_cmd_line
     parser = pncdump_parser()
     (file_path, options, extra_args_dict) = parser.parse_args()
 

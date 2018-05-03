@@ -13,19 +13,47 @@ are attached and the arrays implement the Scientific.IO.NetCDF.NetCDFVariable
 interfaces.
 """
 
-__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFDimension', 'PseudoNetCDFVariableConvertUnit', 'PseudoNetCDFVariable', 'PseudoNetCDFMaskedVariable', 'PseudoIOAPIVariable', 'PseudoNetCDFVariables', 'Pseudo2NetCDF', 'reduce_dim', 'slice_dim', 'getvarpnc', 'interpvars', 'extract', 'pncbo', 'seqpncbo', 'pncexpr']
+__all__ = ['PseudoNetCDFFile', 'PseudoNetCDFDimension',
+           'PseudoNetCDFVariableConvertUnit',
+           'PseudoNetCDFVariable',
+           'PseudoNetCDFMaskedVariable',
+           'PseudoIOAPIVariable',
+           'PseudoNetCDFVariables',
+           'Pseudo2NetCDF',
+           'reduce_dim',
+           'slice_dim',
+           'getvarpnc',
+           'interpvars',
+           'extract',
+           'pncbo',
+           'seqpncbo',
+           'pncexpr',
+           'WrapPNC',
+           'manglenames',
+           'merge',
+           'pncrename',
+           'removesingleton',
+           'splitdim',
+           'mask_vals',
+           'add_attr',
+           'stack_files',
+           'extract_from_file',
+           'mesh_dim',
+           'convolve_dim',
+           'get_ncf_object',
+           'get_dimension_length']
 
-HeadURL="$HeadURL$"
-ChangeDate = "$LastChangedDate$"
-RevisionNum= "$LastChangedRevision$"
-ChangedBy  = "$LastChangedBy$"
-__version__ = RevisionNum
 
-from .core._files import PseudoNetCDFFile, PseudoNetCDFVariables, OrderedDict
+from .core._files import PseudoNetCDFFile, PseudoNetCDFVariables
 from .core._wrapnc import WrapPNC
 from .core._dimensions import PseudoNetCDFDimension
-from .core._variables import PseudoNetCDFVariable, PseudoNetCDFMaskedVariable, PseudoIOAPIVariable
-from .core._functions import interpvars, extract, mask_vals, slice_dim, reduce_dim, mesh_dim, pncbo, pncexpr, seqpncbo, getvarpnc, add_attr, stack_files, convolve_dim, manglenames, removesingleton, merge, extract_from_file, pncrename, splitdim
+from .core._variables import PseudoNetCDFVariable, PseudoNetCDFMaskedVariable
+from .core._variables import PseudoIOAPIVariable
+from .core._functions import interpvars, extract, mask_vals, slice_dim
+from .core._functions import reduce_dim, mesh_dim, pncbo, pncexpr, seqpncbo
+from .core._functions import getvarpnc, add_attr, stack_files, convolve_dim
+from .core._functions import manglenames, removesingleton, merge
+from .core._functions import extract_from_file, pncrename, splitdim
 from .core._util import get_ncf_object, get_dimension_length
 from .core._transforms import PseudoNetCDFVariableConvertUnit
 from PseudoNetCDF.pncgen import Pseudo2NetCDF
