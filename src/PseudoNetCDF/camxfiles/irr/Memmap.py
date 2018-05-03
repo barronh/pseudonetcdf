@@ -144,7 +144,6 @@ class irr(PseudoNetCDFFile):
 
     def __del__(self):
         try:
-            self.__memmaps.close()
             del self.__memmaps
         except Exception:
             pass

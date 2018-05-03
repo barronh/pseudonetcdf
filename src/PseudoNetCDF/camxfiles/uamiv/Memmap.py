@@ -326,13 +326,6 @@ class uamiv(PseudoNetCDFFile):
         return PseudoIOAPIVariable(self, k, 'f', dimensions, values=outvals,
                                    units=units)
 
-    def sync(self):
-        pass
-
-    def close(self):
-        self.sync()
-        self.__memmap__.close()
-
 
 class TestMemmap(unittest.TestCase):
     def runTest(self):
@@ -356,6 +349,16 @@ class TestMemmap(unittest.TestCase):
              1.85579920e-04, 1.96825975e-04, 2.16468165e-04, 2.19882189e-04],
             dtype='f').reshape(1, 1, 4, 5)
         self.assert_((v == checkv).all())
+
+    def testClose(self):
+        import PseudoNetCDF.testcase
+        emissfile = uamiv(PseudoNetCDF.testcase.camxfiles_paths['uamiv'])
+        emissfile.close()
+
+    def testSync(self):
+        import PseudoNetCDF.testcase
+        emissfile = uamiv(PseudoNetCDF.testcase.camxfiles_paths['uamiv'])
+        emissfile.sync()
 
 
 if __name__ == '__main__':
