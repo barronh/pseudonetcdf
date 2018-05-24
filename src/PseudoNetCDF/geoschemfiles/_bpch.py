@@ -705,7 +705,10 @@ class bpch_base(PseudoNetCDFFile):
         inlon = (lon >= lone[:, 0, None]) & (lon < lone[:, 1, None])
         inlat = (lat >= late[:, 0, None]) & (lat < late[:, 1, None])
         if not inlon.any(0).all() or not inlat.any(0).all():
-            raise ValueError('lat/lon not in domain')
+            if bounds == 'error':
+                raise ValueError('lat/lon not in domain')
+            elif bounds == 'warn':
+                warn('lat/lon not in domain')
         i = inlon.argmax(0)
         j = inlat.argmax(0)
         return i, j
