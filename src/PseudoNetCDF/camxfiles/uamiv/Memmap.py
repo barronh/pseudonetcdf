@@ -287,12 +287,12 @@ class TestMemmap(unittest.TestCase):
         v=emissfile.variables['NO2']
         self.assert_((v==array([ 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.24175494e-04, 2.79196858e-04, 1.01672206e-03, 4.36782313e-04, 0.00000000e+00, 1.54810550e-04, 3.90250643e-04, 6.18023798e-04, 3.36963218e-04, 0.00000000e+00, 1.85579920e-04, 1.96825975e-04, 2.16468165e-04, 2.19882189e-04], dtype='f').reshape(1, 1, 4, 5)).all())
 
-    def testClose(self)
+    def testClose(self):
         import PseudoNetCDF.testcase
         emissfile=uamiv(PseudoNetCDF.testcase.camxfiles_paths['uamiv'])
         emissfile.close()
 
-    def testSync(self)
+    def testSync(self):
         import PseudoNetCDF.testcase
         emissfile=uamiv(PseudoNetCDF.testcase.camxfiles_paths['uamiv'])
         emissfile.sync()
