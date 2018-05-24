@@ -19,11 +19,10 @@ def getbounds(ifile, dimkey):
         if not (ddm == dd).all():
             warn('Bounds is an approximation assuming ' +
                  '%s variable is cell centers' % dimkey)
-        else:
-            db = (d[:-1] + d[1:]) / 2.
-            db = np.append(
-                np.append(d[0] - dd[0] / 2., db), d[-1] + dd[-1] / 2)
-            return db
+
+        db = (d[:-1] + d[1:]) / 2.
+        db = np.append(np.append(d[0] - dd[0] / 2., db), d[-1] + dd[-1] / 2)
+        return db
     else:
         return np.arange(0, len(dim))
     if len(dim) == db.shape[0] and db.shape[1] == 2:

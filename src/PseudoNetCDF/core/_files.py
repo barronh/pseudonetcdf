@@ -507,7 +507,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         var = self.variables[varkey]
         varunit = varkey
         if hasattr(var, 'units'):
-            varunit += var.units.strip()
+            varunit += ' ' + var.units.strip()
 
         dimlens = dict([(dk, len(self.dimensions[dk]))
                         for dk in var.dimensions])

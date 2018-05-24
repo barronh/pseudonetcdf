@@ -79,7 +79,7 @@ class arlconcdump(PseudoNetCDFFile):
         REAL*4 Grid spacing (DELTA-LATITUDE,DELTA-LONGITUDE)
         REAL*4 Grid lower left corner (LATITUDE, LONGITUDE)
         """
-        rec3 = np.fromfile(infile, dtype='>i,>2i,>2i,>2f,>i', count=1)[0]
+        rec3 = np.fromfile(infile, dtype='>i,>2i,>2f,>2f,>i', count=1)[0]
         assert(rec3['f0'] == rec3['f4'])
 
         self.NLATS = rec3['f1'][0]
@@ -189,8 +189,8 @@ class arlconcdump(PseudoNetCDFFile):
                                       np.dtype([('f0', forfmt, 1),
                                                 ('data', ijcdt, myc),
                                                 ('f1', '>i', 1)]), count=1)
-                    Jidx = tmp[0]['data']['J']
-                    Iidx = tmp[0]['data']['I']
+                    Jidx = tmp[0]['data']['J'] - 1
+                    Iidx = tmp[0]['data']['I'] - 1
                     Cval = tmp[0]['data']['C']
                     c[Jidx, Iidx] = Cval
                 else:

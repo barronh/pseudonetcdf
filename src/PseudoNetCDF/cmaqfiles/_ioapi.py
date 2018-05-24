@@ -550,8 +550,6 @@ class ioapi_base(PseudoNetCDFFile):
 
         if dimpos[xkey] < dimpos[ykey]:
             vals = vals.T
-        p = ax.pcolormesh(x, y, vals, **plot_kw)
-        ax.figure.colorbar(p, label=varunit, **cbar_kw)
         if xkey == 'TSTEP':
             ax.xaxis.set_major_formatter(
                 plt.matplotlib.dates.AutoDateFormatter(
@@ -565,11 +563,16 @@ class ioapi_base(PseudoNetCDFFile):
                 bmap = myf.getMap()
                 bmap.drawcoastlines(ax=ax)
                 bmap.drawcountries(ax=ax)
+                x = np.arange(self.NCOLS+1) * self.XCELL
+                y = np.arange(self.NROWS+1) * self.YCELL
             except Exception:
                 pass
         else:
             ax.set_xlabel(xkey)
             ax.set_ylabel(ykey)
+
+        p = ax.pcolormesh(x, y, vals, **plot_kw)
+        ax.figure.colorbar(p, label=varunit, **cbar_kw)
         return ax
 
 
