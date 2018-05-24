@@ -615,7 +615,7 @@ def pncbo(op, ifile1, ifile2, coordkeys = [], verbose = 0):
         in1var = ifile1.variables[k]
         if k not in ifile2.variables.keys() or k in coordkeys:
             warn('%s not found in ifile2' % k)
-            tmpfile.copyVariable(in1var, newkey = k)
+            tmpfile.copyVariable(in1var, key = k)
         else:
             in2var = ifile2.variables[k]
             propd = dict([(ak, getattr(in1var, ak)) for ak in in1var.ncattrs()])
