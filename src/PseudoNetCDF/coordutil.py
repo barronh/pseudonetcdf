@@ -623,7 +623,9 @@ def getproj4(ifile, withgrid=False):
             else:
                 gridmapping = ifile.variables[gridmappings[0]]
                 mapstr = getproj4_from_cf_var(gridmapping, withgrid=withgrid)
-
+    else:
+        warn('No known grid mapping; assuming lonlat')
+        mapstr = '+proj=lonlat'
     mapstr += ' +no_defs'
     return mapstr
 
