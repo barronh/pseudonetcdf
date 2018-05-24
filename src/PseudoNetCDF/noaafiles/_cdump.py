@@ -70,7 +70,7 @@ class arlconcdump(PseudoNetCDFFile):
         REAL*4 Grid spacing (DELTA-LATITUDE,DELTA-LONGITUDE)
         REAL*4 Grid lower left corner (LATITUDE, LONGITUDE) 
         """
-        rec3 = np.fromfile(infile, dtype = '>i,>2i,>2i,>2f,>i', count = 1)[0]
+        rec3 = np.fromfile(infile, dtype = '>i,>2i,>2f,>2f,>i', count = 1)[0]
         assert(rec3['f0'] == rec3['f4'])
         
         nlats = self.NLATS = rec3['f1'][0]
@@ -173,10 +173,10 @@ class arlconcdump(PseudoNetCDFFile):
                     infile.seek(-16, 1)
                     c = np.zeros((nlats, nlons), dtype = 'f')
                     tmp = np.fromfile(infile, np.dtype([('f0', forfmt, 1), ('data', np.dtype(dict(names = 'IJC', formats = '>i2,>i2,>f'.split(','))), myc), ('f1', '>i',1)]), count = 1)
-                    J = tmp[0]['data']['J']
-                    I = tmp[0]['data']['I']
+                    Jidx = tmp[0]['data']['J'] - 1
+                    Iidx = tmp[0]['data']['I'] - 1
                     C = tmp[0]['data']['C']
-                    c[J, I] = C
+                    c[Jidx, Iidx] = C
                 else:
                     c = np.fromfile(infile, dtype = nopackfmt, count = 1)[0]
                 outs.append(c)
