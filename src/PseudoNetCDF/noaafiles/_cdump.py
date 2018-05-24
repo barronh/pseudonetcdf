@@ -17,6 +17,27 @@ class arlconcdump(PseudoNetCDFFile):
         self._rec12345()
         if not metaonly:
             self._datarec()
+        self.createDimension('nv', 2)
+        lat = self.createVariable(
+            'latitude', 'f', ('latitude',), units='degrees_north',
+            values=(self.LLCRNR_LAT + self.DELTA_LAT / 2 +
+                    np.arange(self.NLATS) * self.DELTA_LAT)
+        )
+        lon = self.createVariable(
+            'longitude', 'f', ('longitude',), units='degrees_east',
+            values=(self.LLCRNR_LON + self.DELTA_LON / 2 +
+                    np.arange(self.NLONS) * self.DELTA_LON)
+        )
+        self.createVariable(
+            'latitude_bounds', 'f', ('latitude', 'nv'), units='degrees_north',
+            values=np.array([lat - self.DELTA_LAT / 2,
+                             lat + self.DELTA_LAT / 2]).T
+        )
+        self.createVariable(
+            'longitude_bounds', 'f', ('longitude', 'nv'), units='degrees_east',
+            values=np.array([lon - self.DELTA_LON / 2,
+                             lon + self.DELTA_LON / 2]).T
+        )
 
     def _rec12345(self):
         """
