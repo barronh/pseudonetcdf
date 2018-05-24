@@ -166,13 +166,6 @@ class finst(PseudoNetCDFFile):
         self.createDimension('ROW',self.NEST_PARMS[ngrid]['ny'])
         self.CURRENT_GRID='grid%d' % ngrid
 
-    def sync(self):
-        pass
-    
-    def close(self):
-        self.sync()
-        self.__memmap__.close()
-        
     def __variables(self,k):
         dimensions=('TSTEP','LAY','ROW','COL')
         ntimes=len(self.dimensions['TSTEP'])
