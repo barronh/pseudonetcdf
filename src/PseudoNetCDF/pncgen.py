@@ -221,7 +221,7 @@ outfile = Dataset(outpath, 'w')
 
 
 def pncgen(ifile, outpath, inmode='r', outmode='w', format='NETCDF4_CLASSIC',
-           verbose=1):
+           verbose=1, complevel=0):
     """
     ifile - input file to write out
     outpath - path to outputfile
@@ -232,6 +232,9 @@ def pncgen(ifile, outpath, inmode='r', outmode='w', format='NETCDF4_CLASSIC',
     if format[:6] == 'NETCDF':
         p2n = Pseudo2NetCDF()
         p2n.verbose = verbose
+        if complevel > 0:
+            p2n.create_variable_kwds['zlib'] = True
+            p2n.create_variable_kwds['complevel'] = complevel
         return p2n.convert(ifile, outpath, inmode=inmode, outmode=outmode,
                            format=format)
 
