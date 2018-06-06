@@ -1294,6 +1294,9 @@ class netcdf(PseudoNetCDFFile, NetCDFFile):
     def createVariable(self, *args, **kwds):
         return NetCDFFile.createVariable(self, *args, **kwds)
     
+    def setncattr(self, k, v):
+        return NetCDFFile.setncattr(self, k, v)
+
     def __setattr__(self, k, v):
         NetCDFFile.__setattr__(self, k, v)
         
