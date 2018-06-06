@@ -1,6 +1,5 @@
 from PseudoNetCDF.pncwarn import warn
-from netCDF4 import Dataset
-from ..core._files import PseudoNetCDFFile
+from ..core._files import PseudoNetCDFFile, netcdf
 from collections import OrderedDict
 import numpy as np
 import datetime
@@ -53,9 +52,6 @@ def ioapi_sort_meta(infile):
 
 
 class ioapi_base(PseudoNetCDFFile):
-    def __getattributte__(self, *args, **kwds):
-        return getattr(self, *args, **kwds)
-
     @classmethod
     def isMine(self, path):
         return False
@@ -379,7 +375,7 @@ class ioapi_base(PseudoNetCDFFile):
         if 'COL' in self.dimensions:
             self.NCOLS = len(self.dimensions['COL'])
         if 'ROW' in self.dimensions:
-            self.NCOLS = len(self.dimensions['ROW'])
+            self.NROWS = len(self.dimensions['ROW'])
 
         self._updatetime()
         try:
@@ -460,9 +456,14 @@ class ioapi_base(PseudoNetCDFFile):
         see PseudoNetCDFFile.getMap
         """
         if maptype.endswith('_auto'):
-            lllon, lllat = self.xy2ll(0, 0)
-            urlon, urlat = self.xy2ll(
-                self.NCOLS * self.XCELL, self.NROWS * self.YCELL)
+            if self.GDTYP == 1:
+                lllon, lllat = self.XORIG, self.YORIG
+                urlon = self.XORIG + self.NCOLS * self.XCELL
+                urlat = self.YORIG + self.NROWS * self.YCELL
+            else:
+                lllon, lllat = self.xy2ll(0, 0)
+                urlon, urlat = self.xy2ll(
+                    self.NCOLS * self.XCELL, self.NROWS * self.YCELL)
             kwds.setdefault('llcrnrlon', lllon)
             kwds.setdefault('llcrnrlat', lllat)
             kwds.setdefault('urcrnrlon', urlon)
@@ -471,8 +472,8 @@ class ioapi_base(PseudoNetCDFFile):
 
         return PseudoNetCDFFile.getMap(self, maptype=maptype, **kwds)
 
-    def plot(self, varkey, plottype='longitude-latitude', ax_kw={}, plot_kw={},
-             cbar_kw={}, dimreduction='mean'):
+    def plot(self, varkey, plottype='longitude-latitude', ax_kw=None,
+             plot_kw=None, cbar_kw=None, map_kw=None, dimreduction='mean'):
         """
         Parameters
         ----------
@@ -485,9 +486,28 @@ class ioapi_base(PseudoNetCDFFile):
         plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be
                   created
         cbar_kw : keywords for the colorbar
+        map_kw : keywords for the getMap routine, which is only used with
+                 plottype='longitude-latitude'
+        dimreduction : dimensions not being used in the plot are removed
+                       using applyAlongDimensions(dimkey=dimreduction) where
+                       each dimenions
         """
+
         import matplotlib.pyplot as plt
         from ..coordutil import getbounds
+
+        if ax_kw is None:
+            ax_kw = {}
+
+        if plot_kw is None:
+            plot_kw = {}
+
+        if cbar_kw is None:
+            cbar_kw = {}
+
+        if map_kw is None:
+            map_kw = {}
+
         apply2dim = {}
         var = self.variables[varkey]
         varunit = varkey
@@ -560,12 +580,15 @@ class ioapi_base(PseudoNetCDFFile):
                     plt.matplotlib.dates.AutoDateLocator()))
         if plottype == 'longitude-latitude':
             try:
-                bmap = myf.getMap()
+                bmap = myf.getMap(**map_kw)
                 bmap.drawcoastlines(ax=ax)
                 bmap.drawcountries(ax=ax)
                 x = np.arange(self.NCOLS+1) * self.XCELL
                 y = np.arange(self.NROWS+1) * self.YCELL
-            except Exception:
+                if self.GDTYP == 1:
+                    x += self.XORIG
+                    y += self.YORIG
+            except Exception as e:
                 pass
         else:
             ax.set_xlabel(xkey)
@@ -576,10 +599,7 @@ class ioapi_base(PseudoNetCDFFile):
         return ax
 
 
-class ioapi(Dataset, ioapi_base):
-    def __getattribute__(self, *args, **kwds):
-        return Dataset.__getattribute__(self, *args, **kwds)
-
+class ioapi(ioapi_base, netcdf):
     def _newlike(self):
         if isinstance(self, PseudoNetCDFFile):
             outt = ioapi_base
@@ -592,7 +612,7 @@ class ioapi(Dataset, ioapi_base):
     @classmethod
     def isMine(cls, *args, **kwds):
         try:
-            f = Dataset(*args, **kwds)
+            f = netcdf(*args, **kwds)
             for dk in ['TSTEP', 'VAR', 'DATE-TIME']:
                 assert(dk in f.dimensions)
             attrlist = f.ncattrs()

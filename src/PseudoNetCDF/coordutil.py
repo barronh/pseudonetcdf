@@ -593,7 +593,7 @@ def getproj4(ifile, withgrid=False):
     """
     from .conventions.ioapi import getmapdef
     if (
-        getattr(ifile, 'GDTYP', 0) in (2, 6, 7) and
+        getattr(ifile, 'GDTYP', 0) in (1, 2, 6, 7) and
         all([hasattr(ifile, k)
              for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()])
     ):
