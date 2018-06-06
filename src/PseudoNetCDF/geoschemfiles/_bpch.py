@@ -488,8 +488,9 @@ class bpch_base(PseudoNetCDFFile):
         else:
             return time
 
-    def plot(self, varkey, plottype='longitude-latitude', ax_kw={}, plot_kw={},
-             cbar_kw={}, dimreduction='mean', laykey=None):
+    def plot(self, varkey, plottype='longitude-latitude', ax_kw=None,
+             plot_kw=None, cbar_kw=None, map_kw=None, dimreduction='mean',
+             laykey=None):
         """
         Parameters
         ----------
@@ -502,11 +503,28 @@ class bpch_base(PseudoNetCDFFile):
         plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be
                   created
         cbar_kw : keywords for the colorbar
-        dimreduction : default function for removing dimensions
+        map_kw : keywords for the getMap routine, which is only used with
+                 plottype='longitude-latitude'
+        dimreduction : dimensions not being used in the plot are removed
+                       using applyAlongDimensions(dimkey=dimreduction) where
+                       each dimenions
         laykey : name of the layer dimension (e.g., layer47)
         """
         import matplotlib.pyplot as plt
         from ..coordutil import getbounds
+
+        if ax_kw is None:
+            ax_kw = {}
+
+        if plot_kw is None:
+            plot_kw = {}
+
+        if cbar_kw is None:
+            cbar_kw = {}
+
+        if map_kw is None:
+            map_kw = {}
+
         apply2dim = {}
         var = self.variables[varkey]
         varunit = varunit = varkey + ' (' + getattr(var, 'units', None) + ')'
@@ -591,7 +609,7 @@ class bpch_base(PseudoNetCDFFile):
             ax.yaxis.set_major_formatter(dfmt)
         if plottype == 'longitude-latitude':
             try:
-                bmap = myf.getMap()
+                bmap = myf.getMap(**map_kw)
                 bmap.drawcoastlines(ax=ax)
                 bmap.drawcountries(ax=ax)
             except Exception:

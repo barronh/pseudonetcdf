@@ -67,8 +67,8 @@ class ceilometerl2(PseudoNetCDFFile):
         bscatprof[:] = np.ma.masked_greater(np.ma.masked_less(BS_PROFILE, 10),
                                             540000)
 
-    def plot(self, fig_kw={'figsize': (12, 6)}, ax_kw={}, cax_kw={},
-             pcolor_kw={}):
+    def plot(self, fig_kw={'figsize': (12, 6)}, ax_kw=None, cax_kw=None,
+             pcolor_kw=None):
         """
         Parameters
         ----------
@@ -95,6 +95,16 @@ class ceilometerl2(PseudoNetCDFFile):
             right of the primary axis and takes 1/3 of the remaining space
         - pcolor_kw : see matplotlib.pyplot.pcolormesh for options
         """
+
+        if ax_kw is None:
+            ax_kw = {}
+
+        if cax_kw is None:
+            cax_kw = {}
+
+        if pcolor_kw is None:
+            plot_kw = {}
+
         timedelta = plt.matplotlib.dates.datetime.timedelta
         fig = plt.figure(**fig_kw)
         axrect = ax_kw.pop('rect', [.075, .15, .8, .8])
