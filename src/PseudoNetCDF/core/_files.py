@@ -159,7 +159,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             if dk in self.dimensions:
                 return dk
 
-    def ll2ij(self, lon, lat, bounds='ignore'):
+    def ll2ij(self, lon, lat, bounds='ignore', clean='none'):
         """
         Converts lon/lat to 0-based indicies (0,M), (0,N)
 
@@ -168,6 +168,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         lon : scalar or iterable of longitudes in decimal degrees
         lat : scalar or iterable of latitudes in decimal degrees
         bounds : ignore, error, warn if i,j are out of domain
+        clean : none - return values regardless of bounds
+                mask - mask values out of bounds
+                clip - return min(max(0, v), nx - 1)
 
         Returns
         -------
@@ -178,11 +181,11 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         x, y = p(lon, lat)
         i = np.asarray(x).astype('i')
         j = np.asarray(y).astype('i')
+        nx = len(self.dimensions[self._getxdim()])
+        ny = len(self.dimensions[self._getydim()])
         if bounds == 'ignore':
             pass
         else:
-            nx = len(self.dimensions[self._getxdim()])
-            ny = len(self.dimensions[self._getydim()])
             lowi = (i < 0)
             lowj = (j < 0)
             highi = (i >= nx)
@@ -196,6 +199,13 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                     raise ValueError(message)
                 else:
                     warn(message)
+        if clean == 'clip':
+            i = np.minimum(np.maximum(i, 0), nx - 1)
+            j = np.minimum(np.maximum(j, 0), ny - 1)
+        elif clean == 'mask':
+            i = np.ma.masked_greater(np.ma.masked_less(i, 0), nx - 1)
+            j = np.ma.masked_greater(np.ma.masked_less(j, 0), ny - 1)
+
         return i, j
 
     def xy2ll(self, x, y):
@@ -238,7 +248,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
     def _newlike(self):
         """
         Internal function to return a file of the same class if a
-        PsueoNetCDFFile
+        PseudoNetCDFFile
         """
         if isinstance(self, PseudoNetCDFFile):
             outt = type(self)
@@ -486,8 +496,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
 
         return outf
 
-    def plot(self, varkey, plottype='longitude-latitude', ax_kw={}, plot_kw={},
-             cbar_kw={}, dimreduction='mean'):
+    def plot(self, varkey, plottype='longitude-latitude', ax_kw=None,
+             plot_kw=None, cbar_kw=None, map_kw=None, dimreduction='mean'):
         """
         Parameters
         ----------
@@ -500,9 +510,27 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be
                   created
         cbar_kw : keywords for the colorbar
+        map_kw : keywords for the getMap routine, which is only used with
+                 plottype='longitude-latitude'
+        dimreduction : dimensions not being used in the plot are removed
+                       using applyAlongDimensions(dimkey=dimreduction) where
+                       each dimenions
         """
         import matplotlib.pyplot as plt
         from ..coordutil import getbounds
+
+        if ax_kw is None:
+            ax_kw = {}
+
+        if plot_kw is None:
+            plot_kw = {}
+
+        if cbar_kw is None:
+            cbar_kw = {}
+
+        if map_kw is None:
+            map_kw = {}
+
         apply2dim = {}
         var = self.variables[varkey]
         varunit = varkey
@@ -578,7 +606,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             )
         if plottype == 'longitude-latitude':
             try:
-                bmap = myf.getMap()
+                bmap = myf.getMap(**map_kw)
                 bmap.drawcoastlines(ax=ax)
                 bmap.drawcountries(ax=ax)
             except Exception:
@@ -1198,8 +1226,13 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         return new
 
     def __init__(self, *args, **properties):
+        mode = properties.pop('mode', 'w')
+        self._mode = mode
         for k, v in properties.items():
             setattr(self, k, v)
+
+    def iswritable(self):
+        return (self._mode[:1] in ('a', 'w') or self._mode[:2] in ('r+',))
 
     def __setattr__(self, k, v):
         if not (k[:1] == '_' or k in ('dimensions', 'variables', 'groups')):
@@ -1373,7 +1406,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         return self._ncattrs
 
     def setncattr(self, k, v):
-        return setattr(self, k, v)
+        return object.__setattr__(self, k, v)
 
     def delncattr(self, k):
         self.__delattr__(k)
@@ -1472,8 +1505,11 @@ class netcdf(PseudoNetCDFFile, NetCDFFile):
     def createVariable(self, *args, **kwds):
         return NetCDFFile.createVariable(self, *args, **kwds)
 
+    def setncattr(self, k, v):
+        return NetCDFFile.setncattr(self, k, v)
+
     def __setattr__(self, k, v):
-        NetCDFFile.__setattr__(self, k, v)
+        return NetCDFFile.__setattr__(self, k, v)
 
     def __delattr__(self, k):
         NetCDFFile.__delattr__(self, k)
