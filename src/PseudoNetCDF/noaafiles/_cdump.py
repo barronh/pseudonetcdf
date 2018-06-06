@@ -1,23 +1,33 @@
 import numpy as np
 from PseudoNetCDF import PseudoNetCDFFile
+from datetime import datetime
+from .arltime import arl2time
+
+strptime = datetime.strptime
+
+_packhdrfmt = np.dtype('>i,>S4,>i,>i')
+
+_ijcdt = np.dtype(dict(names='IJC',
+                       formats='>i2,>i2,>f'.split(',')))
 
 
 class arlconcdump(PseudoNetCDFFile):
     @classmethod
-    def isMine(cls, path):
+    def isMine(cls, *args, **kwds):
+        kwds.pop('metaonly', None)
         try:
-            cls(path, metaonly=True)
+            cls(*args, metaonly=True, **kwds)
             return True
         except Exception:
             return False
 
-    def __init__(self, path, metaonly=False):
+    def __init__(self, path, metaonly=False, vector=False):
         self._infile = open(path, 'rb')
+        self._vector = vector
         self._infile.seek(0, 0)
         self._rec12345()
         if not metaonly:
             self._datarec()
-        self.createDimension('nv', 2)
         lat = self.createVariable(
             'latitude', 'f', ('latitude',), units='degrees_north',
             values=(self.LLCRNR_LAT + self.DELTA_LAT / 2 +
@@ -38,6 +48,23 @@ class arlconcdump(PseudoNetCDFFile):
             values=np.array([lon - self.DELTA_LON / 2,
                              lon + self.DELTA_LON / 2]).T
         )
+        if self._vector:
+            tempf = self.subsetVariables(['latitude', 'latitude_bounds',
+                                          'longitude', 'longitude_bounds',
+                                          'time', 'time_bounds',
+                                          'layer'])\
+                        .sliceDimensions(
+                                         latitude=self.variables['J'],
+                                         longitude=self.variables['I'],
+                                         time=self.variables['T'],
+                                         layer=self.variables['K'])\
+                        .renameDimensions(
+                                         latitude='points',
+                                         longitude='points',
+                                         time='points',
+                                         layer='points')
+            for key in list(tempf.variables):
+                self.variables[key] = tempf.variables[key]
 
     def _rec12345(self):
         """
@@ -134,6 +161,9 @@ class arlconcdump(PseudoNetCDFFile):
         """
         tmp = np.fromfile(infile, dtype='>i,>i', count=1)
         npols = self.NPOLS = tmp['f1'][0]
+        if npols > 1 and self._vector:
+            raise IOError('The vector option and multipollutant files ' +
+                          'are not compatible')
         infile.seek(-8, 1)
         rec5 = np.fromfile(infile, dtype='>i,>i,>({},)S4,>i'.format(
             npols), count=1).squeeze()
@@ -154,13 +184,19 @@ class arlconcdump(PseudoNetCDFFile):
         datasize = total - now
         datasize
         thdr = np.dtype('>i,>6i,>i')
-        nopackfmt = np.dtype('>i,>S4,>i,>({},{})f,>i'.format(nlats, nlons))
+        nopackdfmt = '>({},{})f'.format(nlats, nlons)
+        nopackfmt = np.dtype(
+            dict(
+                names=['B', 'POL', 'LAY', 'data', 'E'],
+                formats=['>i', '>S4', '>i', nopackdfmt, '>i']
+            )
+        )
         outs = []
         pols = []
         lays = []
         starts = []
         stops = []
-        # ctmp = np.zeros((nlats, nlons), dtype='f')
+        ti = 0
         while infile.tell() != total:
             """
             Record #6 Loop to record: Number of output times
@@ -168,14 +204,14 @@ class arlconcdump(PseudoNetCDFFile):
             INT*4 Sample start (YEAR MONTH DAY HOUR MINUTE FORECAST)
             """
             start = np.fromfile(infile, dtype=thdr, count=1)
-            starts.append(start)
+            starts.append(start['f1'][0])
             """
             Record #7 Loop to record: Number of output times
 
             INT*4 Sample stop (YEAR MONTH DAY HOUR MINUTE FORECAST)
             """
             stop = np.fromfile(infile, dtype=thdr, count=1)
-            stops.append(stop)
+            stops.append(stop['f1'][0])
             """
             Record #8 Loop to record: Number levels, Number of pollutant types
 
@@ -192,47 +228,106 @@ class arlconcdump(PseudoNetCDFFile):
             INT*2 - Second (J) index value
             REAL*4 - Concentration at (I,J)**_
             """
-            for i in range(npols * nlays):
-                if pack:
-                    forfmt = np.dtype('>i,>S4,>i,>i')
-                    tmp = np.fromfile(infile, forfmt, count=1)
-                    # myb = tmp['f0'][0]
-                    myp = tmp['f1'][0]
-                    myl = tmp['f2'][0]
-                    pols.append(myp)
-                    lays.append(myl)
-                    myc = tmp['f3'][0]
-                    infile.seek(-16, 1)
-                    c = np.zeros((nlats, nlons), dtype='f')
-                    ijcdt = np.dtype(dict(names='IJC',
-                                          formats='>i2,>i2,>f'.split(',')))
-                    tmp = np.fromfile(infile,
-                                      np.dtype([('f0', forfmt, 1),
-                                                ('data', ijcdt, myc),
-                                                ('f1', '>i', 1)]), count=1)
-                    Jidx = tmp[0]['data']['J'] - 1
-                    Iidx = tmp[0]['data']['I'] - 1
-                    Cval = tmp[0]['data']['C']
-                    c[Jidx, Iidx] = Cval
-                else:
-                    c = np.fromfile(infile, dtype=nopackfmt, count=1)[0]
-                outs.append(c)
-        datablock = np.array(outs).reshape(-1, nlays, npols, nlats, nlons)
-        ntimes = datablock.shape[0]
-        pols = np.array(pols).reshape(ntimes, nlays, npols)
-        lays = np.array(lays).reshape(ntimes, nlays, npols)
+            if pack:
+                # c = np.zeros((npols, nlays, nlats, nlons), dtype='f')
+                for pi in range(npols):
+                    for li in range(nlays):
+                        tmp = np.fromfile(infile, _packhdrfmt, count=1)
+                        myp = tmp['f1'][0]
+                        myl = tmp['f2'][0]
+                        pols.append(myp)
+                        lays.append(myl)
+                        myc = tmp['f3'][0]
+                        tmp = np.fromfile(infile,
+                                          np.dtype([
+                                                    ('data', _ijcdt, myc),
+                                                    ('f1', '>i', 1)]), count=1)
+                        tdata = tmp['data'][0]
+                        Jidx = tdata['J'] - 1
+                        Iidx = tdata['I'] - 1
+
+                        # c[pi, li, Jidx, Iidx] = tdata['C']
+                        if self._vector:
+                            if myc > 0:
+                                zl = np.array(np.ones_like(Jidx), ndmin=1)
+                                outs.append([
+                                    ti * zl, pi * zl, li * zl, Jidx,
+                                    Iidx, tdata['C']]
+                                )
+                        else:
+                            outs.append([ti, pi, li, Jidx, Iidx, tdata['C']])
+            else:
+                npblock = np.fromfile(
+                    infile, dtype=nopackfmt, count=npols * nlays)
+                c = npblock['data']
+                outs.append(c.reshape(npols, nlays, nlats, nlons))
+            ti += 1
+
+        ntimes = ti
+        if isinstance(outs[0], list):
+            if self._vector:
+                datablock = np.concatenate(
+                    [
+                        np.array(out, ndmin=2, dtype='f').reshape(6, -1)
+                        for out in outs
+                    ],
+                    axis=1
+                ).T
+                npoints = datablock.shape[0]
+            else:
+                datablock = np.zeros((ntimes, npols, nlays, nlats, nlons),
+                                     dtype='f')
+                for ti, pi, li, ji, ii, v in outs:
+                    datablock[ti, pi, li, ji, ii] = v
+        else:
+            datablock = np.stack(outs, axis=0)
+        pols = np.array(pols).reshape(ntimes, npols, nlays)
+        lays = np.array(lays).reshape(ntimes, npols, nlays)
         self.createDimension('time', ntimes)
+        if self._vector:
+            self.createDimension('points', npoints)
         self.createDimension('layer', nlays)
         self.createDimension('latitude', nlats)
         self.createDimension('longitude', nlons)
-        assert((lays[:, :, [0]] == lays[:, :, :]).all())
-        assert((pols[:, [0], :] == pols[:, :, :]).all())
-        for pi, pol in enumerate(pols[0, 0]):
-            var = self.createVariable(
-                pol.decode(), 'f', ('time', 'layer', 'latitude', 'longitude'))
+        self.createDimension('nv', 2)
+        assert((lays[:, [0], :] == lays[:, :, :]).all())
+        assert((pols[:, :, [0]] == pols[:, :, :]).all())
+        if self._vector:
+            poldims = ('points',)
+            for key, idx in [('T', 0), ('J', -3), ('I', -2), ('K', -4)]:
+                self.createVariable(
+                    key, 'i', poldims,
+                    units='0-based index',
+                    values=datablock[:, idx].astype('i')
+                )
+        else:
+            poldims = ('time', 'layer', 'latitude', 'longitude')
+        for pi, pol in enumerate(pols[0, :, 0]):
+            if self._vector:
+                poldata = datablock[:, -1][datablock[:, 1] == pi]
+            else:
+                poldata = datablock[:, pi]
+            var = self.createVariable(pol.decode(), 'f', poldims,
+                                      values=poldata)
             var.units = 'arbitrary'
             var.description = pol.decode()
-            var[:] = datablock[:, :, pi]
+
+        time = self.createVariable(
+            'time', 'd', ('time',),
+            units='seconds since 1970-01-01 00:00:00+0000'
+        )
+        time_bounds = self.createVariable(
+            'time_bounds', 'd', ('time', 'nv'),
+            units='seconds since 1970-01-01 00:00:00+0000'
+        )
+        rdate = strptime('1970-01-01 00:00:00+0000', '%Y-%m-%d %H:%M:%S%z')
+        sdt = np.array([(arl2time(YY, MM, DD, HH, mm) - rdate).total_seconds()
+                       for YY, MM, DD, HH, mm, FF in starts])
+        edt = np.array([(arl2time(YY, MM, DD, HH, mm) - rdate).total_seconds()
+                       for YY, MM, DD, HH, mm, FF in stops])
+        time_bounds[:, 0] = sdt
+        time_bounds[:, 1] = edt
+        time[:] = time_bounds.mean(1)
 
 
 if __name__ == '__main__':
