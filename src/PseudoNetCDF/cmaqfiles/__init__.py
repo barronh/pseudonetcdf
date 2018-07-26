@@ -21,3 +21,4 @@ from ._jtable import jtable
 from .boxmodel import box_model_conc, box_model_mrg
 from .profile import bcon_profile, icon_profile
 from ._ioapi import ioapi, ioapi_base
+from ._griddesc import griddesc
