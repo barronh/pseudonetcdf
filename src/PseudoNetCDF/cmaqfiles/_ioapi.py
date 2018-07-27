@@ -53,7 +53,7 @@ def ioapi_sort_meta(infile):
 
 class ioapi_base(PseudoNetCDFFile):
     @classmethod
-    def isMine(self, path):
+    def isMine(self, path, *args, **kwds):):
         return False
 
     def _updatetime(self, write=True, create=False):
