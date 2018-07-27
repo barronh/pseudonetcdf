@@ -106,16 +106,16 @@ class arltrajdump(PseudoNetCDFFile):
         v.long_name = 'hour of the day (GMT)'
         v[:] = trajmeta[:, 3].astype('i')
         v = self.createVariable(
-            'trajectory_init_latitude', 'i', ('trajectory',))
+            'trajectory_init_latitude', 'f', ('trajectory',))
         v.units = 'degrees_north'
         v.long_name = 'initial latitude'
         v[:] = trajmeta[:, 4]
         v = self.createVariable(
-            'trajectory_init_longitude', 'i', ('trajectory',))
+            'trajectory_init_longitude', 'f', ('trajectory',))
         v.units = 'degrees_east'
         v.long_name = 'initial longitude'
         v[:] = trajmeta[:, 5]
-        v = self.createVariable('trajectory_init_height', 'i', ('trajectory',))
+        v = self.createVariable('trajectory_init_height', 'f', ('trajectory',))
         v.units = 'meters agl'
         v.long_name = 'initial altitude'
         v[:] = trajmeta[:, 6]
