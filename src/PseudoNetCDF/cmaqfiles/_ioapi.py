@@ -53,7 +53,7 @@ def ioapi_sort_meta(infile):
 
 class ioapi_base(PseudoNetCDFFile):
     @classmethod
-    def isMine(self, path, *args, **kwds):):
+    def isMine(self, path, *args, **kwds):
         return False
 
     def _updatetime(self, write=True, create=False):
@@ -159,7 +159,7 @@ class ioapi_base(PseudoNetCDFFile):
         dimslices.pop('newdims', None)
 
         # Identify array indices and the need for fancy indexing
-        isarray = {dk: not np.isscalar(dv) for dk, dv in dimslices.items()}
+        isarray = {dk: not np.isscalar(dv) and not isinstance(dv, slice) for dk, dv in dimslices.items()}
         # anyisarray = np.sum(list(isarray.values())) > 1
 
         # Check if COL or ROW was used
@@ -168,7 +168,9 @@ class ioapi_base(PseudoNetCDFFile):
         deleterowcol = False
         if hascol and hasrow:
             if isarray['ROW'] and isarray['COL']:
-                deleterowcol = True
+                newdims = kwds.get('newdims', ('POINTS',))
+                if 'ROW' not in newdims and 'COL' not in newdims:
+                    deleterowcol = True
 
         # If lay was subset, subset VGLVLS too
         if 'LAY' in kwds:
@@ -212,7 +214,8 @@ class ioapi_base(PseudoNetCDFFile):
         return outf
 
     def interpSigma(self, vglvls, vgtop=None, interptype='linear',
-                    extrapolate=False, fill_value='extrapolate'):
+                    extrapolate=False, fill_value='extrapolate',
+                    verbose=0):
         """
         Parameters
         ----------
@@ -283,7 +286,7 @@ class ioapi_base(PseudoNetCDFFile):
                 'interptype only implemented for "linear" and "conserve"')
 
         # Apply function on LAY
-        outf = self.applyAlongDimensions(LAY=interpsigma)
+        outf = self.applyAlongDimensions(LAY=interpsigma, verbose=verbose)
 
         # Ensure vglvls is a simple array
         outf.VGLVLS = vglvls.view(np.ndarray).astype('f')
@@ -318,8 +321,8 @@ class ioapi_base(PseudoNetCDFFile):
         """
         if not hasattr(self, 'VAR-LIST'):
             varliststr_old = ''
-            varlist = ''.join([k.ljust(16) for k, v in self.variables.items(
-            ) if v.dimensions[:2] == ('TSTEP', 'LAY')])
+            varlist = ''.join([k.ljust(16) for k, v in self.variables.items()
+                               if v.dimensions[:2] == ('TSTEP', 'LAY')])
         else:
             varliststr_old = getattr(self, 'VAR-LIST')
             varlist = [vk for vk in varliststr_old.split()
@@ -329,14 +332,16 @@ class ioapi_base(PseudoNetCDFFile):
             setattr(self, 'VAR-LIST', varliststr_new)
         if update and len(varlist) != self.NVARS:
             self.NVARS = len(varlist)
-            if 'VAR' in self.dimensions:
-                if self.NVARS != len(self.dimensions['VAR']):
-                    try:
-                        self.createDimension('VAR', self.NVARS)
-                    except Exception:
-                        pass
-            else:
-                self.createDimension('VAR', self.NVARS)
+
+        if 'VAR' in self.dimensions:
+            if self.NVARS != len(self.dimensions['VAR']):
+                try:
+                    self.createDimension('VAR', self.NVARS)
+                except Exception:
+                    pass
+                # add updatetflag
+        else:
+            self.createDimension('VAR', self.NVARS)
 
         return varlist
 
@@ -393,7 +398,7 @@ class ioapi_base(PseudoNetCDFFile):
                 warn('New time is unstructured')
             self.TSTEP = int(
                 (datetime.datetime(1900, 1, 1, 0) + dt[0]).strftime('%H%M%S'))
-        if 'TFLAG' not in self.variables:
+        if 'TFLAG' not in self.variables or self.variables['TFLAG'].shape[1] != self.NVARS:
             dotflag = True
             tvar = self.createVariable(
                 'TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
@@ -444,6 +449,7 @@ class ioapi_base(PseudoNetCDFFile):
         newkeys = outkeys.difference(oldkeys)
         # byekeys = oldkeys.difference(outkeys)
         out._add2Varlist(newkeys)
+        out.updatemeta()
         return out
 
     def getMap(self, maptype='basemap_auto', **kwds):
@@ -512,7 +518,7 @@ class ioapi_base(PseudoNetCDFFile):
         var = self.variables[varkey]
         varunit = varkey
         if hasattr(var, 'units'):
-            varunit += var.units.strip()
+            varunit += ' ' + var.units.strip()
         dimlens = dict([(dk, len(self.dimensions[dk]))
                         for dk in var.dimensions])
         dimpos = dict([(dk, di) for di, dk in enumerate(var.dimensions)])

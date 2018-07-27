@@ -10,7 +10,7 @@ StrLen = 10
 
 class reader(PseudoNetCDFFile):
     @classmethod
-    def isMine(cls, path):
+    def isMine(cls, path, *args, **kwds):
         try:
             return open(path).read(len('* AERMOD')) == '* AERMOD'
         except Exception:

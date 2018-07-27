@@ -1337,10 +1337,13 @@ def makeibcon(args):
             toff = 0
             if vark in ('TFLAG',):
                 continue
+
+            exprout = vark
             if vark in mappings:
                 sys.stdout.write(vark + ', ')
                 sys.stdout.flush()
                 expr, ounit = eval('expression, outunit', None, mappings[vark])
+                exprout = expr
                 # Temporary version for units
                 nd49 = regridded_nd49[0]
                 coexpr = compile(expr, 'expr', 'eval')
@@ -1379,9 +1382,6 @@ def makeibcon(args):
                     inunit = inunits[0]
                     manual_unit = mappings[vark].get('manual_unit', False)
                     ounit = ounit.strip()
-                    if args.verbose:
-                        sys.stdout.write('\n%s %s\n' % (expr, ounit))
-                        sys.stdout.flush()
                     out = np.zeros((noutstep,) + varo[:].shape[1:], dtype='f')
                     for ndi, nd49 in enumerate(regridded_nd49):
                         if not args.sigmaeta:
@@ -1403,26 +1403,34 @@ def makeibcon(args):
                             break
 
                         if manual_unit:
-                            pass
+                            exprout = expr 
                         else:
                             assert((np.array(inunits) == inunit).all())
                             if inunit == ounit:
                                 pass
                             elif ounit == 'ppmV' and inunit in ('pptv', 'pptC'):
                                 # pptC has automatically been converted to pptv
+                                exprout = '(%s) * 1e-6' % expr 
                                 temp_val *= 1e-6
                             elif ounit == 'ppmV' and inunit in ('ppbv', 'ppbC'):
                                 # ppbC has automatically been converted to ppbv
+                                exprout = '(%s) * 1e-3' % expr 
                                 temp_val *= 1e-3
                             elif ounit == 'micrograms/m**3' and (inunit == 'ppbv' or inunit == 'pptv'):
                                 airmolden = eval(
                                     mappings_file['AIRMOLDEN']['expression'], None, nd49.variables)
+                                exprout = '(%s) * AIRMOLDEN' % expr 
                                 temp_val *= airmolden
                                 if inunit == 'pptv':
+                                    exprout += ' * 1e-3'
                                     temp_val *= 1e-3
                             else:
                                 raise ValueError(
                                     'Error: in unit/outunit combo unknown: "%s", "%s"' % (inunit, ounit))
+                        if ndi == 0:
+                            if args.verbose:
+                                sys.stdout.write('\nDEFN: %s = %s\nUNITS: %s.units ="%s"\n' % (vark, exprout, vark, ounit))
+                                sys.stdout.flush()
                         toff
                         for ti, temp_hour in enumerate(temp_val):
                             if args.verbose:
@@ -1481,8 +1489,9 @@ def makeibcon(args):
                 oldkeys.append(vark)
                 minout = getdefault(oldcon, vark, noutstep)
             if args.verbose:
-                print('Writing out', vark, ti)
+                print('Writing out', vark)
             varo[0:minout.shape[0], :, :] = minout[:]
+            varo.description = exprout
 
         # varlist = getattr(newcon, 'VAR-LIST')
         # nvars = getattr(newcon, 'NVARS') + len(addedkeys)

@@ -153,11 +153,15 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         for dk in 'latitude lat south_north ROW y'.split():
             if dk in self.dimensions:
                 return dk
+        else:
+            raise KeyError('Could not find y dimensions')
 
     def _getxdim(self):
-        for dk in 'longitude long west_east COL x'.split():
+        for dk in 'longitude long lon west_east COL x'.split():
             if dk in self.dimensions:
                 return dk
+        else:
+            raise KeyError('Could not find x dimensions')
 
     def ll2ij(self, lon, lat, bounds='ignore', clean='none'):
         """
@@ -420,6 +424,45 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                     vv, key=vk, dimensions=ndims, withdata=False)
 
                 var[...] = np.expand_dims(self.variables[vk][...], axis=bi)
+        return outf
+
+    def reorderDimensions(self, oldorder, neworder, inplace=False):
+        """
+        Evaluate expr and return a PseudoNetCDFFile object with resutl
+
+        Parameters
+        ----------
+        oldorder : iterable of dimension names in existing order
+        neworder : iterable of dimension names in new order
+
+        Returns
+        -------
+        outf : file with dimensions reordered in variables
+        """
+        if inplace:
+            outf = self
+        else:
+            outf = self.copy(variables=True)
+        oldorder = tuple(oldorder)
+        neworder = tuple(neworder)
+        for vk, vv in self.variables.items():
+            varneworder = [dk for dk in neworder if dk in vv.dimensions]
+            varorder = [dk for dk in vv.dimensions]
+            if len(varneworder) > 0:
+                newvals = vv[:].copy()
+                for newdi, newdk in enumerate(varneworder):
+                    axisidx = varorder.index(newdk)
+                    if axisidx == newdi:
+                        continue
+                    newvals = np.rollaxis(newvals, axis=axisidx, start=newdi)
+                    varorder.pop(axisidx)
+                    varorder.insert(newdi, newdk)
+                assert(varorder == varneworder)
+                newvals.dimensions = tuple(varorder)
+                outf.variables[vk] = newvals
+            else:
+                pass
+
         return outf
 
     def eval(self, expr, inplace=False, copyall=False):
@@ -779,7 +822,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                         nvv[ii + s_[..., ] + kk] = interpedv
         return outf
 
-    def applyAlongDimensions(self, **dimfuncs):
+    def applyAlongDimensions(self, verbose=0, **dimfuncs):
         """
         Similar to numpy.apply_along_axis, but for damed dimensions and
         processes dimensions as well as variables
@@ -790,7 +833,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                    is a 1D function (func1d) or a dictionary. If the value is a
                    dictionary it must include func1d as a function and any
                    keyword arguments as additional options
-
+        verbose : 0 silent, 1 show variable, 2 show dimensions and variables
         Returns
         -------
         outf : PseudoNetCDFFile instance with variables and dimensions after
@@ -800,6 +843,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         for dk, df in dimfuncs.items():
             dv = self.dimensions[dk]
             if dk in dimfuncs:
+                if verbose > 1:
+                    print(dk, flush=True)
                 if dk in self.variables:
                     dvar = self.variables[dk]
                     if dvar.ndim != 1:
@@ -821,6 +866,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             dik = list(enumerate(vdims))
             for di, dk in dik[::-1]:
                 if dk in dimfuncs:
+                    if verbose > 0:
+                        print(' ' * 100, '\r', vark, dk, end = '\r', flush=True)
                     opts = dict(axis=di, arr=newvals)
                     dfunc = dimfuncs[dk]
                     if isinstance(dfunc, dict):
@@ -836,6 +883,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                         newvals = np.apply_along_axis(dfunc, di, newvals)
             newvaro = outf.copyVariable(varo, key=vark, withdata=False)
             newvaro[...] = newvals
+        if verbose > 0:
+            print()
 
         return outf
 
@@ -1057,7 +1106,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                 newvaro[...] = varo[...]
         return outf
 
-    def sliceDimensions(self, newdims=('POINTS',), **dimslices):
+    def sliceDimensions(self, newdims=('POINTS',), verbose=0, **dimslices):
         """
         Return a netcdflike object with dimensions sliced
 
@@ -1119,6 +1168,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                 outf.createDimension(newdim, arrayshape[ni])
 
         for vark, varo in self.variables.items():
+            if verbose > 0:
+                print(' ' * 100, '\r', vark, end='\r', flush=True)
             odims = vdims = varo.dimensions
             sliceo = tuple(dimslices.get(dk, slice(None)) for dk in vdims)
             isdarray = [isarray.get(dk, False) for dk in vdims]
@@ -1155,6 +1206,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             except Exception:
                 newvaro[...] = newvals.reshape(newvaro.shape)
 
+        if verbose > 0:
+            print()
         return outf
 
     def removeSingleton(self, dimkey=None):

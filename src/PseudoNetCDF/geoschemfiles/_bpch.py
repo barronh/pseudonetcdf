@@ -621,7 +621,8 @@ class bpch_base(PseudoNetCDFFile):
 
     def interpSigma(self, vglvls, vgtop=None, interptype='linear',
                     extrapolate=False, fill_value='extrapolate',
-                    approach='eta'):
+                    layerdims=None,
+                    approach='eta', verbose=0):
         """
         Parameters
         ----------
@@ -635,10 +636,13 @@ class bpch_base(PseudoNetCDFFile):
                       default False
         fill_value : set fill value (e.g, nan) to prevent extrapolation or edge
                      continuation
+        layerdims : specify layer dimension, None will apply to all dimensions named layer*,
         approach :
              eta : use simple eta coordinates to calculate sigma and
                    interpolate
              pressure : requires surface pressure
+        verbose : 0-inf show more
+
         Returns
         -------
         outf - ioapi_base PseudoNetCDFFile with al variables interpolated
@@ -671,10 +675,21 @@ class bpch_base(PseudoNetCDFFile):
                                data[:, :, None]).sum(1)
                 return newdata
         else:
-            raise ValueError('interptype only implemented for "linear"')
+            raise ValueError('interptype only implemented for "linear"; got ' + interptype)
 
         # Apply function on LAY
-        outf = self.applyAlongDimensions(LAY=interpsigma)
+        if layerdims is None:
+            layerdims = sorted([
+                dk for dk in self.dimensions
+                if (
+                    dk.startswith('layer') and
+                    not dk.endswith('_bounds') and
+                    not dk == 'layer1')
+            ])
+            if verbose > 0:
+                print(layerdims)
+        dimfunc = dict([(layerkey, interpsigma) for layerkey in  layerdims])
+        outf = self.applyAlongDimensions(**dimfunc)
 
         return outf
 
@@ -755,7 +770,7 @@ class bpch(bpch_base):
 
     """
     @classmethod
-    def isMine(cls, path):
+    def isMine(cls, path, *args, **kwds):
         try:
             # Read binary data for general header and first datablock header
             header_block = fromfile(
@@ -880,7 +895,7 @@ class bpch(bpch_base):
                     tdict['NAME'] = l[:8].strip()
                     tdict['FULLNAME'] = l[9:39].strip()
                     tdict['MOLWT'] = float(l[39:49])
-                    tdict['C'] = int(l[49:52]),
+                    tdict['C'] = int(l[49:52])
                     tdict['TRACER'] = int(l[52:61])
                     tdict['SCALE'] = float(l[61:71])
                     tdict['UNIT'] = l[72:].strip()

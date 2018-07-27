@@ -70,7 +70,7 @@ class WrapDict(OrderedDict):
 
 class WrapPNC(PseudoNetCDFFile):
     @classmethod
-    def isMine(cls, path):
+    def isMine(cls, path, *args, **kwds):
         return False
 
     def __init__(self, *args, **kwds):
