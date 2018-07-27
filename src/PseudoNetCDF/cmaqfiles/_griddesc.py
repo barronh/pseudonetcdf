@@ -76,6 +76,7 @@ class griddesc(pnc.PseudoNetCDFFile):
         self.createDimension('TSTEP', 1).setunlimited(True)
         self.createDimension('DATE-TIME', 2)
         self.createDimension('VAR', 1)
+        self.NVARS = 1
         tflag = self.createVariable(
             'TFLAG', 'i',
             ('TSTEP', 'VAR', 'DATE-TIME'),
@@ -94,14 +95,23 @@ class griddesc(pnc.PseudoNetCDFFile):
         if self.FTYPE == 1:
             self.createDimension('ROW', self.NROWS)
             self.createDimension('COL', self.NCOLS)
+            dims = ('TSTEP', 'LAY', 'ROW', 'COL')
         elif self.FTYPE == 2:
             perim = (self.NCOLS * 2 + self.NROWS * 2 + self.NTHIK * 4)
             self.createDimension('PERIM', perim * self.NTHIK)
+            dims = ('TSTEP', 'LAY', 'PERIM')
         else:
             raise ValueError(
                 'Only supports FTYPE 1 or 2; received ' +
                 str(self.FTYPE)
                 )
+        dummy = self.createVariable(
+            'DUMMY', 'f', dims,
+            units='none',
+            long_name='DUMMY'.ljust(16),
+            var_desc='DUMMY'.ljust(80)
+        )
+        setattr(self, 'VAR-LIST', 'DUMMY'.ljust(16))
 
         if self._synthvars is None:
             oldkeys = set(self.variables)
