@@ -1,4 +1,5 @@
 import PseudoNetCDF as pnc
+from datetime import datetime
 from collections import OrderedDict
 import numpy as np
 _prjp = ['GDTYP', 'P_ALP', 'P_BET', 'P_GAM', 'XCENT', 'YCENT']
@@ -24,8 +25,9 @@ class griddesc(pnc.PseudoNetCDFFile):
 ' '
 """
     def __init__(
-        self, path, GDNAM=None, VGLVLS=[1., 0.], VGTOP=5000., FTYPE=1
+        self, path, GDNAM=None, VGLVLS=[1., 0.], VGTOP=5000., FTYPE=1, VGTYP=7
     ):
+        now = datetime.now()
         gdlines = open(path, 'r').read().strip().split('\n')
         gdlines = [line.strip() for line in gdlines]
         assert(gdlines[0] == "' '")
@@ -52,10 +54,19 @@ class griddesc(pnc.PseudoNetCDFFile):
         self._prj = prj
         self._grd = grd
         self.FTYPE = FTYPE
+        self.VGTYP = VGTYP
         self.GDNAM = GDNAM
         self.VGTOP = VGTOP
         self.VGLVLS = np.array(VGLVLS, dtype='f')
         self.NLAYS = len(VGLVLS) - 1
+        self.UPNAM = 'GRIDDESC'
+        self.EXEC_ID = 'GRIDDESC'
+        self.FILEDESC = 'GRIDDESC'
+        self.HISTORY = 'made from ' + path
+        self.CDATE = int(now.strftime('%Y%j'))
+        self.CTIME = int(now.strftime('%H%M%S'))
+        self.WDATE = self.CDATE
+        self.WTIME = self.CTIME
         self._synthvars = None
         self.addtime()
         self.setgrid()
@@ -63,7 +74,7 @@ class griddesc(pnc.PseudoNetCDFFile):
     def setgrid(self, key=None):
         if key is None:
             if self.GDNAM is None:
-                key = list(self._grd)[0]
+                self.GDNAM = key = list(self._grd)[0]
             else:
                 key = self.GDNAM
         grd = self._grd[key]
