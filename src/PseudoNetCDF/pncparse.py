@@ -891,17 +891,24 @@ def getfiles(ipaths, args):
             f = ipath
         elif isinstance(ipath, (str,)):
             try:
-                allreaders = getreaderdict()
-                if file_format in allreaders:
-                    f = pncopen(ipath, **format_options)
-                else:
-                    f = eval(file_format)(ipath, **format_options)
+                # Most common usecase; open like pncopen
+                f = pncopen(ipath, format=file_format, **format_options)
             except Exception as e:
-                etmp = ('Unable to open path with %s(path, **%s)\n\t' +
-                        'path="%s"\n\terror="%s"')
-                oute = IOError(etmp % (file_format, str(format_options),
-                                       ipath, str(e)))
-                raise oute  # from e
+                try:
+                    allreaders = getreaderdict()
+                    if file_format in allreaders:
+                        # Unknown problem, try reader directly
+                        allreaders[file_format](ipath, **format_options)
+                    else:
+                        # Maybe the format is an expression?
+                        allreaders[file_format](ipath, **format_options)
+                        f = eval(file_format)(ipath, **format_options)
+                except Exception as e:
+                    etmp = ('Unable to open path with %s(path, **%s)\n\t' +
+                            'path="%s"\n\terror="%s"')
+                    oute = IOError(etmp % (file_format, str(format_options),
+                                           ipath, str(e)))
+                    raise oute  # from e
         else:
             warn('File is type %s, which is unknown' % type(ipath))
             f = ipath
