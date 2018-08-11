@@ -24,7 +24,8 @@ def getbounds(ifile, dimkey):
         db = np.append(np.append(d[0] - dd[0] / 2., db), d[-1] + dd[-1] / 2)
         return db
     else:
-        return np.arange(0, len(dim))
+        return np.arange(0, len(dim) + 1)
+
     if len(dim) == db.shape[0] and db.shape[1] == 2:
         return np.append(db[:, 0], db[-1, 1])
     elif db.ndim == 1:
