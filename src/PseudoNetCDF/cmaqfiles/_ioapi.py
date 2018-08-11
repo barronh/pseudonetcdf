@@ -159,7 +159,10 @@ class ioapi_base(PseudoNetCDFFile):
         dimslices.pop('newdims', None)
 
         # Identify array indices and the need for fancy indexing
-        isarray = {dk: not np.isscalar(dv) and not isinstance(dv, slice) for dk, dv in dimslices.items()}
+        isarray = {
+            dk: not np.isscalar(dv) and not isinstance(dv, slice)
+            for dk, dv in dimslices.items()
+        }
         # anyisarray = np.sum(list(isarray.values())) > 1
 
         # Check if COL or ROW was used
@@ -398,7 +401,10 @@ class ioapi_base(PseudoNetCDFFile):
                 warn('New time is unstructured')
             self.TSTEP = int(
                 (datetime.datetime(1900, 1, 1, 0) + dt[0]).strftime('%H%M%S'))
-        if 'TFLAG' not in self.variables or self.variables['TFLAG'].shape[1] != self.NVARS:
+        if (
+            'TFLAG' not in self.variables or
+            self.variables['TFLAG'].shape[1] != self.NVARS
+        ):
             dotflag = True
             tvar = self.createVariable(
                 'TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))

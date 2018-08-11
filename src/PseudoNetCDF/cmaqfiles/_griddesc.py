@@ -116,7 +116,7 @@ class griddesc(pnc.PseudoNetCDFFile):
                 'Only supports FTYPE 1 or 2; received ' +
                 str(self.FTYPE)
                 )
-        dummy = self.createVariable(
+        self.createVariable(
             'DUMMY', 'f', dims,
             units='none',
             long_name='DUMMY'.ljust(16),

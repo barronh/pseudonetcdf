@@ -636,7 +636,8 @@ class bpch_base(PseudoNetCDFFile):
                       default False
         fill_value : set fill value (e.g, nan) to prevent extrapolation or edge
                      continuation
-        layerdims : specify layer dimension, None will apply to all dimensions named layer*,
+        layerdims : specify layer dimension, None will apply to all dimensions
+                    named layer*
         approach :
              eta : use simple eta coordinates to calculate sigma and
                    interpolate
@@ -675,7 +676,9 @@ class bpch_base(PseudoNetCDFFile):
                                data[:, :, None]).sum(1)
                 return newdata
         else:
-            raise ValueError('interptype only implemented for "linear"; got ' + interptype)
+            raise ValueError(
+                'interptype only implemented for "linear"; got ' + interptype
+            )
 
         # Apply function on LAY
         if layerdims is None:
@@ -688,7 +691,7 @@ class bpch_base(PseudoNetCDFFile):
             ])
             if verbose > 0:
                 print(layerdims)
-        dimfunc = dict([(layerkey, interpsigma) for layerkey in  layerdims])
+        dimfunc = dict([(layerkey, interpsigma) for layerkey in layerdims])
         outf = self.applyAlongDimensions(**dimfunc)
 
         return outf
