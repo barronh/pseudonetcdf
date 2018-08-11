@@ -322,7 +322,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         outf : PseudoNetCDFFile instance with renamed variable (this file if
                inplace = True)
         """
-        return self.renameDimensions(**{oldkey: newkey})
+        return self.renameDimensions(inplace=inplace, **{oldkey: newkey})
 
     def renameDimensions(self, inplace=False, **newkeys):
         """
@@ -867,7 +867,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             for di, dk in dik[::-1]:
                 if dk in dimfuncs:
                     if verbose > 0:
-                        print(' ' * 100, '\r', vark, dk, end = '\r', flush=True)
+                        print(' ' * 100, '\r', vark, dk, end='\r', flush=True)
                     opts = dict(axis=di, arr=newvals)
                     dfunc = dimfuncs[dk]
                     if isinstance(dfunc, dict):
