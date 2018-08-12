@@ -283,13 +283,6 @@ class lateral_boundary(PseudoNetCDFFile):
         return PseudoIOAPIVariable(self, k, 'f', dimensions, values=outvals,
                                    units=units)
 
-    def sync(self):
-        pass
-
-    def close(self):
-        self.sync()
-        self.__memmap__.close()
-
 
 class TestMemmap(unittest.TestCase):
     def runTest(self):

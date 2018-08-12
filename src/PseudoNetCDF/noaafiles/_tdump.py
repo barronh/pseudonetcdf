@@ -1,4 +1,5 @@
 from PseudoNetCDF import PseudoNetCDFFile
+from .arltime import arl2timea
 import numpy as np
 
 _units = dict(trajid='---',
@@ -18,31 +19,6 @@ _units = dict(trajid='---',
               relhumid='%',
               terr_msl='m',
               sun_flux='W/m**2',)
-
-
-def _timefromnoaa(year, month, day, hour, minute):
-    from datetime import datetime
-    datei = (year.astype('l') * 100000000 +
-             month.astype('l') * 1000000 +
-             day.astype('l') * 10000 +
-             hour.astype('l') * 100 +
-             minute.astype('l'))
-    datestrs = np.char.decode(np.char.add(datei.astype('S16'), b'+0000'))
-    dates = np.array([datetime.strptime(d, '%y%m%d%H%M%z') for d in datestrs])
-    return dates
-
-
-def _year(year):
-    if np.floor(np.log10(year)) == 1.:
-        if year < 70:
-            return year + 1900
-        else:
-            return year + 2000
-    else:
-        return year
-
-
-_vyear = np.vectorize(_year)
 
 
 class arltrajdump(PseudoNetCDFFile):
@@ -130,23 +106,23 @@ class arltrajdump(PseudoNetCDFFile):
         v.long_name = 'hour of the day (GMT)'
         v[:] = trajmeta[:, 3].astype('i')
         v = self.createVariable(
-            'trajectory_init_latitude', 'i', ('trajectory',))
+            'trajectory_init_latitude', 'f', ('trajectory',))
         v.units = 'degrees_north'
         v.long_name = 'initial latitude'
         v[:] = trajmeta[:, 4]
         v = self.createVariable(
-            'trajectory_init_longitude', 'i', ('trajectory',))
+            'trajectory_init_longitude', 'f', ('trajectory',))
         v.units = 'degrees_east'
         v.long_name = 'initial longitude'
         v[:] = trajmeta[:, 5]
-        v = self.createVariable('trajectory_init_height', 'i', ('trajectory',))
+        v = self.createVariable('trajectory_init_height', 'f', ('trajectory',))
         v.units = 'meters agl'
         v.long_name = 'initial altitude'
         v[:] = trajmeta[:, 6]
         # Starting time
-        self._starttimes = _timefromnoaa(trajmeta[:, 0], trajmeta[:, 1],
-                                         trajmeta[:, 2], trajmeta[:, 3],
-                                         trajmeta[:, 3] * 0)
+        self._starttimes = arl2timea(trajmeta[:, 0], trajmeta[:, 1],
+                                     trajmeta[:, 2], trajmeta[:, 3],
+                                     trajmeta[:, 3] * 0)
         """
         Record #5
 
@@ -180,8 +156,8 @@ class arltrajdump(PseudoNetCDFFile):
                                    'minute forecast_hour age latitude ' +
                                    'longitude altitude').split() +
                                   diagnostics[1:]))
-        mytimes = _timefromnoaa(data['year'], data['month'], data['day'],
-                                data['hour'], data['minute'])
+        mytimes = arl2timea(data['year'], data['month'], data['day'],
+                            data['hour'], data['minute'])
         unique_times = np.sort(np.unique(mytimes))
         ntimes = len(unique_times)
         self.createDimension('time', ntimes)
@@ -206,7 +182,7 @@ class arltrajdump(PseudoNetCDFFile):
         day = self.variables['day'].max(1).astype('l')
         hour = self.variables['hour'].max(1).astype('l')
         minute = self.variables['minute'].max(1).astype('l')
-        return _timefromnoaa(year, month, day, hour, minute)
+        return arl2timea(year, month, day, hour, minute)
 
 
 if __name__ == '__main__':

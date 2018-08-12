@@ -153,13 +153,17 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         for dk in 'latitude lat south_north ROW y'.split():
             if dk in self.dimensions:
                 return dk
+        else:
+            raise KeyError('Could not find y dimensions')
 
     def _getxdim(self):
-        for dk in 'longitude long west_east COL x'.split():
+        for dk in 'longitude long lon west_east COL x'.split():
             if dk in self.dimensions:
                 return dk
+        else:
+            raise KeyError('Could not find x dimensions')
 
-    def ll2ij(self, lon, lat, bounds='ignore'):
+    def ll2ij(self, lon, lat, bounds='ignore', clean='none'):
         """
         Converts lon/lat to 0-based indicies (0,M), (0,N)
 
@@ -168,6 +172,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         lon : scalar or iterable of longitudes in decimal degrees
         lat : scalar or iterable of latitudes in decimal degrees
         bounds : ignore, error, warn if i,j are out of domain
+        clean : none - return values regardless of bounds
+                mask - mask values out of bounds
+                clip - return min(max(0, v), nx - 1)
 
         Returns
         -------
@@ -178,11 +185,11 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         x, y = p(lon, lat)
         i = np.asarray(x).astype('i')
         j = np.asarray(y).astype('i')
+        nx = len(self.dimensions[self._getxdim()])
+        ny = len(self.dimensions[self._getydim()])
         if bounds == 'ignore':
             pass
         else:
-            nx = len(self.dimensions[self._getxdim()])
-            ny = len(self.dimensions[self._getydim()])
             lowi = (i < 0)
             lowj = (j < 0)
             highi = (i >= nx)
@@ -196,6 +203,13 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                     raise ValueError(message)
                 else:
                     warn(message)
+        if clean == 'clip':
+            i = np.minimum(np.maximum(i, 0), nx - 1)
+            j = np.minimum(np.maximum(j, 0), ny - 1)
+        elif clean == 'mask':
+            i = np.ma.masked_greater(np.ma.masked_less(i, 0), nx - 1)
+            j = np.ma.masked_greater(np.ma.masked_less(j, 0), ny - 1)
+
         return i, j
 
     def xy2ll(self, x, y):
@@ -238,7 +252,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
     def _newlike(self):
         """
         Internal function to return a file of the same class if a
-        PsueoNetCDFFile
+        PseudoNetCDFFile
         """
         if isinstance(self, PseudoNetCDFFile):
             outt = type(self)
@@ -308,7 +322,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         outf : PseudoNetCDFFile instance with renamed variable (this file if
                inplace = True)
         """
-        return self.renameDimensions(**{oldkey: newkey})
+        return self.renameDimensions(inplace=inplace, **{oldkey: newkey})
 
     def renameDimensions(self, inplace=False, **newkeys):
         """
@@ -412,6 +426,45 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                 var[...] = np.expand_dims(self.variables[vk][...], axis=bi)
         return outf
 
+    def reorderDimensions(self, oldorder, neworder, inplace=False):
+        """
+        Evaluate expr and return a PseudoNetCDFFile object with resutl
+
+        Parameters
+        ----------
+        oldorder : iterable of dimension names in existing order
+        neworder : iterable of dimension names in new order
+
+        Returns
+        -------
+        outf : file with dimensions reordered in variables
+        """
+        if inplace:
+            outf = self
+        else:
+            outf = self.copy(variables=True)
+        oldorder = tuple(oldorder)
+        neworder = tuple(neworder)
+        for vk, vv in self.variables.items():
+            varneworder = [dk for dk in neworder if dk in vv.dimensions]
+            varorder = [dk for dk in vv.dimensions]
+            if len(varneworder) > 0:
+                newvals = vv[:].copy()
+                for newdi, newdk in enumerate(varneworder):
+                    axisidx = varorder.index(newdk)
+                    if axisidx == newdi:
+                        continue
+                    newvals = np.rollaxis(newvals, axis=axisidx, start=newdi)
+                    varorder.pop(axisidx)
+                    varorder.insert(newdi, newdk)
+                assert(varorder == varneworder)
+                newvals.dimensions = tuple(varorder)
+                outf.variables[vk] = newvals
+            else:
+                pass
+
+        return outf
+
     def eval(self, expr, inplace=False, copyall=False):
         """
         Evaluate expr and return a PseudoNetCDFFile object with resutl
@@ -486,8 +539,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
 
         return outf
 
-    def plot(self, varkey, plottype='longitude-latitude', ax_kw={}, plot_kw={},
-             cbar_kw={}, dimreduction='mean'):
+    def plot(self, varkey, plottype='longitude-latitude', ax_kw=None,
+             plot_kw=None, cbar_kw=None, map_kw=None, dimreduction='mean'):
         """
         Parameters
         ----------
@@ -500,14 +553,32 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be
                   created
         cbar_kw : keywords for the colorbar
+        map_kw : keywords for the getMap routine, which is only used with
+                 plottype='longitude-latitude'
+        dimreduction : dimensions not being used in the plot are removed
+                       using applyAlongDimensions(dimkey=dimreduction) where
+                       each dimenions
         """
         import matplotlib.pyplot as plt
         from ..coordutil import getbounds
+
+        if ax_kw is None:
+            ax_kw = {}
+
+        if plot_kw is None:
+            plot_kw = {}
+
+        if cbar_kw is None:
+            cbar_kw = {}
+
+        if map_kw is None:
+            map_kw = {}
+
         apply2dim = {}
         var = self.variables[varkey]
         varunit = varkey
         if hasattr(var, 'units'):
-            varunit += var.units.strip()
+            varunit += ' ' + var.units.strip()
 
         dimlens = dict([(dk, len(self.dimensions[dk]))
                         for dk in var.dimensions])
@@ -578,7 +649,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             )
         if plottype == 'longitude-latitude':
             try:
-                bmap = myf.getMap()
+                bmap = myf.getMap(**map_kw)
                 bmap.drawcoastlines(ax=ax)
                 bmap.drawcountries(ax=ax)
             except Exception:
@@ -751,7 +822,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                         nvv[ii + s_[..., ] + kk] = interpedv
         return outf
 
-    def applyAlongDimensions(self, **dimfuncs):
+    def applyAlongDimensions(self, verbose=0, **dimfuncs):
         """
         Similar to numpy.apply_along_axis, but for damed dimensions and
         processes dimensions as well as variables
@@ -762,7 +833,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                    is a 1D function (func1d) or a dictionary. If the value is a
                    dictionary it must include func1d as a function and any
                    keyword arguments as additional options
-
+        verbose : 0 silent, 1 show variable, 2 show dimensions and variables
         Returns
         -------
         outf : PseudoNetCDFFile instance with variables and dimensions after
@@ -772,6 +843,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         for dk, df in dimfuncs.items():
             dv = self.dimensions[dk]
             if dk in dimfuncs:
+                if verbose > 1:
+                    print(dk, flush=True)
                 if dk in self.variables:
                     dvar = self.variables[dk]
                     if dvar.ndim != 1:
@@ -793,6 +866,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             dik = list(enumerate(vdims))
             for di, dk in dik[::-1]:
                 if dk in dimfuncs:
+                    if verbose > 0:
+                        print(' ' * 100, '\r', vark, dk, end='\r', flush=True)
                     opts = dict(axis=di, arr=newvals)
                     dfunc = dimfuncs[dk]
                     if isinstance(dfunc, dict):
@@ -808,6 +883,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                         newvals = np.apply_along_axis(dfunc, di, newvals)
             newvaro = outf.copyVariable(varo, key=vark, withdata=False)
             newvaro[...] = newvals
+        if verbose > 0:
+            print()
 
         return outf
 
@@ -1029,7 +1106,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                 newvaro[...] = varo[...]
         return outf
 
-    def sliceDimensions(self, newdims=('POINTS',), **dimslices):
+    def sliceDimensions(self, newdims=('POINTS',), verbose=0, **dimslices):
         """
         Return a netcdflike object with dimensions sliced
 
@@ -1091,6 +1168,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                 outf.createDimension(newdim, arrayshape[ni])
 
         for vark, varo in self.variables.items():
+            if verbose > 0:
+                print(' ' * 100, '\r', vark, end='\r', flush=True)
             odims = vdims = varo.dimensions
             sliceo = tuple(dimslices.get(dk, slice(None)) for dk in vdims)
             isdarray = [isarray.get(dk, False) for dk in vdims]
@@ -1127,6 +1206,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             except Exception:
                 newvaro[...] = newvals.reshape(newvaro.shape)
 
+        if verbose > 0:
+            print()
         return outf
 
     def removeSingleton(self, dimkey=None):
@@ -1198,8 +1279,13 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         return new
 
     def __init__(self, *args, **properties):
+        mode = properties.pop('mode', 'w')
+        self._mode = mode
         for k, v in properties.items():
             setattr(self, k, v)
+
+    def iswritable(self):
+        return (self._mode[:1] in ('a', 'w') or self._mode[:2] in ('r+',))
 
     def __setattr__(self, k, v):
         if not (k[:1] == '_' or k in ('dimensions', 'variables', 'groups')):
@@ -1211,6 +1297,39 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         if k in self._ncattrs:
             self._ncattrs = tuple([k_ for k_ in self._ncattrs if k_ != k])
         object.__delattr__(self, k)
+
+    def setCoords(self, keys, missing='ignore'):
+        """
+        Set a variable as a coordinate variable
+
+        Parameters
+        ----------
+        keys : iterable of string keys for coord variables
+        missing : action if missing 'ignore', 'skip' or 'error'
+                    ignore - add in case used later
+                    skip   - do not add
+                    error  - raise an error
+
+        Notes
+        -----
+        Coordinate variables are excluded from math
+        """
+
+        if missing == 'ignore':
+            pass
+        elif missing == 'skip':
+            keys = [key for key in keys if key in self.variables]
+        elif missing == 'error':
+            invalid_keys = [key for key in keys if key not in self.variables]
+            if len(invalid_keys) > 0:
+                raise KeyError('File does not contain the variables: ' +
+                               '{}'.format(invalid_keys))
+        else:
+            raise ValueError(
+                'Must be ignore, skip or error; received {}'.format(missing))
+
+        for key in keys:
+            self._operator_exclude_vars = self._operator_exclude_vars + (key,)
 
     def createDimension(self, name, length):
         """
@@ -1340,7 +1459,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         return self._ncattrs
 
     def setncattr(self, k, v):
-        return setattr(self, k, v)
+        return object.__setattr__(self, k, v)
 
     def delncattr(self, k):
         self.__delattr__(k)
@@ -1351,80 +1470,80 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                      coordkeys=self._operator_exclude_vars)
 
     def __sub__(self, lhs):
-        from _functions import pncbo
+        from ._functions import pncbo
         return pncbo(op='-', ifile1=self, ifile2=lhs, verbose=0,
                      coordkeys=self._operator_exclude_vars)
 
     def __mul__(self, lhs):
-        from _functions import pncbo
+        from ._functions import pncbo
         return pncbo(op='*', ifile1=self, ifile2=lhs, verbose=0,
                      coordkeys=self._operator_exclude_vars)
 
-    def __div__(self, lhs):
-        from _functions import pncbo
+    def __truediv__(self, lhs):
+        from ._functions import pncbo
         return pncbo(op='/', ifile1=self, ifile2=lhs, verbose=0,
                      coordkeys=self._operator_exclude_vars)
 
     def __floordiv__(self, lhs):
-        from _functions import pncbo
+        from ._functions import pncbo
         return pncbo(op='//', ifile1=self, ifile2=lhs, verbose=0,
                      coordkeys=self._operator_exclude_vars)
 
     def __pow__(self, lhs):
-        from _functions import pncbo
+        from ._functions import pncbo
         return pncbo(op='**', ifile1=self, ifile2=lhs, verbose=0,
                      coordkeys=self._operator_exclude_vars)
 
     def __and__(self, lhs):
-        from _functions import pncbo
+        from ._functions import pncbo
         return pncbo(op='&', ifile1=self, ifile2=lhs, verbose=0,
                      coordkeys=self._operator_exclude_vars)
 
     def __or__(self, lhs):
-        from _functions import pncbo
+        from ._functions import pncbo
         return pncbo(op='|', ifile1=self, ifile2=lhs, verbose=0,
                      coordkeys=self._operator_exclude_vars)
 
     def __xor__(self, lhs):
-        from _functions import pncbo
+        from ._functions import pncbo
         return pncbo(op='^', ifile1=self, ifile2=lhs, verbose=0,
                      coordkeys=self._operator_exclude_vars)
 
     def __mod__(self, lhs):
-        from _functions import pncbo
+        from ._functions import pncbo
         return pncbo(op='%', ifile1=self, ifile2=lhs, verbose=0,
                      coordkeys=self._operator_exclude_vars)
 
     def __lt__(self, lhs):
-        from _functions import pncbo
+        from ._functions import pncbo
         return pncbo(op='<', ifile1=self, ifile2=lhs, verbose=0,
                      coordkeys=self._operator_exclude_vars)
 
     def __gt__(self, lhs):
-        from _functions import pncbo
+        from ._functions import pncbo
         return pncbo(op='>', ifile1=self, ifile2=lhs, verbose=0,
                      coordkeys=self._operator_exclude_vars)
 
     def __eq__(self, lhs):
         if isinstance(lhs, (NetCDFFile, PseudoNetCDFFile)):
-            from _functions import pncbo
+            from ._functions import pncbo
             return pncbo(op=' == ', ifile1=self, ifile2=lhs, verbose=0,
                          coordkeys=self._operator_exclude_vars)
         else:
             return lhs.__eq__(self)
 
     def __le__(self, lhs):
-        from _functions import pncbo
+        from ._functions import pncbo
         return pncbo(op='<=', ifile1=self, ifile2=lhs, verbose=0,
                      coordkeys=self._operator_exclude_vars)
 
     def __ge__(self, lhs):
-        from _functions import pncbo
+        from ._functions import pncbo
         return pncbo(op='>=', ifile1=self, ifile2=lhs, verbose=0,
                      coordkeys=self._operator_exclude_vars)
 
     def __ne__(self, lhs):
-        from _functions import pncbo
+        from ._functions import pncbo
         return pncbo(op='!=', ifile1=self, ifile2=lhs, verbose=0,
                      coordkeys=self._operator_exclude_vars)
 
@@ -1439,8 +1558,11 @@ class netcdf(PseudoNetCDFFile, NetCDFFile):
     def createVariable(self, *args, **kwds):
         return NetCDFFile.createVariable(self, *args, **kwds)
 
+    def setncattr(self, k, v):
+        return NetCDFFile.setncattr(self, k, v)
+
     def __setattr__(self, k, v):
-        NetCDFFile.__setattr__(self, k, v)
+        return NetCDFFile.__setattr__(self, k, v)
 
     def __delattr__(self, k):
         NetCDFFile.__delattr__(self, k)

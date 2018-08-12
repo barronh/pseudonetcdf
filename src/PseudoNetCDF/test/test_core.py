@@ -5,6 +5,9 @@ from PseudoNetCDF import PseudoNetCDFVariable
 from . import requires_basemap, requires_pyproj
 
 
+np_all_close = np.testing.assert_allclose
+
+
 class PseudoNetCDFFileTest(unittest.TestCase):
     def setUp(self):
         from datetime import datetime, timedelta
@@ -338,6 +341,58 @@ class PseudoNetCDFFileTest(unittest.TestCase):
                    .applyAlongDimensions(TSTEP=np.max)
         mco3 = co3.max(0, keepdims=True)
         self.assertEqual(True, (ancf.variables['O3'][:] == mco3).all())
+
+    def testAdd(self):
+        tncf = self.testncf
+        o3 = tncf.variables['O3'][:].copy()
+        tmpf = tncf + tncf
+        np_all_close(tmpf.variables['O3'][:], 2*o3)
+
+    def testSub(self):
+        tncf = self.testncf
+        o3 = tncf.variables['O3'][:].copy()
+        tmpf = tncf - tncf
+        np_all_close(tmpf.variables['O3'][:], o3 - o3)
+
+    def testDiv(self):
+        tncf = self.testncf
+        o3 = tncf.variables['O3'][:].copy()
+        np.seterr(invalid='ignore')
+        tmpf = tncf / tncf
+        np_all_close(tmpf.variables['O3'][:], o3/o3)
+        np.seterr(invalid='warn')
+
+    def testMul(self):
+        tncf = self.testncf
+        o3 = tncf.variables['O3'][:].copy()
+        tmpf = tncf * tncf
+        np_all_close(tmpf.variables['O3'][:], o3**2)
+
+    def testPow(self):
+        tncf = self.testncf
+        o3 = tncf.variables['O3'][:].copy()
+        np.seterr(over='ignore', invalid='ignore')
+        tmpf = tncf ** tncf
+        np_all_close(tmpf.variables['O3'][:], o3**o3)
+        np.seterr(over='warn', invalid='warn')
+
+    def testMod(self):
+        tncf = self.testncf
+        o3 = tncf.variables['O3'][:].copy()
+        np.seterr(divide='ignore')
+        tmpf = tncf % tncf
+        np_all_close(tmpf.variables['O3'][:], o3 % o3)
+        np.seterr(divide='warn')
+
+    def testXAdd(self):
+        tncf = self.testncf
+        o3 = tncf.variables['O3'][:].copy()
+        tmpf = tncf.copy()
+        print(tmpf._operator_exclude_vars)
+        tmpf.setCoords(['O3'])
+        print(tmpf._operator_exclude_vars)
+        tmpf = tmpf + tncf
+        np_all_close(tmpf.variables['O3'][:], o3)
 
     @requires_basemap
     def testGetMap(self):

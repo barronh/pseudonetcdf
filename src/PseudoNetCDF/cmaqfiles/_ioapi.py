@@ -1,6 +1,5 @@
 from PseudoNetCDF.pncwarn import warn
-from netCDF4 import Dataset
-from ..core._files import PseudoNetCDFFile
+from ..core._files import PseudoNetCDFFile, netcdf
 from collections import OrderedDict
 import numpy as np
 import datetime
@@ -53,11 +52,8 @@ def ioapi_sort_meta(infile):
 
 
 class ioapi_base(PseudoNetCDFFile):
-    def __getattributte__(self, *args, **kwds):
-        return getattr(self, *args, **kwds)
-
     @classmethod
-    def isMine(self, path):
+    def isMine(self, path, *args, **kwds):
         return False
 
     def _updatetime(self, write=True, create=False):
@@ -163,7 +159,10 @@ class ioapi_base(PseudoNetCDFFile):
         dimslices.pop('newdims', None)
 
         # Identify array indices and the need for fancy indexing
-        isarray = {dk: not np.isscalar(dv) for dk, dv in dimslices.items()}
+        isarray = {
+            dk: not np.isscalar(dv) and not isinstance(dv, slice)
+            for dk, dv in dimslices.items()
+        }
         # anyisarray = np.sum(list(isarray.values())) > 1
 
         # Check if COL or ROW was used
@@ -172,7 +171,9 @@ class ioapi_base(PseudoNetCDFFile):
         deleterowcol = False
         if hascol and hasrow:
             if isarray['ROW'] and isarray['COL']:
-                deleterowcol = True
+                newdims = kwds.get('newdims', ('POINTS',))
+                if 'ROW' not in newdims and 'COL' not in newdims:
+                    deleterowcol = True
 
         # If lay was subset, subset VGLVLS too
         if 'LAY' in kwds:
@@ -216,7 +217,8 @@ class ioapi_base(PseudoNetCDFFile):
         return outf
 
     def interpSigma(self, vglvls, vgtop=None, interptype='linear',
-                    extrapolate=False, fill_value='extrapolate'):
+                    extrapolate=False, fill_value='extrapolate',
+                    verbose=0):
         """
         Parameters
         ----------
@@ -287,7 +289,7 @@ class ioapi_base(PseudoNetCDFFile):
                 'interptype only implemented for "linear" and "conserve"')
 
         # Apply function on LAY
-        outf = self.applyAlongDimensions(LAY=interpsigma)
+        outf = self.applyAlongDimensions(LAY=interpsigma, verbose=verbose)
 
         # Ensure vglvls is a simple array
         outf.VGLVLS = vglvls.view(np.ndarray).astype('f')
@@ -322,8 +324,8 @@ class ioapi_base(PseudoNetCDFFile):
         """
         if not hasattr(self, 'VAR-LIST'):
             varliststr_old = ''
-            varlist = ''.join([k.ljust(16) for k, v in self.variables.items(
-            ) if v.dimensions[:2] == ('TSTEP', 'LAY')])
+            varlist = ''.join([k.ljust(16) for k, v in self.variables.items()
+                               if v.dimensions[:2] == ('TSTEP', 'LAY')])
         else:
             varliststr_old = getattr(self, 'VAR-LIST')
             varlist = [vk for vk in varliststr_old.split()
@@ -333,14 +335,16 @@ class ioapi_base(PseudoNetCDFFile):
             setattr(self, 'VAR-LIST', varliststr_new)
         if update and len(varlist) != self.NVARS:
             self.NVARS = len(varlist)
-            if 'VAR' in self.dimensions:
-                if self.NVARS != len(self.dimensions['VAR']):
-                    try:
-                        self.createDimension('VAR', self.NVARS)
-                    except Exception:
-                        pass
-            else:
-                self.createDimension('VAR', self.NVARS)
+
+        if 'VAR' in self.dimensions:
+            if self.NVARS != len(self.dimensions['VAR']):
+                try:
+                    self.createDimension('VAR', self.NVARS)
+                except Exception:
+                    pass
+                # add updatetflag
+        else:
+            self.createDimension('VAR', self.NVARS)
 
         return varlist
 
@@ -379,7 +383,7 @@ class ioapi_base(PseudoNetCDFFile):
         if 'COL' in self.dimensions:
             self.NCOLS = len(self.dimensions['COL'])
         if 'ROW' in self.dimensions:
-            self.NCOLS = len(self.dimensions['ROW'])
+            self.NROWS = len(self.dimensions['ROW'])
 
         self._updatetime()
         try:
@@ -397,7 +401,10 @@ class ioapi_base(PseudoNetCDFFile):
                 warn('New time is unstructured')
             self.TSTEP = int(
                 (datetime.datetime(1900, 1, 1, 0) + dt[0]).strftime('%H%M%S'))
-        if 'TFLAG' not in self.variables:
+        if (
+            'TFLAG' not in self.variables or
+            self.variables['TFLAG'].shape[1] != self.NVARS
+        ):
             dotflag = True
             tvar = self.createVariable(
                 'TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
@@ -448,6 +455,7 @@ class ioapi_base(PseudoNetCDFFile):
         newkeys = outkeys.difference(oldkeys)
         # byekeys = oldkeys.difference(outkeys)
         out._add2Varlist(newkeys)
+        out.updatemeta()
         return out
 
     def getMap(self, maptype='basemap_auto', **kwds):
@@ -460,9 +468,14 @@ class ioapi_base(PseudoNetCDFFile):
         see PseudoNetCDFFile.getMap
         """
         if maptype.endswith('_auto'):
-            lllon, lllat = self.xy2ll(0, 0)
-            urlon, urlat = self.xy2ll(
-                self.NCOLS * self.XCELL, self.NROWS * self.YCELL)
+            if self.GDTYP == 1:
+                lllon, lllat = self.XORIG, self.YORIG
+                urlon = self.XORIG + self.NCOLS * self.XCELL
+                urlat = self.YORIG + self.NROWS * self.YCELL
+            else:
+                lllon, lllat = self.xy2ll(0, 0)
+                urlon, urlat = self.xy2ll(
+                    self.NCOLS * self.XCELL, self.NROWS * self.YCELL)
             kwds.setdefault('llcrnrlon', lllon)
             kwds.setdefault('llcrnrlat', lllat)
             kwds.setdefault('urcrnrlon', urlon)
@@ -471,8 +484,8 @@ class ioapi_base(PseudoNetCDFFile):
 
         return PseudoNetCDFFile.getMap(self, maptype=maptype, **kwds)
 
-    def plot(self, varkey, plottype='longitude-latitude', ax_kw={}, plot_kw={},
-             cbar_kw={}, dimreduction='mean'):
+    def plot(self, varkey, plottype='longitude-latitude', ax_kw=None,
+             plot_kw=None, cbar_kw=None, map_kw=None, dimreduction='mean'):
         """
         Parameters
         ----------
@@ -485,14 +498,33 @@ class ioapi_base(PseudoNetCDFFile):
         plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be
                   created
         cbar_kw : keywords for the colorbar
+        map_kw : keywords for the getMap routine, which is only used with
+                 plottype='longitude-latitude'
+        dimreduction : dimensions not being used in the plot are removed
+                       using applyAlongDimensions(dimkey=dimreduction) where
+                       each dimenions
         """
+
         import matplotlib.pyplot as plt
         from ..coordutil import getbounds
+
+        if ax_kw is None:
+            ax_kw = {}
+
+        if plot_kw is None:
+            plot_kw = {}
+
+        if cbar_kw is None:
+            cbar_kw = {}
+
+        if map_kw is None:
+            map_kw = {}
+
         apply2dim = {}
         var = self.variables[varkey]
         varunit = varkey
         if hasattr(var, 'units'):
-            varunit += var.units.strip()
+            varunit += ' ' + var.units.strip()
         dimlens = dict([(dk, len(self.dimensions[dk]))
                         for dk in var.dimensions])
         dimpos = dict([(dk, di) for di, dk in enumerate(var.dimensions)])
@@ -550,8 +582,6 @@ class ioapi_base(PseudoNetCDFFile):
 
         if dimpos[xkey] < dimpos[ykey]:
             vals = vals.T
-        p = ax.pcolormesh(x, y, vals, **plot_kw)
-        ax.figure.colorbar(p, label=varunit, **cbar_kw)
         if xkey == 'TSTEP':
             ax.xaxis.set_major_formatter(
                 plt.matplotlib.dates.AutoDateFormatter(
@@ -562,21 +592,26 @@ class ioapi_base(PseudoNetCDFFile):
                     plt.matplotlib.dates.AutoDateLocator()))
         if plottype == 'longitude-latitude':
             try:
-                bmap = myf.getMap()
+                bmap = myf.getMap(**map_kw)
                 bmap.drawcoastlines(ax=ax)
                 bmap.drawcountries(ax=ax)
-            except Exception:
+                x = np.arange(self.NCOLS+1) * self.XCELL
+                y = np.arange(self.NROWS+1) * self.YCELL
+                if self.GDTYP == 1:
+                    x += self.XORIG
+                    y += self.YORIG
+            except Exception as e:
                 pass
         else:
             ax.set_xlabel(xkey)
             ax.set_ylabel(ykey)
+
+        p = ax.pcolormesh(x, y, vals, **plot_kw)
+        ax.figure.colorbar(p, label=varunit, **cbar_kw)
         return ax
 
 
-class ioapi(Dataset, ioapi_base):
-    def __getattribute__(self, *args, **kwds):
-        return Dataset.__getattribute__(self, *args, **kwds)
-
+class ioapi(ioapi_base, netcdf):
     def _newlike(self):
         if isinstance(self, PseudoNetCDFFile):
             outt = ioapi_base
@@ -589,7 +624,7 @@ class ioapi(Dataset, ioapi_base):
     @classmethod
     def isMine(cls, *args, **kwds):
         try:
-            f = Dataset(*args, **kwds)
+            f = netcdf(*args, **kwds)
             for dk in ['TSTEP', 'VAR', 'DATE-TIME']:
                 assert(dk in f.dimensions)
             attrlist = f.ncattrs()

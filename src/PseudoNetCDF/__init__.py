@@ -22,6 +22,8 @@ __all__ = ['aermodfiles',
            'PNC',
            'pncdump',
            'pncopen',
+           'getreader',
+           'getreaderdict',
            'pncwrite',
            'PseudoNetCDFFile',
            'PseudoNetCDFVariable',
@@ -57,7 +59,7 @@ from . import textfiles
 from . import ceilometerfiles
 from . import coordutil
 from . import test
-from ._getreader import anyfile, pncopen
+from ._getreader import anyfile, pncopen, getreader, getreaderdict
 from ._getwriter import pncwrite
 from .pncparse import PNC, pnc
 

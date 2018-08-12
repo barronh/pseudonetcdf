@@ -164,7 +164,7 @@ def get_ioapi_sphere():
     elif len(isph_parts) == 2:
         return isph_parts
     elif isph_parts[0] >= 0 and isph_parts[0] < _AXIS.size:
-        return _AXIS[isph_parts], _BXIS[isph_parts]
+        return _AXIS[isph_parts[0]], _BXIS[isph_parts[0]]
     else:
         return isph_parts * 2
 
@@ -181,7 +181,9 @@ def getmapdef(ifileo, add=True):
         from PseudoNetCDF import PseudoNetCDFVariable
         mapdef = PseudoNetCDFVariable(ifileo, gridname, 'i', ())
     mapdef.grid_mapping_name = gridname
-    if mapdef.grid_mapping_name == "polar_stereographic":
+    if mapdef.grid_mapping_name == "latitude_longitude":
+        pass
+    elif mapdef.grid_mapping_name == "polar_stereographic":
         mapdef.latitude_of_projection_origin = ifileo.P_ALP * 90
         mapdef.straight_vertical_longitude_from_pole = ifileo.P_GAM
         mapdef.standard_parallel = np.array([ifileo.P_BET], dtype='d')
@@ -189,17 +191,18 @@ def getmapdef(ifileo, add=True):
     else:
         mapdef.standard_parallel = np.array(
             [ifileo.P_ALP, ifileo.P_BET], dtype='d')
+    if mapdef.grid_mapping_name != "latitude_longitude":
+        mapdef.latitude_of_projection_origin = ifileo.YCENT
+        mapdef.longitude_of_central_meridian = ifileo.XCENT
+        mapdef.false_northing = -ifileo.YORIG
+        mapdef.false_easting = -ifileo.XORIG
+        mapdef._CoordinateTransformType = "Projection"
+        mapdef._CoordinateAxes = "x y"
     ioapi_sphere = get_ioapi_sphere()
     mapdef.semi_major_axis = getattr(ifileo, 'semi_major_axis', getattr(
         ifileo, 'earth_radius', ioapi_sphere[0]))
     mapdef.semi_minor_axis = getattr(ifileo, 'semi_minor_axis', getattr(
         ifileo, 'earth_radius', ioapi_sphere[1]))
-    mapdef.latitude_of_projection_origin = ifileo.YCENT
-    mapdef.longitude_of_central_meridian = ifileo.XCENT
-    mapdef.false_northing = -ifileo.YORIG
-    mapdef.false_easting = -ifileo.XORIG
-    mapdef._CoordinateTransformType = "Projection"
-    mapdef._CoordinateAxes = "x y"
     return mapdef
 
 

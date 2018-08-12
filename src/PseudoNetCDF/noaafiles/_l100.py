@@ -136,5 +136,5 @@ class l100(PseudoNetCDFFile):
             'O3', 'f', ('site', levelname), missing_value=-999)
         outv.units = 'ppm'
         outv.description = 'Pressure-weighted average vmr in ppm'
-        outv[:] = np.ma.filled(out[:], np.nan)
+        outv[:] = np.ma.filled(out[:], outv.missing_value)
         return outf

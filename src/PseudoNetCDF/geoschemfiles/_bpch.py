@@ -488,8 +488,9 @@ class bpch_base(PseudoNetCDFFile):
         else:
             return time
 
-    def plot(self, varkey, plottype='longitude-latitude', ax_kw={}, plot_kw={},
-             cbar_kw={}, dimreduction='mean', laykey=None):
+    def plot(self, varkey, plottype='longitude-latitude', ax_kw=None,
+             plot_kw=None, cbar_kw=None, map_kw=None, dimreduction='mean',
+             laykey=None):
         """
         Parameters
         ----------
@@ -502,11 +503,28 @@ class bpch_base(PseudoNetCDFFile):
         plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be
                   created
         cbar_kw : keywords for the colorbar
-        dimreduction : default function for removing dimensions
+        map_kw : keywords for the getMap routine, which is only used with
+                 plottype='longitude-latitude'
+        dimreduction : dimensions not being used in the plot are removed
+                       using applyAlongDimensions(dimkey=dimreduction) where
+                       each dimenions
         laykey : name of the layer dimension (e.g., layer47)
         """
         import matplotlib.pyplot as plt
         from ..coordutil import getbounds
+
+        if ax_kw is None:
+            ax_kw = {}
+
+        if plot_kw is None:
+            plot_kw = {}
+
+        if cbar_kw is None:
+            cbar_kw = {}
+
+        if map_kw is None:
+            map_kw = {}
+
         apply2dim = {}
         var = self.variables[varkey]
         varunit = varunit = varkey + ' (' + getattr(var, 'units', None) + ')'
@@ -591,7 +609,7 @@ class bpch_base(PseudoNetCDFFile):
             ax.yaxis.set_major_formatter(dfmt)
         if plottype == 'longitude-latitude':
             try:
-                bmap = myf.getMap()
+                bmap = myf.getMap(**map_kw)
                 bmap.drawcoastlines(ax=ax)
                 bmap.drawcountries(ax=ax)
             except Exception:
@@ -603,7 +621,8 @@ class bpch_base(PseudoNetCDFFile):
 
     def interpSigma(self, vglvls, vgtop=None, interptype='linear',
                     extrapolate=False, fill_value='extrapolate',
-                    approach='eta'):
+                    layerdims=None,
+                    approach='eta', verbose=0):
         """
         Parameters
         ----------
@@ -617,10 +636,14 @@ class bpch_base(PseudoNetCDFFile):
                       default False
         fill_value : set fill value (e.g, nan) to prevent extrapolation or edge
                      continuation
+        layerdims : specify layer dimension, None will apply to all dimensions
+                    named layer*
         approach :
              eta : use simple eta coordinates to calculate sigma and
                    interpolate
              pressure : requires surface pressure
+        verbose : 0-inf show more
+
         Returns
         -------
         outf - ioapi_base PseudoNetCDFFile with al variables interpolated
@@ -653,10 +676,23 @@ class bpch_base(PseudoNetCDFFile):
                                data[:, :, None]).sum(1)
                 return newdata
         else:
-            raise ValueError('interptype only implemented for "linear"')
+            raise ValueError(
+                'interptype only implemented for "linear"; got ' + interptype
+            )
 
         # Apply function on LAY
-        outf = self.applyAlongDimensions(LAY=interpsigma)
+        if layerdims is None:
+            layerdims = sorted([
+                dk for dk in self.dimensions
+                if (
+                    dk.startswith('layer') and
+                    not dk.endswith('_bounds') and
+                    not dk == 'layer1')
+            ])
+            if verbose > 0:
+                print(layerdims)
+        dimfunc = dict([(layerkey, interpsigma) for layerkey in layerdims])
+        outf = self.applyAlongDimensions(**dimfunc)
 
         return outf
 
@@ -705,7 +741,10 @@ class bpch_base(PseudoNetCDFFile):
         inlon = (lon >= lone[:, 0, None]) & (lon < lone[:, 1, None])
         inlat = (lat >= late[:, 0, None]) & (lat < late[:, 1, None])
         if not inlon.any(0).all() or not inlat.any(0).all():
-            raise ValueError('lat/lon not in domain')
+            if bounds == 'error':
+                raise ValueError('lat/lon not in domain')
+            elif bounds == 'warn':
+                warn('lat/lon not in domain')
         i = inlon.argmax(0)
         j = inlat.argmax(0)
         return i, j
@@ -734,7 +773,7 @@ class bpch(bpch_base):
 
     """
     @classmethod
-    def isMine(cls, path):
+    def isMine(cls, path, *args, **kwds):
         try:
             # Read binary data for general header and first datablock header
             header_block = fromfile(
@@ -859,7 +898,7 @@ class bpch(bpch_base):
                     tdict['NAME'] = l[:8].strip()
                     tdict['FULLNAME'] = l[9:39].strip()
                     tdict['MOLWT'] = float(l[39:49])
-                    tdict['C'] = int(l[49:52]),
+                    tdict['C'] = int(l[49:52])
                     tdict['TRACER'] = int(l[52:61])
                     tdict['SCALE'] = float(l[61:71])
                     tdict['UNIT'] = l[72:].strip()

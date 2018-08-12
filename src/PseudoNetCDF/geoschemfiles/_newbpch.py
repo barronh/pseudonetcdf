@@ -209,7 +209,7 @@ class gcvar(object):
 
 class bpch2(bpch_base):
     @classmethod
-    def isMine(cls, path):
+    def isMine(cls, path, *args, **kwds):
         isbpch = oldbpch.isMine(path)
         if not isbpch:
             return False

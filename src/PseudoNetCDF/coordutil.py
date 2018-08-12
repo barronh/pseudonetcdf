@@ -19,13 +19,13 @@ def getbounds(ifile, dimkey):
         if not (ddm == dd).all():
             warn('Bounds is an approximation assuming ' +
                  '%s variable is cell centers' % dimkey)
-        else:
-            db = (d[:-1] + d[1:]) / 2.
-            db = np.append(
-                np.append(d[0] - dd[0] / 2., db), d[-1] + dd[-1] / 2)
-            return db
+
+        db = (d[:-1] + d[1:]) / 2.
+        db = np.append(np.append(d[0] - dd[0] / 2., db), d[-1] + dd[-1] / 2)
+        return db
     else:
-        return np.arange(0, len(dim))
+        return np.arange(0, len(dim) + 1)
+
     if len(dim) == db.shape[0] and db.shape[1] == 2:
         return np.append(db[:, 0], db[-1, 1])
     elif db.ndim == 1:
@@ -594,7 +594,7 @@ def getproj4(ifile, withgrid=False):
     """
     from .conventions.ioapi import getmapdef
     if (
-        getattr(ifile, 'GDTYP', 0) in (2, 6, 7) and
+        getattr(ifile, 'GDTYP', 0) in (1, 2, 6, 7) and
         all([hasattr(ifile, k)
              for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()])
     ):
@@ -624,7 +624,9 @@ def getproj4(ifile, withgrid=False):
             else:
                 gridmapping = ifile.variables[gridmappings[0]]
                 mapstr = getproj4_from_cf_var(gridmapping, withgrid=withgrid)
-
+    else:
+        warn('No known grid mapping; assuming lonlat')
+        mapstr = '+proj=lonlat'
     mapstr += ' +no_defs'
     return mapstr
 
