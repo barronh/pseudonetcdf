@@ -210,8 +210,10 @@ def inqarlpackedbit(path):
     fheader = np.fromfile(f, count=1, dtype=thdtype)[0]
     out = {}
     out['LENH'] = hlen = int(fheader['LENH'])
-    out['NX'] = int(fheader['NX'])
-    out['NY'] = int(fheader['NY'])
+    gridx_off = max(0, (fheader['GRID'][0] - 64) * 1000)
+    gridy_off = max(0, (fheader['GRID'][1] - 64) * 1000)
+    out['NX'] = int(fheader['NX']) + gridx_off
+    out['NY'] = int(fheader['NY']) + gridy_off
     out['NZ'] = int(fheader['NZ'])
     vheader = np.fromfile(f, count=1, dtype='>%dS' % hlen)[0]
     readvardef(vheader, out)
