@@ -3,6 +3,7 @@ import warnings
 
 std_showwarning = warnings.showwarning
 
+
 def warn(*args, **kwds):
     """
     Thin wrapper around warnings.warn to prepend **PNC:
@@ -24,6 +25,7 @@ def warn(*args, **kwds):
     warnings.showwarning = std_showwarning
     return out
 
+
 def clean_showwarning(message, category, filename, lineno, file=None,
                       line=None):
     global _first_read_only
@@ -39,6 +41,7 @@ def clean_showwarning(message, category, filename, lineno, file=None,
     except OSError:
         pass  # the file (probably stderr) is invalid - this warning gets lost.
     return
+
 
 filterwarnings = warnings.filterwarnings
 simplefilter = warnings.simplefilter
