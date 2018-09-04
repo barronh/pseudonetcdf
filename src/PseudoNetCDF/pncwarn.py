@@ -1,7 +1,28 @@
 import sys
 import warnings
-warn = warnings.warn
 
+std_showwarning = warnings.showwarning
+
+def warn(*args, **kwds):
+    """
+    Thin wrapper around warnings.warn to prepend **PNC:
+    to warnings. This makes it easy to find PseudoNetCDF
+    warnings.
+
+    Arguments
+    ---------
+    args : arguments for warnings.warn
+    kwds : keywords for warnings.warn
+
+    Returns
+    -------
+    out : same as warnings.warn
+    """
+
+    warnings.showwarning = clean_showwarning
+    out = warnings.warn(*args, **kwds)
+    warnings.showwarning = std_showwarning
+    return out
 
 def clean_showwarning(message, category, filename, lineno, file=None,
                       line=None):
@@ -18,9 +39,6 @@ def clean_showwarning(message, category, filename, lineno, file=None,
     except OSError:
         pass  # the file (probably stderr) is invalid - this warning gets lost.
     return
-
-
-warnings.showwarning = clean_showwarning
 
 filterwarnings = warnings.filterwarnings
 simplefilter = warnings.simplefilter

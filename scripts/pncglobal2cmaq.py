@@ -32,7 +32,7 @@ def formatwarning(message, category, filename, lineno, line=0):
     Warning formatter function
     """
     global messages
-    strout = "\n***********\n%s:%s: %s:\n\t%s\n***********\n" % (
+    strout = "\n***********\n%s:%s: %s:\n\t%s" % (
         filename, lineno, category.__name__, message)
     messages += strout
     return strout
@@ -655,13 +655,29 @@ def makedefaulticon(metcroprops, args):
                 metcroprops['NROWS'], 1).repeat(metcroprops['NCOLS'], 2)
             return allvals
     else:
+        warn('Making defaulticon.nc with no species')
+        GCLIST = varlist = ['DUMMY']
+
         def getvals(varkey):
             return 1e-32
+
+    def getunit(varkey):
+        if varkey in GCLIST:
+            return 'ppmV'
+        elif varkey in AELIST:
+            return 'micrograms/m**3'
+        elif varkey in NMLIST:
+            return '#/m**3'
+        elif varkey in SFLIST:
+            return 'm**2/m**3'
+
+    # varkey_unit = [(i, 'ppmV') for i in GCLIST] + [(i, 'micrograms/m**3') for i in AELIST] + [(i, '#/m**3') for i in NMLIST] + [(i, 'm**2/m**3') for i in SFLIST]
+    varkey_unit = [(varkey, getunit(varkey)) for varkey in varlist]
 
     DI = Dataset('dummyicon.nc', 'w', format='NETCDF3_CLASSIC')
     DI.createDimension('TSTEP', None)
     DI.createDimension('DATE-TIME', 2)
-    DI.createDimension('VAR', 106)
+    DI.createDimension('VAR', len(varkey_unit))
     DI.createDimension('LAY', metcroprops['NLAYS'])
     DI.createDimension('ROW', metcroprops['NROWS'])
     DI.createDimension('COL', metcroprops['NCOLS'])
@@ -676,18 +692,6 @@ def makedefaulticon(metcroprops, args):
     AIRDEN.coordinates = "lon lat"
     AIRDEN.var_desc = "AIRDEN          "
 
-    def getunit(varkey):
-        if varkey in GCLIST:
-            return 'ppmV'
-        elif varkey in AELIST:
-            return 'micrograms/m**3'
-        elif varkey in NMLIST:
-            return '#/m**3'
-        elif varkey in SFLIST:
-            return 'm**2/m**3'
-
-    # varkey_unit = [(i, 'ppmV') for i in GCLIST] + [(i, 'micrograms/m**3') for i in AELIST] + [(i, '#/m**3') for i in NMLIST] + [(i, 'm**2/m**3') for i in SFLIST]
-    varkey_unit = [(varkey, getunit(varkey)) for varkey in varlist]
     for varkey, unit in varkey_unit:
         var = DI.createVariable(varkey, 'f', ('TSTEP', 'LAY', 'ROW', 'COL'))
         var.long_name = varkey.ljust(16)
@@ -702,10 +706,10 @@ def makedefaulticon(metcroprops, args):
     DI.IOAPI_VERSION = "$Id: @(#) ioapi library version 3.1 $".ljust(80)
     DI.EXEC_ID = "BCON_V5g_Darwin13_x86_64gfortran ".ljust(80)
     DI.FTYPE = 1
-    DI.CDATE = 2014031
-    DI.CTIME = 230334
-    DI.WDATE = 2014031
-    DI.WTIME = 230334
+    DI.CDATE = int(datetime.now().strftime('%Y%j'))
+    DI.CTIME = int(datetime.now().strftime('%H%M%S'))
+    DI.WDATE = DI.CDATE
+    DI.WTIME = DI.CTIME
     DI.SDATE = np.int32(metcroprops['SDATE'])
     DI.STIME = np.int32(metcroprops['STIME'])
     DI.TSTEP = np.int32(metcroprops['TSTEP'])
@@ -713,7 +717,7 @@ def makedefaulticon(metcroprops, args):
     DI.NCOLS = np.int32(metcroprops['NCOLS'])
     DI.NROWS = np.int32(metcroprops['NROWS'])
     DI.NLAYS = np.int32(metcroprops['NLAYS'])
-    DI.NVARS = 106
+    DI.NVARS = len(varkey_unit)
     DI.GDTYP = np.int32(metcroprops['GDTYP'])
     DI.P_ALP = np.float64(metcroprops['P_ALP'])
     DI.P_BET = np.float64(metcroprops['P_BET'])
@@ -783,19 +787,11 @@ def makedefaultbcon(metbdyprops, args):
                 :, None].repeat(metbdyprops['NROWS'] + 1, 1)
             return np.concatenate([south, east, north, west], axis=1)
     else:
+        warn('Making defaultbcon.nc with no species')
+        GCLIST = varlist = ['DUMMY']
+
         def getvals(varkey):
             return 1e-32
-    DB = Dataset('dummybcon.nc', 'w', format='NETCDF3_CLASSIC')
-    DB.createDimension('TSTEP', None)
-    DB.createDimension('DATE-TIME', 2)
-    DB.createDimension('VAR', 78)
-    DB.createDimension('LAY', metbdyprops['NLAYS'])
-    DB.createDimension('PERIM', metbdyprops['PERIM'])
-
-    TFLAG = DB.createVariable('TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
-    TFLAG.units = "<YYYYDDD,HHMMSS>"
-    TFLAG.long_name = "TFLAG           "
-    TFLAG.var_desc = "Timestep-valid flags:  (1) YYYYDDD or (2) HHMMSS                                "
 
     def getunit(varkey):
         if varkey in GCLIST:
@@ -811,6 +807,18 @@ def makedefaultbcon(metbdyprops, args):
     #               [(i, '#/m**3') for i in NMLIST] +
     #               [(i, 'm**2/m**3') for i in SFLIST]
     varkey_unit = [(varkey, getunit(varkey)) for varkey in varlist]
+
+    DB = Dataset('dummybcon.nc', 'w', format='NETCDF3_CLASSIC')
+    DB.createDimension('TSTEP', None)
+    DB.createDimension('DATE-TIME', 2)
+    DB.createDimension('VAR', len(varkey_unit))
+    DB.createDimension('LAY', metbdyprops['NLAYS'])
+    DB.createDimension('PERIM', metbdyprops['PERIM'])
+
+    TFLAG = DB.createVariable('TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
+    TFLAG.units = "<YYYYDDD,HHMMSS>"
+    TFLAG.long_name = "TFLAG           "
+    TFLAG.var_desc = "Timestep-valid flags:  (1) YYYYDDD or (2) HHMMSS                                "
     for varkey, unit in varkey_unit:
         var = DB.createVariable(varkey, 'f', ('TSTEP', 'LAY', 'PERIM'))
         var.long_name = varkey.ljust(16)
@@ -825,10 +833,10 @@ def makedefaultbcon(metbdyprops, args):
     DB.IOAPI_VERSION = "$Id: @(#) ioapi library version 3.1 $".ljust(80)
     DB.EXEC_ID = "BCON_V5g_Darwin13_x86_64gfortran ".ljust(80)
     DB.FTYPE = 2
-    DB.CDATE = 2014031
-    DB.CTIME = 230334
-    DB.WDATE = 2014031
-    DB.WTIME = 230334
+    DB.CDATE = int(datetime.now().strftime('%Y%j'))
+    DB.CTIME = int(datetime.now().strftime('%H%M%S'))
+    DB.WDATE = DB.CDATE
+    DB.WTIME = DB.CTIME
     DB.SDATE = np.int32(metbdyprops['SDATE'])
     DB.STIME = np.int32(metbdyprops['STIME'])
     DB.TSTEP = np.int32(metbdyprops['TSTEP'])
@@ -836,7 +844,7 @@ def makedefaultbcon(metbdyprops, args):
     DB.NCOLS = np.int32(metbdyprops['NCOLS'])
     DB.NROWS = np.int32(metbdyprops['NROWS'])
     DB.NLAYS = np.int32(metbdyprops['NLAYS'])
-    DB.NVARS = 78
+    DB.NVARS = len(varkey_unit)
     DB.GDTYP = np.int32(metbdyprops['GDTYP'])
     DB.P_ALP = np.float64(metbdyprops['P_ALP'])
     DB.P_BET = np.float64(metbdyprops['P_BET'])
@@ -1320,6 +1328,7 @@ def makeibcon(args):
                      oldbcon, newbcon, nbconoutsteps)]
     if doicon:
         infiles += [(metcro, regridded_nd49_cro, oldicon, newicon, 1)]
+    print(messages)
     general_messages = messages
     messages = ""
     for metfile, regridded_nd49, oldcon, newcon, noutstep in infiles:
@@ -1403,23 +1412,23 @@ def makeibcon(args):
                             break
 
                         if manual_unit:
-                            exprout = expr 
+                            exprout = expr
                         else:
                             assert((np.array(inunits) == inunit).all())
                             if inunit == ounit:
                                 pass
                             elif ounit == 'ppmV' and inunit in ('pptv', 'pptC'):
                                 # pptC has automatically been converted to pptv
-                                exprout = '(%s) * 1e-6' % expr 
+                                exprout = '(%s) * 1e-6' % expr
                                 temp_val *= 1e-6
                             elif ounit == 'ppmV' and inunit in ('ppbv', 'ppbC'):
                                 # ppbC has automatically been converted to ppbv
-                                exprout = '(%s) * 1e-3' % expr 
+                                exprout = '(%s) * 1e-3' % expr
                                 temp_val *= 1e-3
                             elif ounit == 'micrograms/m**3' and (inunit == 'ppbv' or inunit == 'pptv'):
                                 airmolden = eval(
                                     mappings_file['AIRMOLDEN']['expression'], None, nd49.variables)
-                                exprout = '(%s) * AIRMOLDEN' % expr 
+                                exprout = '(%s) * AIRMOLDEN' % expr
                                 temp_val *= airmolden
                                 if inunit == 'pptv':
                                     exprout += ' * 1e-3'
@@ -1548,8 +1557,10 @@ def makeibcon(args):
             warn('CON did not originally have:\n' + ', '.join(addedkeys) + '\n')
         if len(oldkeys) > 0:
             warn('Using old CON for:\n' + ', '.join(oldkeys) + '\n')
+        print('BHH' + general_messages + messages)
         setattr(newcon, 'HISTORY', getattr(
             newcon, 'HISTORY', '') + general_messages + messages)
+        print('BHH' + newcon.HISTORY)
         newcon.sync()
 
 
