@@ -90,6 +90,8 @@ class ioapi_base(PseudoNetCDFFile):
         --------
         see PseudoNetCDFFile.createVariable
         """
+        if name == 'TFLAG':
+            fill_value = None
         out = PseudoNetCDFFile.createVariable(
             self, name=name, type=type, dimensions=dimensions,
             fill_value=fill_value, **properties)
@@ -130,17 +132,35 @@ class ioapi_base(PseudoNetCDFFile):
         see PseudoNetCDFFile.sliceDimensions
         """
         varlist = self.getVarlist(update=False)
-        newvarlist = [varkey for varkey in varlist if (
-            varkey in varkeys) != exclude]
-        outf = PseudoNetCDFFile.subsetVariables(
-            self, varkeys, inplace=inplace, exclude=exclude)
-        if 'TFLAG' not in outf.variables and 'TFLAG' in self.variables:
-            outf.copyVariable(self.variables['TFLAG'], key='TFLAG')
-        sliceo = np.array(
-            [vi for vi, varkey in enumerate(varlist) if varkey in newvarlist])
-        outf = outf.sliceDimensions(VAR=sliceo)
+        newvarlist = [
+            varkey for varkey in varlist
+            if (
+                (varkey in varkeys) != exclude and
+                varkey in self.variables and
+                varkey != 'TFLAG'
+            )
+        ]
+        outf = self.copy(props=True, dimensions=False, variables=False)
+        for dk, dv in self.dimensions.items():
+            if dk == 'VAR':
+                outf.copyDimension(dv, key=dk, dimlen=len(newvarlist))
+            else:
+                outf.copyDimension(dv, key=dk)
+
+        for vk in newvarlist:
+            PseudoNetCDFFile.copyVariable(
+                outf,
+                self.variables[vk],
+                key=vk,
+                withdata=False
+            )
+
+        for vk in newvarlist:
+            outf.variables[vk][:] = self.variables[vk][:]
+
         setattr(outf, 'VAR-LIST', '')
         outf._add2Varlist(newvarlist)
+        outf.updatemeta()
         return outf
 
     def sliceDimensions(self, *args, **kwds):
@@ -178,11 +198,11 @@ class ioapi_base(PseudoNetCDFFile):
         # If lay was subset, subset VGLVLS too
         if 'LAY' in kwds:
             nlvls = outf.VGLVLS.size
-            tmpvglvls = outf.VGLVLS[kwds['LAY']]
-            endi = np.arange(outf.VGLVLS.size)[kwds['LAY']].take(-1) + 1
-            if endi != nlvls:
+            lidx= np.arange(outf.VGLVLS.size - 1)[kwds['LAY']]
+            tmpvglvls = outf.VGLVLS[lidx]
+            if lidx[-1] < (nlvls - 1):
                 try:
-                    endl = outf.VGLVLS[endi]
+                    endl = outf.VGLVLS[lidx[-1] + 1]
                     tmpvglvls = np.append(tmpvglvls, endl)
                     outf.VGLVLS = tmpvglvls
                 except Exception:
@@ -195,9 +215,11 @@ class ioapi_base(PseudoNetCDFFile):
         else:
             # Update origins
             if 'COL' in kwds and 'COL' in outf.dimensions:
-                outf.XORIG += np.r_[kwds['COL']][0] * outf.XCELL
-            if 'ROW' in kwds and 'COL' in outf.dimensions:
-                outf.YORIG += np.r_[kwds['ROW']][0] * outf.YCELL
+                ncol = len(self.dimensions['COL'])
+                outf.XORIG += np.arange(ncol)[kwds['COL']][0] * outf.XCELL
+            if 'ROW' in kwds and 'ROW' in outf.dimensions:
+                nrow = len(self.dimensions['ROW'])
+                outf.YORIG += np.arange(nrow)[kwds['ROW']][0] * outf.YCELL
 
         # Update TFLAG, SDATE, STIME and TSTEP
         if 'TSTEP' in kwds:
@@ -348,6 +370,47 @@ class ioapi_base(PseudoNetCDFFile):
 
         return varlist
 
+    def updatetflag(self, overwrite=None, startdate=None):
+        if overwrite is None:
+            overwrite = (
+                'TFLAG' not in self.variables or
+                self.variables['TFLAG'].shape[1] != self.NVARS
+            )
+
+        if overwrite:
+            if 'TFLAG' in self.variables:
+                del self.variables['TFLAG']
+            if startdate is not None:
+                self.SDATE = int(startdate.strftime('%Y%j'))
+                self.STIME = int(startdate.strftime('%H%M%S'))
+            times = self.getTimes()
+            tvar = self.createVariable(
+                'TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
+            tvar.units = '<YYYYDDD,HHMMSS>'.ljust(16)
+            tvar.long_name = 'TFLAG'.ljust(16)
+            tvar.var_desc = ("Timestep-valid flags:  (1) YYYYDDD or (2) " +
+                             "HHMMSS                                ")
+
+            yyyyjjj = np.array([int(t.strftime('%Y%j')) for t in times])
+            hhmmss = np.array([int(t.strftime('%H%M%S')) for t in times])
+
+            tvar[:, :, 0] = yyyyjjj[:, None].repeat(tvar.shape[1], 1)
+            tvar[:, :, 1] = hhmmss[:, None].repeat(tvar.shape[1], 1)
+        else:
+            times = self.getTimes()
+
+            if not hasattr(self, 'SDATE'):
+                self.SDATE = int(times[0].strftime('%Y%j'))
+            if not hasattr(self, 'STIME'):
+                self.STIME = int(times[0].strftime('%H%M%S'))
+            if times.size > 1:
+                dt = np.diff(times)
+                if not (dt[0] == dt).all():
+                    warn('New time is unstructured')
+            self.TSTEP = int(
+                (datetime.datetime(1900, 1, 1, 0) + dt[0]).strftime('%H%M%S')
+            )
+
     def updatemeta(self, attdict={}, sortmeta=False):
         """
         Parameters
@@ -386,46 +449,9 @@ class ioapi_base(PseudoNetCDFFile):
             self.NROWS = len(self.dimensions['ROW'])
 
         self._updatetime()
-        try:
-            times = self.getTimes()
-        except Exception:
-            return
-
-        if not hasattr(self, 'SDATE'):
-            self.SDATE = int(times[0].strftime('%Y%j'))
-        if not hasattr(self, 'STIME'):
-            self.STIME = int(times[0].strftime('%H%M%S'))
-        if times.size > 1:
-            dt = np.diff(times)
-            if not (dt[0] == dt).all():
-                warn('New time is unstructured')
-            self.TSTEP = int(
-                (datetime.datetime(1900, 1, 1, 0) + dt[0]).strftime('%H%M%S'))
-        if (
-            'TFLAG' not in self.variables or
-            self.variables['TFLAG'].shape[1] != self.NVARS
-        ):
-            dotflag = True
-            tvar = self.createVariable(
-                'TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
-            tvar.units = '<YYYYDDD,HHMMSS>'.ljust(16)
-            tvar.long_name = 'TFLAG'.ljust(16)
-            tvar.var_desc = ("Timestep-valid flags:  (1) YYYYDDD or (2) " +
-                             "HHMMSS                                ")
-        else:
-            tvar = self.variables['TFLAG']
-            dotflag = ~((self.SDATE == tvar[0, 0, 0]) and (
-                self.STIME == tvar[0, 0, 1]))
-
+        self.updatetflag()
         if sortmeta:
             ioapi_sort_meta(self)
-
-        if dotflag:
-            yyyyjjj = np.array([int(t.strftime('%Y%j')) for t in times])
-            hhmmss = np.array([int(t.strftime('%H%M%S')) for t in times])
-
-            tvar[:, :, 0] = yyyyjjj[:, None]
-            tvar[:, :, 1] = hhmmss[:, None]
 
     def applyAlongDimensions(self, *args, **kwds):
         """
@@ -437,6 +463,19 @@ class ioapi_base(PseudoNetCDFFile):
         see PseudoNetCDFFile.applyAlongDimensions
         """
         outf = PseudoNetCDFFile.applyAlongDimensions(self, *args, **kwds)
+        if 'LAY' in kwds:
+            nlays = len(self.dimensions['LAY'])
+            layf = PseudoNetCDFFile()
+            layf.createDimension('lay', nlays)
+            layf.createDimension('nv', 2)
+            laym = layf.createVariable('lay', 'f', ('lay',))
+            layb = layf.createVariable('lay_bounds', 'f', ('lay', 'nv'))
+            layb[:, 0] = self.VGLVLS[:-1]
+            layb[:, 1] = self.VGLVLS[1:]
+            laym[:] = layb.mean(1)
+            newlayf = layf.applyAlongDimensions(lay=kwds['LAY'])
+            nlayb = newlayf.variables['lay_bounds']
+            outf.VGLVLS = np.append(nlayb[:, 0], nlayb[:, 1]).view(np.ndarray)
         outf.updatemeta()
         return outf
 
@@ -613,13 +652,26 @@ class ioapi_base(PseudoNetCDFFile):
 
 class ioapi(ioapi_base, netcdf):
     def _newlike(self):
-        if isinstance(self, PseudoNetCDFFile):
+        if self.get_dest() is not None:
+            outf = ioapi(**self.get_dest())
+        elif isinstance(self, PseudoNetCDFFile):
             outt = ioapi_base
             outf = outt.__new__(outt)
         else:
             outf = PseudoNetCDFFile()
+        outf.set_varopt(**self.get_varopt())
         outf._updatetime(write=True, create=True)
         return outf
+
+    @property
+    def _mode(self):
+        return self.__dict__['_mode']
+
+    def createVariable(self, *args, **kwds):
+        return netcdf.createVariable(self, *args, **kwds)
+
+    def createDimension(self, *args, **kwds):
+        return netcdf.createDimension(self, *args, **kwds)
 
     @classmethod
     def isMine(cls, *args, **kwds):
