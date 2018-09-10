@@ -424,6 +424,20 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         self.assertEqual(0, i0)
         self.assertEqual(0, j0)
 
+    def testTime2t(self):
+        from datetime import datetime, timezone
+        time = np.array([
+            datetime.strptime(t, '%Y-%m-%d %H:%M%z')
+            for t in [
+                '1970-01-01 00:20+0000', 
+                '1970-01-01 01:40+0000', 
+                '1970-01-01 06:00+0000', 
+            ]
+        ])
+        tncf = self.testncf
+        t = tncf.time2t(time)
+        self.assertEqual(True, np.allclose(t, [0, 1, 6]))
+
     @requires_pyproj
     def testXy2ll(self):
         tncf = self.testncf

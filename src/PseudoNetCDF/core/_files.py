@@ -249,6 +249,55 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         lon, lat = p(i + 0.5, j + 0.5, inverse=True)
         return lon, lat
 
+    def time2t(self, time, ttype='nearest', index=True):
+        """
+        Parameters
+        ----------
+        time : array of datetime.datetime objects
+        interp : 'nearest', 'bounds', 'bounds_close'
+        index : return index
+
+        Returns
+        -------
+        t : fractional time or if index, integers for indexing
+        """
+        time = np.asarray(time)
+        if ttype not in ('nearest', 'bounds', 'bounds_close'):
+            warn('{} is not an option; defaulting to nearest'.format(ttype))
+            ttype = 'nearest'
+        if ttype == 'nearest':
+            mytimes = self.getTimes()
+        else:
+            mytimes = self.getTimes(bounds=True)
+        idx = np.arange(mytimes.size)
+        dts = np.array([dt.total_seconds() for dt in np.diff(mytimes)])
+        if ((dts % 86400) == 0).all():
+            tu = 'datetime64[D]'
+        elif ((dts % 3600) == 0).all():
+            tu = 'datetime64[h]'
+        elif ((dts % 60) == 0).all():
+            tu = 'datetime64[m]'
+        elif ((dts % 1) == 0).all():
+            tu = 'datetime64[s]'
+        else:
+            tu = 'datetime64[ns]'
+        x = time.astype(tu).astype('d')
+        xp = mytimes.astype(tu).astype('d')
+        if ttype in ('nearest', 'bounds_close'):
+            out = np.interp(x, xp, idx)
+            if index:
+                imin = 0
+                imax = idx[-1] + (0 if ttype == 'nearest' else -1)
+                out = np.floor(
+                    np.minimum(np.maximum(out, imin), imax)
+                ).astype('i')
+        else:
+            out = np.interp(x, xp, idx, left=np.nan, right=np.nan)
+            if index:
+                out = np.ma.masked_less(np.ma.floor(out).astype('i'), 0)
+
+        return out
+
     def get_dest(self):
         """
         Returns the path where a new file is created on some action
@@ -1025,6 +1074,16 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             time = self.variables['time']
             timeunits = time.units.strip()
             calendar = getattr(time, 'calendar', 'gregorian').lower()
+            if bounds:
+                if 'time_bounds' in self.variables.keys():
+                    time = self.variables['time_bounds']
+                    time = np.append(time[:, 0], time[-1, 1])
+                else:
+                    dts = np.diff(time)
+                    dt = dts.mean()
+                    if (dt != dts).all():
+                        warn('Time bounds are approximate')
+                    time = np.append(time - dt/2, time[-1] + dt/2)
             if 'since' in timeunits:
                 unit, base = timeunits.split(' since ')
                 # Get the reference date
@@ -1097,6 +1156,19 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             out = np.array([datetime(yyyy, 1, 1, tzinfo=utc) +
                             timedelta(days=day - 1)
                             for yyyy, day in zip(yyyys, days)])
+            if bounds:
+                if hasattr(self, 'TSTEP'):
+                    tstep = getattr(self, 'TSTEP')
+                    sh = tstep // 10000 * 3600
+                    sm = tstep % 10000 // 100 * 60
+                    ss = tstep % 100
+                    dt = timedelta(seconds=sh + sm + ss)
+                else:
+                    dts = np.diff(out)
+                    dt = dts.mean()
+                    if (dt != dts).all():
+                        warn('Time bounds are approximate')
+                out = np.append(out, out[-1] + dt)
         elif hasattr(self, 'SDATE') and hasattr(self, 'STIME') and \
                 hasattr(self, 'TSTEP') and 'TSTEP' in self.dimensions:
             refdate = datetime.strptime(
@@ -1114,6 +1186,11 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             out = datetime(1985, 1, 1, 0, tzinfo=utc) + \
                 np.array([timedelta(hours=i)
                           for i in self.variables['tau0'][:]])
+            if bounds and 'tau1' in self.variables.keys():
+                oute = datetime(1985, 1, 1, 0, tzinfo=utc) + \
+                       np.array([timedelta(hours=i)
+                                 for i in self.variables['tau1'][:]])
+                out = np.append(out, oute[-1])
         else:
             raise ValueError('cannot understand time for file')
         if datetype == 'datetime':
@@ -1136,8 +1213,12 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         outf : PseudoNetCDFFile instance with stacked variables and dimension
                equal to new lenght
         """
+        from collections import Iterable
         outf = self._copywith(props=True, dimensions=False)
-        fs = [self, other]
+        if isinstance(other, Iterable):
+            fs = [self] + list(other)
+        else:
+            fs = [self, other]
         dimensions = [f_.dimensions for f_ in fs]
         shareddims = {}
         for dimk, dim in self.dimensions.items():
