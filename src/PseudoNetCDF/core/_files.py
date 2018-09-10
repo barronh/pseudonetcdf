@@ -270,27 +270,51 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         else:
             mytimes = self.getTimes(bounds=True)
         idx = np.arange(mytimes.size)
-        dts = np.array([dt.total_seconds() for dt in np.diff(mytimes)])
-        if ((dts % 86400) == 0).all():
-            tu = 'datetime64[D]'
-        elif ((dts % 3600) == 0).all():
-            tu = 'datetime64[h]'
-        elif ((dts % 60) == 0).all():
-            tu = 'datetime64[m]'
-        elif ((dts % 1) == 0).all():
+
+        # Find minimum resoultion
+        for res in [
+            'microsecond', 'second', 'minute', 'hour', 'day', 'month', 'year'
+        ]:
+            minres = res
+            resvals = [getattr(d, res) for d in time]
+            myresvals = [getattr(d, res) for d in mytimes]
+            if not np.allclose(myresvals, 0):
+                break
+            if not np.allclose(resvals, 0):
+                break
+
+        # Translate minimum resolution to numpy datetime
+        if minres == 'microsecond':
+            tu = 'datetime64[ns]'
+        elif minres == 'second':
             tu = 'datetime64[s]'
+        elif minres == 'minute':
+            tu = 'datetime64[m]'
+        elif minres == 'hour':
+            tu = 'datetime64[h]'
+        elif minres in ('year', 'month', 'day'):
+            tu = 'datetime64[D]'
         else:
             tu = 'datetime64[ns]'
+
+        # Convert input time to numpy datetime at resolution
         x = time.astype(tu).astype('d')
+        # Convert file's time to numpy datetime at resolution
         xp = mytimes.astype(tu).astype('d')
+
+        # Use interpolation methods with no bounding for nearest
+        # and bounds_close
         if ttype in ('nearest', 'bounds_close'):
             out = np.interp(x, xp, idx)
             if index:
                 imin = 0
                 imax = idx[-1] + (0 if ttype == 'nearest' else -1)
-                out = np.floor(
-                    np.minimum(np.maximum(out, imin), imax)
-                ).astype('i')
+                out = np.minimum(np.maximum(out, imin), imax)
+                if ttype == 'nearest':
+                    out = np.round(out, 0).astype('i')
+                else:
+                    out = np.floor(out).astype('i')
+        # Use interpolation methods with bounding for nearest
         else:
             out = np.interp(x, xp, idx, left=np.nan, right=np.nan)
             if index:

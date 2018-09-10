@@ -12,9 +12,10 @@ class PseudoNetCDFFileTest(unittest.TestCase):
     def setUp(self):
         from datetime import datetime, timedelta
         self.testncf = self._makencf()
-        self.mymeta = set(['time', 'latitude', 'longitude', 'latitude_bounds',
+        self.mymeta = set(['time', 'time_bounds', 'latitude', 'longitude', 'latitude_bounds',
                            'longitude_bounds', 'lambert_conformal_conic'])
         self.myvars = self.mymeta.union(['O3'])
+        self.mydims = ['TIME', 'LAY', 'ROW', 'COL', 'nv', 'tnv']
         rtime = datetime.strptime(
             '1970-01-01 00:00:00+0000', '%Y-%m-%d %H:%M:%S%z')
         self.mytimes = np.array([rtime + timedelta(hours=i)
@@ -29,6 +30,7 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         tncf.createDimension('ROW', 5)
         tncf.createDimension('COL', 6)
         tncf.createDimension('nv', 4)
+        tncf.createDimension('tnv', 2)
         tncf.str_one = '1'
         tncf.int_two = 2
         tncf.float_threeptfive = 3.5
@@ -42,6 +44,12 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         time.long_name = 'time'
         time.units = 'hours since 1970-01-01 00:00:00+0000'
         time[:] = np.arange(24)
+
+        timeb = tncf.createVariable('time_bounds', 'd', ('TSTEP', 'nv'))
+        timeb.long_name = 'time_bounds'
+        timeb.units = 'hours since 1970-01-01 00:00:00+0000'
+        timeb[:, 0] = np.arange(0, 24)
+        timeb[:, 1] = np.arange(1, 25)
 
         crs = tncf.createVariable('lambert_conformal_conic', 'i', ())
         crs.grid_mapping_name = 'lambert_conformal_conic'
@@ -245,8 +253,7 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         tncf = self.testncf
         sncf = tncf.renameDimensions(TSTEP='TIME')
         self.assertEqual(len(sncf.dimensions), len(tncf.dimensions))
-        self.assertEqual(set(sncf.dimensions), set(
-            ['TIME', 'LAY', 'ROW', 'COL', 'nv']))
+        self.assertEqual(set(sncf.dimensions), set(self.mydims))
 
     def testSliceDimensionInt(self):
         tncf = self.testncf
@@ -425,18 +432,30 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         self.assertEqual(0, j0)
 
     def testTime2t(self):
-        from datetime import datetime, timezone
+        from datetime import datetime
         time = np.array([
             datetime.strptime(t, '%Y-%m-%d %H:%M%z')
             for t in [
-                '1970-01-01 00:20+0000', 
-                '1970-01-01 01:40+0000', 
-                '1970-01-01 06:00+0000', 
+                '1970-01-01 00:20+0000',
+                '1970-01-01 01:20+0000',
+                '1970-01-01 01:40+0000',
+                '1970-01-01 06:00+0000',
+                '1970-01-02 01:00+0000',
             ]
         ])
         tncf = self.testncf
-        t = tncf.time2t(time)
-        self.assertEqual(True, np.allclose(t, [0, 1, 6]))
+        t = tncf.time2t(time[:])
+        self.assertEqual(True, np.allclose(t, [0, 1, 2, 6, 23]))
+        t = tncf.time2t(time[:-1], ttype='bounds')
+        self.assertEqual(True, np.allclose(t, [0, 1, 1, 6]))
+        t = tncf.time2t(time[:], ttype='bounds_close')
+        self.assertEqual(True, np.allclose(t, [0, 1, 1, 6, 23]))
+        t = tncf.time2t(time[:], ttype='bounds')
+        self.assertEqual(
+            True,
+            np.allclose(t, np.ma.masked_invalid([0, 1, 1, 6, 23]))
+        )
+        self.assertEqual(t.mask[-1], True)
 
     @requires_pyproj
     def testXy2ll(self):
@@ -645,13 +664,16 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         vardims = list(o3.dimensions)
         vardims.sort()
         filedims.remove('nv')
+        filedims.remove('tnv')
 
         self.assertEqual(filedims, vardims)
         from PseudoNetCDF.pncgen import Pseudo2NetCDF
         n = Pseudo2NetCDF().convert(tncf)
         self.assertEqual(set(n.variables.keys()), self.myvars)
-        self.assertEqual(dict([(k, len(v)) for k, v in n.dimensions.items()]),
-                         {'TSTEP': 24, 'LAY': 4, 'ROW': 5, 'COL': 6, 'nv': 4})
+        self.assertEqual(
+            dict([(k, len(v)) for k, v in n.dimensions.items()]),
+            dict([(k, len(v)) for k, v in self.testncf.dimensions.items()])
+        )
         self.assertEqual(
             True, (n.variables['O3'][...] == tncf.variables['O3'][...]).all())
         self.assertEqual(n.variables['O3'].units, 'ppbv')
