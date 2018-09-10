@@ -12,8 +12,10 @@ class PseudoNetCDFFileTest(unittest.TestCase):
     def setUp(self):
         from datetime import datetime, timedelta
         self.testncf = self._makencf()
-        self.mymeta = set(['time', 'time_bounds', 'latitude', 'longitude', 'latitude_bounds',
-                           'longitude_bounds', 'lambert_conformal_conic'])
+        self.mymeta = set([
+            'time', 'time_bounds', 'latitude', 'longitude', 'latitude_bounds',
+            'longitude_bounds', 'lambert_conformal_conic'
+        ])
         self.myvars = self.mymeta.union(['O3'])
         self.mydims = ['TIME', 'LAY', 'ROW', 'COL', 'nv', 'tnv']
         rtime = datetime.strptime(
