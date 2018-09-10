@@ -135,7 +135,8 @@ class Pseudo2NetCDF:
         self.addVariableProperties(pvar, nvar)
         if data:
             self.addVariableData(pfile, nfile, k)
-        nfile.sync()
+            nfile.sync()
+
         try:
             nfile.flush()
         except Exception:
@@ -162,7 +163,10 @@ class Pseudo2NetCDF:
             if self.verbose:
                 print("Defining", k, file=sys.stdout)
             self.addVariable(pfile, nfile, k, data=self.datafirst)
-        nfile.sync()
+
+        if self.datafirst:
+            nfile.sync()
+
         if not self.datafirst:
             for k in pfile.variables.keys():
                 if self.verbose:
