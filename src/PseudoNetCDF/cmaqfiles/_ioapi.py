@@ -198,7 +198,7 @@ class ioapi_base(PseudoNetCDFFile):
         # If lay was subset, subset VGLVLS too
         if 'LAY' in kwds:
             nlvls = outf.VGLVLS.size
-            lidx= np.arange(outf.VGLVLS.size - 1)[kwds['LAY']]
+            lidx = np.arange(outf.VGLVLS.size - 1)[kwds['LAY']]
             tmpvglvls = outf.VGLVLS[lidx]
             if lidx[-1] < (nlvls - 1):
                 try:

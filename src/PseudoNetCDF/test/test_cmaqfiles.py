@@ -58,7 +58,7 @@ class IOAPITest(unittest.TestCase):
         minef.YCELL = 36000.
         minef.VGTYP = 7
         minef.VGTOP = 5000.
-        minef.VGLVLS = np.array([1., 0.9975, 0.995, 0.9925], dtype = 'f')
+        minef.VGLVLS = np.array([1., 0.9975, 0.995, 0.9925], dtype='f')
         minef.GDNAM = "METCRO_36US1_CRO"
         minef.UPNAM = "METCRO          "
 
@@ -103,15 +103,15 @@ class IOAPITest(unittest.TestCase):
         return reff, newf
 
     def testSliceRow(self):
-        reff, newf = self._trimdim('ROW') 
+        reff, newf = self._trimdim('ROW')
         self.assertEqual(newf.YORIG, reff.YORIG + reff.YCELL)
-        
+
     def testSliceCol(self):
-        reff, newf = self._trimdim('COL') 
+        reff, newf = self._trimdim('COL')
         self.assertEqual(newf.XORIG, reff.XORIG + reff.XCELL)
-        
+
     def testSliceLay(self):
-        reff, newf = self._trimdim('LAY') 
+        reff, newf = self._trimdim('LAY')
         self.assertEqual(True, np.allclose(newf.VGLVLS, reff.VGLVLS[1:-1]))
 
     def _meandim(self, dim):
@@ -123,13 +123,13 @@ class IOAPITest(unittest.TestCase):
         test(1, getattr(newf, attrkey))
         test(len(newf.dimensions[dim]), getattr(newf, attrkey))
         return reff, newf
-    
+
     def testMeanRow(self):
         reff, newf = self._meandim('ROW')
-        
+
     def testMeanCol(self):
         reff, newf = self._meandim('COL')
-        
+
     def testMeanLay(self):
         reff, newf = self._meandim('LAY')
         test = self.assertEqual
@@ -153,8 +153,7 @@ class IOAPITest(unittest.TestCase):
             vgtop=reff.VGTOP, interptype='conserve'
         )
         test = np.allclose(
-            0.5 * reff.variables['O3'][:, 1:] + 
+            0.5 * reff.variables['O3'][:, 1:] +
             0.5 * reff.variables['O3'][:, :-1],
             newf.variables['O3'][:]
         )
-
