@@ -696,12 +696,14 @@ class bpch_base(PseudoNetCDFFile):
 
         return outf
 
-    def subsetVariables(self, varkeys, inplace=False, keepcoords=True):
-        if keepcoords:
+    def subsetVariables(self, varkeys, inplace=False, keepcoords=True,
+                        exclude=False):
+        if keepcoords and not exclude:
             varkeys = ([key for key in coordkeys
                         if key not in varkeys and key in self.variables] +
                        varkeys)
-        return PseudoNetCDFFile.subsetVariables(self, varkeys, inplace=inplace)
+        return PseudoNetCDFFile.subsetVariables(self, varkeys, inplace=inplace,
+                                                exclude=exclude)
 
     def xy2ll(self, x, y):
         "see ll2xy"
