@@ -1,5 +1,5 @@
 from __future__ import print_function, unicode_literals
-__all__ = ['bpch', 'ncf2bpch']
+__all__ = ['bpch1', 'ncf2bpch']
 import os
 
 # part of the default Python distribution
@@ -752,7 +752,7 @@ class bpch_base(PseudoNetCDFFile):
         return i, j
 
 
-class bpch(bpch_base):
+class bpch1(bpch_base):
     """
     NetCDF-like class to interface with GEOS-Chem binary punch files
 
@@ -1261,8 +1261,8 @@ class TestMemmaps(unittest.TestCase):
         from PseudoNetCDF.testcase import geoschemfiles_paths
         self.bpchpath = geoschemfiles_paths['bpch']
 
-    def testNCF2BPCH(self):
-        bpchfile = bpch(self.bpchpath, noscale=True)
+    def testNCF2BPCH1(self):
+        bpchfile = bpch1(self.bpchpath, noscale=True)
         outpath = self.bpchpath + '.check'
         from PseudoNetCDF.pncgen import pncgen
         pncgen(bpchfile, outpath, inmode='r',
@@ -1297,12 +1297,12 @@ class TestMemmaps(unittest.TestCase):
         ALD2_check_slided_reduced = ALD2_check[0].mean(0)[None, None]
         ALD2 = slided_reduced_bpchfile.variables['IJ-AVG-$_ALD2']
         np.testing.assert_allclose(ALD2, ALD2_check_slided_reduced * 1e-9)
-        bpchfile = bpch(outpath)
+        bpchfile = bpch1(outpath)
         ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']
         np.testing.assert_allclose(ALD2, ALD2_check_slided_reduced)
 
-    def testBPCH(self):
-        bpchfile = bpch(self.bpchpath)
+    def testBPCH1(self):
+        bpchfile = bpch1(self.bpchpath)
         ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']
         ALD2g = bpchfile.groups['IJ-AVG-$'].variables['ALD2']
         ALD2_check = np.array(
