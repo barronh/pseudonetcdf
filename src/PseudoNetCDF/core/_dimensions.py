@@ -12,12 +12,24 @@ class PseudoNetCDFDimension(object):
         self._name = name
 
     def isunlimited(self):
+        """
+        Returns
+        -------
+        out : boolean
+            is the dimension unlimited
+        """
         return self._unlimited
 
     def __len__(self):
         return self._len
 
     def setunlimited(self, unlimited):
+        """
+        Parameters
+        ----------
+        unlimited : boolean
+            largely decorative in PseudoNetCDF, but important in persisting
+        """
         self._unlimited = unlimited
 
     def __repr__(self):

@@ -18,9 +18,18 @@ def testreader(reader, *args, **kwds):
 
 def getreader(*args, **kwds):
     """
-    args - arguments for opening file
-    kwds - keywords for file opener and optional format
-    format - name of reader (optional)
+    Parameters
+    ----------
+    *args :
+        arguments for opening file
+    **kwds :
+        keywords for file opener and optional format
+    format : string
+        name of reader (optional)
+
+    Returns
+    -------
+    reader : class
     """
     global _readers
     format = kwds.pop('format', None)
@@ -62,35 +71,60 @@ def getreader(*args, **kwds):
 
 
 def registerreader(name, reader):
-    global _readers
+    global _readers, pncopen
     if name not in [k for k, v in _readers]:
         _readers.insert(0, (name, reader))
+        tmpl = '\n        - add your own by subclassing PseudoNetCDFFile'
+        newdoc = pncopen.__doc__.replace(tmpl,  '\n        - ' + name + tmpl)
+        pncopen.__doc__ = newdoc
         return True
     else:
         return False
 
 
 def pncopen(*args, **kwds):
-    """
-    Open any PNC supported format using args and kwds, which
+    """Open any PNC supported format using args and kwds, which
     are format specific. format is not passed to the reader
 
-    format = None, addcf = False,
-    args - arguments for opening file
-    kwds - keywords for file opener and optional format and addcf
-    format - name of reader (not passed to reader)
-    addcf - boolean to add CF conventions (not passed to
-            reader; default: False)
-    diskless - boolean to add CF conventions (not passed to reader;
-            default: False)
+    Parameters
+    ----------
+    *args :
+        arguments for opening file
+    **kwds :
+        keywords for reader (see format)
+    format : string
+        name of reader (not passed to reader), default auto-detect
+        see Format Options for formats
+    addcf : boolean
+        to add CF conventions (not passed to reader; default: False)
+    diskless : boolean
+        to add CF conventions (not passed to reader; default: False)
+    help : boolean
+        without format, returns help of pncopen and with format keyword,
+        returns help of that class. See the __init__ interface for help
+        with keywords.
+
+    Returns
+    -------
+    pfile : PseudoNetCDF
+
+    Notes
+    -----
+    Format Options:
+        - add your own by subclassing PseudoNetCDFFile
     """
+    formathelp = kwds.pop('help', False)
     format = kwds.pop('format', None)
     addcf = kwds.pop('addcf', False)
     diskless = kwds.pop('diskless', False)
     if format is None:
+        if formathelp:
+            return help(pncopen)
         reader = getreader(*args, format=format, **kwds)
     else:
         reader = getreaderdict()[format]
+        if formathelp:
+            return help(reader)
 
     outfile = reader(*args, **kwds)
     if addcf:

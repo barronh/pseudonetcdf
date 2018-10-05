@@ -556,6 +556,9 @@ def pack2d(RVARA, verbose=False):
 
 class arlpackedbit(PseudoNetCDFFile):
     """
+    arlpackedbit reads files formatted according to NOAA's arl packed bit
+    format
+
     Format as follows:
 
     for t in times:
@@ -609,6 +612,18 @@ class arlpackedbit(PseudoNetCDFFile):
         return check
 
     def __init__(self, path, shape=None):
+        """
+        Parameters
+        ----------
+        path : string
+            path to arl packed bit formatted file
+        shape : tuple or None
+            shape of file to over ride derived shape
+        Returns
+        -------
+        arlf : arlpackedbit
+            PseudoNetCDF file with packed bit contents unpacked
+        """
         self._path = path
         self._f = f = open(path, 'r')
         # f.seek(0, 2)

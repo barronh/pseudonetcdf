@@ -222,20 +222,23 @@ class ioapi_base(PseudoNetCDFFile):
         """
         Parameters
         ----------
-        self : the file to interpolate from must have VGLVLS
-        vglvls : the new vglvls (edges)
-        vgtop : Converting to new vgtop
-        interptype : 'linear' or 'conserve'
-             linear : uses a linear interpolation
-             conserve : uses a mass conserving interpolation
-        extrapolate : allow extrapolation beyond bounds with linear, default
-                      False
-        fill_value : set fill value (e.g, nan) to prevent extrapolation or edge
-                     continuation
+        vglvls : iterable
+            the new vglvls (edges)
+        vgtop : scalar
+            Converting to new vgtop
+        interptype : string
+             'linear' uses a linear interpolation
+             'conserve' uses a mass conserving interpolation
+        extrapolate : boolean
+            allow extrapolation beyond bounds with linear, default False
+        fill_value : boolean
+            set fill value (e.g, nan) to prevent extrapolation or edge
+            continuation
 
         Returns
         -------
-        outf - ioapi_base PseudoNetCDFFile with al variables interpolated
+        outf : ioapi_base
+            PseudoNetCDFFile with all variables interpolated
 
         Notes
         -----
@@ -314,8 +317,8 @@ class ioapi_base(PseudoNetCDFFile):
         """
         Returns
         -------
-        varlist : VAR-LIST split and stripped
-        update  : update files attributes to be consistent
+        update : boolean
+            update files attributes to be consistent
 
         Notes
         -----
@@ -348,11 +351,12 @@ class ioapi_base(PseudoNetCDFFile):
 
         return varlist
 
-    def updatemeta(self, attdict={}, sortmeta=False):
+    def updatemeta(self, attdict=None, sortmeta=False):
         """
         Parameters
         ----------
-        attdict : key value pairs to update meta data
+        attdict : dictionary
+            key value pairs to update meta data
 
         Returns
         -------
@@ -363,6 +367,8 @@ class ioapi_base(PseudoNetCDFFile):
         Meta data not provided or present will be inferred or made up.
         (See _ioapi_defaults)
         """
+        if attdict is None:
+            attdict = {}
         attdict.update(_ioapi_defaults)
         for pk, pv in attdict.items():
             if not hasattr(self, pk):
@@ -489,20 +495,26 @@ class ioapi_base(PseudoNetCDFFile):
         """
         Parameters
         ----------
-        self : the ioapi file instance
-        varkey : the variable to plot
-        plottype : longitude-latitude, latitude-pressure, longitude-pressure,
-                   vertical-profile, time-longitude, time-latitude,
-                   time-pressure, default, longitude-latitude
-        ax_kw : keywords for the axes to be created
-        plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be
-                  created
-        cbar_kw : keywords for the colorbar
-        map_kw : keywords for the getMap routine, which is only used with
-                 plottype='longitude-latitude'
-        dimreduction : dimensions not being used in the plot are removed
-                       using applyAlongDimensions(dimkey=dimreduction) where
-                       each dimenions
+        varkey : string
+            the variable to plot
+        plottype : string
+            longitude-latitude, latitude-pressure, longitude-pressure,
+            vertical-profile, time-longitude, time-latitude,
+            time-pressure, default, longitude-latitude
+        ax_kw : dictionary
+            keywords for the axes to be created
+        plot_kw : dictionary
+            keywords for the plot (plot, scatter, or pcolormesh) to be
+            created
+        cbar_kw : dictionary
+            keywords for the colorbar
+        map_kw : dictionary
+            keywords for the getMap routine, which is only used with
+            plottype='longitude-latitude'
+        dimreduction : string or function
+            dimensions not being used in the plot are removed
+            using applyAlongDimensions(dimkey=dimreduction) where
+            each dimenions
         """
 
         import matplotlib.pyplot as plt
