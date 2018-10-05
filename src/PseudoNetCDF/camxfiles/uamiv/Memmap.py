@@ -14,21 +14,23 @@ __doc__ = """
 
 # Distribution packages
 import unittest
-from warnings import warn
+# from warnings import warn
 
 # Site-Packages
 from numpy import array, memmap, dtype, linspace
 
 # This Package modules
-from PseudoNetCDF.sci_var import PseudoNetCDFFile, PseudoIOAPIVariable
+from PseudoNetCDF.sci_var import PseudoIOAPIVariable
 from PseudoNetCDF.sci_var import PseudoNetCDFVariables
 from PseudoNetCDF.ArrayTransforms import ConvertCAMxTime
 from PseudoNetCDF.camxfiles.units import get_uamiv_units, get_chemparam_names
-from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
+from PseudoNetCDF.cmaqfiles import ioapi_base
+# from PseudoNetCDF.sci_var import PseudoNetCDFFile
+# from PseudoNetCDF.conventions.ioapi import add_cf_from_ioapi
 # for use in identifying uncaught nan
 
 
-class uamiv(PseudoNetCDFFile):
+class uamiv(ioapi_base):
     """
     uamiv provides a PseudoNetCDF interface for CAMx
     uamiv files.  Where possible, the inteface follows
@@ -158,11 +160,11 @@ class uamiv(PseudoNetCDFFile):
             self.YCENT = YCENT
         if GDTYP is not None:
             self.GDTYP = GDTYP
-        try:
-            add_cf_from_ioapi(self)
-        except Exception as e:
-            warn(repr(e))
-            pass
+        # try:
+        #     add_cf_from_ioapi(self)
+        # except Exception as e:
+        #     warn(repr(e))
+        #     pass
 
     def __checkfilelen(self):
         f = open(self.__rffile, 'rb')

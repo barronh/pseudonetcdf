@@ -225,7 +225,7 @@ outfile = Dataset(outpath, 'w')
 
 
 def pncgen(ifile, outpath, inmode='r', outmode='w', format='NETCDF4_CLASSIC',
-           verbose=1, complevel=0):
+           verbose=1, complevel=0, writer_kw=None):
     """
     ifile - input file to write out
     outpath - path to outputfile
@@ -233,6 +233,8 @@ def pncgen(ifile, outpath, inmode='r', outmode='w', format='NETCDF4_CLASSIC',
     outmode - w, w+s
     format - any PseudoNetCDF or Dataset option
     """
+    if writer_kw is None:
+        writer_kw = {}
     if format[:6] == 'NETCDF':
         p2n = Pseudo2NetCDF()
         p2n.verbose = verbose
@@ -251,12 +253,12 @@ def pncgen(ifile, outpath, inmode='r', outmode='w', format='NETCDF4_CLASSIC',
         ncf2csv(ifile, outpath)
     elif format in writerdict:
         writer = writerdict[format]
-        return writer(ifile, outpath)
+        return writer(ifile, outpath, **writer_kw)
     else:
         for writers in [CAMxWriters, geoschemwriters, icarttwriters]:
             writer = getattr(writers, 'ncf2%s' % format, None)
             if writer is not None:
-                return writer(ifile, outpath)
+                return writer(ifile, outpath, **writer_kw)
                 break
         else:
             raise KeyError('Unknown output file type "%s"' % format)

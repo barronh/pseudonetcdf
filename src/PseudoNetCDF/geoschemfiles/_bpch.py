@@ -670,9 +670,9 @@ class bpch_base(PseudoNetCDFFile):
 
             def interpsigma(data):
                 if data.ndim == 1:
-                    newdata = (weights * data[:, None]).sum(0)
+                    newdata = (weights[:data.shape[0]] * data[:, None]).sum(0)
                 else:
-                    newdata = (weights[None, :, :, None, None] *
+                    newdata = (weights[None, :data.shape[0], :, None, None] *
                                data[:, :, None]).sum(1)
                 return newdata
         else:
@@ -1203,7 +1203,7 @@ def ncf2bpch(ncffile, outpath, verbose=0):
         tdv['header']['SPAD1'] = tdv['header']['EPAD1'] = 36
         tdv['header']['SPAD2'] = tdv['header']['EPAD2'] = 168
 
-    ttz = zip(ncffile.variables['tau0'], ncffile.variables['tau0'])
+    ttz = zip(ncffile.variables['tau0'], ncffile.variables['tau1'])
     for ti, (tau0, tau1) in enumerate(ttz):
         for varkey in varkeys:
             var = ncffile.variables[varkey]

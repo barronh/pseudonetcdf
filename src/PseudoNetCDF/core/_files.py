@@ -4,7 +4,7 @@ from PseudoNetCDF._getreader import registerreader
 from PseudoNetCDF.netcdf import NetCDFFile, NetCDFVariable
 from PseudoNetCDF.pncwarn import warn
 from collections import OrderedDict
-from ._dimensions import PseudoNetCDFDimension
+from ._dimensions import PseudoNetCDFDimension, PseudoNetCDFDimensions
 from ._variables import PseudoNetCDFVariable, PseudoNetCDFMaskedVariable
 import numpy as np
 
@@ -688,7 +688,13 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             )
             vals = vv[...]
             if mask is not None:
-                if maskdims == vv.dimensions:
+                if (
+                    maskdims == vv.dimensions or
+                    (
+                        maskdims is None and
+                        mask.shape == vals.shape
+                    )
+                ):
                     vals = np.ma.masked_where(mask, vals)
                     # np.ma.putmask(newvar[...], mask==False, vv[...])
                     # vals = newvar[...]
@@ -1497,7 +1503,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
     def __new__(mcl, *args, **kwds):
         new = super(PseudoNetCDFFile, mcl).__new__(mcl)
         new.variables = OrderedDict()
-        new.dimensions = OrderedDict()
+        new.dimensions = PseudoNetCDFDimensions()
         new._ncattrs = ()
         new._operator_exclude_vars = ()
         return new
@@ -1714,7 +1720,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         return self._ncattrs
 
     def setncattr(self, k, v):
-        return object.__setattr__(self, k, v)
+        return setattr(self, k, v)
 
     def delncattr(self, k):
         self.__delattr__(k)

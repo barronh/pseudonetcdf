@@ -1,6 +1,8 @@
 from PseudoNetCDF.pncwarn import warn
 from ..core._files import PseudoNetCDFFile, netcdf
 from collections import OrderedDict
+from PseudoNetCDF._getwriter import registerwriter
+
 import numpy as np
 import datetime
 today = datetime.datetime.today()
@@ -9,7 +11,7 @@ today = datetime.datetime.today()
 _i = _ioapi_defaults = OrderedDict()
 _i['IOAPI_VERSION'] = "N/A".ljust(80)
 _i['EXEC_ID'] = "????????????????".ljust(80)
-_i['FTYPE'] = -1
+_i['FTYPE'] = 1
 _i['CDATE'] = int(today.strftime('%Y%j'))
 _i['CTIME'] = int(today.strftime('%H%M%S'))
 _i['WDATE'] = int(today.strftime('%Y%j'))
@@ -98,6 +100,23 @@ class ioapi_base(PseudoNetCDFFile):
         self._add2Varlist([name])
         return out
 
+    def copy(self, props=True, dimensions=True, variables=True, data=True):
+        out = PseudoNetCDFFile.copy(
+            self, props=props, dimensions=dimensions, variables=False,
+            data=False
+        )
+        if variables:
+            for vk, vv in self.variables.items():
+                if not vk.endswith('TFLAG'):
+                    PseudoNetCDFFile.copyVariable(
+                        out, vv, key=vk, withdata=data
+                    )
+
+        if props and dimensions:
+            out.updatetflag()
+
+        return out
+
     def copyVariable(self, var, key=None, dtype=None, dimensions=None,
                      fill_value=None, withdata=True):
         """
@@ -137,7 +156,7 @@ class ioapi_base(PseudoNetCDFFile):
             if (
                 (varkey in varkeys) != exclude and
                 varkey in self.variables and
-                varkey != 'TFLAG'
+                not varkey.endswith('TFLAG')
             )
         ]
         outf = self.copy(props=True, dimensions=False, variables=False)
@@ -198,7 +217,9 @@ class ioapi_base(PseudoNetCDFFile):
         # If lay was subset, subset VGLVLS too
         if 'LAY' in kwds:
             nlvls = outf.VGLVLS.size
-            lidx = np.arange(outf.VGLVLS.size - 1)[kwds['LAY']]
+            lidx = np.array(
+                np.arange(outf.VGLVLS.size - 1)[kwds['LAY']], ndmin=1
+            )
             tmpvglvls = outf.VGLVLS[lidx]
             if lidx[-1] < (nlvls - 1):
                 try:
@@ -216,10 +237,10 @@ class ioapi_base(PseudoNetCDFFile):
             # Update origins
             if 'COL' in kwds and 'COL' in outf.dimensions:
                 ncol = len(self.dimensions['COL'])
-                outf.XORIG += np.arange(ncol)[kwds['COL']][0] * outf.XCELL
+                outf.XORIG += np.arange(ncol)[kwds['COL']].take(0) * outf.XCELL
             if 'ROW' in kwds and 'ROW' in outf.dimensions:
                 nrow = len(self.dimensions['ROW'])
-                outf.YORIG += np.arange(nrow)[kwds['ROW']][0] * outf.YCELL
+                outf.YORIG += np.arange(nrow)[kwds['ROW']].take(0) * outf.YCELL
 
         # Update TFLAG, SDATE, STIME and TSTEP
         if 'TSTEP' in kwds:
@@ -370,7 +391,7 @@ class ioapi_base(PseudoNetCDFFile):
 
         return varlist
 
-    def updatetflag(self, overwrite=None, startdate=None):
+    def updatetflag(self, overwrite=None, startdate=None, tstep=None):
         if overwrite is None:
             overwrite = (
                 'TFLAG' not in self.variables or
@@ -383,6 +404,9 @@ class ioapi_base(PseudoNetCDFFile):
             if startdate is not None:
                 self.SDATE = int(startdate.strftime('%Y%j'))
                 self.STIME = int(startdate.strftime('%H%M%S'))
+            if tstep is not None:
+                self.TSTEP = tstep
+
             times = self.getTimes()
             tvar = self.createVariable(
                 'TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
@@ -397,19 +421,26 @@ class ioapi_base(PseudoNetCDFFile):
             tvar[:, :, 0] = yyyyjjj[:, None].repeat(tvar.shape[1], 1)
             tvar[:, :, 1] = hhmmss[:, None].repeat(tvar.shape[1], 1)
         else:
+            if len(self.dimensions['VAR']) == 0:
+                return
             times = self.getTimes()
 
             if not hasattr(self, 'SDATE'):
                 self.SDATE = int(times[0].strftime('%Y%j'))
             if not hasattr(self, 'STIME'):
                 self.STIME = int(times[0].strftime('%H%M%S'))
-            if times.size > 1:
-                dt = np.diff(times)
-                if not (dt[0] == dt).all():
-                    warn('New time is unstructured')
-            self.TSTEP = int(
-                (datetime.datetime(1900, 1, 1, 0) + dt[0]).strftime('%H%M%S')
-            )
+            if not hasattr(self, 'TSTEP'):
+                if times.size > 1:
+                    dt = np.diff(times)
+                    if not (dt[0] == dt).all():
+                        warn('New time is unstructured')
+
+                    tstep = int(
+                        (
+                            datetime.datetime(1900, 1, 1, 0) + dt.mean()
+                        ).strftime('%H%M%S')
+                    )
+                    self.TSTEP = tstep
 
     def updatemeta(self, attdict={}, sortmeta=False):
         """
@@ -685,3 +716,165 @@ class ioapi(ioapi_base, netcdf):
             return True
         except Exception:
             return False
+
+
+def _fromdefaults(nfile, opts):
+    for dk in opts:
+        if dk in nfile.dimensions:
+            return dk
+    else:
+        return opts[0]
+
+
+def _tryset(obj, pk, pv, prefix='obj'):
+    try:
+        setattr(obj, pk, pv)
+    except Exception as e:
+        warn(
+            '{}.{} not set {}; value {} was lost'.format(prefix, pk, e, pv)
+        )
+
+
+def ncf2ioapi(
+    nfile, outpath, verbose=0, mode='w',
+    tstepkeys=('TSTEP', 'Time', 'time', 't'),
+    laykeys=('LAY', 'layer', 'level', 'layer47', 'layer72', 'z'),
+    rowkeys=('ROW', 'latitude', 'south_north', 'lat', 'y'),
+    colkeys=('COL', 'longitude', 'west_east', 'lon', 'x'),
+    perimkeys=('PERIM', 'POINTS'),
+    format='NETCDF3_CLASSIC',
+    **props
+):
+    """
+    Parameters
+    ----------
+    nfile : netcdf-like file
+        Input file to translate to IOAPI meta data NETCDF file
+    outpath : str
+        Path for output file
+    verbose : int
+        Higher verbosity is more info
+    mode : str
+        Mode for opening file (w, ws, r+, a)
+    tstepkeys : tuple of strings
+        Strings to translate to TSTEP
+    laykeys : tuple of strings
+        Strings to translate to LAY
+    rowkeys : tuple of strings
+        Strings to translate to ROW
+    colkeys : tuple of strings
+        Strings to translate to COL
+    perimkeys : tuple of strings
+        Strings to translate to PERIM; only relevant when GDTYP=2
+    format : string
+        Format for output file either NETCDF3_CLASSIC, NETCDF3_64BIT_OFFSET
+        NETCDF4_CLASSIC
+    props : dict
+        Mapping of properties to set
+
+    Returns
+    -------
+    out : netCDF4.Dataset
+    """
+    time = _fromdefaults(nfile, tstepkeys)
+    lay = _fromdefaults(nfile, laykeys)
+    row = _fromdefaults(nfile, rowkeys)
+    col = _fromdefaults(nfile, colkeys)
+    perim = _fromdefaults(nfile, perimkeys)
+    dim2dim = {}
+    if time != 'TSTEP':
+        dim2dim[time] = 'TSTEP'
+    if lay != 'LAY':
+        dim2dim[lay] = 'LAY'
+    if row != 'ROW':
+        dim2dim[row] = 'ROW'
+    if col != 'COL':
+        dim2dim[col] = 'COL'
+    if col != 'COL':
+        dim2dim[col] = 'COL'
+
+    if verbose > 0:
+        print('Dimension translation', dim2dim)
+
+    fileprops = _ioapi_defaults.copy()
+    for k in nfile.ncattrs():
+        fileprops[k] = getattr(nfile, k)
+
+    fileprops.update(**props)
+
+    if fileprops['FTYPE'] == 2:
+        indims = (time, lay, perim)
+    else:
+        indims = (time, lay, row, col)
+
+    outdims = tuple(dim2dim.get(k, k) for k in indims)
+    varkeys = [k for k, v in nfile.variables.items() if v.dimensions == indims]
+    varlist = ''.join([k.ljust(16) for k in varkeys])
+
+    fileprops['VAR-LIST'] = varlist
+    nvar = fileprops['NVARS'] = len(varkeys)
+    nthk = fileprops['NTHIK']
+    nx = fileprops['NCOLS'] = len(nfile.dimensions[col])
+    ny = fileprops['NROWS'] = len(nfile.dimensions[row])
+    nz = fileprops['NLAYS'] = len(nfile.dimensions[lay])
+
+    ofile = netcdf(outpath, format=format, mode=mode)
+
+    for pk, pv in fileprops.items():
+        _tryset(ofile, pk, pv, prefix='file')
+
+    ofile.createDimension('TSTEP', None)
+    ofile.createDimension('DATE-TIME', 2)
+    ofile.createDimension('LAY', nz)
+    ofile.createDimension('VAR', nvar)
+
+    if fileprops['FTYPE'] == 2:
+        ofile.createDimension('PERIM',  nthk * (4 * nthk + 2 * (nx + ny)))
+    elif fileprops['FTYPE'] == 1:
+        ofile.createDimension('ROW',  ny)
+        ofile.createDimension('COL',  nx)
+    else:
+        raise ValueError('FTYPE is unknown; must be 1 or 2')
+
+    times = nfile.getTimes()
+    tv = ofile.createVariable('TFLAG', 'i', ('TSTEP', 'VAR', 'DATE-TIME'))
+    tv.units = '<YYYYJJJ,HHMMSS>'
+    tv.long_name = 'TFLAG'.ljust(16)
+    tv.var_desc = 'TFLAG'.ljust(80)
+    yyyyjjj = np.array([t.strftime('%Y%j') for t in times], dtype='i')
+    hhmmss = np.array([t.strftime('%H%M%S') for t in times], dtype='i')
+    for k in varkeys:
+        v = nfile.variables[k]
+        ov = ofile.createVariable(k, v.dtype.char, outdims)
+        ov.long_name = k.ljust(16)
+        ov.var_desc = k.ljust(16)
+        ov.units = 'unknown'.ljust(16)
+        for pk in v.ncattrs():
+            pv = getattr(v, pk)
+            _tryset(ov, pk, pv, prefix=k)
+
+    tv[:yyyyjjj.size, :, 0] = yyyyjjj[:, None].repeat(nvar, 1)
+    tv[:yyyyjjj.size, :, 1] = hhmmss[:, None].repeat(nvar, 1)
+    dt = (times[-1] - times[0]).total_seconds() / (len(times) - 1)
+    tmpd = datetime.datetime(1900, 1, 1) + datetime.timedelta(seconds=dt)
+    ofile.TSTEP = int(tmpd.strftime('%H%M%S'))
+    ofile.SDATE = int(times[0].strftime('%Y%j'))
+    ofile.STIME = int(times[0].strftime('%H%M%S'))
+    # if (
+    #     any([vk.startswith('lat') for vk in nfile.variables]) and
+    #     any([vk.startswith('lon') for vk in nfile.variables])
+    # ):
+    #     ofile.GDTYP = 1
+    #     projstr = nfile.getproj(projformat='proj4', withgrid=True)
+    if not hasattr(ofile, 'VGLVLS'):
+        ofile.VGTYP = -1
+        ofile.VGLVLS = np.arange(nz + 1, dtype='f')
+    for k in varkeys:
+        v = nfile.variables[k]
+        ov = ofile.variables[k]
+        ov[:] = v
+
+    return ofile
+
+
+registerwriter('ioapi', ncf2ioapi)

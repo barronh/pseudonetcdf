@@ -1,5 +1,18 @@
 __all__ = ['PseudoNetCDFDimension']
 
+from collections import OrderedDict
+
+
+class PseudoNetCDFDimensions(OrderedDict):
+    def __repr__(self):
+        outs = []
+        for k, v in self.items():
+            out = '%s = %d' % (k, len(v))
+            if v.isunlimited():
+                out += ' // UNLIMITED'
+            outs.append(out)
+        return '\n'.join(outs)
+
 
 class PseudoNetCDFDimension(object):
     """
