@@ -285,6 +285,7 @@ class ioapi_base(PseudoNetCDFFile):
         When extrapolate is false, the edge values are used for points beyond
         the inputs.
         """
+        vglvls = np.asarray(vglvls)
         # grab input sigma coordinates
         myvglvls = self.VGLVLS
 
@@ -343,7 +344,7 @@ class ioapi_base(PseudoNetCDFFile):
     def _add2Varlist(self, varkeys):
         varliststr = getattr(self, 'VAR-LIST', '')
         keys = [k for k in varliststr.split() if k in self.variables]
-        newkeys = set(varkeys).difference(keys + ['TFLAG'])
+        newkeys = set(varkeys).difference(keys + ['ETFLAG', 'TFLAG'])
         for varkey in varkeys:
             if varkey in newkeys:
                 varliststr += varkey.ljust(16)
@@ -633,10 +634,10 @@ class ioapi_base(PseudoNetCDFFile):
         ax = plt.gca(**ax_kw)
         if ykey in ('profile',):
             y = getbounds(myf, xkey)
-            x0 = vals[:].min(0)
-            xm = vals[:].mean(0)
-            x1 = vals[:].max(0)
-            ax.fill_betweenx(y=y, x0=x0, x1=x1, label=varkey + '(min, max)')
+            x1 = vals[:].min(1)
+            xm = vals[:].mean(1)
+            x2 = vals[:].max(1)
+            ax.fill_betweenx(y=y, x1=x1, x2=x2, label=varkey + '(min, max)')
             ax.plot(xm, y, label=varkey, **plot_kw)
             ax.set_ylabel(xkey)
             ax.set_xlabel(varunit)
@@ -662,9 +663,19 @@ class ioapi_base(PseudoNetCDFFile):
                     plt.matplotlib.dates.AutoDateLocator()))
         if plottype == 'longitude-latitude':
             try:
+                coastlines = map_kw.pop('coastlines', True)
+                countries = map_kw.pop('countries', True)
+                states = map_kw.pop('states', False)
+                counties = map_kw.pop('counties', False)
                 bmap = myf.getMap(**map_kw)
-                bmap.drawcoastlines(ax=ax)
-                bmap.drawcountries(ax=ax)
+                if coastlines:
+                    bmap.drawcoastlines(ax=ax)
+                if countries:
+                    bmap.drawcountries(ax=ax)
+                if states:
+                    bmap.drawstates(ax=ax)
+                if counties:
+                    bmap.drawcounties(ax=ax)
                 x = np.arange(self.NCOLS+1) * self.XCELL
                 y = np.arange(self.NROWS+1) * self.YCELL
                 if self.GDTYP == 1:
@@ -677,7 +688,8 @@ class ioapi_base(PseudoNetCDFFile):
             ax.set_ylabel(ykey)
 
         p = ax.pcolormesh(x, y, vals, **plot_kw)
-        ax.figure.colorbar(p, label=varunit, **cbar_kw)
+        cbar_kw.setdefault('label', varunit)
+        ax.figure.colorbar(p, **cbar_kw)
         return ax
 
 
