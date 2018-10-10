@@ -1,6 +1,7 @@
-__all__ = ['bpch', 'geos', 'bpch2', 'ncf2bpch', 'cspec', 'flightlogs']
-from ._bpch import bpch, ncf2bpch
+__all__ = ['bpch', 'geos', 'bpch1', 'bpch2', 'ncf2bpch', 'cspec', 'flightlogs']
+from ._bpch import bpch1, ncf2bpch
 from ._newbpch import bpch2
+from ._bpchmaster import bpch
 from ._geos import geos
 from ._cspec import cspec
 from ._planelog import flightlogs

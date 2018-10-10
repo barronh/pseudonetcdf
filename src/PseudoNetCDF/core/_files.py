@@ -265,16 +265,145 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         lon, lat = p(i + 0.5, j + 0.5, inverse=True)
         return lon, lat
 
+    def time2t(self, time, ttype='nearest', index=True):
+        """
+        Parameters
+        ----------
+        time : array of datetime.datetime objects
+        interp : 'nearest', 'bounds', 'bounds_close'
+        index : return index
+
+        Returns
+        -------
+        t : fractional time or if index, integers for indexing
+        """
+        time = np.asarray(time)
+        if ttype not in ('nearest', 'bounds', 'bounds_close'):
+            warn('{} is not an option; defaulting to nearest'.format(ttype))
+            ttype = 'nearest'
+        if ttype == 'nearest':
+            mytimes = self.getTimes()
+        else:
+            mytimes = self.getTimes(bounds=True)
+        idx = np.arange(mytimes.size)
+
+        # Find minimum resoultion
+        for res in [
+            'microsecond', 'second', 'minute', 'hour', 'day', 'month', 'year'
+        ]:
+            minres = res
+            resvals = [getattr(d, res) for d in time]
+            myresvals = [getattr(d, res) for d in mytimes]
+            if not np.allclose(myresvals, 0):
+                break
+            if not np.allclose(resvals, 0):
+                break
+
+        # Translate minimum resolution to numpy datetime
+        if minres == 'microsecond':
+            tu = 'datetime64[ns]'
+        elif minres == 'second':
+            tu = 'datetime64[s]'
+        elif minres == 'minute':
+            tu = 'datetime64[m]'
+        elif minres == 'hour':
+            tu = 'datetime64[h]'
+        elif minres in ('year', 'month', 'day'):
+            tu = 'datetime64[D]'
+        else:
+            tu = 'datetime64[ns]'
+
+        # Convert input time to numpy datetime at resolution
+        x = time.astype(tu).astype('d')
+        # Convert file's time to numpy datetime at resolution
+        xp = mytimes.astype(tu).astype('d')
+
+        # Use interpolation methods with no bounding for nearest
+        # and bounds_close
+        if ttype in ('nearest', 'bounds_close'):
+            out = np.interp(x, xp, idx)
+            if index:
+                imin = 0
+                imax = idx[-1] + (0 if ttype == 'nearest' else -1)
+                out = np.minimum(np.maximum(out, imin), imax)
+                if ttype == 'nearest':
+                    out = np.round(out, 0).astype('i')
+                else:
+                    out = np.floor(out).astype('i')
+        # Use interpolation methods with bounding for nearest
+        else:
+            out = np.interp(x, xp, idx, left=np.nan, right=np.nan)
+            if index:
+                out = np.ma.masked_less(np.ma.floor(out).astype('i'), 0)
+
+        return out
+
+    def get_dest(self):
+        """
+        Returns the path where a new file is created on some action
+
+        If None, a file is created in memory.
+        Else, a netcdf file is created on disk.
+        """
+        return getattr(self, '_destination', None)
+
+    def set_dest(self, path, **options):
+        """
+        Sets the path where a new file is created on some action
+
+        Arguments
+        ---------
+        path : path for new file
+        options : options for new file creation
+
+        Returns
+        -------
+        None
+        """
+        options['filename'] = path
+        return object.__setattr__(self, '_destination', options)
+
+    def get_varopt(self):
+        """
+        Get options
+
+        Arguments
+        ---------
+        None
+
+        Returns
+        -------
+        options : dictionary of optiosn
+        """
+        return getattr(self, '_varopt', {}).copy()
+
+    def set_varopt(self, **options):
+        """
+        Set options to be used when creating any Variable
+
+        Arguments
+        ---------
+        options : options for new variable creation
+
+        Returns
+        -------
+        None
+        """
+        return object.__setattr__(self, '_varopt', options)
+
     def _newlike(self):
         """
         Internal function to return a file of the same class if a
         PseudoNetCDFFile
         """
-        if isinstance(self, PseudoNetCDFFile):
+        if self.get_dest() is not None:
+            outf = netcdf(**self.get_dest())
+        elif isinstance(self, PseudoNetCDFFile):
             outt = type(self)
             outf = outt.__new__(outt)
         else:
             outf = PseudoNetCDFFile()
+        outf.set_varopt(**self.get_varopt())
         return outf
 
     def renameVariable(self, oldkey, newkey, inplace=False, copyall=True):
@@ -577,6 +706,50 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
 
         return outf
 
+    def mask(self, mask=None, less=None, greater=None, dims=None,
+             fill_value=-999, verbose=0):
+        from time import time
+        maskdims = getattr(mask, 'dimensions', dims)
+        outf = self.copy(variables=False)
+        nitems = len(self.variables.keys())
+        if verbose == 1:
+            print('|' + '=' * nitems + '|', flush=True)
+            print('|', end='', flush=True)
+        for vk, vv in self.variables.items():
+            if verbose > 1:
+                t0 = time()
+                print(vk, end='', flush=True)
+            elif verbose > 0:
+                print('.', end='', flush=True)
+            newvar = outf.copyVariable(
+                vv, key=vk, fill_value=fill_value, withdata=False
+            )
+            vals = vv[...]
+            if mask is not None:
+                if maskdims == vv.dimensions:
+                    vals = np.ma.masked_where(mask, vals)
+                    # np.ma.putmask(newvar[...], mask==False, vv[...])
+                    # vals = newvar[...]
+                # else:
+                #     vals = vv[...]
+
+            if greater is not None:
+                vals = np.ma.masked_greater(vals, greater)
+
+            if less is not None:
+                vals = np.ma.masked_less(vals, less)
+
+            if verbose > 1:
+                t1 = time()
+                print(t1 - t0, end='\n', flush=True)
+
+            newvar[...] = vals[...]
+        if verbose > 1:
+            pass
+        elif verbose > 0:
+            print('')
+        return outf
+
     def plot(self, varkey, plottype='longitude-latitude', ax_kw=None,
              plot_kw=None, cbar_kw=None, map_kw=None, dimreduction='mean'):
         """
@@ -767,9 +940,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                 setattr(outf, pk, getattr(self, pk))
         if dimensions:
             for dk, dv in self.dimensions.items():
-                newdl = len(dv)
-                ndv = outf.createDimension(dk, newdl)
-                ndv.setunlimited(dv.isunlimited())
+                outf.copyDimension(dv, key=dk)
         if variables:
             for vk, vv in self.variables.items():
                 outf.copyVariable(vv, key=vk, withdata=data)
@@ -857,8 +1028,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                     dl = ndl
                 else:
                     dl = len(dv)
-                ndv = outf.createDimension(dk, dl)
-                ndv.setunlimited(dv.isunlimited())
+                outf.copyDimension(dv, key=dk, dimlen=dl)
 
             for vk, vv in self.variables.items():
                 nvv = outf.copyVariable(
@@ -900,7 +1070,11 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         outf : PseudoNetCDFFile
             instance with variables and dimensions after processing
         """
-        outf = self._copywith(props=True, dimensions=True)
+        outf = self._copywith(props=True, dimensions=False)
+        dimlens = OrderedDict()
+        for dk, dv in self.dimensions.items():
+            dimlens[dk] = len(dv)
+
         for dk, df in dimfuncs.items():
             dv = self.dimensions[dk]
             if dk in dimfuncs:
@@ -918,8 +1092,15 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                     newdl = df(dvar[:]).size
             else:
                 newdl = len(dv)
-            ndv = outf.createDimension(dk, newdl)
-            ndv.setunlimited(dv.isunlimited())
+            dimlens[dk] = newdl
+
+        for dk, dv in self.dimensions.items():
+            newdl = dimlens[dk]
+            outf.copyDimension(dv, key=dk, dimlen=newdl)
+
+        if verbose == 1:
+            print('|' + '=' * len(self.variables.keys()) + '|', flush=True)
+            print('|', end='', flush=True)
 
         for vark, varo in self.variables.items():
             vdims = varo.dimensions
@@ -927,8 +1108,10 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             dik = list(enumerate(vdims))
             for di, dk in dik[::-1]:
                 if dk in dimfuncs:
-                    if verbose > 0:
+                    if verbose > 1:
                         print(' ' * 100, '\r', vark, dk, end='\r', flush=True)
+                    elif verbose > 0:
+                        print('.', end='', flush=True)
                     opts = dict(axis=di, arr=newvals)
                     dfunc = dimfuncs[dk]
                     if isinstance(dfunc, dict):
@@ -980,6 +1163,16 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             time = self.variables['time']
             timeunits = time.units.strip()
             calendar = getattr(time, 'calendar', 'gregorian').lower()
+            if bounds:
+                if 'time_bounds' in self.variables.keys():
+                    time = self.variables['time_bounds']
+                    time = np.append(time[:, 0], time[-1, 1])
+                else:
+                    dts = np.diff(time)
+                    dt = dts.mean()
+                    if (dt != dts).all():
+                        warn('Time bounds are approximate')
+                    time = np.append(time - dt/2, time[-1] + dt/2)
             if 'since' in timeunits:
                 unit, base = timeunits.split(' since ')
                 # Get the reference date
@@ -1038,7 +1231,6 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                     out = refdate + \
                         np.array([timedelta(**{unit: float(i)})
                                   for i in time[:]])
-
             else:
                 return time
         elif 'TFLAG' in self.variables.keys():
@@ -1053,6 +1245,19 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             out = np.array([datetime(yyyy, 1, 1, tzinfo=utc) +
                             timedelta(days=day - 1)
                             for yyyy, day in zip(yyyys, days)])
+            if bounds:
+                if hasattr(self, 'TSTEP'):
+                    tstep = getattr(self, 'TSTEP')
+                    sh = tstep // 10000 * 3600
+                    sm = tstep % 10000 // 100 * 60
+                    ss = tstep % 100
+                    dt = timedelta(seconds=sh + sm + ss)
+                else:
+                    dts = np.diff(out)
+                    dt = dts.mean()
+                    if (dt != dts).all():
+                        warn('Time bounds are approximate')
+                out = np.append(out, out[-1] + dt)
         elif hasattr(self, 'SDATE') and hasattr(self, 'STIME') and \
                 hasattr(self, 'TSTEP') and 'TSTEP' in self.dimensions:
             refdate = datetime.strptime(
@@ -1070,6 +1275,11 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             out = datetime(1985, 1, 1, 0, tzinfo=utc) + \
                 np.array([timedelta(hours=i)
                           for i in self.variables['tau0'][:]])
+            if bounds and 'tau1' in self.variables.keys():
+                oute = datetime(1985, 1, 1, 0, tzinfo=utc) + \
+                       np.array([timedelta(hours=i)
+                                 for i in self.variables['tau1'][:]])
+                out = np.append(out, oute[-1])
         else:
             raise ValueError('cannot understand time for file')
         if datetype == 'datetime':
@@ -1094,8 +1304,12 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         outf : PseudoNetCDFFile
             instance with stacked variables and dimension equal to new length
         """
+        from collections import Iterable
         outf = self._copywith(props=True, dimensions=False)
-        fs = [self, other]
+        if isinstance(other, Iterable):
+            fs = [self] + list(other)
+        else:
+            fs = [self, other]
         dimensions = [f_.dimensions for f_ in fs]
         shareddims = {}
         for dimk, dim in self.dimensions.items():
@@ -1110,11 +1324,10 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                     for different in differentdims]))
         for dimkey in shareddims:
             ind = self.dimensions[dimkey]
-            outd = outf.createDimension(dimkey, len(ind))
-            outd.setunlimited(ind.isunlimited())
-        outd = outf.createDimension(stackdim, sum(
-            [len(dims[stackdim]) for dims in dimensions]))
-        outd.setunlimited(self.dimensions[stackdim].isunlimited())
+            outf.copyDimension(ind, key=dimkey)
+        newdl = sum([len(dims[stackdim]) for dims in dimensions])
+        outf.copyDimension(self.dimensions[stackdim],
+                           key=stackdim, dimlen=newdl)
         for tmpf in fs:
             for varkey, var in tmpf.variables.items():
                 if stackdim not in var.dimensions:
@@ -1198,7 +1411,11 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         outf : PseudoNetCDFFile
             instance with variables and dimensions sliced
         """
-        outf = self._copywith(props=True, dimensions=True)
+        outf = self._copywith(props=True, dimensions=False)
+        newdimlens = OrderedDict()
+        for dk, dv in self.dimensions.items():
+            newdimlens[dk] = len(dv)
+
         isarray = {dk: not np.isscalar(dv) and not isinstance(
             dv, slice) for dk, dv in dimslices.items()}
         anyisarray = np.sum(list(isarray.values())) > 1
@@ -1234,16 +1451,24 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                 newdl = dvar[dimslices[dk]].size
             else:
                 newdl = len(dv)
-            ndv = outf.createDimension(dk, newdl)
-            ndv.setunlimited(dv.isunlimited())
+            newdimlens[dk] = newdl
+
+        for dk, dl in newdimlens.items():
+            dv = self.dimensions[dk]
+            outf.copyDimension(dv, key=dk, dimlen=dl)
 
         if anyisarray:
             for ni, newdim in enumerate(newdims):
                 outf.createDimension(newdim, arrayshape[ni])
 
+        if verbose == 1:
+            print('|' + '=' * len(self.variables.keys()) + '|', flush=True)
+            print('|', end='', flush=True)
         for vark, varo in self.variables.items():
-            if verbose > 0:
+            if verbose > 1:
                 print(' ' * 100, '\r', vark, end='\r', flush=True)
+            elif verbose > 0:
+                print('.', end='', flush=True)
             odims = vdims = varo.dimensions
             sliceo = tuple(dimslices.get(dk, slice(None)) for dk in vdims)
             isdarray = [isarray.get(dk, False) for dk in vdims]
@@ -1306,8 +1531,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             if (dimkey is None or dk == dimkey) and ni == 1:
                 removed_dims.append(dk)
             else:
-                tempd = outf.createDimension(dk, ni)
-                tempd.setunlimited(d.isunlimited())
+                outf.copyDimension(d, key=dk, dimlen=ni)
 
         for vk, v in self.variables.items():
             olddims = v.dimensions
@@ -1432,6 +1656,27 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         dim = self.dimensions[name] = PseudoNetCDFDimension(self, name, length)
         return dim
 
+    def copyDimension(self, dim, key=None, dimlen=None, unlimited=None):
+        if dimlen is None:
+            dimlen = len(dim)
+
+        if key is None:
+            key = dim.name
+
+        if unlimited is None:
+            unlimited = dim.isunlimited()
+
+        if isinstance(self, netcdf):
+            if unlimited:
+                ndv = self.createDimension(key, None)
+            else:
+                ndv = self.createDimension(key, dimlen)
+        else:
+            ndv = self.createDimension(key, dimlen)
+            ndv.setunlimited(unlimited)
+
+        return ndv
+
     def copyVariable(self, var, key=None, dtype=None, dimensions=None,
                      fill_value=None, withdata=True):
         """
@@ -1509,12 +1754,22 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         var : new variable
         """
         import numpy as np
+        varopt = self.get_varopt()
+        if fill_value is None:
+            fill_value = varopt.get('fill_value', None)
+
+        for pk, pv in varopt.items():
+            if pk != 'fill_value':
+                properties.setdefault(pk, pv)
 
         if fill_value is None:
             for pk in 'missing_value _FillValue'.split():
                 fill_value = properties.get(pk, None)
                 if fill_value is not None:
                     break
+        else:
+            properties['fill_value'] = fill_value
+
         if type == 'S':
             type = 'c'
         if (
@@ -1645,12 +1900,29 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
     flush = close
 
 
+_ncvarkwds = [
+    'varname', 'datatype', 'dimensions', 'zlib', 'complevel', 'shuffle',
+    'fletcher32', 'contiguous', 'chunksizes', 'endian',
+    'least_significant_digit', 'fill_value'
+]
+
+
 class netcdf(PseudoNetCDFFile, NetCDFFile):
     def createDimension(self, *args, **kwds):
         return NetCDFFile.createDimension(self, *args, **kwds)
 
     def createVariable(self, *args, **kwds):
-        return NetCDFFile.createVariable(self, *args, **kwds)
+        for pk, pv in self.get_varopt().items():
+            kwds.setdefault(pk, pv)
+        propkwds = OrderedDict()
+        for pk in set(kwds).difference(_ncvarkwds):
+            propkwds[pk] = kwds.pop(pk)
+
+        outval = NetCDFFile.createVariable(self, *args, **kwds)
+        for pk, pv in propkwds.items():
+            outval.setncattr(pk, pv)
+
+        return outval
 
     def setncattr(self, k, v):
         return NetCDFFile.setncattr(self, k, v)
@@ -1666,6 +1938,65 @@ class netcdf(PseudoNetCDFFile, NetCDFFile):
 
     def __init__(self, *args, **kwds):
         NetCDFFile.__init__(self, *args, **kwds)
+        self.__dict__['_mode'] = kwds.get('mode', 'r')
+        self.__dict__['_varopt'] = {}
+
+    @property
+    def _mode(self):
+        return self.__dict__.get('_mode', 'r')
+
+    def get_dest(self):
+        """
+        Returns the path where a new file is created on some action
+
+        If None, a file is created in memory.
+        Else, a netcdf file is created on disk.
+        """
+        return self.__dict__.get('_destination', None)
+
+    def set_dest(self, path, **options):
+        """
+        Sets the path where a new file is created on some action
+
+        Arguments
+        ---------
+        path : path for new file
+        options : options for new file creation
+
+        Returns
+        -------
+        None
+        """
+        options['filename'] = path
+        self.__dict__['_destination'] = options
+
+    def get_varopt(self):
+        """
+        Get options
+
+        Arguments
+        ---------
+        None
+
+        Returns
+        -------
+        options : dictionary of optiosn
+        """
+        return self.__dict__.get('_varopt', {}).copy()
+
+    def set_varopt(self, **options):
+        """
+        Set options to be used when creating any Variable
+
+        Arguments
+        ---------
+        options : options for new Variable creation
+
+        Returns
+        -------
+        None
+        """
+        self.__dict__['_varopt'] = options
 
     def ncattrs(self):
         return NetCDFFile.ncattrs(self)
@@ -1675,7 +2006,11 @@ class netcdf(PseudoNetCDFFile, NetCDFFile):
         Internal function to return a file of the same class if a
         PsueoNetCDFFile
         """
-        outf = PseudoNetCDFFile()
+        if self.get_dest() is not None:
+            outf = netcdf(**self.get_dest())
+        else:
+            outf = PseudoNetCDFFile()
+        outf.set_varopt(**self.get_varopt())
         return outf
 
     @classmethod
@@ -1701,6 +2036,12 @@ class netcdf(PseudoNetCDFFile, NetCDFFile):
                 return False
         else:
             return False
+
+    def close(self):
+        NetCDFFile.close(self)
+
+    def __del__(self):
+        self.close()
 
 
 registerreader('nc', netcdf)

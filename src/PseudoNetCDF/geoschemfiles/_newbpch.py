@@ -3,7 +3,7 @@ import os
 from collections import OrderedDict
 import numpy as np
 from PseudoNetCDF.sci_var import PseudoNetCDFVariables
-from ._bpch import _general_header_type, bpch as oldbpch, bpch_base
+from ._bpch import _general_header_type, bpch1 as oldbpch, bpch_base
 import unittest
 
 
@@ -219,26 +219,6 @@ class bpch2(bpch_base):
             return False
         except Exception:
             return True
-
-    def ij2ll(self, i, j):
-        """
-        i, j to center lon, lat
-        """
-        lat = np.asarray(self.variables['latitude'])
-        lon = np.asarray(self.variables['longitude'])
-        return lon[i], lat[j]
-
-    def ll2ij(self, lon, lat):
-        """
-        lon and lat may be scalars or vectors, but matrices will crash
-        """
-        late = np.asarray(self.variables['latitude_bounds'])
-        lone = np.asarray(self.variables['longitude_bounds'])
-        inlon = (lon >= lone[:, 0, None]) & (lon < lone[:, 1, None])
-        inlat = (lat >= late[:, 0, None]) & (lat < late[:, 1, None])
-        i = inlon.argmax(0)
-        j = inlat.argmax(0)
-        return i, j
 
     def __init__(self, path, nogroup=False, noscale=False,
                  vertgrid='GEOS-5-REDUCED'):

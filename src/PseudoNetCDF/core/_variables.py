@@ -293,10 +293,15 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
                 if not isinstance(dim, int):
                     dim = len(dim)
                 shape.append(dim)
-
+            fill_value = kwds.get('fill_value', None)
+            if fill_value is None:
+                for pk in ('fill_value', 'missing_value', '_FillValue'):
+                    fill_value = kwds.get(pk, None)
+                    if fill_value is not None:
+                        break
             result = np.ma.zeros(shape, dtype='S1' if typecode ==
                                  'c' else typecode,
-                                 fill_value=kwds.get('fill_value', None))
+                                 fill_value=fill_value)
 
         result = result.view(subtype)
         result._ncattrs = ()
@@ -359,7 +364,7 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
         Set attributes (aka properties) and identify user-defined attributes.
         """
         if k[:1] != '_' and \
-           k not in ('dimensions', 'typecode'):
+           k not in ('dimensions', 'typecode', 'mask'):
             if k not in self._ncattrs:
                 self._ncattrs += (k, )
         np.ma.MaskedArray.__setattr__(self, k, v)
