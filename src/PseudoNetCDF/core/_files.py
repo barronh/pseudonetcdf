@@ -1828,6 +1828,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         return pncbo(op='!=', ifile1=self, ifile2=lhs, verbose=0,
                      coordkeys=self._operator_exclude_vars)
 
+    slice = sliceDimensions
+    apply = applyAlongDimensions
+    subset = subsetVariables
     sync = close
     flush = close
 
