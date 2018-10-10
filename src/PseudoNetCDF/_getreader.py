@@ -74,9 +74,9 @@ def registerreader(name, reader):
     global _readers, pncopen
     if name not in [k for k, v in _readers]:
         _readers.insert(0, (name, reader))
-        tmpl = '\n        - add your own by subclassing PseudoNetCDFFile'
-        newdoc = pncopen.__doc__.replace(tmpl,  '\n        - ' + name + tmpl)
-        pncopen.__doc__ = newdoc
+        if pncopen.__doc__ is not None:
+            newdoc = '\n        - '.join([pncopen.__doc__, name])
+            pncopen.__doc__ = newdoc
         return True
     else:
         return False
@@ -102,7 +102,7 @@ def pncopen(*args, **kwds):
     help : boolean
         without format, returns help of pncopen and with format keyword,
         returns help of that class. See the __init__ interface for help
-        with keywords.
+        with keywords that are not in the class __doc__.
 
     Returns
     -------
@@ -112,6 +112,7 @@ def pncopen(*args, **kwds):
     -----
     Format Options:
         - add your own by subclassing PseudoNetCDFFile
+        - for a full list, use pncopen(help=True)
     """
     formathelp = kwds.pop('help', False)
     format = kwds.pop('format', None)
