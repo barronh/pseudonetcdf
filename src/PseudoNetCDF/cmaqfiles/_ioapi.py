@@ -692,6 +692,9 @@ class ioapi_base(PseudoNetCDFFile):
         ax.figure.colorbar(p, **cbar_kw)
         return ax
 
+    slice = sliceDimensions
+    apply = applyAlongDimensions
+
 
 class ioapi(ioapi_base, netcdf):
     def _newlike(self):
