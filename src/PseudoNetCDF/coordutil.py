@@ -522,7 +522,8 @@ def getproj4_from_cf_var(gridmapping, withgrid=False):
     pv4s = dict(lambert_conformal_conic='lcc',
                 rotated_latitude_longitude='ob_tran',
                 latitude_longitude='lonlat',
-                transverse_mercator='merc',
+                transverse_mercator='tmerc',
+                equatorial_mercator='merc',
                 mercator='merc',
                 polar_stereographic='stere'
                 )

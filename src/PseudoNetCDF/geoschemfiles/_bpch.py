@@ -442,8 +442,6 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
                 raise ValueError('Could not parse with bpch; try bpch2')
 
             if self.noscale:
-                if scale != 1.:
-                    warn("Not scaling variables; good for writing")
                 data = tmp_data['f1']
             else:
                 data = tmp_data['f1'] * scale
@@ -670,9 +668,9 @@ class bpch_base(PseudoNetCDFFile):
 
             def interpsigma(data):
                 if data.ndim == 1:
-                    newdata = (weights * data[:, None]).sum(0)
+                    newdata = (weights[:data.shape[0]] * data[:, None]).sum(0)
                 else:
-                    newdata = (weights[None, :, :, None, None] *
+                    newdata = (weights[None, :data.shape[0], :, None, None] *
                                data[:, :, None]).sum(1)
                 return newdata
         else:
@@ -1146,6 +1144,12 @@ class bpch1(bpch_base):
                                         diaginfo=diag_data, keys=keys,
                                         noscale=self.noscale,
                                         nogroup=self.nogroup)
+        if self.noscale:
+            for vk, v in self.variables.items():
+                print(vk, getattr(v, 'scale', 1.))
+                if getattr(v, 'scale', 1.) != 1.:
+                    warn("Not scaling variables; good for direct writing")
+
         del datamap
         tdim = self.createDimension('time', self.variables['tau0'].shape[0])
         tdim.setunlimited(True)
@@ -1203,7 +1207,7 @@ def ncf2bpch(ncffile, outpath, verbose=0):
         tdv['header']['SPAD1'] = tdv['header']['EPAD1'] = 36
         tdv['header']['SPAD2'] = tdv['header']['EPAD2'] = 168
 
-    ttz = zip(ncffile.variables['tau0'], ncffile.variables['tau0'])
+    ttz = zip(ncffile.variables['tau0'], ncffile.variables['tau1'])
     for ti, (tau0, tau1) in enumerate(ttz):
         for varkey in varkeys:
             var = ncffile.variables[varkey]
@@ -1262,7 +1266,12 @@ class TestMemmaps(unittest.TestCase):
         self.bpchpath = geoschemfiles_paths['bpch']
 
     def testNCF2BPCH1(self):
-        bpchfile = bpch1(self.bpchpath, noscale=True)
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore', 'Not scaling variables; good for direct writing'
+            )
+            bpchfile = bpch1(self.bpchpath, noscale=True)
         outpath = self.bpchpath + '.check'
         from PseudoNetCDF.pncgen import pncgen
         pncgen(bpchfile, outpath, inmode='r',
@@ -1297,12 +1306,21 @@ class TestMemmaps(unittest.TestCase):
         ALD2_check_slided_reduced = ALD2_check[0].mean(0)[None, None]
         ALD2 = slided_reduced_bpchfile.variables['IJ-AVG-$_ALD2']
         np.testing.assert_allclose(ALD2, ALD2_check_slided_reduced * 1e-9)
-        bpchfile = bpch1(outpath)
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore', 'Not scaling variables; good for direct writing'
+            )
+            bpchfile = bpch1(outpath)
         ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']
         np.testing.assert_allclose(ALD2, ALD2_check_slided_reduced)
 
     def testBPCH1(self):
-        bpchfile = bpch1(self.bpchpath)
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore', 'Not scaling variables; good for direct writing'
+            )
+            bpchfile = bpch1(self.bpchpath)
         ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']
         ALD2g = bpchfile.groups['IJ-AVG-$'].variables['ALD2']
         ALD2_check = np.array(

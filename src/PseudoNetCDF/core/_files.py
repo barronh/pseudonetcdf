@@ -4,7 +4,7 @@ from PseudoNetCDF._getreader import registerreader
 from PseudoNetCDF.netcdf import NetCDFFile, NetCDFVariable
 from PseudoNetCDF.pncwarn import warn
 from collections import OrderedDict
-from ._dimensions import PseudoNetCDFDimension
+from ._dimensions import PseudoNetCDFDimension, PseudoNetCDFDimensions
 from ._variables import PseudoNetCDFVariable, PseudoNetCDFMaskedVariable
 import numpy as np
 
@@ -155,6 +155,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         x, y : tuple of arrays
             coordinates in map projection (meters or radians)
         """
+        lon = np.asarray(lon)
+        lat = np.asarray(lat)
         return self.getproj()(lon, lat)
 
     def _getydim(self):
@@ -192,7 +194,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         -------
         i, j : indices (0-based) for variables
         """
-        import numpy as np
+        lon = np.asarray(lon)
+        lat = np.asarray(lat)
         p = self.getproj(withgrid=True)
         x, y = p(lon, lat)
         i = np.asarray(x).astype('i')
@@ -240,6 +243,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         lon, lat : scalars or iterables
             longitudes and latitudes in decimal degrees
         """
+        x = np.asarray(x)
+        y = np.asarray(y)
         p = self.getproj()
         lon, lat = p(x, y, inverse=True)
         return lon, lat
@@ -261,6 +266,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         lon, lat : scalars or iterables
             longitudes and latitudes in decimal degrees
         """
+        i = np.asarray(i)
+        j = np.asarray(j)
         p = self.getproj(withgrid=True)
         lon, lat = p(i + 0.5, j + 0.5, inverse=True)
         return lon, lat
@@ -726,7 +733,13 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             )
             vals = vv[...]
             if mask is not None:
-                if maskdims == vv.dimensions:
+                if (
+                    maskdims == vv.dimensions or
+                    (
+                        maskdims is None and
+                        mask.shape == vals.shape
+                    )
+                ):
                     vals = np.ma.masked_where(mask, vals)
                     # np.ma.putmask(newvar[...], mask==False, vv[...])
                     # vals = newvar[...]
@@ -806,7 +819,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                     apply2dim[dimkey] = dimreduction
 
         if len(apply2dim) > 0:
-            myf = self.applyAlongDimensions(**apply2dim)
+            myf = self.subsetVariables([varkey])\
+                      .applyAlongDimensions(**apply2dim)
             var = myf.variables[varkey]
             dimlens = dict([(dk, len(self.dimensions[dk]))
                             for dk in var.dimensions])
@@ -830,10 +844,10 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         ax = plt.gca(**ax_kw)
         if ykey in ('profile',):
             y = getbounds(myf, xkey)
-            x0 = vals[:].min(0)
-            xm = vals[:].mean(0)
-            x1 = vals[:].max(0)
-            ax.fill_betweenx(y=y, x0=x0, x1=x1, label=varkey + '(min, max)')
+            x1 = vals[:].min(1)
+            xm = vals[:].mean(1)
+            x2 = vals[:].max(1)
+            ax.fill_betweenx(y=y, x1=x1, x2=x2, label=varkey + '(min, max)')
             ax.plot(xm, y, label=varkey, **plot_kw)
             ax.set_ylabel(xkey)
             ax.set_xlabel(varunit)
@@ -850,7 +864,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         if dimpos[xkey] < dimpos[ykey]:
             vals = vals.T
         p = ax.pcolormesh(x, y, vals, **plot_kw)
-        ax.figure.colorbar(p, label=varunit, **cbar_kw)
+        cbar_kw.setdefault('label', varunit)
+        ax.figure.colorbar(p, **cbar_kw)
         if xkey == 'time':
             ax.xaxis.set_major_formatter(
                 plt.matplotlib.dates.AutoDateFormatter(
@@ -865,9 +880,19 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             )
         if plottype == 'longitude-latitude':
             try:
+                coastlines = map_kw.pop('coastlines', True)
+                countries = map_kw.pop('countries', True)
+                states = map_kw.pop('states', False)
+                counties = map_kw.pop('counties', False)
                 bmap = myf.getMap(**map_kw)
-                bmap.drawcoastlines(ax=ax)
-                bmap.drawcountries(ax=ax)
+                if coastlines:
+                    bmap.drawcoastlines(ax=ax)
+                if countries:
+                    bmap.drawcountries(ax=ax)
+                if states:
+                    bmap.drawstates(ax=ax)
+                if counties:
+                    bmap.drawcounties(ax=ax)
             except Exception:
                 pass
         else:
@@ -1573,7 +1598,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
     def __new__(mcl, *args, **kwds):
         new = super(PseudoNetCDFFile, mcl).__new__(mcl)
         new.variables = OrderedDict()
-        new.dimensions = OrderedDict()
+        new.dimensions = PseudoNetCDFDimensions()
         new._ncattrs = ()
         new._operator_exclude_vars = ()
         return new
@@ -1707,6 +1732,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             for propk in ['name', 'standard_name', 'long_name']:
                 if hasattr(var, propk):
                     key = getattr(var, propk)
+                    break
             else:
                 raise AttributeError(
                     'varkey must be supplied because var has no name, ' +
@@ -1808,7 +1834,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         return self._ncattrs
 
     def setncattr(self, k, v):
-        return object.__setattr__(self, k, v)
+        return setattr(self, k, v)
 
     def delncattr(self, k):
         self.__delattr__(k)
@@ -1896,6 +1922,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         return pncbo(op='!=', ifile1=self, ifile2=lhs, verbose=0,
                      coordkeys=self._operator_exclude_vars)
 
+    slice = sliceDimensions
+    apply = applyAlongDimensions
+    subset = subsetVariables
     sync = close
     flush = close
 

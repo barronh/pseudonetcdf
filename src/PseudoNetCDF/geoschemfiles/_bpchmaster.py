@@ -49,7 +49,12 @@ class TestMemmaps(unittest.TestCase):
         self.bpchpath = geoschemfiles_paths['bpch']
 
     def testNCF2BPCH(self):
-        bpchfile = bpch(self.bpchpath, noscale=True)
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore', 'Not scaling variables; good for direct writing'
+            )
+            bpchfile = bpch(self.bpchpath, noscale=True)
         outpath = self.bpchpath + '.check'
         from PseudoNetCDF.pncgen import pncgen
         pncgen(bpchfile, outpath, inmode='r',
@@ -84,12 +89,21 @@ class TestMemmaps(unittest.TestCase):
         ALD2_check_slided_reduced = ALD2_check[0].mean(0)[None, None]
         ALD2 = slided_reduced_bpchfile.variables['IJ-AVG-$_ALD2']
         np.testing.assert_allclose(ALD2, ALD2_check_slided_reduced * 1e-9)
-        bpchfile = bpch(outpath)
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore', 'Not scaling variables; good for direct writing'
+            )
+            bpchfile = bpch(outpath)
         ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']
         np.testing.assert_allclose(ALD2, ALD2_check_slided_reduced)
 
     def testBPCH(self):
-        bpchfile = bpch(self.bpchpath)
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore', 'Not scaling variables; good for direct writing'
+            )
+            bpchfile = bpch(self.bpchpath)
         ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']
         ALD2g = bpchfile.groups['IJ-AVG-$'].variables['ALD2']
         ALD2_check = np.array(
