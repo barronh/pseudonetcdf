@@ -1264,6 +1264,15 @@ class TestMemmaps(unittest.TestCase):
         from PseudoNetCDF.testcase import geoschemfiles_paths
         self.bpchpath = geoschemfiles_paths['bpch']
 
+    def testBPCH12NCF(self):
+        bpchfile = bpch1(self.bpchpath)
+        outpath = self.bpchpath + '.nc'
+        ncfile = bpchfile.save(outpath)
+        for k, ncv in ncfile.variables.items():
+            bpv = bpchfile.variables[k]
+            np.testing.assert_allclose(ncv[...], bpv[...])
+        os.remove(outpath)
+        
     def testNCF2BPCH1(self):
         import warnings
         with warnings.catch_warnings():
