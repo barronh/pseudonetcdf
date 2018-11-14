@@ -58,6 +58,10 @@ class ioapi_base(PseudoNetCDFFile):
     def isMine(self, path, *args, **kwds):
         return False
 
+    def __init__(self, *args, **kwds):
+        super().__init__(self, *args, **kwds)
+        self.setCoords(['TFLAG'])
+
     def _updatetime(self, write=True, create=False):
         from datetime import datetime
         t = datetime.now()
@@ -424,7 +428,12 @@ class ioapi_base(PseudoNetCDFFile):
         else:
             if len(self.dimensions['VAR']) == 0:
                 return
-            times = self.getTimes()
+
+            try:
+                times = self.getTimes()
+            except Exception as e:
+                warn('Times were incalculable: using epoch start\n' + str(e))
+                times = np.array([datetime.datetime(1970, 1, 1)])
 
             if not hasattr(self, 'SDATE'):
                 self.SDATE = int(times[0].strftime('%Y%j'))
@@ -442,6 +451,8 @@ class ioapi_base(PseudoNetCDFFile):
                         ).strftime('%H%M%S')
                     )
                     self.TSTEP = tstep
+                else:
+                    self.TSTEP = 10000
 
     def updatemeta(self, attdict={}, sortmeta=False):
         """
@@ -697,6 +708,10 @@ class ioapi_base(PseudoNetCDFFile):
 
 
 class ioapi(ioapi_base, netcdf):
+    def __init__(self, *args, **kwds):
+        netcdf.__init__(self, *args, **kwds)
+        self.setCoords(['TFLAG'])
+
     def _newlike(self):
         if self.get_dest() is not None:
             outf = ioapi(**self.get_dest())

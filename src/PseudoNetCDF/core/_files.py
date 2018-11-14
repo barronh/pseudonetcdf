@@ -910,15 +910,18 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         call interface may change.
         """
         outf = self._newlike()
+        outf._operator_exclude_vars = tuple(self._operator_exclude_vars)
         if props:
             for pk in self.ncattrs():
                 setattr(outf, pk, getattr(self, pk))
         if dimensions:
             for dk, dv in self.dimensions.items():
                 outf.copyDimension(dv, key=dk)
+
         if variables:
             for vk, vv in self.variables.items():
                 outf.copyVariable(vv, key=vk, withdata=data)
+
         return outf
 
     def copy(self, props=True, dimensions=True, variables=True, data=True):
@@ -1577,8 +1580,17 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             raise ValueError(
                 'Must be ignore, skip or error; received {}'.format(missing))
 
-        for key in keys:
-            self._operator_exclude_vars = self._operator_exclude_vars + (key,)
+        new = set(self._operator_exclude_vars + tuple(keys))
+        try:
+            self._operator_exclude_vars = new
+        except:
+            return new
+
+    def getCoords(self):
+        """
+        Return a list of coordkeys
+        """
+        return tuple([k for k in self._operator_exclude_vars])
 
     def createDimension(self, name, length):
         """
@@ -1871,9 +1883,14 @@ class netcdf(PseudoNetCDFFile, NetCDFFile):
     def __new__(cls, *args, **kwds):
         return NetCDFFile.__new__(cls, *args, **kwds)
 
+    def setCoords(self, keys, missing='ignore'):
+        new = PseudoNetCDFFile.setCoords(self, keys, missing=missing)
+        self.__dict__['_operator_exclude_vars'] = tuple(set(new))
+
     def __init__(self, *args, **kwds):
         NetCDFFile.__init__(self, *args, **kwds)
         self.__dict__['_mode'] = kwds.get('mode', 'r')
+        self.__dict__['_operator_exclude_vars'] = ()
         self.__dict__['_varopt'] = {}
 
     @property
@@ -1973,7 +1990,10 @@ class netcdf(PseudoNetCDFFile, NetCDFFile):
             return False
 
     def close(self):
-        NetCDFFile.close(self)
+        try:
+            return NetCDFFile.close(self)
+        except Exception as e:
+            warn(str(e))
 
     def __del__(self):
         self.close()
