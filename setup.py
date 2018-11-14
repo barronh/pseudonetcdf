@@ -44,7 +44,7 @@ def find_data():
 packages = find_packages()
 data = find_data()
 MAJOR = 3
-MINOR = 0
+MINOR = 1
 MICRO = 0
 ISRELEASED = False
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)

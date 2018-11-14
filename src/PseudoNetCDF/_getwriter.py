@@ -21,6 +21,22 @@ def getwriterdict():
 
 
 def pncwrite(*args, **kwds):
-    """See PseudoNetCDF.pncgen.pncgen"""
+    """See PseudoNetCDF.pncgen.pncgen
+
+    *args : iterable
+    **kwds : keywords
+        keywords for pncgen
+    help : boolean
+        without format, returns help of pncopen and with format keyword,
+        returns help of the function that writes that format.
+    """
     from PseudoNetCDF.pncgen import pncgen
+    formathelp = kwds.pop('help', False)
+    if formathelp:
+        if 'format' in kwds:
+            format = kwds['format']
+            writer = getwriterdict()[format]
+            return help(writer)
+        else:
+            return help(pncgen)
     return pncgen(*args, **kwds)

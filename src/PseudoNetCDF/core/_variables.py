@@ -14,14 +14,18 @@ class PseudoNetCDFVariable(np.ndarray):
 
     def xarray(self, iscoord=False):
         """
-Experimental function
-Returns:
-    out - xarray.DataArray object with dimensions and coordinates
-        dims - are set by self.get_coords()
-        coords - are set by self.get_coords()
+        Experimental function
 
-Notes:
-    When data is 2-d, the dimensions
+        Returns
+        -------
+        out : xarray.DataArray
+            object with dimensions and coordinates
+            dims : string are set by self.get_coords()
+            coords : are set by self.get_coords()
+
+        Notes
+        -----
+        When data is 2-d, the dimensions
         """
         import xarray as xr
         myname = self._name
@@ -117,7 +121,10 @@ Notes:
 
     def array(self):
         """
-        Return parent type view object
+        Returns
+        -------
+        out : numpy.ndarray
+            parent type view object
         """
         return self.view(type=np.ndarray)
 
@@ -154,7 +161,10 @@ Notes:
 
     def ncattrs(self):
         """
-        Returns a tuple of attributes that have been user defined
+        Returns
+        -------
+        ncattrs : tuple of strings
+            attributes that have been user defined
         """
 
         return self._ncattrs
@@ -164,15 +174,20 @@ Notes:
         Creates a variable using the dimensions as defined in
         the parent object
 
-        parent: an object with a dimensions variable
-        name: name for variable
-        typecode: numpy style typecode
-        dimensions: a typle of dimension names to be used from
-                    parent
-        kwds: Dictionary of keywords to be added as properties
-              to the variable.  **The keyword 'values' is a special
-              case that will be used as the starting values of
-              the array
+        Parameters
+        ----------
+        parent : PseudoNetCDFFile
+            an object with a dimensions variable
+        name: string
+            name for variable
+        typecode: string or numpy.dtype
+            numpy style typecode
+        dimensions: tuple of strings
+            dimension names to be used from parent
+        **kwds: keywords
+            Dictionary of keywords to be added as properties to the variable.
+            The keyword 'values' is a special case that will be used as the
+            starting values of the array
 
         """
         if 'values' in kwds.keys():
@@ -228,13 +243,19 @@ Notes:
 
     def getValue(self):
         """
-        Return scalar value
+        Returns
+        -------
+        item : scalar
+            value
         """
         return self.item()
 
     def assignValue(self, value):
         """
-        assign value to scalar variable
+        Parameters
+        ----------
+        value : scalar
+            assign value to scalar variable
         """
         self.itemset(value)
 
@@ -247,15 +268,18 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
         Creates a variable using the dimensions as defined in
         the parent object
 
-        parent: an object with a dimensions variable
-        name: name for variable
-        typecode: numpy style typecode
-        dimensions: a typle of dimension names to be used from
-                    parent
-        kwds: Dictionary of keywords to be added as properties
-              to the variable.  **The keyword 'values' is a special
-              case that will be used as the starting values of
-              the array
+        parent: PseudoNetCDFFile
+            an object with a dimensions variable
+        name: string
+            name for variable
+        typecode: string or numpy.dtype
+            numpy style typecode
+        dimensions: tuple of strings
+            dimension names to be used from parent
+        **kwds: dictionary
+            keywords to be added as properties to the variable. The keyword
+            'values' is a special case that will be used as the starting
+            values of the array
 
         """
         if 'values' in kwds.keys():
@@ -291,7 +315,10 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
 
     def array(self):
         """
-        Return parent type view object
+        Returns
+        -------
+        out : numpy.ma.masked_array
+            parent type view object
         """
         return self.view(type=np.ma.masked_array)
 
@@ -357,20 +384,29 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
 
     def ncattrs(self):
         """
-        Returns a tuple of attributes that have been user defined
+        Returns
+        -------
+        ncattrs : tuple of strings
+            attributes that have been user defined
         """
 
         return self._ncattrs
 
     def getValue(self):
         """
-        Return scalar value
+        Returns
+        -------
+        out : scalar
+            value
         """
         return self.item()
 
     def assignValue(self, value):
         """
-        assign value to scalar variable
+        Parameters
+        ----------
+        value : scalar
+            value to assign to scalar variable
         """
         self.itemset(value)
 
@@ -380,14 +416,20 @@ def PseudoIOAPIVariable(parent, name, typecode, dimensions, **kwds):
     Creates a variable using the dimensions as defined in
     the parent object
 
-    parent: an object with a dimensions variable
-    name: name for variable
-    typecode: numpy style typecode
-    dimensions: a typle of dimension names to be used from
-                parent
-    units: default = none
-    long_name: default = name
-    var_desc: default = name
+    Parameters
+    ----------
+    parent : PseudoNetCDFFile
+        an object with a dimensions variable
+    name: string
+        name for variable
+    typecode: string or numpy.dtype
+        numpy style typecode
+    dimensions: tuple of strings
+        dimension names to be used from parent
+    **kwds : dictionary
+        units: default = none
+        long_name: default = name
+        var_desc: default = name
     """
 
     retval = PseudoNetCDFVariable(parent, name, typecode, dimensions, **kwds)

@@ -87,10 +87,34 @@ class uamiv(ioapi_base):
                  XCENT=None, YCENT=None, GDTYP=None, endian='big',
                  chemparam=None):
         """
-        Initialization included reading the header and learning
-        about the format.
+        Parameters
+        ----------
+        rf : string or RecordFile
+            usually a path to a CAMx formatted file, can be a FortranFileUtil
+            RecordFile object.
+        mode : string
+            file open mode read ('r'), write ('w'), append ('a', 'r+')
+        P_ALP : float
+            see IOAPI GRIDDESC documentation
+        P_BET : float
+            see IOAPI GRIDDESC documentation
+        P_GAM : float
+            see IOAPI GRIDDESC documentation
+        XCENT : float
+            see IOAPI GRIDDESC documentation
+        YCENT : float
+            see IOAPI GRIDDESC documentation
+        GDTYP : float
+            see IOAPI GRIDDESC documentation
+        endian : string
+            'big' or 'little' usually only if mistaken compile
+        chemparam : None or string
+            used to identify gases and aerosols
 
-        see __readheader and __gettimestep() for more info
+        Returns
+        -------
+        outf : uamiv
+            PseudoNetCDFFile populated from file
         """
         if chemparam is None:
             self._aerosol_names = None
