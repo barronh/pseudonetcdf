@@ -225,8 +225,7 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
         self._memmap = datamap
         self._parent = parent
         self._special_keys = set(metakeys)
-        unique_keys = set(keys).union(self._special_keys)
-        self._keys = [k for k in keys + metakeys if k in unique_keys]
+        self._keys = keys + [k for k in self._special_keys if k not in keys]
         if 'BXHGHT-$_BXHEIGHT' not in keys:
             ki = self._keys.index('VOL')
             del self._keys[ki]
@@ -458,7 +457,7 @@ coordkeys = ['time', 'latitude', 'longitude', 'layer',
              'time_bounds', 'layer_bounds',
              'latitude_bounds', 'longitude_bounds', 'crs']
 metakeys = ['VOL', 'AREA', 'tau0', 'tau1',
-            'etai_pressure', 'etai_pressure', 'hyam', 'hybm',
+            'etam_pressure', 'etai_pressure', 'hyam', 'hybm',
             'hyai', 'hybi'] + coordkeys
 
 
@@ -1264,6 +1263,15 @@ class TestMemmaps(unittest.TestCase):
     def setUp(self):
         from PseudoNetCDF.testcase import geoschemfiles_paths
         self.bpchpath = geoschemfiles_paths['bpch']
+
+    def testBPCH12NCF(self):
+        bpchfile = bpch1(self.bpchpath)
+        outpath = self.bpchpath + '.nc'
+        ncfile = bpchfile.save(outpath)
+        for k, ncv in ncfile.variables.items():
+            bpv = bpchfile.variables[k]
+            np.testing.assert_allclose(ncv[...], bpv[...])
+        os.remove(outpath)
 
     def testNCF2BPCH1(self):
         import warnings
