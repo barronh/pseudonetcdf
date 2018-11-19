@@ -35,6 +35,13 @@ for key, val in geoschemfiles_paths.items():
 icarttfiles_paths = dict(ffi1001=join(
     *__path__ + ['icarttfiles', 'test.ffi1001']))
 
+ceilometerfiles_paths = dict(
+    vaisala=join(
+        *__path__ +
+        ['ceilometerfiles', 'VAISALA_CEILOMETER_1_LEVEL2_20.his']
+    )
+)
+
 all_paths = dict()
 all_paths.update(camxfiles_paths, **geoschemfiles_paths)
 all_paths.update(icarttfiles_paths, **net_balance_paths)
