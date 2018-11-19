@@ -25,7 +25,7 @@ class jtable(PseudoNetCDFFile):
             scaling[tname] = eval(scale.strip())
             rxns.append(tname)
         lines = fobj.readlines()
-        header = re.compile('\s+\d+\s+\d+\s+\d+\s*')
+        header = re.compile(r'\s+\d+\s+\d+\s+\d+\s*')
         data = []
         headers = []
         for line in lines:

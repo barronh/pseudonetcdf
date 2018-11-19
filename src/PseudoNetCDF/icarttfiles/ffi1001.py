@@ -31,7 +31,7 @@ def get_lodval(v):
         return v
 
 
-loddelim = re.compile('(;\s?)|,|\s')
+loddelim = re.compile(r'(;\s?)|,|\s')
 
 PI_LINE = 2
 ORG_LINE = 3
@@ -161,9 +161,9 @@ Returns:
                     name = nameunit[0].strip()
                     if len(nameunit) > 1:
                         units.append(nameunit[1].strip())
-                    elif re.compile('(.*)\((.*)\)').match(nameunit[0]):
+                    elif re.compile(r'(.*)\((.*)\)').match(nameunit[0]):
                         desc_groups = re.compile(
-                            '(.*)\((.*)\).*').match(nameunit[0]).groups()
+                            r'(.*)\((.*)\).*').match(nameunit[0]).groups()
                         name = desc_groups[0].strip()
                         units.append(desc_groups[1].strip())
                     elif '_' in name:

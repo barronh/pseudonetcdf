@@ -6,18 +6,18 @@ import unittest
 from numpy import array, zeros, newaxis
 from PseudoNetCDF.sci_var import PseudoNetCDFFile as pncf
 
-net_num_re = '(?<=\s)[-]?\d+[.]?\d+'
-net_output_re = re.compile('^\w+(\s+' + net_num_re + '){24}$')
+net_num_re = r'(?<=\s)[-]?\d+[.]?\d+'
+net_output_re = re.compile(r'^\w+(\s+' + net_num_re + r'){24}$')
 net_name_re = re.compile(
     '[+]|source|termination|production|Source|Termination|Production|' +
     'Oxidation|oxidation|Radical|radical')
 net_time_dim_re = re.compile('^Ending Hour')
-net_spc_name_re = re.compile('^\w+')
+net_spc_name_re = re.compile(r'^\w+')
 net_time_re = re.compile(net_num_re + '|daily|Daily')
 net_num_re = re.compile(net_num_re)
 
-sum_num_pattern = '([-]?\d+[.]\d+)'
-sum_num_sep = '\s+'
+sum_num_pattern = r'([-]?\d+[.]\d+)'
+sum_num_sep = r'\s+'
 
 
 def print_net_rxns(net_rxns, time='Daily'):
@@ -61,7 +61,7 @@ class sum_reader(pncf):
                 time = list(set(line.split(' ')[2:]))[1:]
                 time.sort()
             sum_num_re = re.compile(
-                '(.*)\s+' + sum_num_sep.join([sum_num_pattern] * len(time)))
+                r'(.*)\s+' + sum_num_sep.join([sum_num_pattern] * len(time)))
 
             if time != [] and sum_num_re.match(line) is None and line != '':
                 category = line
@@ -166,11 +166,11 @@ class net_reader(pncf):
 class mrgaloft(pncf):
     import re
     # create regular expressions to read the input file..
-    sci_not = '-?\d+.\d+[E,e][+,-]\d+'
-    time_re = re.compile('Time =([0-9][0-9]0000)', re.IGNORECASE)
-    irr_re = re.compile('\{\s*(\d+)\}\s+(' + sci_not + ')', re.IGNORECASE)
-    ipr_re = re.compile('"\w+\s*"\s*(' + sci_not + '\s+)+', re.IGNORECASE)
-    split_on_blanks_re = re.compile('[ ]+')
+    sci_not = r'-?\d+.\d+[E,e][+,-]\d+'
+    time_re = re.compile(r'Time =([0-9][0-9]0000)', re.IGNORECASE)
+    irr_re = re.compile(r'\{\s*(\d+)\}\s+(' + sci_not + ')', re.IGNORECASE)
+    ipr_re = re.compile(r'"\w+\s*"\s*(' + sci_not + '\s+)+', re.IGNORECASE)
+    split_on_blanks_re = re.compile(r'[ ]+')
 
     @classmethod
     def isMine(cls, *args, **kwds):

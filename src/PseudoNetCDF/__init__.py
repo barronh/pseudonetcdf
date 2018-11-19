@@ -56,6 +56,7 @@ from . import units
 from . import icarttfiles
 from . import aermodfiles
 from . import textfiles
+from . import toms
 from . import ceilometerfiles
 from . import coordutil
 from . import test

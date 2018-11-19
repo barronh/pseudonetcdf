@@ -84,7 +84,7 @@ class woudcsonde(PseudoNetCDFFile):
                 var[:] = val
         return nmetalines, newblock
 
-    def __init__(self, path, debug=False, na_values=['\s+', '*', '99999']):
+    def __init__(self, path, debug=False, na_values=[r'\s+', '*', '99999']):
         """
         path - path or file-like object.
         """
@@ -122,7 +122,7 @@ class woudcsonde(PseudoNetCDFFile):
 
         # after #PROFILE loop is broken
         myf.close()
-        readopts = dict(sep='\s*,', skiprows=li + 1,
+        readopts = dict(sep=r'\s*,', skiprows=li + 1,
                         engine='python', na_values=na_values, comment='*')
         data = pd.read_csv(path, **readopts)
         # indkey = data.columns[0]

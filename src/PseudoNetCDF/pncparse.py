@@ -146,6 +146,7 @@ class _HelpFormat(Action):
                       'can be omitted.')
             print('')
         except Exception as e:
+            print(str(e))
             print('** Short help not available for ' + file_format)
             print('')
 
@@ -589,7 +590,7 @@ args : args as parsed
         args = parser.parse_args(args=args)
     except Exception as e:
         raise e
-    except BaseException as be:
+    except BaseException:
         return [], args
 
     args.inputargs = inputargs or sys.argv
@@ -893,7 +894,7 @@ def getfiles(ipaths, args):
             try:
                 # Most common usecase; open like pncopen
                 f = pncopen(ipath, format=file_format, **format_options)
-            except Exception as e:
+            except Exception as oe:
                 try:
                     allreaders = getreaderdict()
                     if file_format in allreaders:
@@ -905,9 +906,9 @@ def getfiles(ipaths, args):
                         f = eval(file_format)(ipath, **format_options)
                 except Exception as e:
                     etmp = ('Unable to open path with %s(path, **%s)\n\t' +
-                            'path="%s"\n\terror="%s"')
+                            'path="%s"\n\terror="%s" after "%s"')
                     oute = IOError(etmp % (file_format, str(format_options),
-                                           ipath, str(e)))
+                                           ipath, str(e), str(oe)))
                     raise oute  # from e
         else:
             warn('File is type %s, which is unknown' % type(ipath))

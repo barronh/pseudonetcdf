@@ -92,7 +92,7 @@ def _parse_ref_date(base):
             try:
                 rdate = datetime.strptime(base + suffix, fmt)
                 return rdate
-            except Exception as e:
+            except Exception:
                 pass
     else:
         # try using netcdftime

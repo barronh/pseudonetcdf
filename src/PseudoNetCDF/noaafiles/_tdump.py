@@ -151,7 +151,7 @@ class arltrajdump(PseudoNetCDFFile):
             raise ImportError('arltrajdump requires pandas; ' +
                               'install pandas (e.g., pip install pandas)')
         # , parse_dates = ['YEAR MONTH DAY HOUR MINUTE'.split()])
-        data = pd.read_csv(f, delimiter='\s+',
+        data = pd.read_csv(f, delimiter=r'\s+',
                            names=(('trajid metgridid year month day hour ' +
                                    'minute forecast_hour age latitude ' +
                                    'longitude altitude').split() +

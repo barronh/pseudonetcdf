@@ -1267,7 +1267,7 @@ class TestMemmaps(unittest.TestCase):
     def testBPCH12NCF(self):
         bpchfile = bpch1(self.bpchpath)
         outpath = self.bpchpath + '.nc'
-        ncfile = bpchfile.save(outpath)
+        ncfile = bpchfile.save(outpath, verbose=0)
         for k, ncv in ncfile.variables.items():
             bpv = bpchfile.variables[k]
             np.testing.assert_allclose(ncv[...], bpv[...])
