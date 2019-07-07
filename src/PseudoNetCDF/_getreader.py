@@ -1,4 +1,4 @@
-__all__ = ['getreader']
+__all__ = ['getreader', 'pncopen', 'pncmfopen']
 
 import unittest
 import os
@@ -80,6 +80,29 @@ def registerreader(name, reader):
         return True
     else:
         return False
+
+
+def pncmfopen(*args, stackdim=None, **kwds):
+    """Open any PNC supported format using pncopen on all files
+    passed as teh first argument of pncmfopen. See pncopen
+
+    Parameters
+    ----------
+    args : arguments
+        args[0] must be a list of paths, other arguments are format specific
+    stackdim : str
+        dimension upon which to stack files
+    kwds : dict
+        see pncopen for more details
+
+    Returns
+    -------
+    pfile : PseudoNetCDF
+    """
+    paths = args[0]
+    files = [pncopen(path, *args[1:], **kwds) for path in paths]
+    file1 = files[0]
+    return file1.stack(files[1:], stackdim=stackdim)
 
 
 def pncopen(*args, **kwds):
