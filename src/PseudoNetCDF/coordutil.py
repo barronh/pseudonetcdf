@@ -107,6 +107,12 @@ def _parse_ref_date(base):
 
 
 def gettimes(ifile):
+    """
+    Converts relative time to datetime objects
+     - Finds time variable (e.g., time or TFLAG, tau0)
+     - Parses reference date
+     - Converts
+    """
     from datetime import datetime, timedelta
     if 'time' in ifile.variables.keys():
         time = ifile.variables['time']
