@@ -220,6 +220,21 @@ class bpch2(bpch_base):
         except Exception:
             return True
 
+    @classmethod
+    def from_ncf(cls, infile):
+        outf = bpch_base()
+        for pk in infile.ncattrs():
+            pv = getattr(infile, pk)
+            setattr(outf, pk, pv)
+
+        for dk, dv in infile.dimensions.items():
+            outf.copyDimension(dv, key=dk)
+
+        for vk, vv in infile.variables.items():
+            outf.copyVariable(vv, key=vk)
+
+        return outf
+
     def __init__(self, path, nogroup=False, noscale=False,
                  vertgrid='GEOS-5-REDUCED'):
         self.noscale = noscale

@@ -1,5 +1,5 @@
 from __future__ import print_function, unicode_literals
-__all__ = ['bpch1', 'ncf2bpch']
+__all__ = ['bpch1', 'ncf2bpch', 'bpch_base']
 import os
 
 # part of the default Python distribution
@@ -795,6 +795,21 @@ class bpch1(bpch_base):
         except Exception:
             return False
 
+    @classmethod
+    def from_ncf(cls, infile):
+        outf = bpch_base()
+        for pk in infile.ncattrs():
+            pv = getattr(infile, pk)
+            setattr(outf, pk, pv)
+
+        for dk, dv in infile.dimensions.items():
+            outf.copyDimension(dv, key=dk)
+
+        for vk, vv in infile.variables.items():
+            outf.copyVariable(vv, key=vk)
+
+        return outf
+
     def _newlike(self):
         if isinstance(self, PseudoNetCDFFile):
             outt = bpch_base
@@ -1272,7 +1287,7 @@ class TestMemmaps(unittest.TestCase):
             bpv = bpchfile.variables[k]
             np.testing.assert_allclose(ncv[...], bpv[...])
         os.remove(outpath)
-        
+
     def testNCF2BPCH1(self):
         import warnings
         with warnings.catch_warnings():

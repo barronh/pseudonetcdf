@@ -3,6 +3,7 @@ import numpy as np
 from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariables
 from PseudoNetCDF import PseudoNetCDFVariable
 from . import requires_basemap, requires_pyproj
+from PseudoNetCDF.pncwarn import warn
 
 
 np_all_close = np.testing.assert_allclose
@@ -223,6 +224,58 @@ class PseudoNetCDFFileTest(unittest.TestCase):
               22.748563023301763, 22.748560872681754]]]
         return tncf
 
+    def testVal2idx(self):
+        ncf = PseudoNetCDFFile()
+        coorde = np.arange(9, dtype='f')
+        coordc = (coorde[:-1] + coorde[1:]) / 2.
+        ncf.createDimension('coord', coordc.size)
+        ncf.createDimension('nv', 2)
+        coordv = ncf.createVariable(
+            'coord', 'f', ('coord',), values=coordc
+        )
+        bncf = ncf.copy()
+        bncf.createVariable(
+            'coord_bounds', 'f', ('coord', 'nv'),
+            values=coorde.repeat(2, 0)[1:-1].reshape(-1, 2)
+        )
+        bncf.variables['coord'].bounds = 'coord_bounds'
+        cvals = [-1, .25, 4.5, 4.99, 5, 6.75, 10]
+        expectedb = np.array([0, 0, 4, 4, 5, 6, 7])
+        expectedn = np.array([0, 0, 4, 4, 4, 6, 7])
+        def checkvals(ncf, method, clean, compare):
+            if clean == 'mask':
+                right = left = np.nan
+            else:
+                right = left = None
+
+            withbnds = str('coord_bounds' in ncf.variables)
+            prefix = withbnds + '&' + method + '&' + clean
+            idx = ncf.val2idx(
+                'coord', cvals,
+                method=method, clean=clean, bounds='warn'
+            )
+            warn(prefix + ' got: ' + repr(idx))
+            warn(prefix + ' chk: ' + repr(compare))
+            assert(np.ma.allclose(compare, idx))
+
+        mw = np.ma.masked_where
+
+        checkvals(ncf, 'nearest', 'none', mw([0, 0, 0, 0, 0, 0, 0], expectedn))
+        checkvals(ncf, 'bounds', 'none', mw([0, 0, 0, 0, 0, 0, 0], expectedb))
+        checkvals(ncf, 'nearest', 'mask', mw([1, 1, 0, 0, 0, 0, 1], expectedn))
+        checkvals(ncf, 'bounds', 'mask', mw([1, 0, 0, 0, 0, 0, 1], expectedb))
+
+        checkvals(bncf, 'nearest', 'none', mw([0, 0, 0, 0, 0, 0, 0], expectedn))
+        checkvals(bncf, 'bounds', 'none', mw([0, 0, 0, 0, 0, 0, 0], expectedb))
+        checkvals(bncf, 'nearest', 'mask', mw([1, 1, 0, 0, 0, 0, 1], expectedn))
+        checkvals(bncf, 'bounds', 'mask', mw([1, 0, 0, 0, 0, 0, 1], expectedb))
+
+        checkvals(bncf, 'exact', 'mask', mw([1, 1, 0, 1, 1, 1, 1], expectedb))
+
+        # for method in 'nearest bounds'.split():
+        #     for clean in 'none clip mask'.split():
+
+
     def testCopyVariable(self):
         tncf = self.testncf
         var = tncf.copyVariable(
@@ -436,27 +489,41 @@ class PseudoNetCDFFileTest(unittest.TestCase):
     def testTime2t(self):
         from datetime import datetime
         time = np.array([
-            datetime.strptime(t, '%Y-%m-%d %H:%M%z')
+            datetime.strptime('1970-01-{}+0000'.format(t), '%Y-%m-%d %H:%M%z')
             for t in [
-                '1970-01-01 00:20+0000',
-                '1970-01-01 01:20+0000',
-                '1970-01-01 01:40+0000',
-                '1970-01-01 06:00+0000',
-                '1970-01-02 01:00+0000',
+                '01 00:20', '01 01:20', '01 01:40', '01 06:00', '02 01:00'
             ]
         ])
         tncf = self.testncf
         t = tncf.time2t(time[:])
-        self.assertEqual(True, np.allclose(t, [0, 1, 2, 6, 23]))
+        np_all_close(t, [0, 1, 2, 6, 23])
         t = tncf.time2t(time[:-1], ttype='bounds')
-        self.assertEqual(True, np.allclose(t, [0, 1, 1, 6]))
+        np_all_close(t, [0, 1, 1, 6])
         t = tncf.time2t(time[:], ttype='bounds_close')
-        self.assertEqual(True, np.allclose(t, [0, 1, 1, 6, 23]))
+        np_all_allclose(t, [0, 1, 1, 6, 23])
         t = tncf.time2t(time[:], ttype='bounds')
-        self.assertEqual(
-            True,
-            np.allclose(t, np.ma.masked_invalid([0, 1, 1, 6, 23]))
-        )
+        np_all_close(t, np.ma.masked_invalid([0, 1, 1, 6, 23]))
+        self.assertEqual(t.mask[-1], True)
+
+    def testTime2idx(self):
+        from datetime import datetime
+        time = np.array([
+            datetime.strptime('1970-01-{}+0000'.format(t), '%Y-%m-%d %H:%M%z')
+            for t in [
+                '01 00:20', '01 01:20', '01 01:40', '01 06:00', '02 01:00'
+            ]
+        ])
+        tncf = self.testncf
+        import pdb; pdb.set_trace()
+        t = tncf.time2idx(time[:])
+        np_all_close(t, [0, 1, 2, 6, 23])
+        t = tncf.time2idx(time, method='bounds', left=np.nan, right=np.nan)
+        np_all_close(t[:-1], [0, 1, 1, 6])
+        assert(np.isnan(t[-1]))
+        t = tncf.time2idx(time[:], method='bounds')
+        np_all_allclose(t, [0, 1, 1, 6, 23])
+        t = tncf.time2idx(time[:], method='bounds', clean='mask', right=np.nan)
+        np_all_close(t, np.ma.masked_invalid([0, 1, 1, 6, np.nan]))
         self.assertEqual(t.mask[-1], True)
 
     @requires_pyproj

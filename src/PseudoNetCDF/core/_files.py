@@ -159,6 +159,20 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         lat = np.asarray(lat)
         return self.getproj()(lon, lat)
 
+    def _getzdim(self):
+        for dk in 'LAY bottom_top level lev layer lay z'.split():
+            if dk in self.dimensions:
+                return dk
+        else:
+            raise KeyError('Could not find z dimensions')
+
+    def _gettdim(self):
+        for dk in 'time TSTEP t Time'.split():
+            if dk in self.dimensions:
+                return dk
+        else:
+            raise KeyError('Could not find t dimensions')
+
     def _getydim(self):
         for dk in 'latitude lat south_north ROW y'.split():
             if dk in self.dimensions:
@@ -272,6 +286,65 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         lon, lat = p(i + 0.5, j + 0.5, inverse=True)
         return lon, lat
 
+    def date2num(self, time, timekey='time'):
+        """
+        Parameters
+        ----------
+        time : array-like
+            array of datetime.datetime objects
+        timekey : str
+            time variable key which requires units and should have calendar.
+            If calendar is missing, standard is the default. default 'time'
+
+        Returns
+        -------
+        num : array-like
+            time in relative time as defined by units of time variable
+            (i.e., timekey) which defaults to 'time'
+        """
+        from netCDF4 import date2num
+        from datetime import tzinfo
+        time = np.asarray(time)
+        # netCDF4 date2num is timezone naive; assumes UTC when not
+        # specified and converts to UTC internally
+        # so, if a tzinfo is involved, it should be removed
+        if any([t.tzinfo is not None for t in time[:]]):
+            time = np.array([
+                t.astimezone(tzinfo.utc).replace(tzinfo=None) for t in time[:]
+            ])
+
+        timeunits = self.variables[timekey].units.strip()
+        calendar = getattr(self.variables[timekey], 'calendar', 'standard')
+        num = date2num(time, timeunits, calendar.strip())
+        return num
+
+    def time2idx(self, time, dim='time', timekey=None, **kwds):
+        """
+        Convert datetime objects to dimension indices
+
+        Parameters
+        ----------
+        time : array-like
+            array of datetime.datetime objects
+        dim : str
+            dimension name for val2idx
+        timekey : str
+            time variable key. None defaults to dim
+        kwds : mappable
+            see val2idx
+
+        Returns
+        -------
+        idx : array-like
+            time index (0-based)
+        """
+        if timekey is None:
+            timekey = dim
+
+        time = np.asarray(time)
+        nums = self.date2num(time, timekey=timekey)
+        return self.val2idx(nums, dim=dim, **kwds)
+
     def time2t(self, time, ttype='nearest', index=True):
         """
         Parameters
@@ -279,11 +352,14 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         time : array of datetime.datetime objects
         interp : 'nearest', 'bounds', 'bounds_close'
         index : return index
-
         Returns
         -------
         t : fractional time or if index, integers for indexing
         """
+        warn(
+            "time2t is deprecated; transition to time2idx or date2num",
+            DeprecationWarning
+        )
         time = np.asarray(time)
         if ttype not in ('nearest', 'bounds', 'bounds_close'):
             warn('{} is not an option; defaulting to nearest'.format(ttype))
@@ -344,6 +420,129 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                 out = np.ma.masked_less(np.ma.floor(out).astype('i'), 0)
 
         return out
+
+    def val2idx(
+        self, dim, val,
+        method='nearest', bounds='warn', left=None, right=None, clean='mask'
+    ):
+        """
+        Convert coordinate values to indices
+
+        Parameters
+        ----------
+        dim : str
+            name of dimensions, which must have a coordinate variable
+        val : array-like
+            value in coordinate space
+        method : str
+            nearest, bounds, exact - each calculates the index differently
+             - nearest : uses interp with coord values and rounds
+             - bounds : uses interp between bounding values and truncates
+             - exact : returns indices for exact coord values with other
+                       indices masked (clean keyword has no effect)
+        bounds : str
+            ignore, error, warn if i,j are out of domain
+        left : scalar
+            see np.interp
+        right : scalar
+            see np.interp
+        clean : string
+            none - return values regardless of bounds;
+            mask - mask invalid values (use with left/right=np.nan);
+                   has no affect with method exact
+
+        Returns
+        -------
+        i : array-like
+            indices (0-based) for variables
+        """
+        val = np.asarray(val)
+        if method not in ('exact', 'nearest', 'bounds'):
+            raise NotImplementedError(method + ' method not implemented')
+
+        if bounds not in ('ignore', 'warn', 'error'):
+            raise NotImplementedError(bounds + ' bounds not implemented')
+
+        if clean not in ('none', 'mask'):
+            raise NotImplementedError(clean + ' clean not implemented')
+
+        dimv = self.variables[dim]
+        dimvals = dimv[...]
+        if dimvals.ndim > 1:
+            raise ValueError(
+                'val2idx is only implemented for 1-D coordinate variables'
+            )
+        if method == 'bounds':
+            if hasattr(dimv, 'bounds'):
+                dimbv = self.variables[dimv.bounds]
+                if dimbv.ndim == 1:
+                    dimevals = dimbv[:]
+                elif dimbv.ndim == 2 and dimbv.shape[1] == 2:
+                    dimevals = np.append(dimbv[:, 0], dimbv[-1, 1])
+                else:
+                    raise ValueError(
+                        'val2idx is only implemented for 1-D or 2-D bounds'
+                    )
+            else:
+                warn('Approximating bounds for val2idx {}'.format(dim))
+                dval = np.diff(dimvals) / 2
+                start = dimvals[:1]
+                end = dimvals[-1:]
+                if (dval == dval[0]).all():
+                    start -= dval[0]
+                    end += dval[-1]
+
+                dimevals = np.concatenate([
+                    start,
+                    dimvals[1:] - dval,
+                    end
+                ])
+        else:
+            dimevals = dimvals
+
+        idx = np.arange(dimevals.size)
+        ddimevals = np.diff(dimevals)
+
+        if (ddimevals < 0).all():
+            dimevals[::-1]
+            idx = idx[::-1]
+        elif (ddimevals > 0).all():
+            pass
+        else:
+            raise ValueError('coordinate is neither ascending nor descending')
+
+        # import pdb; pdb.set_trace()
+        # left = dimevals[0] - 1
+        # right = dimevals[-1] + 1
+        fidx = np.interp(val, dimevals, idx, left=left, right=right)
+        if method == 'bounds':
+            if right is None or right == dimevals[-1]:
+                fidx = np.minimum(fidx, dimvals.size - 1)
+
+        if method == 'exact':
+            fidx = np.ma.masked_where(~np.in1d(val, dimvals), fidx)
+
+        if clean == 'mask':
+            outfidx = np.ma.masked_invalid(fidx)
+        else:
+            outfidx = fidx
+
+        if bounds != 'ignore':
+            isleft = val < dimevals[0]
+            isright = val > dimevals[-1]
+            isout = isleft | isright
+            outmesg = 'Values are out of bounds:\n{}'.format(val[isout])
+            if bounds == 'warn':
+                warn(outmesg)
+            elif bounds == 'error':
+                raise ValueError(bounds)
+
+        if method == 'nearest':
+            outidx = np.round(outfidx, 0).astype('i')
+        else:
+            outidx = outfidx.astype('i')
+
+        return outidx
 
     def get_dest(self):
         """
@@ -680,14 +879,15 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             outf = self
         else:
             if copyall:
-                newkeys = None
+                outf = self.copy()
             else:
                 newkeys = [key]
-            outf = self.subsetVariables(newkeys)
-            try:
-                del outf.variables[key]
-            except Exception:
-                pass
+                outf = self.subsetVariables(newkeys)
+                try:
+                    del outf.variables[key]
+                except Exception:
+                    pass
+
         propd = dict([(k, getattr(tmpvar, k)) for k in tmpvar.ncattrs()])
         propd['expression'] = expr
         dimt = tmpvar.dimensions
@@ -698,6 +898,10 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         assignedkeys = [s.get_name() for s in symbols if s.is_assigned()]
         assignedkeys = [k for k in assignedkeys if k in vardict]
         for key in assignedkeys:
+            try:
+                del outf.variables[key]
+            except Exception:
+                pass
             val = vardict[key]
             # if the output variable has no dimensions,
             # there is likely a problem and the output
@@ -880,6 +1084,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             )
         if plottype == 'longitude-latitude':
             try:
+                map_kw = map_kw.copy()
                 coastlines = map_kw.pop('coastlines', True)
                 countries = map_kw.pop('countries', True)
                 states = map_kw.pop('states', False)
@@ -929,6 +1134,64 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         for pk in self.ncattrs():
             outd[pk] = getattr(self, pk)
         return outd
+
+    @classmethod
+    def from_ncvs(cls, *invars, **invarkw):
+        """
+        Arguments
+        ---------
+        invars : list
+            NetCDF-like variable must have standard_name, long_name or name
+
+        invarkw : kwds
+            NetCDF-like variables
+
+        Returns
+        -------
+        outf : PseudoNetcdf-like file
+        """
+        outf = cls()
+        for invar in invars:
+            for dk, ds in zip(invar.dimensions, invar.shape):
+                if dk in outf.dimensions:
+                    assert(ds == len(outf.dimensions[dk]))
+                else:
+                    outf.createDimension(dk, ds)
+            outf.copyVariable(invar)
+
+        for inkey, invar in invarkw.items():
+            for dk, ds in zip(invar.dimensions, invar.shape):
+                if dk in outf.dimensions:
+                    assert(ds == len(outf.dimensions[dk]))
+                else:
+                    outf.createDimension(dk, ds)
+            outf.copyVariable(invar, key=inkey)
+
+        return outf
+
+    @classmethod
+    def from_ncf(cls, infile):
+        """
+        Arguments
+        ---------
+        infile : PseudoNetCDF-like file
+
+        Returns
+        -------
+        outf : PseudoNetcdf-like file
+        """
+        outf = cls()
+        for pk in infile.ncattrs():
+            pv = getattr(infile, pk)
+            setattr(outf, pk, pv)
+
+        for dk, dv in infile.dimensions.items():
+            outf.copyDimension(dv, key=dk)
+
+        for vk, vv in infile.variables.items():
+            outf.copyVariable(vv, key=vk)
+
+        return outf
 
     def _copywith(self, props=True, dimensions=True, variables=False,
                   data=False):
@@ -1384,7 +1647,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
 
         return outf
 
-    def subsetVariables(self, varkeys, inplace=False, exclude=False):
+    def subsetVariables(
+        self, varkeys, inplace=False, exclude=False, keepcoords=True
+    ):
         """
         Return a PseudoNetCDFFile with only varkeys
 
@@ -1397,6 +1662,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             this file
         exclude : boolean
             if True (default False), then remove just these variables
+        keepcoords : boolean
+            if True (default True), keep coordinate variables
 
         Returns
         -------
@@ -1405,6 +1672,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         """
         if exclude:
             varkeys = list(set(list(self.variables)).difference(varkeys))
+
+        varkeys = varkeys + [k for k in self.getCoords() if k not in varkeys]
+
         if inplace:
             outf = self
             for varkey in list(outf.variables):
@@ -1612,6 +1882,25 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         for k, v in properties.items():
             setattr(self, k, v)
 
+    @classmethod
+    def open_mfdataset(cls, *paths, stackdim=None, **kwds):
+        files = [cls(p, **kwds) for p in paths]
+        file1 = files[0]
+        if stackdim is None:
+            for dk, dv in file1.dimensions.items():
+                if dv.isunlimited():
+                    stackdim = dk
+            else:
+                for dk in list(file1.dimensions):
+                    if dk in ('TSTEP', 'time', 'Time', 't'):
+                        stackdim = dk
+                else:
+                    raise ValueError(
+                        'No dimension is unlimited or time; ' +
+                        'must specify stackdim'
+                    )
+        return file1.stack(files[1:], stackdim=stackdim)
+
     def iswritable(self):
         return (self._mode[:1] in ('a', 'w') or self._mode[:2] in ('r+',))
 
@@ -1665,7 +1954,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         new = set(self._operator_exclude_vars + tuple(keys))
         try:
             self._operator_exclude_vars = new
-        except:
+        except Exception:
             return new
 
     def getCoords(self):
@@ -2046,6 +2335,21 @@ class netcdf(PseudoNetCDFFile, NetCDFFile):
 
     def ncattrs(self):
         return NetCDFFile.ncattrs(self)
+
+    @classmethod
+    def from_ncf(cls, infile):
+        outf = PseudoNetCDFFile()
+        for pk in infile.ncattrs():
+            pv = getattr(infile, pk)
+            setattr(outf, pk, pv)
+
+        for dk, dv in infile.dimensions.items():
+            outf.copyDimension(dv, key=dk)
+
+        for vk, vv in infile.variables.items():
+            outf.copyVariable(vv, key=vk)
+
+        return outf
 
     def _newlike(self):
         """

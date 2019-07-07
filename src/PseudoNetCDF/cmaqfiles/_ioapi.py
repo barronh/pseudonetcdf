@@ -145,14 +145,32 @@ class ioapi_base(PseudoNetCDFFile):
         self._add2Varlist([key])
         return outvar
 
-    def subsetVariables(self, varkeys, inplace=False, exclude=False):
+    def mask(self, *args, **kwds):
         """
         Wrapper on PseudoNetCDFFile.subsetVariables that updates VAR-LIST,
         NVARS, VAR, and TFLAG
 
         See also
         --------
-        see PseudoNetCDFFile.sliceDimensions
+        see PseudoNetCDFFile.mask
+        """
+        outf = PseudoNetCDFFile.mask(self, *args, **kwds)
+        PseudoNetCDFFile.copyVariable(
+            outf, self.variables['TFLAG'], key='TFLAG'
+        )
+        outf.updatemeta()
+        return outf
+
+    def subsetVariables(
+        self, varkeys, inplace=False, exclude=False, keepcoords=True
+    ):
+        """
+        Wrapper on PseudoNetCDFFile.subsetVariables that updates VAR-LIST,
+        NVARS, VAR, and TFLAG
+
+        See also
+        --------
+        see PseudoNetCDFFile.subsetVariables
         """
         varlist = self.getVarlist(update=False)
         newvarlist = [
@@ -375,8 +393,8 @@ class ioapi_base(PseudoNetCDFFile):
         """
         if not hasattr(self, 'VAR-LIST'):
             varliststr_old = ''
-            varlist = ''.join([k.ljust(16) for k, v in self.variables.items()
-                               if v.dimensions[:2] == ('TSTEP', 'LAY')])
+            varlist = [k for k, v in self.variables.items()
+                       if v.dimensions[:2] == ('TSTEP', 'LAY')]
         else:
             varliststr_old = getattr(self, 'VAR-LIST')
             varlist = [vk for vk in varliststr_old.split()
@@ -387,15 +405,16 @@ class ioapi_base(PseudoNetCDFFile):
         if update and len(varlist) != self.NVARS:
             self.NVARS = len(varlist)
 
+        newdimlen = max(self.NVARS, 1)
         if 'VAR' in self.dimensions:
-            if self.NVARS != len(self.dimensions['VAR']):
+            if newdimlen != len(self.dimensions['VAR']):
                 try:
-                    self.createDimension('VAR', self.NVARS)
+                    self.createDimension('VAR', newdimlen)
                 except Exception:
                     pass
                 # add updatetflag
         else:
-            self.createDimension('VAR', self.NVARS)
+            self.createDimension('VAR', newdimlen)
 
         return varlist
 
@@ -489,7 +508,7 @@ class ioapi_base(PseudoNetCDFFile):
         if 'DATE-TIME' not in self.dimensions:
             self.createDimension('DATE-TIME', 2)
 
-        self.getVarlist()
+        self.getVarlist(update=True)
 
         if 'LAY' in self.dimensions:
             self.NLAYS = len(self.dimensions['LAY'])
@@ -541,9 +560,9 @@ class ioapi_base(PseudoNetCDFFile):
         oldkeys = set(self.variables)
         out = PseudoNetCDFFile.eval(self, *args, **kwds)
         outkeys = set(out.variables)
-        newkeys = outkeys.difference(oldkeys)
+        # newkeys = outkeys.difference(oldkeys)
         # byekeys = oldkeys.difference(outkeys)
-        out._add2Varlist(newkeys)
+        out._add2Varlist(outkeys)
         out.updatemeta()
         return out
 
@@ -735,6 +754,21 @@ class ioapi(ioapi_base, netcdf):
             outf = PseudoNetCDFFile()
         outf.set_varopt(**self.get_varopt())
         outf._updatetime(write=True, create=True)
+        return outf
+
+    @classmethod
+    def from_ncf(cls, infile):
+        outf = ioapi_base()
+        for pk in infile.ncattrs():
+            pv = getattr(infile, pk)
+            setattr(outf, pk, pv)
+
+        for dk, dv in infile.dimensions.items():
+            outf.copyDimension(dv, key=dk)
+
+        for vk, vv in infile.variables.items():
+            outf.copyVariable(vv, key=vk)
+
         return outf
 
     @property
