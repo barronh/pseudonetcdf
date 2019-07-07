@@ -11,9 +11,9 @@ import numpy as np
 import PseudoNetCDF.coordutil as cu
 
 
-_pre_code = 'pl.close(); pl.rcParams["image.cmap"] = "jet"'
-_before_code = 'pl.figure(); pl.interactive(True); '
-_after_code = 'ax.set_title(varkey); pl.draw()'
+_pre_code = 'plt.close(); plt.rcParams["image.cmap"] = "jet"'
+_before_code = 'plt.figure(); plt.interactive(True); '
+_after_code = 'ax.set_title(varkey); plt.draw()'
 _post_code = ''
 _coastlines_opt = True
 _countries_opt = True
@@ -245,12 +245,14 @@ class TkApp:
 def plotwithopts(ifile, method, vars, options=defaultoption):
     from PseudoNetCDF.sci_var import getvarpnc
     from PseudoNetCDF.pncgen import pncgen
+    import matplotlib.pyplot as plt
+
     exec(options.pre_txt)
     for varkey in vars:
         figpath = eval(method)(ifile=ifile, varkey=varkey, options=options,
                                before=options.before_txt,
                                after=options.after_txt)
-        pncgen(getvarpnc(ifile, list(vars) + _coordkeys),
+        pncgen(getvarpnc(ifile, list(vars) + list(_coordkeys)),
                figpath + '.nc', verbose=0)
     exec(options.post_txt)
 
