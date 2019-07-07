@@ -22,6 +22,7 @@ __all__ = ['aermodfiles',
            'PNC',
            'pncdump',
            'pncopen',
+           'pncmfopen',
            'getreader',
            'getreaderdict',
            'pncwrite',
@@ -59,7 +60,8 @@ from . import textfiles
 from . import ceilometerfiles
 from . import coordutil
 from . import test
-from ._getreader import anyfile, pncopen, getreader, getreaderdict
+from . import toms
+from ._getreader import anyfile, pncopen, pncmfopen, getreader, getreaderdict
 from ._getwriter import pncwrite
 from .pncparse import PNC, pnc
 
