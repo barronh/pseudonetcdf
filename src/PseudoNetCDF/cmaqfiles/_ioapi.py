@@ -724,7 +724,7 @@ class ioapi_base(PseudoNetCDFFile):
                 if self.GDTYP == 1:
                     x += self.XORIG
                     y += self.YORIG
-            except Exception as e:
+            except Exception:
                 pass
         else:
             ax.set_xlabel(xkey)

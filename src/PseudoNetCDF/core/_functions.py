@@ -134,7 +134,7 @@ def getvarpnc(f, varkeys, coordkeys=None, copy=True):
                     tempv = f.variables[dimk]
                     if hasattr(tempv, 'bounds'):
                         coordkeys.add(tempv.bounds.strip())
-                except (ValueError, KeyError, AttributeError) as e:
+                except (ValueError, KeyError, AttributeError):
                     pass
         for coordk in coordkeys:
             if coordk in f.dimensions and coordk not in outf.dimensions:
