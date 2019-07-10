@@ -649,7 +649,7 @@ def reduce_dim(f, reducedef, fuzzydim=True, metakeys=_metakeys):
                     getattr(nwvar[tmpslicenum], func)(axis=axis) /
                     getattr(np.array(denweight, ndmin=var.ndim)[tmpsliceden],
                             func)(axis=axis)
-                    )
+                )
         else:
             if '_bounds' not in varkey and '_bnds' not in varkey:
                 vout = _getfunc(vreshape, func)(axis=axis, keepdims=True)

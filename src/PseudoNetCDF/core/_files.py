@@ -1477,7 +1477,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                     dt = dts.mean()
                     if (dt != dts).all():
                         warn('Time bounds are approximate')
-                    time = np.append(time - dt/2, time[-1] + dt/2)
+                    time = np.append(time - dt / 2, time[-1] + dt / 2)
             if 'since' in timeunits:
                 unit, base = timeunits.split(' since ')
                 # Get the reference date
@@ -1581,9 +1581,13 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                 np.array([timedelta(hours=i)
                           for i in self.variables['tau0'][:]])
             if bounds and 'tau1' in self.variables.keys():
-                oute = datetime(1985, 1, 1, 0, tzinfo=utc) + \
-                       np.array([timedelta(hours=i)
-                                 for i in self.variables['tau1'][:]])
+                oute = (
+                    datetime(1985, 1, 1, 0, tzinfo=utc) +
+                    np.array([
+                        timedelta(hours=i)
+                        for i in self.variables['tau1'][:]
+                    ])
+                )
                 out = np.append(out, oute[-1])
         else:
             raise ValueError('cannot understand time for file')
