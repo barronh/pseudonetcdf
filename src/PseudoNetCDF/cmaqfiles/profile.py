@@ -1,12 +1,12 @@
 from __future__ import print_function
 __all__ = ['bcon_profile', 'icon_profile']
 from ._ioapi import ioapi_base
-from matplotlib.mlab import csv2rec
 try:
-    from StringIO import StringIO
+    from StringIO import StringIO as BytesIO
 except ImportError:
-    from io import StringIO
+    from io import BytesIO
 import numpy as np
+# from datetime import datetime
 
 
 def _getunit(varkey):
@@ -21,6 +21,22 @@ def _getunit(varkey):
     else:
         unit = 'ppmV'
     return unit.ljust(16)
+
+
+def _profile2dict(lines, fieldnames):
+    import re
+
+    data = np.recfromtxt(
+        BytesIO(
+            bytes(
+                re.sub(r'[ ]+"', '"', '\n'.join(lines)).replace('"', ''),
+                encoding='ascii'
+            )
+        ),
+        delimiter=' ', names=fieldnames,
+        converters=dict(names=lambda x: x.strip()),
+    )
+    return data
 
 
 class icon_profile(ioapi_base):
@@ -38,11 +54,11 @@ class icon_profile(ioapi_base):
         ends = [s + nspc for s in starts]
         keys = ['all']
         fieldnames = ('name',) + tuple(['s%f' % i for i in sigmas])
-        data = dict(
-            [(k, csv2rec(StringIO('\n'.join(lines[s:e])),
-                         delimiter=' ', names=fieldnames,
-                         converterd=dict(names=lambda x: str(x).strip())))
-             for k, s, e in zip(keys, starts, ends)])
+        data = dict([
+            (k, _profile2dict(lines[s:e], fieldnames))
+            for k, s, e in zip(keys, starts, ends)
+        ])
+
         profile_spcs = np.char.strip(data[keys[0]]['name'])
         data_type = data[keys[0]].dtype
         self.createDimension('sigma', nsigmas)
@@ -63,7 +79,7 @@ class icon_profile(ioapi_base):
                 raise IOError('File is corrupt or inconsistent')
         varlist = []
         for a in data['all']:
-            varkey = a[0].strip()
+            varkey = a[0].strip().decode()
             self.createVariable(
                 varkey, 'f', ('LAY',), units=_getunit(varkey),
                 values=np.array([tuple(a)[1:]])[0].astype('f'),
@@ -123,11 +139,11 @@ class bcon_profile(ioapi_base):
         ends = [s + 1 + nspc for s in starts]
         keys = [lines[s].strip().lower() for s in starts]
         fieldnames = ('name',) + tuple(['s%f' % i for i in sigmas])
-        data = dict(
-            [(k, csv2rec(StringIO('\n'.join(lines[s + 1:e])), delimiter=' ',
-                         names=fieldnames,
-                         converterd=dict(names=lambda x: str(x).strip())))
-             for k, s, e in zip(keys, starts, ends)])
+        data = dict([
+            (k, _profile2dict(lines[s + 1:e], fieldnames))
+            for k, s, e in zip(keys, starts, ends)
+        ])
+
         profile_spcs = np.char.strip(data[keys[0]]['name'])
         data_type = data[keys[0]].dtype
         self.createDimension('sigma', nsigmas)
@@ -151,7 +167,7 @@ class bcon_profile(ioapi_base):
         zwsen = zip(data['west'], data['south'], data['east'], data['north'])
         for w, s, e, n in zwsen:
             assert(w[0] == s[0] and e[0] == n[0] and n[0] == s[0])
-            varkey = w[0].strip()
+            varkey = w[0].strip().decode()
             tmpvals = np.array(
                 [(lambda x: tuple(x)[1:])(_v) for _v in[s, e, n, w]]
                 ).T.astype('f')
