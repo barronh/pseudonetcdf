@@ -247,6 +247,10 @@ def plotwithopts(ifile, method, vars, options=defaultoption):
     from PseudoNetCDF.pncgen import pncgen
     import matplotlib.pyplot as plt
 
+    # dummy assignment so that flake8 sees plt as used
+    # plt is loaded into the environment for exec
+    varkey = plt
+
     exec(options.pre_txt)
     for varkey in vars:
         figpath = eval(method)(ifile=ifile, varkey=varkey, options=options,

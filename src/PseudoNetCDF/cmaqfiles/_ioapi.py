@@ -557,7 +557,7 @@ class ioapi_base(PseudoNetCDFFile):
         ----------
         see PseudoNetCDFFile.eval
         """
-        oldkeys = set(self.variables)
+        # oldkeys = set(self.variables)
         out = PseudoNetCDFFile.eval(self, *args, **kwds)
         outkeys = set(out.variables)
         # newkeys = outkeys.difference(oldkeys)

@@ -126,7 +126,9 @@ class finst(PseudoNetCDFFile):
         offset = f.tell() + 4
         f.close()
         del f
-        self.__var_names__ = [i.decode().strip() for i in self.SPECIES.tolist()]
+        self.__var_names__ = [
+            i.decode().strip() for i in self.SPECIES.tolist()
+        ]
 
         self.NEST_PARMS = memmap(
             self.__rffile, dtype=self.__nestparmsfmt, mode=mode,

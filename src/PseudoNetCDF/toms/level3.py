@@ -3,6 +3,7 @@ __all__ = ['cdtoms', 'tomsl3']
 
 
 from PseudoNetCDF import PseudoNetCDFFile
+from PseudoNetCDF.pncwarn import warn
 from re import compile
 import numpy as np
 from datetime import datetime

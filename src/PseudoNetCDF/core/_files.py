@@ -303,14 +303,20 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             (i.e., timekey) which defaults to 'time'
         """
         from netCDF4 import date2num
-        from datetime import tzinfo
+        try:
+            from datetime import timezone
+            utc = timezone.utc
+        except ImportError:
+            from datetime import tzinfo
+            utc = tzinfo.utc
+
         time = np.asarray(time)
         # netCDF4 date2num is timezone naive; assumes UTC when not
         # specified and converts to UTC internally
         # so, if a tzinfo is involved, it should be removed
         if any([t.tzinfo is not None for t in time[:]]):
             time = np.array([
-                t.astimezone(tzinfo.utc).replace(tzinfo=None) for t in time[:]
+                t.astimezone(utc).replace(tzinfo=None) for t in time[:]
             ])
 
         timeunits = self.variables[timekey].units.strip()
@@ -343,7 +349,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
 
         time = np.asarray(time)
         nums = self.date2num(time, timekey=timekey)
-        return self.val2idx(nums, dim=dim, **kwds)
+        return self.val2idx(dim=dim, val=nums, **kwds)
 
     def time2t(self, time, ttype='nearest', index=True):
         """
@@ -473,16 +479,24 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                 'val2idx is only implemented for 1-D coordinate variables'
             )
         if method == 'bounds':
+            bounds_keys = [dim + '_bounds', dim + '_bnds']
             if hasattr(dimv, 'bounds'):
-                dimbv = self.variables[dimv.bounds]
+                bounds_keys.insert(0, dimv.bounds)
+
+            for dimbk in bounds_keys:
+                if dimbk not in self.variables:
+                    continue
+                dimbv = self.variables[dimbk]
                 if dimbv.ndim == 1:
                     dimevals = dimbv[:]
                 elif dimbv.ndim == 2 and dimbv.shape[1] == 2:
                     dimevals = np.append(dimbv[:, 0], dimbv[-1, 1])
                 else:
                     raise ValueError(
-                        'val2idx is only implemented for 1-D or 2-D bounds'
+                        'val2idx is only implemented for 1-D or 2-D bounds' +
+                        '; {} has {}'.format(dimbk, dimbv.shape)
                     )
+                break
             else:
                 warn('Approximating bounds for val2idx {}'.format(dim))
                 dval = np.diff(dimvals) / 2
