@@ -2,7 +2,6 @@ from __future__ import print_function
 __all__ = ['bcon_profile', 'icon_profile']
 from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariables
 from ._ioapi import ioapi_base
-from matplotlib.mlab import csv2rec
 try:
     from StringIO import StringIO as BytesIO
 except ImportError:
