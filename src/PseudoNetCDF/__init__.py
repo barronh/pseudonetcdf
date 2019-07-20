@@ -44,23 +44,25 @@ from PseudoNetCDF.core import PseudoNetCDFFile
 from PseudoNetCDF.core import PseudoNetCDFVariable, PseudoNetCDFVariables
 
 from PseudoNetCDF import sci_var
-from . import camxfiles
-from . import cmaqfiles
-from . import racmfiles
-from . import geoschemfiles
-from . import noaafiles
-from . import woudcfiles
-from . import epafiles
+from . import units
+from . import test
+from . import coordutil
 from . import MetaNetCDF
 from . import ArrayTransforms
-from . import units
-from . import icarttfiles
+
 from . import aermodfiles
-from . import textfiles
+from . import camxfiles
 from . import ceilometerfiles
-from . import coordutil
-from . import test
+from . import cmaqfiles
+from . import epafiles
+from . import geoschemfiles
+from . import icarttfiles
+from . import noaafiles
+from . import racmfiles
+from . import textfiles
 from . import toms
+from . import woudcfiles
+
 from ._getreader import anyfile, pncopen, pncmfopen, getreader, getreaderdict
 from ._getwriter import pncwrite
 from .pncparse import PNC, pnc
