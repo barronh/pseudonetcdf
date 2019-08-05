@@ -13,55 +13,93 @@ _coordkeys = ("time time_bounds TFLAG ETFLAG latitude latitude_bounds " +
 
 class csv(PseudoNetCDFFile):
     def __init__(self, path, coordkeys=_coordkeys, delimiter=',',
-                 names=True, **kwds):
+                 names=True, backend=None, defaultcoord='record', **kwds):
         """
-        path - place to find csv file
-        coordkeys - use these keys as dimensions and coordinate variables
-        delimiter - use this as delimiter (default = ',')
-        names - see help in recfromtxt (Default = True)
-        kwds - np.recfromtxt keywords
+        path : str
+            place to find csv file
+        coordkeys : iterable of strings
+            use these keys as dimensions and coordinate variables
+        delimiter : str
+            use this as delimiter (default = ',') renamed as sep for pandas
+        names : iterable of strings or True
+            with pandas backend and names==True: header='infer'
+            otherwise, passed directly as keyword
+        backend : str or None
+            'numpy' numpy.recfromtxt or 'pandas' pandas.read_csv; defaults to
+            pandas if available
+        defaultcoord : str
+            if no coordkeys are found, use this str to create a arbitrary
+            coordinate based on each record
+        kwds : mappable
+            corresponds to numpy.recfromtxt or pandas.read_csv keywords
 
         * Note: currently only works when all coordinate variables are 1-d
         """
-        try:
-            kwds['names'] = names
-            kwds['delimiter'] = delimiter
-            data = np.recfromtxt(path, **kwds)
-        except Exception:
-            import pandas
-            del kwds['names']
-            del kwds['delimiter']
-            if names:
-                kwds['header'] = 'infer'
-            else:
-                kwds['names'] = names
-            kwds['sep'] = delimiter
-            odata = pandas.read_csv(path, **kwds)
-            data = odata.to_records(index=False)
+        if backend != 'numpy':
+            try:
+                import pandas
+                if backend is None:
+                    backend = 'pandas'
+            except Exception:
+                if backend == 'pandas':
+                    raise ValueError(
+                        'pandas library not available, try another backend'
+                    )
 
-        dimkeys = [dk for dk in coordkeys if dk in data.dtype.names]
+        if backend == 'numpy':
+            npkwds = kwds.copy()
+            npkwds['names'] = names
+            npkwds['delimiter'] = delimiter
+            data = np.recfromtxt(path, **npkwds)
+        elif backend == 'pandas':
+            pdkwds = kwds.copy()
+            if names is True:
+                pdkwds.setdefault('header', 'infer')
+            else:
+                pdkwds['names'] = names
+            pdkwds.setdefault('sep', delimiter)
+            odata = pandas.read_csv(path, **pdkwds)
+            # pandas leaves whitespace in names, which is not good for
+            # netcdf-like names and probably not intended.
+            # odata.rename(columns=lambda x: x.strip(), inplace=True)
+            # relying on user to supply skipinitialspace=True
+            data = odata.to_records(index=False)
+        else:
+            raise ValueError(
+                "backend options are 'numpy' or 'pandas': got '%s'" % backend
+            )
+
         varkeys = [vk for vk in data.dtype.names if vk not in coordkeys]
-        for dk in dimkeys:
-            dv = np.unique(data[dk])
-            dv.sort()
-            self.createDimension(dk, len(dv))
-            mydtype = dv.dtype.char
-            if mydtype == 'S':
-                mydtype = dv.dtype
-            dvar = self.createVariable(dk, mydtype, (dk,))
-            dvar[:] = dv
+        dimkeys = tuple([dk for dk in coordkeys if dk in data.dtype.names])
+        dimvars = {}
+        if len(dimkeys) == 0:
+            dimkeys = (defaultcoord,)
+            dv = self.createDimension(defaultcoord, data.shape[0])
+            dvar = self.createVariable(defaultcoord, 'd', (defaultcoord,))
+            dvar[:] = dimvars[defaultcoord] = np.arange(len(dv))
+        else:
+            for dk in dimkeys:
+                dimvars[dk] = data[dk]
+                dv = np.unique(data[dk])
+                dv.sort()
+                self.createDimension(dk, len(dv))
+                mydtype = dv.dtype.char
+                if mydtype == 'S':
+                    mydtype = dv.dtype
+                dvar = self.createVariable(dk, mydtype, (dk,))
+                dvar[:] = dv
 
         for vk in varkeys:
             vv = data[vk]
             if vv.dtype.char != 'S':
                 var = self.createVariable(
-                    vk, vv.dtype.char, tuple(dimkeys), fill_value=-999)
+                    vk, vv.dtype.char, dimkeys, fill_value=-999)
                 var[:] = -999
             else:
-                var = self.createVariable(vk, vv.dtype.char, tuple(dimkeys))
+                var = self.createVariable(vk, vv.dtype.char, dimkeys)
 
         bigidx = []
-        bigidx = dict([(dk, (data[dk][:, None] == self.variables[dk]
+        bigidx = dict([(dk, (dimvars[dk][:, None] == self.variables[dk]
                              [None, :]).argmax(1)) for dk in dimkeys])
         for vk in varkeys:
             vv = data[vk]
