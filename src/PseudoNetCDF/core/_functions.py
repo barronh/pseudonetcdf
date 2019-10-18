@@ -64,7 +64,10 @@ def manglenames(f, translator=_translator):
     return outf
 
 
-def removesingleton(f, rd, coordkeys=[]):
+def removesingleton(f, rd, coordkeys=None):
+    if coordkeys is None:
+        coordkeys = f.getCoords()
+
     outf = PseudoNetCDFFile()
     for propkey in f.ncattrs():
         setattr(outf, propkey, getattr(f, propkey))
@@ -90,7 +93,10 @@ def removesingleton(f, rd, coordkeys=[]):
     return outf
 
 
-def getvarpnc(f, varkeys, coordkeys=[], copy=True):
+def getvarpnc(f, varkeys, coordkeys=None, copy=True):
+    if coordkeys is None:
+        coordkeys = f.getCoords()
+
     coordkeys = set(coordkeys)
     if varkeys is None:
         varkeys = list(f.variables.keys())
@@ -128,7 +134,7 @@ def getvarpnc(f, varkeys, coordkeys=[], copy=True):
                     tempv = f.variables[dimk]
                     if hasattr(tempv, 'bounds'):
                         coordkeys.add(tempv.bounds.strip())
-                except (ValueError, KeyError, AttributeError) as e:
+                except (ValueError, KeyError, AttributeError):
                     pass
         for coordk in coordkeys:
             if coordk in f.dimensions and coordk not in outf.dimensions:
@@ -643,7 +649,7 @@ def reduce_dim(f, reducedef, fuzzydim=True, metakeys=_metakeys):
                     getattr(nwvar[tmpslicenum], func)(axis=axis) /
                     getattr(np.array(denweight, ndmin=var.ndim)[tmpsliceden],
                             func)(axis=axis)
-                    )
+                )
         else:
             if '_bounds' not in varkey and '_bnds' not in varkey:
                 vout = _getfunc(vreshape, func)(axis=axis, keepdims=True)
@@ -675,7 +681,7 @@ def reduce_dim(f, reducedef, fuzzydim=True, metakeys=_metakeys):
     return outf
 
 
-def pncfunc(func, ifile1, coordkeys=[], verbose=0):
+def pncfunc(func, ifile1, coordkeys=None, verbose=0):
     """
     Perform function (func) on all variables in ifile1.  The returned file
     (rfile) contains the result
@@ -686,6 +692,8 @@ def pncfunc(func, ifile1, coordkeys=[], verbose=0):
     """
     from PseudoNetCDF.sci_var import Pseudo2NetCDF
 
+    if coordkeys is None:
+        coordkeys = ifile1.getCoords()
     # Copy infile1 to a temporary PseudoNetCDFFile
     p2p = Pseudo2NetCDF()
     p2p.verbose = verbose
@@ -715,7 +723,7 @@ def pncfunc(func, ifile1, coordkeys=[], verbose=0):
     return tmpfile
 
 
-def pncbo(op, ifile1, ifile2, coordkeys=[], verbose=0):
+def pncbo(op, ifile1, ifile2, coordkeys=None, verbose=0):
     """
     Perform binary operation (op) on all variables in ifile1
     and ifile2.  The returned file (rfile) contains the result
@@ -726,6 +734,8 @@ def pncbo(op, ifile1, ifile2, coordkeys=[], verbose=0):
     """
     tmpfile = ifile1.copy(props=True, dimensions=True,
                           variables=False, data=False)
+    if coordkeys is None:
+        coordkeys = ifile1.getCoords()
 
     # For each variable, assign the new value
     # to the tmpfile variables.
@@ -752,7 +762,7 @@ def pncbo(op, ifile1, ifile2, coordkeys=[], verbose=0):
     return tmpfile
 
 
-def pncbfunc(func, ifile1, ifile2, coordkeys=[], verbose=0):
+def pncbfunc(func, ifile1, ifile2, coordkeys=None, verbose=0):
     """
     Perform binary function (func) on all variables in ifile1
     and ifile2.  The returned file (rfile) contains the result
@@ -762,6 +772,9 @@ def pncbfunc(func, ifile1, ifile2, coordkeys=[], verbose=0):
     op can be any valid operator (e.g., +, -, /, *, **, &, ||)
     """
     from PseudoNetCDF.sci_var import Pseudo2NetCDF
+
+    if coordkeys is None:
+        coordkeys = ifile1.getCoords()
 
     # Copy infile1 to a temporary PseudoNetCDFFile
     p2p = Pseudo2NetCDF()
@@ -865,7 +878,7 @@ def pncexpr(expr, ifile, verbose=0):
     return tmpfile
 
 
-def seqpncbo(ops, ifiles, coordkeys=[]):
+def seqpncbo(ops, ifiles, coordkeys=None):
     for op in ops:
         ifile1, ifile2 = ifiles[:2]
         newfile = pncbo(op=op, ifile1=ifile1,
@@ -981,7 +994,7 @@ def merge(fs):
     return outf
 
 
-def stack_files(fs, stackdim, coordkeys=[]):
+def stack_files(fs, stackdim, coordkeys=None):
     """
     Create files with dimensions extended by stacking.
 
@@ -990,6 +1003,9 @@ def stack_files(fs, stackdim, coordkeys=[]):
     """
     f = PseudoNetCDFFile()
     tmpf = fs[0]
+    if coordkeys is None:
+        coordkeys = tmpf.getCoords()
+
     dimensions = [f_.dimensions for f_ in fs]
     shareddims = {}
     for dimk, dim in tmpf.dimensions.items():

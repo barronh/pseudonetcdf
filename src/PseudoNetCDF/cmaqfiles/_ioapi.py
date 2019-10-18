@@ -58,6 +58,10 @@ class ioapi_base(PseudoNetCDFFile):
     def isMine(self, path, *args, **kwds):
         return False
 
+    def __init__(self, *args, **kwds):
+        super().__init__(self, *args, **kwds)
+        self.setCoords(['TFLAG'])
+
     def _updatetime(self, write=True, create=False):
         from datetime import datetime
         t = datetime.now()
@@ -141,14 +145,32 @@ class ioapi_base(PseudoNetCDFFile):
         self._add2Varlist([key])
         return outvar
 
-    def subsetVariables(self, varkeys, inplace=False, exclude=False):
+    def mask(self, *args, **kwds):
         """
         Wrapper on PseudoNetCDFFile.subsetVariables that updates VAR-LIST,
         NVARS, VAR, and TFLAG
 
         See also
         --------
-        see PseudoNetCDFFile.sliceDimensions
+        see PseudoNetCDFFile.mask
+        """
+        outf = PseudoNetCDFFile.mask(self, *args, **kwds)
+        PseudoNetCDFFile.copyVariable(
+            outf, self.variables['TFLAG'], key='TFLAG'
+        )
+        outf.updatemeta()
+        return outf
+
+    def subsetVariables(
+        self, varkeys, inplace=False, exclude=False, keepcoords=True
+    ):
+        """
+        Wrapper on PseudoNetCDFFile.subsetVariables that updates VAR-LIST,
+        NVARS, VAR, and TFLAG
+
+        See also
+        --------
+        see PseudoNetCDFFile.subsetVariables
         """
         varlist = self.getVarlist(update=False)
         newvarlist = [
@@ -371,8 +393,8 @@ class ioapi_base(PseudoNetCDFFile):
         """
         if not hasattr(self, 'VAR-LIST'):
             varliststr_old = ''
-            varlist = ''.join([k.ljust(16) for k, v in self.variables.items()
-                               if v.dimensions[:2] == ('TSTEP', 'LAY')])
+            varlist = [k for k, v in self.variables.items()
+                       if v.dimensions[:2] == ('TSTEP', 'LAY')]
         else:
             varliststr_old = getattr(self, 'VAR-LIST')
             varlist = [vk for vk in varliststr_old.split()
@@ -383,15 +405,16 @@ class ioapi_base(PseudoNetCDFFile):
         if update and len(varlist) != self.NVARS:
             self.NVARS = len(varlist)
 
+        newdimlen = max(self.NVARS, 1)
         if 'VAR' in self.dimensions:
-            if self.NVARS != len(self.dimensions['VAR']):
+            if newdimlen != len(self.dimensions['VAR']):
                 try:
-                    self.createDimension('VAR', self.NVARS)
+                    self.createDimension('VAR', newdimlen)
                 except Exception:
                     pass
                 # add updatetflag
         else:
-            self.createDimension('VAR', self.NVARS)
+            self.createDimension('VAR', newdimlen)
 
         return varlist
 
@@ -427,7 +450,12 @@ class ioapi_base(PseudoNetCDFFile):
         else:
             if len(self.dimensions['VAR']) == 0:
                 return
-            times = self.getTimes()
+
+            try:
+                times = self.getTimes()
+            except Exception as e:
+                warn('Times were incalculable: using epoch start\n' + str(e))
+                times = np.array([datetime.datetime(1970, 1, 1)])
 
             if not hasattr(self, 'SDATE'):
                 self.SDATE = int(times[0].strftime('%Y%j'))
@@ -445,6 +473,8 @@ class ioapi_base(PseudoNetCDFFile):
                         ).strftime('%H%M%S')
                     )
                     self.TSTEP = tstep
+                else:
+                    self.TSTEP = 10000
 
     def updatemeta(self, attdict={}, sortmeta=False):
         """
@@ -478,7 +508,7 @@ class ioapi_base(PseudoNetCDFFile):
         if 'DATE-TIME' not in self.dimensions:
             self.createDimension('DATE-TIME', 2)
 
-        self.getVarlist()
+        self.getVarlist(update=True)
 
         if 'LAY' in self.dimensions:
             self.NLAYS = len(self.dimensions['LAY'])
@@ -527,12 +557,12 @@ class ioapi_base(PseudoNetCDFFile):
         ----------
         see PseudoNetCDFFile.eval
         """
-        oldkeys = set(self.variables)
+        # oldkeys = set(self.variables)
         out = PseudoNetCDFFile.eval(self, *args, **kwds)
         outkeys = set(out.variables)
-        newkeys = outkeys.difference(oldkeys)
+        # newkeys = outkeys.difference(oldkeys)
         # byekeys = oldkeys.difference(outkeys)
-        out._add2Varlist(newkeys)
+        out._add2Varlist(outkeys)
         out.updatemeta()
         return out
 
@@ -689,12 +719,12 @@ class ioapi_base(PseudoNetCDFFile):
                     bmap.drawstates(ax=ax)
                 if counties:
                     bmap.drawcounties(ax=ax)
-                x = np.arange(self.NCOLS+1) * self.XCELL
-                y = np.arange(self.NROWS+1) * self.YCELL
+                x = np.arange(self.NCOLS + 1) * self.XCELL
+                y = np.arange(self.NROWS + 1) * self.YCELL
                 if self.GDTYP == 1:
                     x += self.XORIG
                     y += self.YORIG
-            except Exception as e:
+            except Exception:
                 pass
         else:
             ax.set_xlabel(xkey)
@@ -710,6 +740,10 @@ class ioapi_base(PseudoNetCDFFile):
 
 
 class ioapi(ioapi_base, netcdf):
+    def __init__(self, *args, **kwds):
+        netcdf.__init__(self, *args, **kwds)
+        self.setCoords(['TFLAG'])
+
     def _newlike(self):
         if self.get_dest() is not None:
             outf = ioapi(**self.get_dest())
@@ -720,6 +754,21 @@ class ioapi(ioapi_base, netcdf):
             outf = PseudoNetCDFFile()
         outf.set_varopt(**self.get_varopt())
         outf._updatetime(write=True, create=True)
+        return outf
+
+    @classmethod
+    def from_ncf(cls, infile):
+        outf = ioapi_base()
+        for pk in infile.ncattrs():
+            pv = getattr(infile, pk)
+            setattr(outf, pk, pv)
+
+        for dk, dv in infile.dimensions.items():
+            outf.copyDimension(dv, key=dk)
+
+        for vk, vv in infile.variables.items():
+            outf.copyVariable(vv, key=vk)
+
         return outf
 
     @property
@@ -857,10 +906,10 @@ def ncf2ioapi(
     ofile.createDimension('VAR', nvar)
 
     if fileprops['FTYPE'] == 2:
-        ofile.createDimension('PERIM',  nthk * (4 * nthk + 2 * (nx + ny)))
+        ofile.createDimension('PERIM', nthk * (4 * nthk + 2 * (nx + ny)))
     elif fileprops['FTYPE'] == 1:
-        ofile.createDimension('ROW',  ny)
-        ofile.createDimension('COL',  nx)
+        ofile.createDimension('ROW', ny)
+        ofile.createDimension('COL', nx)
     else:
         raise ValueError('FTYPE is unknown; must be 1 or 2')
 

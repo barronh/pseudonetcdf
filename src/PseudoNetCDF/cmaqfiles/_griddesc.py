@@ -2,13 +2,15 @@ import PseudoNetCDF as pnc
 from datetime import datetime
 from collections import OrderedDict
 import numpy as np
+from ._ioapi import ioapi_base
+
 _prjp = ['GDTYP', 'P_ALP', 'P_BET', 'P_GAM', 'XCENT', 'YCENT']
 _grdp = [
     'PRJNAME', 'XORIG', 'YORIG', 'XCELL', 'YCELL', 'NCOLS', 'NROWS', 'NTHIK'
 ]
 
 
-class griddesc(pnc.PseudoNetCDFFile):
+class griddesc(ioapi_base):
     """
     griddesc is designed to read IOAPI griddesc files and create
     a file with basic CF metadata. An example format of GRIDDESC
@@ -67,6 +69,9 @@ class griddesc(pnc.PseudoNetCDFFile):
         self.CTIME = int(now.strftime('%H%M%S'))
         self.WDATE = self.CDATE
         self.WTIME = self.CTIME
+        self.SDATE = -635
+        self.STIME = 0
+        self.TSTEP = 0
         self._synthvars = None
         self.addtime()
         self.setgrid()
@@ -115,7 +120,7 @@ class griddesc(pnc.PseudoNetCDFFile):
             raise ValueError(
                 'Only supports FTYPE 1 or 2; received ' +
                 str(self.FTYPE)
-                )
+            )
         self.createVariable(
             'DUMMY', 'f', dims,
             units='none',

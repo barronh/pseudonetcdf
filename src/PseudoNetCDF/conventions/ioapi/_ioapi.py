@@ -170,7 +170,7 @@ def get_ioapi_sphere():
 
 
 _gdnames = {1: "latitude_longitude", 2: "lambert_conformal_conic",
-            7: "equatorial_mercator", 6: "polar_stereographic"}
+            7: "mercator", 6: "polar_stereographic"}
 
 
 def getmapdef(ifileo, add=True):

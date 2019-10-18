@@ -256,12 +256,16 @@ class ipr(PseudoNetCDFFile):
         self.NPADOMAINS = fromfile(self.__rffile, dtype=dtype(dict(
             names=['SPAD', 'NPADOMAINS', 'EPAD'],
             formats=['>i', '>i', '>i'])), count=1)['NPADOMAINS'][0]
-        self.__padomains = fromfile(self.__rffile, dtype=dtype(dict(
+        self.__padomains = fromfile(
+            self.__rffile,
+            dtype=dtype(dict(
                 names=['SPAD', 'grid', 'istart', 'iend', 'jstart', 'jend',
                        'blay', 'tlay', 'EPAD'],
                 formats=['>i', '>i', '>i', '>i', '>i', '>i', '>i', '>i',
-                         '>i'])),
-            count=self.NPADOMAINS)
+                         '>i']
+            )),
+            count=self.NPADOMAINS
+        )
         self.__activedomain = self.__padomains[0]
         self.prcnames = []
         self.NPROCESS = fromfile(self.__rffile, dtype=dtype(dict(

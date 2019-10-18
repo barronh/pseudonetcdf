@@ -119,14 +119,16 @@ class finst(PseudoNetCDFFile):
         f = open(self.__rffile)
         f.seek(92)
         self.NNEST, self.NSPEC = fromfile(f, '>i', 2)
-        f.seek(8, 1)
+        f.seek(108)
 
         self.SPECIES = fromfile(f, self.__spc_fmt, self.NSPEC)
 
         offset = f.tell() + 4
         f.close()
         del f
-        self.__var_names__ = [i.strip() for i in self.SPECIES.tolist()]
+        self.__var_names__ = [
+            i.decode().strip() for i in self.SPECIES.tolist()
+        ]
 
         self.NEST_PARMS = memmap(
             self.__rffile, dtype=self.__nestparmsfmt, mode=mode,
