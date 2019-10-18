@@ -69,6 +69,9 @@ class griddesc(ioapi_base):
         self.CTIME = int(now.strftime('%H%M%S'))
         self.WDATE = self.CDATE
         self.WTIME = self.CTIME
+        self.SDATE = -635
+        self.STIME = 0
+        self.TSTEP = 0
         self._synthvars = None
         self.addtime()
         self.setgrid()
