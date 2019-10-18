@@ -160,6 +160,24 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         return self.getproj()(lon, lat)
 
     def _getzdim(self):
+        """
+        Heuristic function finds and returns the name of the vertical dimension
+        based on common dimension names. Overwrite method for explicit control.
+
+        Returns
+        -------
+        result : {'LAY', 'bottom_top', 'level', 'lev', 'layer', 'lay', 'z'}
+
+        Examples
+        --------
+        >>> f = pnc.pncopen('', format='PseudoNetCDFFile')
+        >>> f.createDimension('t', 4)
+        >>> f.createDimension('x', 4)
+        >>> f.createDimension('y', 4)
+        >>> f.createDimension('z', 4)
+        >>> f._getzdim()
+        'z'
+        """
         for dk in 'LAY bottom_top level lev layer lay z'.split():
             if dk in self.dimensions:
                 return dk
@@ -167,6 +185,24 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             raise KeyError('Could not find z dimensions')
 
     def _gettdim(self):
+        """
+        Heuristic function finds and returns the name of the time dimension
+        based on common dimension names. Overwrite method for explicit control.
+
+        Returns
+        -------
+        result : {'time', 'TSTEP', 't', 'Time'}
+
+        Examples
+        --------
+        >>> f = pnc.pncopen('', format='PseudoNetCDFFile')
+        >>> f.createDimension('t', 4)
+        >>> f.createDimension('x', 4)
+        >>> f.createDimension('y', 4)
+        >>> f.createDimension('z', 4)
+        >>> f._gettdim()
+        't'
+        """
         for dk in 'time TSTEP t Time'.split():
             if dk in self.dimensions:
                 return dk
@@ -174,6 +210,25 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             raise KeyError('Could not find t dimensions')
 
     def _getydim(self):
+        """
+        Heuristic function finds and returns the name of the y or width
+        dimension based on common dimension names. Overwrite method for
+        explicit control.
+
+        Returns
+        -------
+        result : {'latitude', 'lat', 'south_north', 'ROW', 'y'}
+
+        Examples
+        --------
+        >>> f = pnc.pncopen('', format='PseudoNetCDFFile')
+        >>> f.createDimension('t', 4)
+        >>> f.createDimension('x', 4)
+        >>> f.createDimension('y', 4)
+        >>> f.createDimension('z', 4)
+        >>> f._getydim()
+        'y'
+        """
         for dk in 'latitude lat south_north ROW y'.split():
             if dk in self.dimensions:
                 return dk
@@ -181,6 +236,25 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             raise KeyError('Could not find y dimensions')
 
     def _getxdim(self):
+        """
+        Heuristic function finds and returns the name of the x or height
+        dimension based on common dimension names. Overwrite method for
+        explicit control.
+
+        Returns
+        -------
+        result : {'longitude', 'lon', 'west_east', 'COL', 'x'}
+
+        Examples
+        --------
+        >>> f = pnc.pncopen('', format='PseudoNetCDFFile')
+        >>> f.createDimension('t', 4)
+        >>> f.createDimension('x', 4)
+        >>> f.createDimension('y', 4)
+        >>> f.createDimension('z', 4)
+        >>> f._getydim()
+        'y'
+        """
         for dk in 'longitude long lon west_east COL x'.split():
             if dk in self.dimensions:
                 return dk
@@ -358,6 +432,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         time : array of datetime.datetime objects
         interp : 'nearest', 'bounds', 'bounds_close'
         index : return index
+
         Returns
         -------
         t : fractional time or if index, integers for indexing
@@ -452,7 +527,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             see np.interp
         right : scalar
             see np.interp
-        clean : string
+        clean : {'none', 'mask'}
             none - return values regardless of bounds;
             mask - mask invalid values (use with left/right=np.nan);
                    has no affect with method exact
@@ -560,8 +635,13 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
 
     def get_dest(self):
         """
-        Returns the path where a new file is created on some action
+        Returns
+        -------
+        path : str
+            path where a new file is created on some action
 
+        Notes
+        -----
         If None, a file is created in memory.
         Else, a netcdf file is created on disk.
         """
@@ -573,8 +653,10 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
 
         Arguments
         ---------
-        path : path for new file
-        options : options for new file creation
+        path : str
+            path for new file
+        **options : keywords for constructor
+            options for new file creation
 
         Returns
         -------
@@ -593,7 +675,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
 
         Returns
         -------
-        options : dictionary of optiosn
+        options : dictionary of options
         """
         return getattr(self, '_varopt', {}).copy()
 
@@ -603,7 +685,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
 
         Arguments
         ---------
-        options : options for new variable creation
+        **options : options for createVariable
+            optional keywords to be supplied when creating new variables in
+            destination file
 
         Returns
         -------
@@ -931,10 +1015,80 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
 
         return outf
 
-    def mask(self, mask=None, less=None, greater=None, dims=None,
-             fill_value=-999, verbose=0):
+    def mask(
+        self, where=None, less=None, less_equal=None, greater=None,
+        greater_equal=None, values=None, equal=None, invalid=False, mask=None,
+        dims=None, fill_value=-999, coords=False, verbose=0
+    ):
+        """
+        Apply mask to all variables of same shape or just where dimensions
+        match.
+
+        Parameters
+        ----------
+        where : array-like
+            boolean array to use as a mask see numpy.ma.masked_where
+        greater : scalar
+            mask when values are greater than this value see
+            numpy.ma.masked_greater
+        less : scalar
+            mask when values are less than this value see
+            numpy.ma.masked_less
+        greater_equal : scalar
+            mask when values are greater than or equal to this value see
+            numpy.ma.masked_greater
+        less_equal : scalar
+            mask when values are less than or equal to this value see
+            numpy.ma.masked_less
+        values : scalar
+            mask when values are equal to this value within standard floating
+            point see numpy.ma.masked_values
+        equal : scalar
+            mask when values are exactly this value (i.e., integers) see
+            numpy.ma.masked_equal
+        invalid : boolean
+            mask when values are invalid, see numpy.ma.masked_invalid
+        mask : array-like
+            alias for where
+        dims : iterable of strings
+            only apply "mask" or "where" to variables with these dimensions
+            no effet on other masks
+        fill_value : scalar
+            value to use as the fill_value for new arrays
+        coords : boolean
+            if True, apply masks to coordinate variables. Default, False
+        verbose : int
+            level of verbosity for function, mostly for debugging
+
+        Returns
+        -------
+        outf : PseudoNetCDFFile
+            instance with masked variables
+
+        See Also
+        --------
+        numpy.ma : all masks are passing throught to numpy.ma.masked_...
+
+        Notes
+        -----
+        mask options are not mutually exclusive. the order is where, greater,
+        greater_equal, less, less_equal, values, equal, invalid
+        """
         from time import time
-        maskdims = getattr(mask, 'dimensions', dims)
+        if where is None and mask is not None:
+            where = mask
+        elif mask is not None and where is not None:
+            raise ValueError(
+                'mask is an alias to where; supply one or the other, ' +
+                'but not both'
+            )
+
+        if dims is None:
+            maskdims = getattr(where, 'dimensions', dims)
+        else:
+            maskdims = dims
+
+        coordkeys = self.getCoords()
         outf = self.copy(variables=False)
         nitems = len(self.variables.keys())
         if verbose == 1:
@@ -949,16 +1103,20 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             newvar = outf.copyVariable(
                 vv, key=vk, fill_value=fill_value, withdata=False
             )
+            if vk in coordkeys and not coords:
+                newvar[...] = vv[...]
+                continue
+
             vals = vv[...]
-            if mask is not None:
+            if where is not None:
                 if (
                     maskdims == vv.dimensions or
                     (
                         maskdims is None and
-                        mask.shape == vals.shape
+                        where.shape == vals.shape
                     )
                 ):
-                    vals = np.ma.masked_where(mask, vals)
+                    vals = np.ma.masked_where(where, vals)
                     # np.ma.putmask(newvar[...], mask==False, vv[...])
                     # vals = newvar[...]
                 # else:
@@ -967,8 +1125,23 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             if greater is not None:
                 vals = np.ma.masked_greater(vals, greater)
 
+            if greater_equal is not None:
+                vals = np.ma.masked_greater_equal(vals, greater_equal)
+
             if less is not None:
                 vals = np.ma.masked_less(vals, less)
+
+            if less_equal is not None:
+                vals = np.ma.masked_less_equal(vals, less_equal)
+
+            if values is not None:
+                vals = np.ma.masked_values(vals, values)
+
+            if equal is not None:
+                vals = np.ma.masked_equal(vals, equal)
+
+            if invalid:
+                vals = np.ma.masked_invalid(vals)
 
             if verbose > 1:
                 t1 = time()
@@ -1020,6 +1193,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
 
         if map_kw is None:
             map_kw = {}
+        else:
+            map_kw = map_kw.copy()
 
         apply2dim = {}
         var = self.variables[varkey]
@@ -1477,7 +1652,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                     dt = dts.mean()
                     if (dt != dts).all():
                         warn('Time bounds are approximate')
-                    time = np.append(time - dt/2, time[-1] + dt/2)
+                    time = np.append(time - dt / 2, time[-1] + dt / 2)
             if 'since' in timeunits:
                 unit, base = timeunits.split(' since ')
                 # Get the reference date
@@ -1581,9 +1756,13 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                 np.array([timedelta(hours=i)
                           for i in self.variables['tau0'][:]])
             if bounds and 'tau1' in self.variables.keys():
-                oute = datetime(1985, 1, 1, 0, tzinfo=utc) + \
-                       np.array([timedelta(hours=i)
-                                 for i in self.variables['tau1'][:]])
+                oute = (
+                    datetime(1985, 1, 1, 0, tzinfo=utc) +
+                    np.array([
+                        timedelta(hours=i)
+                        for i in self.variables['tau1'][:]
+                    ])
+                )
                 out = np.append(out, oute[-1])
         else:
             raise ValueError('cannot understand time for file')

@@ -170,7 +170,7 @@ class bcon_profile(ioapi_base):
             varkey = w[0].strip().decode()
             tmpvals = np.array(
                 [(lambda x: tuple(x)[1:])(_v) for _v in[s, e, n, w]]
-                ).T.astype('f')
+            ).T.astype('f')
             self.createVariable(
                 varkey, 'f', ('LAY', 'south_east_north_west'),
                 units=_getunit(varkey),

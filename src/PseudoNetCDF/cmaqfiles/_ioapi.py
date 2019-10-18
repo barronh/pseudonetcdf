@@ -719,8 +719,8 @@ class ioapi_base(PseudoNetCDFFile):
                     bmap.drawstates(ax=ax)
                 if counties:
                     bmap.drawcounties(ax=ax)
-                x = np.arange(self.NCOLS+1) * self.XCELL
-                y = np.arange(self.NROWS+1) * self.YCELL
+                x = np.arange(self.NCOLS + 1) * self.XCELL
+                y = np.arange(self.NROWS + 1) * self.YCELL
                 if self.GDTYP == 1:
                     x += self.XORIG
                     y += self.YORIG
@@ -906,10 +906,10 @@ def ncf2ioapi(
     ofile.createDimension('VAR', nvar)
 
     if fileprops['FTYPE'] == 2:
-        ofile.createDimension('PERIM',  nthk * (4 * nthk + 2 * (nx + ny)))
+        ofile.createDimension('PERIM', nthk * (4 * nthk + 2 * (nx + ny)))
     elif fileprops['FTYPE'] == 1:
-        ofile.createDimension('ROW',  ny)
-        ofile.createDimension('COL',  nx)
+        ofile.createDimension('ROW', ny)
+        ofile.createDimension('COL', nx)
     else:
         raise ValueError('FTYPE is unknown; must be 1 or 2')
 

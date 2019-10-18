@@ -405,7 +405,7 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         tncf = self.testncf
         o3 = tncf.variables['O3'][:].copy()
         tmpf = tncf + tncf
-        np_all_close(tmpf.variables['O3'][:], 2*o3)
+        np_all_close(tmpf.variables['O3'][:], 2 * o3)
 
     def testSub(self):
         tncf = self.testncf
@@ -418,7 +418,7 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         o3 = tncf.variables['O3'][:].copy()
         np.seterr(invalid='ignore')
         tmpf = tncf / tncf
-        np_all_close(tmpf.variables['O3'][:], o3/o3)
+        np_all_close(tmpf.variables['O3'][:], o3 / o3)
         np.seterr(invalid='warn')
 
     def testMul(self):

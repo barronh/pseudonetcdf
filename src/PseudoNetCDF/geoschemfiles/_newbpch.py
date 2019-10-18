@@ -395,7 +395,7 @@ class TestMemmaps(unittest.TestCase):
         orig = open(self.bpchpath, 'rb').read()
         new = open(self.bpchpath + '.check', 'rb').read()
         assert(orig == new)
-        os.remove(self.bpchpath+'.check')
+        os.remove(self.bpchpath + '.check')
 
     def testBPCH2(self):
         bpchfile = bpch2(self.bpchpath)

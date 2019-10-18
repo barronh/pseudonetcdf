@@ -120,7 +120,7 @@ class griddesc(ioapi_base):
             raise ValueError(
                 'Only supports FTYPE 1 or 2; received ' +
                 str(self.FTYPE)
-                )
+            )
         self.createVariable(
             'DUMMY', 'f', dims,
             units='none',

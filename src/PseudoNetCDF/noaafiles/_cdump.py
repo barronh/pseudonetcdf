@@ -53,16 +53,14 @@ class arlconcdump(PseudoNetCDFFile):
                                           'longitude', 'longitude_bounds',
                                           'time', 'time_bounds',
                                           'layer'])\
-                        .sliceDimensions(
-                                         latitude=self.variables['J'],
+                        .sliceDimensions(latitude=self.variables['J'],
                                          longitude=self.variables['I'],
                                          time=self.variables['T'],
                                          layer=self.variables['K'])\
-                        .renameDimensions(
-                                         latitude='points',
-                                         longitude='points',
-                                         time='points',
-                                         layer='points')
+                        .renameDimensions(latitude='points',
+                                          longitude='points',
+                                          time='points',
+                                          layer='points')
             for key in list(tempf.variables):
                 self.variables[key] = tempf.variables[key]
 
@@ -239,8 +237,7 @@ class arlconcdump(PseudoNetCDFFile):
                         lays.append(myl)
                         myc = tmp['f3'][0]
                         tmp = np.fromfile(infile,
-                                          np.dtype([
-                                                    ('data', _ijcdt, myc),
+                                          np.dtype([('data', _ijcdt, myc),
                                                     ('f1', '>i', 1)]), count=1)
                         tdata = tmp['data'][0]
                         Jidx = tdata['J'] - 1
