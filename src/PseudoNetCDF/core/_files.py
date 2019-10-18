@@ -2130,6 +2130,10 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         """
         pass
 
+    def dump(self, *args, **kwds):
+        from PseudoNetCDF.pncdump import pncdump
+        pncdump(self, *args, **kwds)
+
     def save(self, *args, **kwds):
         """
         Provides access to pncwrite for self
