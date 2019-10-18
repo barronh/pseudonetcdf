@@ -134,7 +134,7 @@ class gcnc_base(PseudoNetCDFFile):
         the inputs.
         """
         etai = (
-            self.variables['P0'][...] * self.variables['hybm'][...] +
+            self.variables['P0'][...] * self.variables['hybi'][...] +
             self.variables['hyai'][...]
         ) * 100.
         # grab input sigma coordinates
