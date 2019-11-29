@@ -61,7 +61,7 @@ class cloud_rain(PseudoNetCDFFile):
         {'TSTEP': 25, 'LAY': 28, 'ROW': 65, 'COL': 83}
     """
 
-    def __init__(self, rf, rows=None, cols=None, var_keys=None):
+    def __init__(self, rf, rows=None, cols=None):
         f = open(rf, 'rb')
         f.seek(0, 2)
         flen = f.tell()
