@@ -1,6 +1,7 @@
 from PseudoNetCDF import PseudoNetCDFFile
 import numpy as np
 import matplotlib.pyplot as plt
+import unittest
 
 
 class ceilometerl2(PseudoNetCDFFile):
@@ -10,11 +11,13 @@ class ceilometerl2(PseudoNetCDFFile):
     2 raw output
     """
 
-    def __init__(self, path):
+    def __init__(self, path, dz=10.):
         """
         Parameters
         ----------
         path : path to output file
+        dz : int or float
+            level depth in meters
         """
         try:
             import pandas as pd
@@ -27,13 +30,14 @@ class ceilometerl2(PseudoNetCDFFile):
             parse_dates=['CREATEDATE']).rename(columns=lambda x: x.strip())
         self._data['BS_PROFILE'] = self._data['BS_PROFILE'].str.strip()
         nchar = len(self._data['BS_PROFILE'][0])
-        nlays = nchar / 5
+        nlays = int(nchar // 5)
+        top = nlays * dz
         data = np.array(
             ''.join(self._data['BS_PROFILE']), dtype='c').reshape(-1, nlays, 5)
         BS_PROFILE = (np.vectorize(int)(data, 16) *
                       16**np.arange(5)[::-1]).sum(2)
 
-        self.createDimension('time', data.shape[0])
+        self.createDimension('time', data.shape[0]).setunlimited(True)
         self.createDimension('altitude_tops', nlays)
         self.createDimension('altitude_edges', nlays + 1)
         var = self.createVariable('time', 'd', ('time',))
@@ -48,15 +52,15 @@ class ceilometerl2(PseudoNetCDFFile):
         altitude_tops.description = ("Profile bin altitude, meters above " +
                                      "ground level")
         altitude_tops.units = "meters"
-        altitude_tops.valid_range = np.array([0, 4500])
-        altitude_tops[:] = np.arange(10, 4510, 10)
+        altitude_tops.valid_range = np.array([0., top])
+        altitude_tops[:] = np.arange(dz, top + dz, dz)
         altitude_edges = self.createVariable(
             'altitude_edges', 'd', ('altitude_edges',))
         altitude_edges.units = "meters"
-        altitude_edges.valid_range = np.array([0, 4500])
+        altitude_edges.valid_range = np.array([0, top])
         altitude_edges.description = ("Profile bin altitude, meters above " +
                                       "ground level")
-        altitude_edges[:] = np.arange(0, 4510, 10)
+        altitude_edges[:] = np.arange(0, top + dz, dz)
         bscatprof = self.createVariable('blview_backscatter_profile', 'd',
                                         ('time', 'altitude_tops'),
                                         fill_value=-999)
@@ -137,6 +141,22 @@ class ceilometerl2(PseudoNetCDFFile):
             time_edges[:], altedges[:], pr[:].T, **plot_kw)
         plt.colorbar(patches, cax=cax, label=pr.units.strip())
         return fig
+
+
+class test_vaisala(unittest.TestCase):
+    def setUp(self):
+        from PseudoNetCDF.testcase import ceilometerfiles_paths
+        self.vaisalapath = ceilometerfiles_paths['vaisala']
+
+    def testVAISALA2NCF(self):
+        import os
+        vfile = ceilometerl2(self.vaisalapath)
+        outpath = self.vaisalapath + '.nc'
+        ncfile = vfile.save(outpath)
+        for k, ncv in ncfile.variables.items():
+            vpv = vfile.variables[k]
+            np.testing.assert_allclose(ncv[...], vpv[...])
+        os.remove(outpath)
 
 
 if __name__ == '__main__':
