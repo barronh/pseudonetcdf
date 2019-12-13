@@ -86,11 +86,19 @@ def createconsole(ifiles, options):
     """
     console = PNCConsole()
     exec("from pylab import *", None, console.locals)
+    exec("import pylab as pl", None, console.locals)
+    exec("import matplotlib.pyplot as plt", None, console.locals)
+    exec("import PseudoNetCDF as pnc", None, console.locals)
     exec("from PseudoNetCDF.pncview import *; interactive(True)",
          None, console.locals)
     exec("from PseudoNetCDF.coordutil import *; interactive(True)",
          None, console.locals)
-    ipaths = [_clean(ipath) for ipath in options.ipath]
+    if hasattr(options, 'ipath'):
+        ipath = [ipath for ipath in options.ipath]
+        ipaths = [_clean(ipath) for ipath in options.ipath]
+    else:
+        ipath = []
+        ipaths = []
     spaths = [ipath[:6] for ipath in ipaths]
     spathsoc = dict([(k, 0) for k in spaths])
     spathso = []
@@ -99,7 +107,7 @@ def createconsole(ifiles, options):
         spathso.append(spath + '_' + str(spathsoc[spath]))
         spathsoc[spath] += 1
         npathso.append('ifile%d' % filei)
-    for rpath, npath, spath in zip(options.ipath, npathso, spathso):
+    for rpath, npath, spath in zip(ipath, npathso, spathso):
         print('# ' + spath + ' = ' + npath + ' = ' + rpath)
     epaths_files = enumerate(zip(ipaths, npathso, spathso, ifiles))
     for filei, (ipath, npath, spath, ifile) in epaths_files:
@@ -115,6 +123,7 @@ def createconsole(ifiles, options):
         console.locals.update(
             dict([('%s_%d' % (k, filei), v)
                   for k, v in ifile.variables.items()]))
+    console.locals['ifiles'] = ifiles
     return console
 
 

@@ -496,6 +496,7 @@ def stat_timeseries(ifile0, ifile1, variables=['O3'], counties=False):
 
 def pnceval(args):
     from warnings import warn
+    from collections import OrderedDict
     from PseudoNetCDF.core._functions import pncbfunc
     if args.variables is None:
         args.variables = set(
@@ -530,9 +531,7 @@ def pnceval(args):
             warn(str(e))
 
     np.seterr(divide='ignore', invalid='ignore')
-    if args.csv:
-        from collections import OrderedDict
-        output = OrderedDict()
+    output = OrderedDict()
     for k in args.funcs:
         console.locals[k] = func = eval(k)
         output[k] = OrderedDict()

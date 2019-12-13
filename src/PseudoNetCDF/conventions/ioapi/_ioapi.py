@@ -170,7 +170,7 @@ def get_ioapi_sphere():
 
 
 _gdnames = {1: "latitude_longitude", 2: "lambert_conformal_conic",
-            7: "equatorial_mercator", 6: "polar_stereographic"}
+            7: "mercator", 6: "polar_stereographic"}
 
 
 def getmapdef(ifileo, add=True):
@@ -182,7 +182,8 @@ def getmapdef(ifileo, add=True):
         mapdef = PseudoNetCDFVariable(ifileo, gridname, 'i', ())
     mapdef.grid_mapping_name = gridname
     if mapdef.grid_mapping_name == "latitude_longitude":
-        pass
+        mapdef.latitude_of_projection_origin = ifileo.YORIG
+        mapdef.longitude_of_central_meridian = ifileo.XORIG
     elif mapdef.grid_mapping_name == "polar_stereographic":
         mapdef.latitude_of_projection_origin = ifileo.P_ALP * 90
         mapdef.straight_vertical_longitude_from_pole = ifileo.P_GAM

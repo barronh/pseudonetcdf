@@ -92,7 +92,7 @@ def _parse_ref_date(base):
             try:
                 rdate = datetime.strptime(base + suffix, fmt)
                 return rdate
-            except Exception as e:
+            except Exception:
                 pass
     else:
         # try using netcdftime
@@ -107,6 +107,12 @@ def _parse_ref_date(base):
 
 
 def gettimes(ifile):
+    """
+    Converts relative time to datetime objects
+     - Finds time variable (e.g., time or TFLAG, tau0)
+     - Parses reference date
+     - Converts
+    """
     from datetime import datetime, timedelta
     if 'time' in ifile.variables.keys():
         time = ifile.variables['time']
@@ -521,7 +527,7 @@ def getproj4_from_cf_var(gridmapping, withgrid=False):
     gname = getattr(gridmapping, 'grid_mapping_name')
     pv4s = dict(lambert_conformal_conic='lcc',
                 rotated_latitude_longitude='ob_tran',
-                latitude_longitude='lonlat',
+                latitude_longitude='eqc',
                 transverse_mercator='tmerc',
                 equatorial_mercator='merc',
                 mercator='merc',
@@ -602,7 +608,25 @@ def getproj4(ifile, withgrid=False):
         gridmapping = getmapdef(ifile, add=False)
         mapstr = getproj4_from_cf_var(gridmapping, withgrid=withgrid)
         if withgrid:
-            mapstr += ' +to_meter=%s' % ifile.XCELL
+            dx = min(ifile.XCELL, ifile.YCELL)
+            if ifile.XCELL != ifile.YCELL:
+                warn('Grid is not regular: using minimum {}'.format(dx))
+            if gridmapping.grid_mapping_name == 'latitude_longitude':
+                er = min(
+                    gridmapping.semi_minor_axis,
+                    gridmapping.semi_major_axis
+                )
+                if (
+                    gridmapping.semi_minor_axis !=
+                    gridmapping.semi_major_axis
+                ):
+                    warn(
+                        'Earth not a perfect sphere: using minimum ' +
+                        '{}'.format(er)
+                    )
+                mapstr += ' +to_meter=%s' % (np.radians(1) * er * dx)
+            else:
+                mapstr += ' +to_meter=%s' % ifile.XCELL
     elif (
         getattr(ifile, 'Conventions',
                 getattr(ifile, 'CONVENTIONS', ''))[:2].upper() == 'CF'

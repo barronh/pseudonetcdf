@@ -145,7 +145,7 @@ class _HelpFormat(Action):
                 print('* Any keyword with a non "<VAL>" default ' +
                       'can be omitted.')
             print('')
-        except Exception as e:
+        except Exception:
             print('** Short help not available for ' + file_format)
             print('')
 
@@ -589,7 +589,7 @@ args : args as parsed
         args = parser.parse_args(args=args)
     except Exception as e:
         raise e
-    except BaseException as be:
+    except BaseException:
         return [], args
 
     args.inputargs = inputargs or sys.argv
@@ -893,7 +893,7 @@ def getfiles(ipaths, args):
             try:
                 # Most common usecase; open like pncopen
                 f = pncopen(ipath, format=file_format, **format_options)
-            except Exception as e:
+            except Exception:
                 try:
                     allreaders = getreaderdict()
                     if file_format in allreaders:
