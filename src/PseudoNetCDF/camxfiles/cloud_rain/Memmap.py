@@ -67,14 +67,14 @@ class cloud_rain(PseudoNetCDFFile):
         flen = f.tell()
         offset = struct.unpack('>i', open(rf, 'rb').read(4))[0] + 8
         self.__memmap = memmap(rf, dtype='>f', mode='r', offset=offset)
-        line1fmt = {35: '>i15ciiii', 40: '>i20ciiii'}[offset]
+        cldhdrlen = offset - 20
+        line1fmt = '>i%dciiii' % cldhdrlen
         ncols, nrows, nlays = struct.unpack(line1fmt,
                                             open(rf, 'rb').read(offset))[-4:-1]
         self.createDimension('COL', ncols)
         self.createDimension('ROW', nrows)
         self.createDimension('LAY', nlays)
-        mydt = {35: '>i4,S15,>i4,>i4,>i4,>i4,>i4,>f4,>i4',
-                40: '>i4,S20,>i4,>i4,>i4,>i4,>i4,>f4,>i4'}[offset]
+        mydt = '>i4,S%d,>i4,>i4,>i4,>i4,>i4,>f4,>i4' % cldhdrlen
         header = np.fromfile(rf, dtype=mydt, count=1)[0]
         self.FILEDESC = ''.join(header[1].decode())
         self.STIME, self.SDATE = header.tolist()[-2:]
@@ -87,12 +87,30 @@ class cloud_rain(PseudoNetCDFFile):
                 ncols, nrows, nlays, cols, rows))
 
         self.createDimension('DATE-TIME', 2)
-        ver_keys = {35: ('<4.3', ['CLOUD', 'PRECIP', 'COD', 'TFLAG']),
-                    40: ('4.3', ['CLOUD', 'RAIN', 'SNOW',
-                                 'GRAUPEL', 'COD', 'TFLAG'])}[offset]
-        self.VERSION, varkeys = ver_keys
-        timesize = ((len(varkeys) - 1) * nlays * (nrows * ncols + 2) * 4 + 16)
-        self.createDimension('TSTEP', (flen - offset) // timesize)
+
+        datasize = (flen - offset)
+        # Try 5 first (contemporary)
+        # Try 3 second (old)
+        # end on 5 as a failsafe
+        for nvars in [5, 3, 5]:
+            timesize = (nvars * nlays * (nrows * ncols + 2) * 4 + 16)
+            if (datasize % timesize) == 0:
+                break
+        else:
+            warn(
+                'File appears incomplete using 3 (v4.2) or 5 ' +
+                'variables (>=v4.3); expected to fail'
+            )
+
+        if nvars < 5:
+            self.VERSION = '<4.3'
+            varkeys = ['CLOUD', 'PRECIP', 'COD', 'TFLAG']
+        else:
+            self.VERSION = '>=4.3'
+            varkeys = ['CLOUD', 'RAIN', 'SNOW', 'GRAUPEL', 'COD', 'TFLAG']
+
+        ntimes = datasize // timesize
+        self.createDimension('TSTEP', ntimes)
         self.createDimension('VAR', len(varkeys) - 1)
 
         self.NVARS = len(self.dimensions['VAR'])
