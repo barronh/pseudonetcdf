@@ -273,7 +273,7 @@ def writearlpackedbit(infile, path):
     props['NY'] = lvar.shape[2]
     props['NX'] = lvar.shape[3]
     datamap = maparlpackedbit(
-        path, mode='write', shape=(lvar.shape[0],), **props)
+        path, mode='write', shape=(lvar.shape[0],), props=props)
 
     theads = datamap['timehead']
     # for key in thdtype.names:
@@ -365,7 +365,7 @@ def writearlpackedbit(infile, path):
     datamap.flush()
 
 
-def maparlpackedbit(path, mode='r', shape=None, **props):
+def maparlpackedbit(path, mode='r', shape=None, props=None):
     """
     pg 4-9 of http://niwc.noaa.inel.gov/EOCFSV/hysplit/hysplituserguide.pdf
 
@@ -392,8 +392,11 @@ def maparlpackedbit(path, mode='r', shape=None, **props):
                 for laykey in laykeys:
                     1 rec of length recl (vhdtype + nx*ny bytes)
     """
+    if props is None:
+        props = {}
+
     if props == {}:
-        props = inqarlpackedbit(path)
+        props.update(inqarlpackedbit(path))
     else:
         srflen = 6 + 2 + (4 + 3 + 1) * len(props['sfckeys'])
         laylen = (6 + 2 + (4 + 3 + 1) *
@@ -636,7 +639,9 @@ class arlpackedbit(PseudoNetCDFFile):
 #        tflag = []
 
         f.seek(0, 0)
-        datamap = self._datamap = maparlpackedbit(path, shape=shape)
+        props = {}
+        self._datamap = maparlpackedbit(path, shape=shape, props=props)
+        datamap = self._datamap
         t0hdr = datamap['timehead'][0]
         for key in thdtype.names:
             setattr(self, key, t0hdr[key])
@@ -658,8 +663,8 @@ class arlpackedbit(PseudoNetCDFFile):
         # minus 1 excludes surface
         self.createDimension('z', int(self.NZ) - 1)
         gridx = float(t0hdr['GRIDX']) * 1000.
-        nx = int(self.NX)
-        ny = int(self.NY)
+        nx = props['NX']
+        ny = props['NY']
         if gridx != 0:
             self.XSIZE = self.YSIZE = gridx
             self.createDimension('x', nx)
