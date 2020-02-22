@@ -6,6 +6,7 @@ from PseudoNetCDF.coordutil import gettimes, getproj4_from_cf_var
 from PseudoNetCDF._getwriter import registerwriter
 from datetime import datetime
 from collections import OrderedDict
+from warnings import warn
 dtype = np.dtype
 
 
@@ -732,14 +733,15 @@ class arlpackedbit(PseudoNetCDFFile):
             0: 'equatorial_mercator',
             90: 'polar_stereographic',
         }.get(atanlat[0], 'lambert_conformal_conic')
-        if pname == 'lambert_conformal_conic': 
-            crs.standard_parallel = tanlat
+        if pname == 'lambert_conformal_conic':
+            crs.standard_parallel = np.array([tanlat, tanlat])
             crs.longitude_of_central_meridian = reflon
             crs.latitude_of_projection_origin = reflat
         elif pname == 'polar_stereographic':
-            crs.straight_vertical_longitude_from_pole=reflon
-            crs.standard_parallel=reflat
-            crs.latitude_of_projection_origin=tanlat
+            warn('Polar needs review')
+            crs.straight_vertical_longitude_from_pole = reflon
+            crs.standard_parallel = reflat
+            crs.latitude_of_projection_origin = tanlat
         else:
             raise KeyError('Not yet implemented equatorial mercator')
 
