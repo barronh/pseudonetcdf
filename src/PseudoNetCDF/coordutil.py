@@ -543,10 +543,13 @@ def getproj4_from_cf_var(gridmapping, withgrid=False):
                 mapstr_bits['o_proj'] = 'eqc'
         elif pk == 'standard_parallel':
             if pv4name == 'stere':
-                mapstr_bits['lat_ts'] = pv[0]
+                if np.isscalar(pv):
+                    mapstr_bits['lat_ts'] = float(pv)
+                else:
+                    mapstr_bits['lat_ts'] = pv[0]
             else:
                 mapstr_bits['lat_1'] = pv[0]
-            if len(pv) > 1:
+            if not np.isscalar(pv) and len(pv) > 1:
                 mapstr_bits['lat_2'] = pv[1]
         elif pk == 'longitude_of_central_meridian':
             mapstr_bits['lon_0'] = pv
