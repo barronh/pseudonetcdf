@@ -2,7 +2,7 @@ from __future__ import print_function
 import numpy as np
 from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariable
 from PseudoNetCDF import PseudoNetCDFVariables
-from PseudoNetCDF.coordutil import gettimes
+from PseudoNetCDF.coordutil import gettimes, getproj4_from_cf_var
 from PseudoNetCDF._getwriter import registerwriter
 from datetime import datetime
 from collections import OrderedDict
@@ -611,7 +611,7 @@ class arlpackedbit(PseudoNetCDFFile):
         check = testchunk[0]['INDX'] == b'INDX'
         return check
 
-    def __init__(self, path, shape=None):
+    def __init__(self, path, shape=None, cache=False):
         """
         Parameters
         ----------
@@ -626,6 +626,7 @@ class arlpackedbit(PseudoNetCDFFile):
         """
         self._path = path
         self._f = f = open(path, 'r')
+        self._cache = cache
         # f.seek(0, 2)
         # fsize = f.tell()
         f.seek(0, 0)
@@ -668,6 +669,7 @@ class arlpackedbit(PseudoNetCDFFile):
             x[:] = np.arange(x[:].size) * gridx
             y = self.createVariable('y', 'f', ('y',))
             y[:] = np.arange(y[:].size) * gridx
+            self._addcrs()
         else:
             self.createDimension('x', nx)
             self.createDimension('y', ny)
@@ -709,6 +711,38 @@ class arlpackedbit(PseudoNetCDFFile):
                   3: 'terrain sigma', 4: 'hybrid sigma'}
         z.units = _units.get(int(self.VSYS2), 'unknown')
 
+    def _addcrs(self):
+        x = self.variables['x']
+        y = self.variables['y']
+        gridx = np.diff(x[:])[0]
+        nx = x.size
+        ny = y.size
+        crs = self.createVariable('crs', 'i', ())
+        s = self
+        tanlat = np.array(s.TANLAT, dtype='f', ndmin=1)
+        reflon = np.float64(s.REFLON)
+        reflat = np.float64(s.REFLAT)
+        atanlat = abs(tanlat)
+        pname = crs.grid_mapping_name = {
+            0: 'equatorial_mercator',
+            90: 'polar_stereographic',
+        }.get(atanlat[0], 'lambert_conformal_conic')
+        if pname == 'lambert_conformal_conic': 
+            crs.standard_parallel = tanlat
+            crs.longitude_of_central_meridian = reflon
+            crs.latitude_of_projection_origin = reflat
+        elif pname == 'polar_stereographic':
+            crs.straight_vertical_longitude_from_pole=reflon
+            crs.standard_parallel=reflat
+            crs.latitude_of_projection_origin=tanlat
+        else:
+            raise KeyError('Not yet implemented equatorial mercator')
+
+        crs.earth_radius = 6370000
+        crs.false_easting = gridx * (nx - 1) / 2
+        crs.false_northing = gridx * (ny - 1) / 2
+        self.Conventions = 'CF-1.6'
+
     def _getvar(self, varkey):
         datamap = self._datamap
         stdname, stdunit = stdprops.get(varkey, (varkey, 'unknown'))
@@ -723,9 +757,10 @@ class arlpackedbit(PseudoNetCDFFile):
             # if varkey == 'MXLR':
             #  CVAR, PREC, NEXP, VAR1, KSUM = pack2d(vdata[21], verbose = True)
 
-            return PseudoNetCDFVariable(self, varkey, 'f', ('time', 'y', 'x'),
-                                        values=vdata, units=stdunit,
-                                        standard_name=stdname, **props)
+            out = PseudoNetCDFVariable(
+                self, varkey, 'f', ('time', 'y', 'x'),
+                values=vdata, units=stdunit, standard_name=stdname, **props
+            )
         elif varkey in self._layvarkeys:
             laykeys = datamap['layers'].dtype.names
             mylaykeys = [laykey for laykey in laykeys
@@ -741,10 +776,36 @@ class arlpackedbit(PseudoNetCDFFile):
             props['LEVEL_START'] = vhead['LEVEL'][0, 0]
             props['LEVEL_END'] = vhead['LEVEL'][-1, -1]
             vdata = unpack(bytes, v11, EXP)
-            return PseudoNetCDFVariable(self, varkey, 'f',
-                                        ('time', 'z', 'y', 'x'),
-                                        values=vdata, units=stdunit,
-                                        standard_name=stdname, **props)
+            out = PseudoNetCDFVariable(
+                self, varkey, 'f', ('time', 'z', 'y', 'x'),
+                values=vdata, units=stdunit,
+                standard_name=stdname, **props
+            )
+        if self._cache:
+            self.variables[varkey] = out
+        return out
+
+    def getproj(self, withgrid=False, projformat='pyproj'):
+        gridmapping = self.variables['crs']
+        proj4str = getproj4_from_cf_var(gridmapping, withgrid=withgrid)
+        preserve_units = withgrid
+        if projformat == 'proj4':
+            return proj4str
+        elif projformat == 'pyproj':
+            import pyproj
+            # pyproj adds +units=m, which is not right for latlon/lonlat
+            if '+proj=lonlat' in proj4str or '+proj=latlon' in proj4str:
+                preserve_units = True
+            return pyproj.Proj(proj4str, preserve_units=preserve_units)
+        elif projformat == 'wkt':
+            import osr
+            srs = osr.SpatialReference()
+            # Imports WKT to Spatial Reference Object
+            srs.ImportFromProj4(proj4str)
+            srs.ExportToWkt()  # converts the WKT to an ESRI-compatible format
+            return srs.ExportToWkt()
+        else:
+            raise ValueError('projformat must be pyproj, proj4 or wkt')
 
 
 registerwriter('noaafiles.arlpackedbit', writearlpackedbit)
