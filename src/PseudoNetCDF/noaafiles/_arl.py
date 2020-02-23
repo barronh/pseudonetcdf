@@ -740,16 +740,39 @@ class arlpackedbit(PseudoNetCDFFile):
             crs.longitude_of_central_meridian = reflon
             crs.latitude_of_projection_origin = reflat
         elif pname == 'polar_stereographic':
-            warn('Polar needs review')
             crs.straight_vertical_longitude_from_pole = reflon
             crs.standard_parallel = reflat
             crs.latitude_of_projection_origin = tanlat
         else:
             raise KeyError('Not yet implemented equatorial mercator')
 
-        crs.earth_radius = 6371229
-        crs.false_easting = gridx * (nx - 1) / 2
-        crs.false_northing = gridy * (ny - 1) / 2
+        crs.earth_radius = 6370000. # 6371229.
+        scellx = (float(self.SYNCHX) - 1) * gridx # 1-based
+        scelly = (float(self.SYNCHY) - 1) * gridy # 1-based
+        slon, slat = float(self.SYNCHLON), float(self.SYNCHLAT)
+        if slon > 180:
+            slon = slon % 180 - 180
+
+        halfwidth = gridx * (nx - 1) / 2
+        halfheight = gridy * (ny - 1) / 2
+        crs.false_easting = halfwidth
+        crs.false_northing = halfheight
+        llcrnrlon, llcrnrlat = self.xy2ll(scellx, scelly)
+        
+        x_within_precision = np.round(slon / llcrnrlon, 3) == 1
+        y_within_precision = np.round(slat / llcrnrlat, 4) == 1
+        if not (x_within_precision and y_within_precision):
+            warn(
+                'Grid not centered; using SYNCHLAT/SYNCHLON ' +
+                'with limited to 6 significant digits ' +
+                'to calculate false easting/northing'
+            )
+            crs.false_easting = 0.
+            crs.false_northing = 0.
+            llcrnrx, llcrnry = self.ll2xy(slon, slat)
+            crs.false_easting = -llcrnrx + scellx
+            crs.false_northing = -llcrnry + scelly
+
         self.Conventions = 'CF-1.6'
 
     def _getvar(self, varkey):
@@ -799,16 +822,20 @@ class arlpackedbit(PseudoNetCDFFile):
             return PseudoNetCDFFile.getMap(self, maptype=maptype, **kwds)
 
         from PseudoNetCDF.coordutil import basemap_from_proj4
-        edges = dict(
-            llcrnrx=-self.variables['crs'].false_easting,
-            urcrnrx=self.variables['crs'].false_easting,
-            llcrnry=-self.variables['crs'].false_northing,
-            urcrnry=self.variables['crs'].false_northing
-        )
         kwds = kwds.copy()
-        kwds.update(edges)
-        myproj = self.getproj(withgrid=True, projformat='proj4')
-        return basemap_from_proj4(myproj, **kwds)
+        myproj = self.getproj(withgrid=True, projformat='pyproj')
+        myprojstr = self.getproj(withgrid=True, projformat='proj4')
+        llcrnrlon, llcrnrlat = myproj(
+            self.variables['x'][0], self.variables['y'][0], inverse=True
+        )
+        urcrnrlon, urcrnrlat = myproj(
+            self.variables['x'][-1], self.variables['y'][-1], inverse=True
+        )
+        kwds['llcrnrlon'] = llcrnrlon
+        kwds['llcrnrlat'] = llcrnrlat
+        kwds['urcrnrlon'] = urcrnrlon
+        kwds['urcrnrlat'] = urcrnrlat
+        return basemap_from_proj4(myprojstr, **kwds)
 
     def plot(self, *args, **kwds):
         kwds.setdefault('plottype', 'x-y')
