@@ -2,7 +2,7 @@ from __future__ import print_function
 import numpy as np
 from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariable
 from PseudoNetCDF import PseudoNetCDFVariables
-from PseudoNetCDF.coordutil import gettimes, getproj4_from_cf_var
+from PseudoNetCDF.coordutil import gettimes
 from PseudoNetCDF._getwriter import registerwriter
 from datetime import datetime
 from collections import OrderedDict
@@ -716,23 +716,25 @@ class arlpackedbit(PseudoNetCDFFile):
         _units = {1: 'pressure sigma', 2: 'pressure absolute',
                   3: 'terrain sigma', 4: 'hybrid sigma'}
         z.units = _units.get(int(self.VSYS2), 'unknown')
+        self.setCoords(['time', 'z', 'y', 'x'])
 
     def _addcrs(self):
         x = self.variables['x']
         y = self.variables['y']
         gridx = np.diff(x[:])[0]
+        gridy = np.diff(y[:])[0]
         nx = x.size
         ny = y.size
         crs = self.createVariable('crs', 'i', ())
         s = self
-        tanlat = np.array(s.TANLAT, dtype='f', ndmin=1)
+        tanlat = np.float64(s.TANLAT)
         reflon = np.float64(s.REFLON)
         reflat = np.float64(s.REFLAT)
-        atanlat = abs(tanlat)
+        atanlat = np.abs(tanlat)
         pname = crs.grid_mapping_name = {
             0: 'equatorial_mercator',
             90: 'polar_stereographic',
-        }.get(atanlat[0], 'lambert_conformal_conic')
+        }.get(atanlat, 'lambert_conformal_conic')
         if pname == 'lambert_conformal_conic':
             crs.standard_parallel = np.array([tanlat, tanlat])
             crs.longitude_of_central_meridian = reflon
@@ -745,9 +747,9 @@ class arlpackedbit(PseudoNetCDFFile):
         else:
             raise KeyError('Not yet implemented equatorial mercator')
 
-        crs.earth_radius = 6370000
+        crs.earth_radius = 6371229
         crs.false_easting = gridx * (nx - 1) / 2
-        crs.false_northing = gridx * (ny - 1) / 2
+        crs.false_northing = gridy * (ny - 1) / 2
         self.Conventions = 'CF-1.6'
 
     def _getvar(self, varkey):
@@ -792,7 +794,50 @@ class arlpackedbit(PseudoNetCDFFile):
             self.variables[varkey] = out
         return out
 
+    def getMap(self, maptype='basemap_auto', **kwds):
+        if 'latitude_bounds' in self.variables:
+            return PseudoNetCDFFile.getMap(self, maptype=maptype, **kwds)
+
+        from PseudoNetCDF.coordutil import basemap_from_proj4
+        edges = dict(
+            llcrnrx=-self.variables['crs'].false_easting,
+            urcrnrx=self.variables['crs'].false_easting,
+            llcrnry=-self.variables['crs'].false_northing,
+            urcrnry=self.variables['crs'].false_northing
+        )
+        kwds = kwds.copy()
+        kwds.update(edges)
+        myproj = self.getproj(withgrid=True, projformat='proj4')
+        return basemap_from_proj4(myproj, **kwds)
+
+    def plot(self, *args, **kwds):
+        kwds.setdefault('plottype', 'x-y')
+        ax = PseudoNetCDFFile.plot(self, *args, **kwds)
+        if kwds['plottype'] == 'x-y':
+            map_kw = kwds.get('map_kw', None)
+            if map_kw is None:
+                map_kw = {}
+            try:
+                map_kw = map_kw.copy()
+                coastlines = map_kw.pop('coastlines', True)
+                countries = map_kw.pop('countries', True)
+                states = map_kw.pop('states', False)
+                counties = map_kw.pop('counties', False)
+                bmap = self.getMap(**map_kw)
+                if coastlines:
+                    bmap.drawcoastlines(ax=ax)
+                if countries:
+                    bmap.drawcountries(ax=ax)
+                if states:
+                    bmap.drawstates(ax=ax)
+                if counties:
+                    bmap.drawcounties(ax=ax)
+            except Exception:
+                pass
+        return ax
+
     def getproj(self, withgrid=False, projformat='pyproj'):
+        from PseudoNetCDF.coordutil import getproj4_from_cf_var
         gridmapping = self.variables['crs']
         proj4str = getproj4_from_cf_var(gridmapping, withgrid=withgrid)
         preserve_units = withgrid
