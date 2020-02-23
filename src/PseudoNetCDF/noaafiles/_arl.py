@@ -746,9 +746,9 @@ class arlpackedbit(PseudoNetCDFFile):
         else:
             raise KeyError('Not yet implemented equatorial mercator')
 
-        crs.earth_radius = 6370000. # 6371229.
-        scellx = (float(self.SYNCHX) - 1) * gridx # 1-based
-        scelly = (float(self.SYNCHY) - 1) * gridy # 1-based
+        crs.earth_radius = 6370000.  # WRF-based radius
+        scellx = (float(self.SYNCHX) - 1) * gridx  # 1-based I cell
+        scelly = (float(self.SYNCHY) - 1) * gridy  # 1-based J cell
         slon, slat = float(self.SYNCHLON), float(self.SYNCHLAT)
         if slon > 180:
             slon = slon % 180 - 180
@@ -758,7 +758,7 @@ class arlpackedbit(PseudoNetCDFFile):
         crs.false_easting = halfwidth
         crs.false_northing = halfheight
         llcrnrlon, llcrnrlat = self.xy2ll(scellx, scelly)
-        
+
         x_within_precision = np.round(slon / llcrnrlon, 3) == 1
         y_within_precision = np.round(slat / llcrnrlat, 4) == 1
         if not (x_within_precision and y_within_precision):
