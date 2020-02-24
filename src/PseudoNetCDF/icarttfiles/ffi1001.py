@@ -211,12 +211,19 @@ Returns:
         missing = missing[:1] + missing
         scales = [1.] + scales
 
+        nvars = len(variables)
         if hasattr(self, 'LLOD_FLAG'):
             llod_values = loddelim.sub('\n', self.LLOD_VALUE).split()
             if len(llod_values) == 1:
-                llod_values *= len(variables)
-            else:
+                llod_values *= nvars
+            elif len(llod_values) == (nvars - 1):
                 llod_values = ['N/A'] + llod_values
+            else:
+                warn(
+                    'Expected 1 or %d LLOD_VALUE(s); got %d' %
+                    (nvars - 1, len(llod_values))
+                )
+                llod_values = ['N/A'] * nvars
 
             assert len(llod_values) == len(variables)
             llod_values = [get_lodval(llod_val) for llod_val in llod_values]
@@ -230,9 +237,15 @@ Returns:
         if hasattr(self, 'ULOD_FLAG'):
             ulod_values = loddelim.sub('\n', self.ULOD_VALUE).split()
             if len(ulod_values) == 1:
-                ulod_values *= len(variables)
-            else:
+                ulod_values *= nvars
+            elif len(ulod_values) == (nvars - 1):
                 ulod_values = ['N/A'] + ulod_values
+            else:
+                warn(
+                    'Expected 1 or %d ULOD_VALUE(s); got %d' %
+                    (nvars - 1, len(ulod_values))
+                )
+                ulod_values = ['N/A'] * nvars
 
             assert len(ulod_values) == len(variables)
             ulod_values = [get_lodval(ulod_val) for ulod_val in ulod_values]
