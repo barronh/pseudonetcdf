@@ -615,7 +615,7 @@ class arlpackedbit(PseudoNetCDFFile):
         check = testchunk[0]['INDX'] == b'INDX'
         return check
 
-    def __init__(self, path, shape=None, cache=False):
+    def __init__(self, path, shape=None, cache=False, earth_radius=6370000):
         """
         Parameters
         ----------
@@ -631,6 +631,7 @@ class arlpackedbit(PseudoNetCDFFile):
         self._path = path
         self._f = f = open(path, 'r')
         self._cache = cache
+        self._earth_radius = earth_radius
         # f.seek(0, 2)
         # fsize = f.tell()
         f.seek(0, 0)
@@ -746,7 +747,7 @@ class arlpackedbit(PseudoNetCDFFile):
         else:
             raise KeyError('Not yet implemented equatorial mercator')
 
-        crs.earth_radius = 6370000.  # WRF-based radius
+        crs.earth_radius = self._earth_radius  # WRF-based radius
         scellx = (float(self.SYNCHX) - 1) * gridx  # 1-based I cell
         scelly = (float(self.SYNCHY) - 1) * gridy  # 1-based J cell
         slon, slat = float(self.SYNCHLON), float(self.SYNCHLAT)
