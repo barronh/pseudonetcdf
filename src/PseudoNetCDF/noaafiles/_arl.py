@@ -709,7 +709,7 @@ class arlpackedbit(PseudoNetCDFFile):
             xe = self.createVariable('x_bounds', 'f', ('x', 'nv'))
             xe.standard_name = 'longitude_bounds'
             xe.units = 'degrees'
-            x[:] = np.arange(0, nx) * float(self.REFLON) + float(self.SYNCHLON)
+            x[:] = np.arange(0, nx) * float(self.REFLON) + self._synchlon
             xe[:-1, 1] = x[:1] + np.diff(x) / 2
             xe[1:, 0] = x[1:] - np.diff(x) / 2
             xe[0, 0] = x[0] - np.diff(x)[0] / 2
@@ -720,7 +720,7 @@ class arlpackedbit(PseudoNetCDFFile):
             ye = self.createVariable('y_bounds', 'f', ('y', 'nv'))
             ye.standard_name = 'latitude_bounds'
             ye.units = 'degrees'
-            y[:] = np.arange(0, ny) * float(self.REFLAT) + float(self.SYNCHLAT)
+            y[:] = np.arange(0, ny) * float(self.REFLAT) + self._synchlat
             ye[:-1, 1] = y[:1] + np.diff(y) / 2
             ye[1:, 0] = y[1:] - np.diff(y) / 2
             ye[0, 0] = y[0] - np.diff(y)[0] / 2
