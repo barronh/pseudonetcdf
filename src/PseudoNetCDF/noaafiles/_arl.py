@@ -615,7 +615,10 @@ class arlpackedbit(PseudoNetCDFFile):
         check = testchunk[0]['INDX'] == b'INDX'
         return check
 
-    def __init__(self, path, shape=None, cache=False, earth_radius=6370000):
+    def __init__(
+        self, path, shape=None, cache=False,
+        earth_radius=6370000, synchlon=None, synchlat=None
+    ):
         """
         Parameters
         ----------
@@ -623,6 +626,15 @@ class arlpackedbit(PseudoNetCDFFile):
             path to arl packed bit formatted file
         shape : tuple or None
             shape of file to over ride derived shape
+        earth_radius : scalar
+            radius of the earth used in converting projected to lat/lon
+        synchlon: scalar
+            The SYNCHLON variable has 6 digits of precision in the file
+            this keyword allows you to provide more.
+        synchlat: scalar
+            The SYNCHLAT variable has 6 digits of precision in the file
+            this keyword allows you to provide more.
+
         Returns
         -------
         arlf : arlpackedbit
@@ -665,6 +677,16 @@ class arlpackedbit(PseudoNetCDFFile):
         self.createDimension('time', datamap.shape[0])
         # minus 1 excludes surface
         self.createDimension('z', int(self.NZ) - 1)
+        if synchlon is None:
+            self._synchlon = float(self.SYNCHLON)
+        else:
+            self._synchlon = synchlon
+
+        if synchlat is None:
+            self._synchlat = float(self.SYNCHLAT)
+        else:
+            self._synchlat = synchlat
+
         gridx = float(t0hdr['GRIDX']) * 1000.
         nx = props['NX']
         ny = props['NY']
@@ -750,7 +772,7 @@ class arlpackedbit(PseudoNetCDFFile):
         crs.earth_radius = self._earth_radius  # WRF-based radius
         scellx = (float(self.SYNCHX) - 1) * gridx  # 1-based I cell
         scelly = (float(self.SYNCHY) - 1) * gridy  # 1-based J cell
-        slon, slat = float(self.SYNCHLON), float(self.SYNCHLAT)
+        slon, slat = self._synchlon, self._synchlat
         if slon > 180:
             slon = slon % 180 - 180
 
