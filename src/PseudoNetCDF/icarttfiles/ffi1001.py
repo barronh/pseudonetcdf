@@ -150,10 +150,6 @@ Returns:
                     self.INDEPENDENT_VARIABLE = units[-1]
                 elif li == SCALE_LINE:
                     scales = [eval(i) for i in split(line)]
-                    if set([float(s) for s in scales]) != set([1.]):
-                        raise ValueError(
-                            "Unsupported: scaling is unsupported. " +
-                            " data is scaled by %s" % (str(scales),))
                 elif li == MISSING_LINE:
                     missing = [eval(i) for i in split(line)]
                 elif li > MISSING_LINE and li <= LAST_VAR_DESC_LINE:
@@ -277,7 +273,7 @@ Returns:
             llod_val = llod_values[vi]
             ulod_flag = ulod_flags[vi]
             ulod_val = ulod_values[vi]
-            vals = MaskedArray(dat, mask=dat == miss, fill_value=miss)
+            vals = MaskedArray(dat*scale, mask=dat == miss, fill_value=miss)
             tmpvar = self.variables[var] = PseudoNetCDFVariable(
                 self, var, 'd', ('POINTS',), values=vals)
             tmpvar.units = unit
