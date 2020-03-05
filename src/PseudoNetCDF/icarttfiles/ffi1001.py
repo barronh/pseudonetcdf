@@ -273,7 +273,7 @@ Returns:
             llod_val = llod_values[vi]
             ulod_flag = ulod_flags[vi]
             ulod_val = ulod_values[vi]
-            vals = MaskedArray(dat * scale, mask = (dat == miss), 
+            vals = MaskedArray(dat * scale, mask=(dat == miss),
                                fill_value=miss)
             scale = scales[vi] = 1  # Set to 1 after applying
             tmpvar = self.variables[var] = PseudoNetCDFVariable(
