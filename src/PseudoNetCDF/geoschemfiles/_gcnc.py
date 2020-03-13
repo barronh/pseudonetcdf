@@ -117,7 +117,7 @@ class gcnc_base(PseudoNetCDFFile):
         fill_value : set fill value (e.g, nan) to prevent extrapolation or edge
                      continuation
         layerdims : specify layer dimension, None will apply to all dimensions
-                    named layer*
+                    named lev*
         approach :
              eta : use simple eta coordinates to calculate sigma and
                    interpolate
@@ -168,9 +168,9 @@ class gcnc_base(PseudoNetCDFFile):
             layerdims = sorted([
                 dk for dk in self.dimensions
                 if (
-                    dk.startswith('layer') and
+                    dk.startswith('lev') and
                     not dk.endswith('_bounds') and
-                    not dk == 'layer1')
+                    not dk == 'lev1')
             ])
             if verbose > 0:
                 print(layerdims)
@@ -211,4 +211,4 @@ class gcnc_base(PseudoNetCDFFile):
 class gcnc(gcnc_base, netcdf):
     def __init__(self, *args, **kwds):
         netcdf.__init__(self, *args, **kwds)
-        self.setCoords('hyam hyai hybm hybi time lat lon P0'.split())
+        self.setCoords('hyam hyai hybm hybi time lat lon lev ilev P0'.split())
