@@ -135,7 +135,7 @@ class gcnc_base(PseudoNetCDFFile):
         """
         etai = (
             self.variables['P0'][...] * self.variables['hybm'][...] +
-            self.variables['hyai'][...]
+            self.variables['hyam'][...]
         ) * 100.
         # grab input sigma coordinates
         myvglvls = (etai - vgtop) / (etai[0] - vgtop)
