@@ -551,7 +551,10 @@ def getproj4_from_cf_var(gridmapping, withgrid=False):
                 mapstr_bits['lat_1'] = pv[0]
             if not np.isscalar(pv) and len(pv) > 1:
                 mapstr_bits['lat_2'] = pv[1]
-        elif pk == 'longitude_of_central_meridian':
+        elif pk in (
+            'longitude_of_central_meridian',
+            'straight_vertical_longitude_from_pole'
+        ):
             mapstr_bits['lon_0'] = pv
         elif pk == 'latitude_of_projection_origin':
             mapstr_bits['lat_0'] = pv

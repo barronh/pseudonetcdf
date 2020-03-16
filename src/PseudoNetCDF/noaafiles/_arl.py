@@ -6,6 +6,7 @@ from PseudoNetCDF.coordutil import gettimes
 from PseudoNetCDF._getwriter import registerwriter
 from datetime import datetime
 from collections import OrderedDict
+from warnings import warn
 dtype = np.dtype
 
 
@@ -614,7 +615,10 @@ class arlpackedbit(PseudoNetCDFFile):
         check = testchunk[0]['INDX'] == b'INDX'
         return check
 
-    def __init__(self, path, shape=None):
+    def __init__(
+        self, path, shape=None, cache=False,
+        earth_radius=6370000, synchlon=None, synchlat=None
+    ):
         """
         Parameters
         ----------
@@ -622,6 +626,15 @@ class arlpackedbit(PseudoNetCDFFile):
             path to arl packed bit formatted file
         shape : tuple or None
             shape of file to over ride derived shape
+        earth_radius : scalar
+            radius of the earth used in converting projected to lat/lon
+        synchlon: scalar
+            The SYNCHLON variable has 6 digits of precision in the file
+            this keyword allows you to provide more.
+        synchlat: scalar
+            The SYNCHLAT variable has 6 digits of precision in the file
+            this keyword allows you to provide more.
+
         Returns
         -------
         arlf : arlpackedbit
@@ -629,6 +642,8 @@ class arlpackedbit(PseudoNetCDFFile):
         """
         self._path = path
         self._f = f = open(path, 'r')
+        self._cache = cache
+        self._earth_radius = earth_radius
         # f.seek(0, 2)
         # fsize = f.tell()
         f.seek(0, 0)
@@ -662,6 +677,16 @@ class arlpackedbit(PseudoNetCDFFile):
         self.createDimension('time', datamap.shape[0])
         # minus 1 excludes surface
         self.createDimension('z', int(self.NZ) - 1)
+        if synchlon is None:
+            self._synchlon = float(self.SYNCHLON)
+        else:
+            self._synchlon = synchlon
+
+        if synchlat is None:
+            self._synchlat = float(self.SYNCHLAT)
+        else:
+            self._synchlat = synchlat
+
         gridx = float(t0hdr['GRIDX']) * 1000.
         nx = props['NX']
         ny = props['NY']
@@ -673,6 +698,7 @@ class arlpackedbit(PseudoNetCDFFile):
             x[:] = np.arange(x[:].size) * gridx
             y = self.createVariable('y', 'f', ('y',))
             y[:] = np.arange(y[:].size) * gridx
+            self._addcrs()
         else:
             self.createDimension('x', nx)
             self.createDimension('y', ny)
@@ -683,7 +709,7 @@ class arlpackedbit(PseudoNetCDFFile):
             xe = self.createVariable('x_bounds', 'f', ('x', 'nv'))
             xe.standard_name = 'longitude_bounds'
             xe.units = 'degrees'
-            x[:] = np.arange(0, nx) * float(self.REFLON) + float(self.SYNCHLON)
+            x[:] = np.arange(0, nx) * float(self.REFLON) + self._synchlon
             xe[:-1, 1] = x[:1] + np.diff(x) / 2
             xe[1:, 0] = x[1:] - np.diff(x) / 2
             xe[0, 0] = x[0] - np.diff(x)[0] / 2
@@ -694,7 +720,7 @@ class arlpackedbit(PseudoNetCDFFile):
             ye = self.createVariable('y_bounds', 'f', ('y', 'nv'))
             ye.standard_name = 'latitude_bounds'
             ye.units = 'degrees'
-            y[:] = np.arange(0, ny) * float(self.REFLAT) + float(self.SYNCHLAT)
+            y[:] = np.arange(0, ny) * float(self.REFLAT) + self._synchlat
             ye[:-1, 1] = y[:1] + np.diff(y) / 2
             ye[1:, 0] = y[1:] - np.diff(y) / 2
             ye[0, 0] = y[0] - np.diff(y)[0] / 2
@@ -713,6 +739,64 @@ class arlpackedbit(PseudoNetCDFFile):
         _units = {1: 'pressure sigma', 2: 'pressure absolute',
                   3: 'terrain sigma', 4: 'hybrid sigma'}
         z.units = _units.get(int(self.VSYS2), 'unknown')
+        self.setCoords(['time', 'z', 'y', 'x'])
+
+    def _addcrs(self):
+        x = self.variables['x']
+        y = self.variables['y']
+        gridx = np.diff(x[:])[0]
+        gridy = np.diff(y[:])[0]
+        nx = x.size
+        ny = y.size
+        crs = self.createVariable('crs', 'i', ())
+        s = self
+        tanlat = np.float64(s.TANLAT)
+        reflon = np.float64(s.REFLON)
+        reflat = np.float64(s.REFLAT)
+        atanlat = np.abs(tanlat)
+        pname = crs.grid_mapping_name = {
+            0: 'equatorial_mercator',
+            90: 'polar_stereographic',
+        }.get(atanlat, 'lambert_conformal_conic')
+        if pname == 'lambert_conformal_conic':
+            crs.standard_parallel = np.array([tanlat, tanlat])
+            crs.longitude_of_central_meridian = reflon
+            crs.latitude_of_projection_origin = reflat
+        elif pname == 'polar_stereographic':
+            crs.straight_vertical_longitude_from_pole = reflon
+            crs.standard_parallel = reflat
+            crs.latitude_of_projection_origin = tanlat
+        else:
+            raise KeyError('Not yet implemented equatorial mercator')
+
+        crs.earth_radius = self._earth_radius  # WRF-based radius
+        scellx = (float(self.SYNCHX) - 1) * gridx  # 1-based I cell
+        scelly = (float(self.SYNCHY) - 1) * gridy  # 1-based J cell
+        slon, slat = self._synchlon, self._synchlat
+        if slon > 180:
+            slon = slon % 180 - 180
+
+        halfwidth = gridx * (nx - 1) / 2
+        halfheight = gridy * (ny - 1) / 2
+        crs.false_easting = halfwidth
+        crs.false_northing = halfheight
+        llcrnrlon, llcrnrlat = self.xy2ll(scellx, scelly)
+
+        x_within_precision = np.round(slon / llcrnrlon, 3) == 1
+        y_within_precision = np.round(slat / llcrnrlat, 4) == 1
+        if not (x_within_precision and y_within_precision):
+            warn(
+                'Grid not centered; using SYNCHLAT/SYNCHLON ' +
+                'with limited to 6 significant digits ' +
+                'to calculate false easting/northing'
+            )
+            crs.false_easting = 0.
+            crs.false_northing = 0.
+            llcrnrx, llcrnry = self.ll2xy(slon, slat)
+            crs.false_easting = -llcrnrx + scellx
+            crs.false_northing = -llcrnry + scelly
+
+        self.Conventions = 'CF-1.6'
 
     def _getvar(self, varkey):
         datamap = self._datamap
@@ -728,9 +812,10 @@ class arlpackedbit(PseudoNetCDFFile):
             # if varkey == 'MXLR':
             #  CVAR, PREC, NEXP, VAR1, KSUM = pack2d(vdata[21], verbose = True)
 
-            return PseudoNetCDFVariable(self, varkey, 'f', ('time', 'y', 'x'),
-                                        values=vdata, units=stdunit,
-                                        standard_name=stdname, **props)
+            out = PseudoNetCDFVariable(
+                self, varkey, 'f', ('time', 'y', 'x'),
+                values=vdata, units=stdunit, standard_name=stdname, **props
+            )
         elif varkey in self._layvarkeys:
             laykeys = datamap['layers'].dtype.names
             mylaykeys = [laykey for laykey in laykeys
@@ -746,10 +831,83 @@ class arlpackedbit(PseudoNetCDFFile):
             props['LEVEL_START'] = vhead['LEVEL'][0, 0]
             props['LEVEL_END'] = vhead['LEVEL'][-1, -1]
             vdata = unpack(bytes, v11, EXP)
-            return PseudoNetCDFVariable(self, varkey, 'f',
-                                        ('time', 'z', 'y', 'x'),
-                                        values=vdata, units=stdunit,
-                                        standard_name=stdname, **props)
+            out = PseudoNetCDFVariable(
+                self, varkey, 'f', ('time', 'z', 'y', 'x'),
+                values=vdata, units=stdunit,
+                standard_name=stdname, **props
+            )
+        if self._cache:
+            self.variables[varkey] = out
+        return out
+
+    def getMap(self, maptype='basemap_auto', **kwds):
+        if 'latitude_bounds' in self.variables:
+            return PseudoNetCDFFile.getMap(self, maptype=maptype, **kwds)
+
+        from PseudoNetCDF.coordutil import basemap_from_proj4
+        kwds = kwds.copy()
+        myproj = self.getproj(withgrid=True, projformat='pyproj')
+        myprojstr = self.getproj(withgrid=True, projformat='proj4')
+        llcrnrlon, llcrnrlat = myproj(
+            self.variables['x'][0], self.variables['y'][0], inverse=True
+        )
+        urcrnrlon, urcrnrlat = myproj(
+            self.variables['x'][-1], self.variables['y'][-1], inverse=True
+        )
+        kwds['llcrnrlon'] = llcrnrlon
+        kwds['llcrnrlat'] = llcrnrlat
+        kwds['urcrnrlon'] = urcrnrlon
+        kwds['urcrnrlat'] = urcrnrlat
+        return basemap_from_proj4(myprojstr, **kwds)
+
+    def plot(self, *args, **kwds):
+        kwds.setdefault('plottype', 'x-y')
+        ax = PseudoNetCDFFile.plot(self, *args, **kwds)
+        if kwds['plottype'] == 'x-y':
+            map_kw = kwds.get('map_kw', None)
+            if map_kw is None:
+                map_kw = {}
+            try:
+                map_kw = map_kw.copy()
+                coastlines = map_kw.pop('coastlines', True)
+                countries = map_kw.pop('countries', True)
+                states = map_kw.pop('states', False)
+                counties = map_kw.pop('counties', False)
+                bmap = self.getMap(**map_kw)
+                if coastlines:
+                    bmap.drawcoastlines(ax=ax)
+                if countries:
+                    bmap.drawcountries(ax=ax)
+                if states:
+                    bmap.drawstates(ax=ax)
+                if counties:
+                    bmap.drawcounties(ax=ax)
+            except Exception:
+                pass
+        return ax
+
+    def getproj(self, withgrid=False, projformat='pyproj'):
+        from PseudoNetCDF.coordutil import getproj4_from_cf_var
+        gridmapping = self.variables['crs']
+        proj4str = getproj4_from_cf_var(gridmapping, withgrid=withgrid)
+        preserve_units = withgrid
+        if projformat == 'proj4':
+            return proj4str
+        elif projformat == 'pyproj':
+            import pyproj
+            # pyproj adds +units=m, which is not right for latlon/lonlat
+            if '+proj=lonlat' in proj4str or '+proj=latlon' in proj4str:
+                preserve_units = True
+            return pyproj.Proj(proj4str, preserve_units=preserve_units)
+        elif projformat == 'wkt':
+            import osr
+            srs = osr.SpatialReference()
+            # Imports WKT to Spatial Reference Object
+            srs.ImportFromProj4(proj4str)
+            srs.ExportToWkt()  # converts the WKT to an ESRI-compatible format
+            return srs.ExportToWkt()
+        else:
+            raise ValueError('projformat must be pyproj, proj4 or wkt')
 
 
 registerwriter('noaafiles.arlpackedbit', writearlpackedbit)
