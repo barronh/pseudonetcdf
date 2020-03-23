@@ -13,7 +13,8 @@ __doc__ = """
 .. moduleauthor:: Barron Henderson <barronh@unc.edu>
 """
 __all__ = ['boxmodel', 'pa', 'box_model_mrg', 'box_model_conc', 'jtable',
-           'bcon_profile', 'icon_profile', 'ioapi', 'ioapi_base', 'griddesc']
+           'bcon_profile', 'icon_profile', 'ioapi', 'ioapi_base', 'griddesc',
+           'cmaqomidat']
 
 from . import boxmodel
 from . import pa
@@ -22,3 +23,4 @@ from .boxmodel import box_model_conc, box_model_mrg
 from .profile import bcon_profile, icon_profile
 from ._ioapi import ioapi, ioapi_base
 from ._griddesc import griddesc
+from ._cmaqomidat import cmaqomidat
