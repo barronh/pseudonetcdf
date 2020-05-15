@@ -146,8 +146,16 @@ Returns:
                     self.TIME_INTERVAL = line.strip()
                 elif li == UNIT_LINE:
                     unitstr = line.replace('\n', '').replace('\r', '').strip()
-                    units.append(unitstr)
-                    self.INDEPENDENT_VARIABLE = units[-1]
+                    self.INDEPENDENT_VARIABLE_DEFINITION = unitstr
+                    unitstr = [s.strip() for s in unitstr.split(',')]
+                    self.INDEPENDENT_VARIABLE = unitstr[0]
+                    nstr = len(unitstr)
+                    if nstr==1:
+                        units.append(unitstr[0])
+                        self.INDEPENDENT_VARIABLE_UNITS = unitstr[0]
+                    if nstr>=2:
+                        units.append(unitstr[1])
+                        self.INDEPENDENT_VARIABLE_UNITS = unitstr[1]
                 elif li == SCALE_LINE:
                     scales = [eval(i) for i in split(line)]
                 elif li == MISSING_LINE:
