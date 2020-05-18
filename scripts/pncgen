@@ -1,2 +1,7 @@
-#!/usr/bin/env bash
-python -m PseudoNetCDF.pncgen "$@"
+#!/usr/bin/env python
+from PseudoNetCDF.pncgen import main
+import warnings
+
+
+warnings.warn('pncgen is deprecated; use pncgen.py', DeprecationWarning)
+main()

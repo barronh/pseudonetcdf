@@ -1,2 +1,7 @@
-#!/usr/bin/env bash
-python -um PseudoNetCDF.pncview "$@"
+#!/usr/bin/env python
+from PseudoNetCDF.pncview import main
+import warnings
+
+
+warnings.warn('pncview is deprecated; use pncview.py', DeprecationWarning)
+main()

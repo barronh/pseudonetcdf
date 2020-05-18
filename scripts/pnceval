@@ -1,2 +1,7 @@
-#!/usr/bin/env bash
-python -m PseudoNetCDF.pnceval "$@"
+#!/usr/bin/env python
+from PseudoNetCDF.pnceval import main
+import warnings
+
+
+warnings.warn('pnceval is deprecated; use pnceval.py', DeprecationWarning)
+main()
