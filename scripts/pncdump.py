@@ -1,3 +1,3 @@
-#!/usr/bin/env python -u
+#!/usr/bin/env python
 from PseudoNetCDF.pncdump import main
 main()

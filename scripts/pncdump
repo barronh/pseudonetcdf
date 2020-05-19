@@ -1,2 +1,7 @@
-#!/usr/bin/env bash
-python -um PseudoNetCDF.pncdump "$@"
+#!/usr/bin/env python
+from PseudoNetCDF.pncdump import main
+import warnings
+
+
+warnings.warn('pncdump is deprecated; use pncdump.py', DeprecationWarning)
+main()
