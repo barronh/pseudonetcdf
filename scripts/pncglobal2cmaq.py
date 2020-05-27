@@ -131,7 +131,7 @@ _CBSPCS = r"""
             "outunit": "ppmV",
             "comment1": "Half the carbon is assumed propene and half butene",
             "comment2": "IOLE is a 4 carbon species.",
-            "comment2": "PRPE is a 3 carbon species."
+            "comment3": "PRPE is a 3 carbon species."
         },
         "ETHA": {
             "expression": "C2H6",
@@ -894,14 +894,14 @@ def get_template(option, gcversion):
         },
     "AIRMASSDEN": {
             "expression": "0.0289645 * (hyam[:].reshape(1, -1).T + hybm[:].reshape(1, -1).T * PSURF[:][:, [0]].T).T * 100 / 8.3144621 / TMPU[:]",
-            "outunit": "kg/m**3",
+            "outunit": "kg/m**3"
         },
     "CMAQSPECIES": {
         "AIRDEN": {
             "expression": "(hyam[:].reshape(1, -1).T + hybm[:].reshape(1, -1).T * PSURF[:][:, [0]].T).T * 100 / 8.3144621 / TMPU[:] * 6.022e23 / 1e6",
             "outunit": "molec/cm3",
             "manual_unit": true,
-            "comment": "Full calculated unit",
+            "comment": "Full calculated unit"
         },"""
     # Next add the gas-phase
     # issaprc07 = 'saprc07' in option
