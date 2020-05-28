@@ -150,10 +150,10 @@ Returns:
                     unitstr = [s.strip() for s in unitstr.split(',')]
                     self.INDEPENDENT_VARIABLE = unitstr[0]
                     nstr = len(unitstr)
-                    if nstr==1:
+                    if nstr == 1:
                         units.append(unitstr[0])
                         self.INDEPENDENT_VARIABLE_UNITS = unitstr[0]
-                    if nstr>=2:
+                    if nstr >= 2:
                         units.append(unitstr[1])
                         self.INDEPENDENT_VARIABLE_UNITS = unitstr[1]
                 elif li == SCALE_LINE:
@@ -180,15 +180,18 @@ Returns:
                 elif (li > SPECIAL_COMMENT_COUNT_LINE and
                       li <= LAST_SPECIAL_COMMENT_LINE):
                     colon_pos = line.find(':')
-                    if (li==(SPECIAL_COMMENT_COUNT_LINE+1) and colon_pos==-1):
+                    if (
+                        li == (SPECIAL_COMMENT_COUNT_LINE + 1) and
+                        colon_pos == -1
+                    ):
                         k = 'SPECIAL_COMMENTS'
                         v = line.strip()
-                    elif (line[:1] == ' ' or colon_pos==-1):
+                    elif (line[:1] == ' ' or colon_pos == -1):
                         # Append to prior attribute line
                         k = lastattr
                         v = getattr(self, k, '') + line.rstrip()
                     else:
-                        k = line[:colon_pos].strip().replace('/','_')
+                        k = line[:colon_pos].strip().replace('/', '_')
                         v = line[colon_pos + 1:].strip()
                     setattr(self, k, v)
                     lastattr = k

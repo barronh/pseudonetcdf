@@ -270,7 +270,7 @@ class geos(PseudoNetCDFFile):
                                        [60, 61, 62, 63], [64, 65, 66, 67],
                                        [68, 69, 70, 71]]
                     else:
-                        raise ValueError('Cannot reduce %' % self.gtype)
+                        raise ValueError('Cannot reduce %s' % self.gtype)
                     assert(len(lump_groups) == nlay)
 
                     for li, lump_group in enumerate(lump_groups):
