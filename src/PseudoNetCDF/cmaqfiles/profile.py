@@ -169,7 +169,7 @@ class bcon_profile(ioapi_base):
             assert(w[0] == s[0] and e[0] == n[0] and n[0] == s[0])
             varkey = w[0].strip().decode()
             tmpvals = np.array(
-                [(lambda x: tuple(x)[1:])(_v) for _v in[s, e, n, w]]
+                [(lambda x: tuple(x)[1:])(_v) for _v in [s, e, n, w]]
             ).T.astype('f')
             self.createVariable(
                 varkey, 'f', ('LAY', 'south_east_north_west'),
