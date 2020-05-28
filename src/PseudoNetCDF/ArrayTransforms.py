@@ -34,8 +34,8 @@ def interior_vertex_func(a, dims=(-1, -2), func=sum):
         one_to_end = full_shape.copy()
         zero_to_minus_one[dim] = slice(0, -1)
         one_to_end[dim] = slice(1, None)
-        out_array = func(array([out_array[zero_to_minus_one.tolist()],
-                                out_array[one_to_end.tolist()]]), 0)
+        out_array = func(array([out_array[tuple(zero_to_minus_one.tolist())],
+                                out_array[tuple(one_to_end.tolist())]]), 0)
 
     return out_array
 

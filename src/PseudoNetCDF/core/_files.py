@@ -1788,7 +1788,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         outf : PseudoNetCDFFile
             instance with stacked variables and dimension equal to new length
         """
-        from collections import Iterable
+        from collections.abc import Iterable
         outf = self._copywith(props=True, dimensions=False)
         if isinstance(other, Iterable):
             fs = [self] + list(other)

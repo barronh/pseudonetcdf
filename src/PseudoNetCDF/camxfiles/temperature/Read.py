@@ -166,7 +166,6 @@ class temperature(PseudoNetCDFFile):
         while pos < rflen:
             yield pos
             pos += inc
-        raise StopIteration
 
     def __surfmaps(self):
         for pos in self.__surfpos():
@@ -184,7 +183,6 @@ class temperature(PseudoNetCDFFile):
         while pos < rflen:
             yield pos
             pos += inc
-        raise StopIteration
 
     def __airmaps(self):
         for pos in self.__airpos():

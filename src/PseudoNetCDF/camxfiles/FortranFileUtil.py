@@ -402,7 +402,7 @@ class TestFileUtils(unittest.TestCase):
         from numpy import arange
         self.tmprf._newrecord(0)
         self.assertTrue((arange(20, dtype='f') ==
-                      self.tmprf.aread('f', 20)).all())
+                        self.tmprf.aread('f', 20)).all())
 
     def testReadInto(self):
         from numpy import arange, zeros
@@ -419,7 +419,7 @@ class TestFileUtils(unittest.TestCase):
         self.tmprf._newrecord(0)
         self.tmprf.next()
         self.assertTrue((arange(20, dtype='i') ==
-                      self.tmprf.aread('i', 20)).all())
+                        self.tmprf.aread('i', 20)).all())
 
     def testSeek(self):
         self.tmprf._newrecord(0)
