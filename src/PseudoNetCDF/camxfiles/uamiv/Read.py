@@ -376,7 +376,7 @@ class TestuamivRead(unittest.TestCase):
         import PseudoNetCDF.testcase
         emissfile = uamiv(PseudoNetCDF.testcase.camxfiles_paths['uamiv'])
         v = emissfile.variables['NO2']
-        self.assert_((v == array(
+        self.assertTrue((v == array(
             [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
              0.00000000e+00, 0.00000000e+00, 1.24175494e-04, 2.79196858e-04,
              1.01672206e-03, 4.36782313e-04, 0.00000000e+00, 1.54810550e-04,

@@ -199,7 +199,7 @@ class TestMemmap(unittest.TestCase):
                         1.04823120e+02, 1.02206909e+02, 1.02940186e+02,
                         1.04224609e+02, 1.04841797e+02, 1.04740723e+02],
                        dtype='f').reshape(2, 3, 4, 5)
-        self.assert_((hpfile.variables['HGHT'] == checkv).all())
+        self.assertTrue((hpfile.variables['HGHT'] == checkv).all())
 
     def testNCF2HP(self):
         import PseudoNetCDF.testcase

@@ -204,7 +204,7 @@ class TestMemmap(unittest.TestCase):
             -2.60809243e-01, -2.18679833e+00, -3.59082842e+00, 3.77060443e-01,
             -1.05680525e-01, -8.10511589e-01, -1.40993130e+00,
             -1.76300752e+00], dtype='f').reshape(2, 3, 4, 5)
-        self.assert_((wdfile.variables['V'][:] == checkv).all())
+        self.assertTrue((wdfile.variables['V'][:] == checkv).all())
 
     def testNCF2WD(self):
         import PseudoNetCDF.testcase

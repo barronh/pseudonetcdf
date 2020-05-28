@@ -401,7 +401,7 @@ class TestFileUtils(unittest.TestCase):
     def testFloat(self):
         from numpy import arange
         self.tmprf._newrecord(0)
-        self.assert_((arange(20, dtype='f') ==
+        self.assertTrue((arange(20, dtype='f') ==
                       self.tmprf.aread('f', 20)).all())
 
     def testReadInto(self):
@@ -412,13 +412,13 @@ class TestFileUtils(unittest.TestCase):
 
         # Necessary because written to anticipate fortran swapping of axes
         read_into(self.tmprf, dest, '', 'f')
-        self.assert_((arange(20, dtype='f').reshape((4, 5)) == dest).all())
+        self.assertTrue((arange(20, dtype='f').reshape((4, 5)) == dest).all())
 
     def testInt(self):
         from numpy import arange
         self.tmprf._newrecord(0)
         self.tmprf.next()
-        self.assert_((arange(20, dtype='i') ==
+        self.assertTrue((arange(20, dtype='i') ==
                       self.tmprf.aread('i', 20)).all())
 
     def testSeek(self):
@@ -439,7 +439,7 @@ class TestFileUtils(unittest.TestCase):
         self.tmprf.next()
         checkv = array(["The quick brown fox "])
         testv = self.tmprf.aread('S20', 1)
-        self.assert_(np.any(checkv == testv))
+        self.assertTrue(np.any(checkv == testv))
 
     def runTest(self):
         pass

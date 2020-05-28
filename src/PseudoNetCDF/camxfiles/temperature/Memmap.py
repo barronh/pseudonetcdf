@@ -210,7 +210,7 @@ class TestMemmap(unittest.TestCase):
                          3.06698334e+02, 3.01333618e+02, 3.03411346e+02,
                          3.05317505e+02, 3.06446869e+02,
                          3.05815948e+02], dtype='f').reshape(2, 3, 4, 5)
-        self.assert_((tempfile.variables['AIRTEMP'] == checkat).all())
+        self.assertTrue((tempfile.variables['AIRTEMP'] == checkat).all())
 
     def testNCF2TEMP(self):
         import PseudoNetCDF.testcase

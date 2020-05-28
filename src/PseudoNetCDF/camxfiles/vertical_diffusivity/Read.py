@@ -103,7 +103,7 @@ class TestRead(unittest.TestCase):
             1.00000000e+00, 1.44422662e+00, 1.02998519e+00, 1.00000000e+00,
             1.00000000e+00, 2.60322971e+01, 4.26534195e+01,
             4.17046585e+01], dtype='f').reshape(2, 3, 4, 5)
-        self.assert_((vdfile.variables['KV'] == checkv).all())
+        self.assertTrue((vdfile.variables['KV'] == checkv).all())
 
 
 if __name__ == '__main__':

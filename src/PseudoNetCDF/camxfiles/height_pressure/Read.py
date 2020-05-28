@@ -327,7 +327,7 @@ class TestRead(unittest.TestCase):
                         1.04224609e+02, 1.04841797e+02, 1.04740723e+02],
                        dtype='f').reshape(2, 3, 4, 5)
 
-        self.assert_((hpfile.variables['HGHT'] == checkv).all())
+        self.assertTrue((hpfile.variables['HGHT'] == checkv).all())
 
 
 if __name__ == '__main__':
