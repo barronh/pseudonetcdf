@@ -208,7 +208,7 @@ class TestMemmap(unittest.TestCase):
                         1.02998519e+00, 1.00000000e+00, 1.00000000e+00,
                         2.60322971e+01, 4.26534195e+01, 4.17046585e+01],
                        dtype='f').reshape(2, 3, 4, 5)
-        self.assert_((vdfile.variables['UNKNOWN'] == checkv).all())
+        self.assertTrue((vdfile.variables['UNKNOWN'] == checkv).all())
 
     def testNCF2KV(self):
         import PseudoNetCDF.testcase

@@ -113,7 +113,7 @@ class TestRead(unittest.TestCase):
                         6.97552490e+01, 6.80159912e+01, 6.85028076e+01,
                         6.93570557e+01, 6.97674561e+01, 6.97009277e+01],
                        dtype='f').reshape(2, 3, 4, 5)
-        self.assert_((humfile.variables['HUM'] == checkv).all())
+        self.assertTrue((humfile.variables['HUM'] == checkv).all())
 
 
 if __name__ == '__main__':

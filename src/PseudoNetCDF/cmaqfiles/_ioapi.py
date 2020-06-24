@@ -592,7 +592,7 @@ class ioapi_base(PseudoNetCDFFile):
 
         return PseudoNetCDFFile.getMap(self, maptype=maptype, **kwds)
 
-    def plot(self, varkey, plottype='longitude-latitude', ax_kw=None,
+    def plot(self, varkey, plottype=None, ax_kw=None,
              plot_kw=None, cbar_kw=None, map_kw=None, dimreduction='mean'):
         """
         Parameters
@@ -602,21 +602,25 @@ class ioapi_base(PseudoNetCDFFile):
         plottype : string
             longitude-latitude, latitude-pressure, longitude-pressure,
             vertical-profile, time-longitude, time-latitude,
-            time-pressure, default, longitude-latitude
+            time-pressure, default, last two dimensions in reverse order
         ax_kw : dictionary
             keywords for the axes to be created
         plot_kw : dictionary
             keywords for the plot (plot, scatter, or pcolormesh) to be
             created
-        cbar_kw : dictionary
-            keywords for the colorbar
-        map_kw : dictionary
+        cbar_kw : dictionary or bool or None
+            keywords for the colorbar; if True or None, use defaults.
+            If False, do not create a colorbar
+        map_kw : dictionary or bool or None
             keywords for the getMap routine, which is only used with
-            plottype='longitude-latitude'
+            map capable dimensions (ie, plottype='longitude-latitude')
+            If True or None, use default configuration dict(countries=True,
+            coastlines=True, states=False, counties=False). If False,
+            do not draw a map.
         dimreduction : string or function
             dimensions not being used in the plot are removed
             using applyAlongDimensions(dimkey=dimreduction) where
-            each dimenions
+            each dimenions.
         """
 
         import matplotlib.pyplot as plt
@@ -628,14 +632,20 @@ class ioapi_base(PseudoNetCDFFile):
         if plot_kw is None:
             plot_kw = {}
 
-        if cbar_kw is None:
+        if cbar_kw is None or cbar_kw is True:
             cbar_kw = {}
 
-        if map_kw is None:
+        if map_kw is None or map_kw is True:
             map_kw = {}
 
         apply2dim = {}
         var = self.variables[varkey]
+        if plottype is None:
+            vardims = var.dimensions
+            if len(vardims) > 1:
+                plottype = '-'.join(vardims[-2:][::-1])
+            else:
+                plottype = vardims[0] + '-profile'
         varunit = varkey
         if hasattr(var, 'units'):
             varunit += ' ' + var.units.strip()
@@ -704,35 +714,41 @@ class ioapi_base(PseudoNetCDFFile):
             ax.yaxis.set_major_formatter(
                 plt.matplotlib.dates.AutoDateFormatter(
                     plt.matplotlib.dates.AutoDateLocator()))
-        if plottype == 'longitude-latitude':
-            try:
-                coastlines = map_kw.pop('coastlines', True)
-                countries = map_kw.pop('countries', True)
-                states = map_kw.pop('states', False)
-                counties = map_kw.pop('counties', False)
-                bmap = myf.getMap(**map_kw)
-                if coastlines:
-                    bmap.drawcoastlines(ax=ax)
-                if countries:
-                    bmap.drawcountries(ax=ax)
-                if states:
-                    bmap.drawstates(ax=ax)
-                if counties:
-                    bmap.drawcounties(ax=ax)
-                x = np.arange(self.NCOLS + 1) * self.XCELL
-                y = np.arange(self.NROWS + 1) * self.YCELL
-                if self.GDTYP == 1:
-                    x += self.XORIG
-                    y += self.YORIG
-            except Exception:
-                pass
+        mappabledims = (
+            plottype == 'longitude-latitude' or
+            plottype == 'COL-ROW'
+        )
+        if mappabledims:
+            if map_kw is not False:
+                try:
+                    coastlines = map_kw.pop('coastlines', True)
+                    countries = map_kw.pop('countries', True)
+                    states = map_kw.pop('states', False)
+                    counties = map_kw.pop('counties', False)
+                    bmap = myf.getMap(**map_kw)
+                    if coastlines:
+                        bmap.drawcoastlines(ax=ax)
+                    if countries:
+                        bmap.drawcountries(ax=ax)
+                    if states:
+                        bmap.drawstates(ax=ax)
+                    if counties:
+                        bmap.drawcounties(ax=ax)
+                    x = np.arange(self.NCOLS + 1) * self.XCELL
+                    y = np.arange(self.NROWS + 1) * self.YCELL
+                    if self.GDTYP == 1:
+                        x += self.XORIG
+                        y += self.YORIG
+                except Exception:
+                    pass
         else:
             ax.set_xlabel(xkey)
             ax.set_ylabel(ykey)
 
         p = ax.pcolormesh(x, y, vals, **plot_kw)
-        cbar_kw.setdefault('label', varunit)
-        ax.figure.colorbar(p, **cbar_kw)
+        if cbar_kw is not False:
+            cbar_kw.setdefault('label', varunit)
+            ax.figure.colorbar(p, **cbar_kw)
         return ax
 
     slice = sliceDimensions

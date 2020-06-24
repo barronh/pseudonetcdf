@@ -209,52 +209,52 @@ class TestInteriorVertex(unittest.TestCase):
 
     def test2D2DSum(self):
         testv = interior_vertex_func(self.A2D, dims=(-1, -2), func=sum)
-        self.assert_((testv == self.sum2D).all())
+        self.assertTrue((testv == self.sum2D).all())
 
     def test2D2DMean(self):
         testv = interior_vertex_func(self.A2D, dims=(-1, -2), func=mean)
-        self.assert_((testv == self.mean2D).all())
+        self.assertTrue((testv == self.mean2D).all())
 
     def test3D2DSum(self):
         testv = interior_vertex_func(self.A3D, dims=(-1, -2), func=sum)
-        self.assert_((testv == self.sum2D.reshape(1, 3, 3)).all())
+        self.assertTrue((testv == self.sum2D.reshape(1, 3, 3)).all())
 
     def test3D2DMean(self):
         testv = interior_vertex_func(self.A3D, dims=(-1, -2), func=mean)
-        self.assert_((testv == self.mean2D.reshape(1, 3, 3)).all())
+        self.assertTrue((testv == self.mean2D.reshape(1, 3, 3)).all())
 
     def test3D3DSum(self):
         testv = interior_vertex_func(self.A3D, dims=(-1, -2, -3), func=sum)
-        self.assert_((testv == (self.sum2D.reshape(1, 3, 3) * 2)).all())
+        self.assertTrue((testv == (self.sum2D.reshape(1, 3, 3) * 2)).all())
 
     def test3D3DMean(self):
         testv = interior_vertex_func(self.A3D, dims=(-1, -2, -3), func=mean)
-        self.assert_((testv == self.mean2D.reshape(1, 3, 3)).all())
+        self.assertTrue((testv == self.mean2D.reshape(1, 3, 3)).all())
 
     def test4D2DSum(self):
         testv = interior_vertex_func(self.A4D, dims=(-1, -2), func=sum)
-        self.assert_((testv == self.sum2D.reshape(1, 1, 3, 3)).all())
+        self.assertTrue((testv == self.sum2D.reshape(1, 1, 3, 3)).all())
 
     def test4D2DMean(self):
         testv = interior_vertex_func(self.A4D, dims=(-1, -2), func=mean)
-        self.assert_((testv == self.mean2D.reshape(1, 1, 3, 3)).all())
+        self.assertTrue((testv == self.mean2D.reshape(1, 1, 3, 3)).all())
 
     def test4D3DSum(self):
         testv = interior_vertex_func(self.A4D, dims=(-1, -2, -3), func=sum)
-        self.assert_((testv == (self.sum2D.reshape(1, 1, 3, 3) * 2)).all())
+        self.assertTrue((testv == (self.sum2D.reshape(1, 1, 3, 3) * 2)).all())
 
     def test4D3DMean(self):
         testv = interior_vertex_func(self.A4D, dims=(-1, -2, -3), func=mean)
-        self.assert_((testv == self.mean2D.reshape(1, 1, 3, 3)).all())
+        self.assertTrue((testv == self.mean2D.reshape(1, 1, 3, 3)).all())
 
     def test4D4DSum(self):
         testv = interior_vertex_func(self.A4D, dims=(-1, -2, -3, -4), func=sum)
-        self.assert_((testv == (self.sum2D.reshape(1, 1, 3, 3) * 4)).all())
+        self.assertTrue((testv == (self.sum2D.reshape(1, 1, 3, 3) * 4)).all())
 
     def test4D4DMean(self):
         testv = interior_vertex_func(self.A4D, dims=(-1, -2, -3, -4),
                                      func=mean)
-        self.assert_((testv == self.mean2D.reshape(1, 1, 3, 3)).all())
+        self.assertTrue((testv == self.mean2D.reshape(1, 1, 3, 3)).all())
 
 
 if __name__ == '__main__':

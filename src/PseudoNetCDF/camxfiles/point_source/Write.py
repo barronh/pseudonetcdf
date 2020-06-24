@@ -133,8 +133,10 @@ def ncf2point_source(ncffile, outpath):
     stk_prop_fmt = np.dtype(dict(
         names=['xstk', 'ystk', 'hstk', 'dstk', 'tstk', 'vstk'],
         formats=['>f', '>f', '>f', '>f', '>f', '>f']))
-    stk_prop = np.ones((1,), dtype=np.dtype(
-        [('SPAD', '>i', 1), ('DATA', stk_prop_fmt, nstk), ('EPAD', '>i', 1)]))
+    stk_prop = np.ones((1,), dtype=np.dtype([
+        ('SPAD', '>i', (1,)), ('DATA', stk_prop_fmt, nstk),
+        ('EPAD', '>i', (1,))
+    ]))
     stk_prop['SPAD'] = stk_prop['EPAD'] = stk_prop.dtype.itemsize - 8
     stk_prop['DATA']['xstk'] = ncffile.variables['XSTK'][:]
     stk_prop['DATA']['ystk'] = ncffile.variables['YSTK'][:]
@@ -162,9 +164,9 @@ def ncf2point_source(ncffile, outpath):
             names=['ione1', 'ione2', 'kcell', 'flow', 'plmht'],
             formats=['>i', '>i', '>i', '>f', '>f']))
         props = np.ones((1,), dtype=np.dtype(
-            [('SPAD', '>i', 1),
-             ('DATA', time_prop_fmt, nstk),
-             ('EPAD', '>i', 1)]))
+            [('SPAD', '>i', (1,)),
+             ('DATA', time_prop_fmt, (nstk,)),
+             ('EPAD', '>i', (1,))]))
         props['SPAD'] = props['EPAD'] = props.dtype.itemsize - 8
         props['DATA']['ione1'] = ncffile.variables['IONE'][di]
         props['DATA']['ione2'] = ncffile.variables['ITWO'][di]

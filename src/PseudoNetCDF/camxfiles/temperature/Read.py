@@ -166,7 +166,6 @@ class temperature(PseudoNetCDFFile):
         while pos < rflen:
             yield pos
             pos += inc
-        raise StopIteration
 
     def __surfmaps(self):
         for pos in self.__surfpos():
@@ -184,7 +183,6 @@ class temperature(PseudoNetCDFFile):
         while pos < rflen:
             yield pos
             pos += inc
-        raise StopIteration
 
     def __airmaps(self):
         for pos in self.__airpos():
@@ -257,7 +255,7 @@ class TestRead(unittest.TestCase):
                           3.05787415e+02, 3.06698334e+02, 3.01333618e+02,
                           3.03411346e+02, 3.05317505e+02, 3.06446869e+02,
                           3.05815948e+02], dtype='f').reshape(2, 3, 4, 5)
-        self.assert_((tempfile.variables['AIRTEMP'] == check_at).all())
+        self.assertTrue((tempfile.variables['AIRTEMP'] == check_at).all())
 
 
 if __name__ == '__main__':

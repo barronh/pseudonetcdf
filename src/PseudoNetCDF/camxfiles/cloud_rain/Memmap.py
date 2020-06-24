@@ -248,7 +248,7 @@ class TestMemmap(unittest.TestCase):
                         0.00000000e+00, 2.26519203e+01, 4.96763992e+00,
                         0.00000000e+00, 0.00000000e+00, 0.00000000e+00],
                        dtype='f').reshape(2, 3, 4, 5)
-        self.assert_((crfile.variables['COD'] == checkv).all())
+        self.assertTrue((crfile.variables['COD'] == checkv).all())
 
     def testNCF2CR(self):
         import PseudoNetCDF.testcase

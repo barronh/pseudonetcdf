@@ -362,7 +362,7 @@ class TestMemmap(unittest.TestCase):
 
     def testAvg(self):
         import PseudoNetCDF.testcase
-        self.assert_(uamiv.isMine(
+        self.assertTrue(uamiv.isMine(
             PseudoNetCDF.testcase.camxfiles_paths['uamiv']))
         emissfile = uamiv(PseudoNetCDF.testcase.camxfiles_paths['uamiv'])
         emissfile.variables['TFLAG']
@@ -374,7 +374,7 @@ class TestMemmap(unittest.TestCase):
              3.90250643e-04, 6.18023798e-04, 3.36963218e-04, 0.00000000e+00,
              1.85579920e-04, 1.96825975e-04, 2.16468165e-04, 2.19882189e-04],
             dtype='f').reshape(1, 1, 4, 5)
-        self.assert_((v == checkv).all())
+        self.assertTrue((v == checkv).all())
 
     def testClose(self):
         import PseudoNetCDF.testcase

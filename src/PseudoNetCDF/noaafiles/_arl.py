@@ -861,12 +861,19 @@ class arlpackedbit(PseudoNetCDFFile):
         return basemap_from_proj4(myprojstr, **kwds)
 
     def plot(self, *args, **kwds):
+        """
+        See PseudoNetCDF.PseudoNetCDFFile.plot. For this file,
+        the default plottype is 'x-y'
+        """
         kwds.setdefault('plottype', 'x-y')
         ax = PseudoNetCDFFile.plot(self, *args, **kwds)
         if kwds['plottype'] == 'x-y':
             map_kw = kwds.get('map_kw', None)
-            if map_kw is None:
+            if map_kw is False:
+                return ax
+            elif map_kw is None or map_kw is True:
                 map_kw = {}
+
             try:
                 map_kw = map_kw.copy()
                 coastlines = map_kw.pop('coastlines', True)

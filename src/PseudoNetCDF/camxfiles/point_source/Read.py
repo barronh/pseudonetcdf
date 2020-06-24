@@ -347,7 +347,7 @@ class TestRead(unittest.TestCase):
         emissfile = point_source(
             PseudoNetCDF.testcase.camxfiles_paths['point_source'])
         v = emissfile.variables['NO2']
-        self.assert_((v[:] == array(
+        self.assertTrue((v[:] == array(
             [0.00000000e+00, 3.12931000e+02, 1.23599997e+01, 0.00000000e+00,
              5.27999992e+01, 0.00000000e+00, 3.12931000e+02, 1.23599997e+01,
              0.00000000e+00, 5.27999992e+01], dtype='f').reshape(2, 5)).all())
