@@ -499,9 +499,15 @@ class bpch_base(PseudoNetCDFFile):
         ax_kw : keywords for the axes to be created
         plot_kw : keywords for the plot (plot, scatter, or pcolormesh) to be
                   created
-        cbar_kw : keywords for the colorbar
-        map_kw : keywords for the getMap routine, which is only used with
-                 plottype='longitude-latitude'
+        cbar_kw : dictionary or bool or None
+            keywords for the colorbar; if True or None, use defaults.
+            If False, do not create a colorbar
+        map_kw : dictionary or bool or None
+            keywords for the getMap routine, which is only used with
+            map capable dimensions (ie, plottype='longitude-latitude')
+            If True or None, use default configuration dict(countries=True,
+            coastlines=True, states=False, counties=False). If False,
+            do not draw a map.
         dimreduction : dimensions not being used in the plot are removed
                        using applyAlongDimensions(dimkey=dimreduction) where
                        each dimenions
@@ -516,10 +522,10 @@ class bpch_base(PseudoNetCDFFile):
         if plot_kw is None:
             plot_kw = {}
 
-        if cbar_kw is None:
+        if cbar_kw is None or cbar_kw is True:
             cbar_kw = {}
 
-        if map_kw is None:
+        if map_kw is None or map_kw is True:
             map_kw = {}
 
         apply2dim = {}
@@ -593,7 +599,8 @@ class bpch_base(PseudoNetCDFFile):
         if dimpos[xkey] < dimpos[ykey]:
             vals = vals.T
         p = ax.pcolormesh(x, y, vals, **plot_kw)
-        ax.figure.colorbar(p, label=varunit, **cbar_kw)
+        if cbar_kw is not False:
+            ax.figure.colorbar(p, label=varunit, **cbar_kw)
         if ykey == 'pressure':
             ax.set_ylim(y.max(), y.min())
         dfmt = plt.matplotlib.dates.AutoDateFormatter(
@@ -604,7 +611,7 @@ class bpch_base(PseudoNetCDFFile):
             ax.xaxis.set_major_formatter(dfmt)
         if ykey == 'time':
             ax.yaxis.set_major_formatter(dfmt)
-        if plottype == 'longitude-latitude':
+        if plottype == 'longitude-latitude' and map_kw is not False:
             try:
                 bmap = myf.getMap(**map_kw)
                 bmap.drawcoastlines(ax=ax)

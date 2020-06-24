@@ -76,7 +76,11 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         """
         if maptype.startswith('basemap'):
             from PseudoNetCDF.coordutil import basemap_from_proj4
-            if maptype.endswith('_auto'):
+            if (
+                maptype.endswith('_auto') and
+                'longitude_bounds' in self.variables and
+                'latitude_bounds' in self.variables
+            ):
                 # Get edges for bounding
                 lonb = self.variables['longitude_bounds']
                 latb = self.variables['latitude_bounds']
@@ -1154,7 +1158,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             print('')
         return outf
 
-    def plot(self, varkey, plottype='longitude-latitude', ax_kw=None,
+    def plot(self, varkey, plottype=None, ax_kw=None,
              plot_kw=None, cbar_kw=None, map_kw=None, dimreduction='mean'):
         """
         Parameters
@@ -1162,19 +1166,24 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         varkey : string
             the variable to plot
         plottype : string
+            any dimension name pair delimited by a hyphen (e.g.,
             longitude-latitude, latitude-pressure, longitude-pressure,
-            vertical-profile, time-longitude, time-latitude, time-pressure
-            default, longitude-latitude
+            vertical-profile, time-longitude, time-latitude, time-pressure)
+            defaults to the last two dimensions.
         ax_kw : dictionary
             keywords for the axes to be created
         plot_kw : dictionary
             keywords for the plot (plot, scatter, or pcolormesh) to be
             created
-        cbar_kw : dictionary
-            keywords for the colorbar
-        map_kw : dictionary
+        cbar_kw : dictionary or bool or None
+            keywords for the colorbar; if True or None, use defaults.
+            If False, do not create a colorbar
+        map_kw : dictionary or bool or None
             keywords for the getMap routine, which is only used with
-            plottype='longitude-latitude'
+            map capable dimensions (ie, plottype='longitude-latitude')
+            If True or None, use default configuration dict(countries=True,
+            coastlines=True, states=False, counties=False). If False,
+            do not draw a map.
         dimreduction : string or function
             dimensions not being used in the plot are removed using
             applyAlongDimensions(dimkey=dimreduction) where each dimenions
@@ -1188,16 +1197,23 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         if plot_kw is None:
             plot_kw = {}
 
-        if cbar_kw is None:
+        if cbar_kw is None or cbar_kw is True:
             cbar_kw = {}
 
-        if map_kw is None:
+        if map_kw is None or map_kw is True:
             map_kw = {}
-        else:
+        elif map_kw is not False:
             map_kw = map_kw.copy()
 
         apply2dim = {}
         var = self.variables[varkey]
+        if plottype is None:
+            vdims = var.dimensions
+            if len(vdims) > 1:
+                plottype = '-'.join(var.dimensions[-2:][::-1])
+            else:
+                plottype = var.dimensions[0] + '-profile'
+
         varunit = varkey
         if hasattr(var, 'units'):
             varunit += ' ' + var.units.strip()
@@ -1212,7 +1228,12 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                     apply2dim[dimkey] = dimreduction
 
         if len(apply2dim) > 0:
-            myf = self.subsetVariables([varkey])\
+            subsetkeys = [varkey]
+            if xkey in self.variables:
+                subsetkeys.append(xkey)
+            if ykey in self.variables:
+                subsetkeys.append(ykey)
+            myf = self.subsetVariables(subsetkeys)\
                       .applyAlongDimensions(**apply2dim)
             var = myf.variables[varkey]
             dimlens = dict([(dk, len(self.dimensions[dk]))
@@ -1257,8 +1278,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         if dimpos[xkey] < dimpos[ykey]:
             vals = vals.T
         p = ax.pcolormesh(x, y, vals, **plot_kw)
-        cbar_kw.setdefault('label', varunit)
-        ax.figure.colorbar(p, **cbar_kw)
+        if cbar_kw is not False:
+            cbar_kw.setdefault('label', varunit)
+            ax.figure.colorbar(p, **cbar_kw)
         if xkey == 'time':
             ax.xaxis.set_major_formatter(
                 plt.matplotlib.dates.AutoDateFormatter(
@@ -1271,7 +1293,11 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                     plt.matplotlib.dates.AutoDateLocator()
                 )
             )
-        if plottype == 'longitude-latitude':
+        mappabledims = (
+            plottype == 'longitude-latitude' or
+            plottype == 'lon-lat'
+        )
+        if mappabledims and map_kw is not False:
             try:
                 map_kw = map_kw.copy()
                 coastlines = map_kw.pop('coastlines', True)
@@ -2144,7 +2170,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             raise ValueError(
                 'Must be ignore, skip or error; received {}'.format(missing))
 
-        new = set(self._operator_exclude_vars + tuple(keys))
+        new = tuple(set(self._operator_exclude_vars).union(set(keys)))
         try:
             self._operator_exclude_vars = new
         except Exception:
@@ -2472,6 +2498,8 @@ class netcdf(PseudoNetCDFFile, NetCDFFile):
         self.__dict__['_mode'] = kwds.get('mode', 'r')
         self.__dict__['_operator_exclude_vars'] = ()
         self.__dict__['_varopt'] = {}
+        coords = [k for k in self.dimensions if k in self.variables]
+        self.setCoords(coords)
 
     @property
     def _mode(self):
