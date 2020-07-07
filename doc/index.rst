@@ -35,3 +35,4 @@ aware spatial and temporal processing, some inspired by xarray and pandas.
    readers
    installing
    api
+   modules
