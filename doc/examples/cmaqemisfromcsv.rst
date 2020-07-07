@@ -6,9 +6,10 @@ Make CMAQ Emissions from a CSV File
 Make a CMAQ emissions input for NOx from a CSV file with latitude,
 longitude, and hour-of-day coordinates.  The code below will make a file from
 a `GRIDDESC` file. Then, add a variable for NO and NO2. Finally, populate the
-file adn save it as an IOAPI-like file.
+file and save it as an IOAPI-like file.
 
 .. code-block:: python
+
   import PseudoNetCDF as pnc
   import pandas as pd
   import numpy as np
@@ -70,3 +71,4 @@ file adn save it as an IOAPI-like file.
 
   # Save out
   tmpf.save('emis.nc', format='NETCDF3_CLASSIC')
+
