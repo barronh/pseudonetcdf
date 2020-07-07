@@ -14,8 +14,7 @@ sphinx:
 #  configuration: mkdocs.yml
 
 # Optionally build your docs in additional formats such as PDF
-#formats:
-#  - pdf
+formats: []
 
 conda:
   environment: ci/requirements-py36-netcdf4-dev.yml
