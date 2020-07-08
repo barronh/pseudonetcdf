@@ -13,4 +13,5 @@ three examples used to illustrate its power.
    examples/forecaststack.rst
    examples/mapping.rst
    examples/cmaqemisfromcsv.rst
+   examples/cmaqbcon.rst
    examples/oddsandends.rst
