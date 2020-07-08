@@ -1,3 +1,4 @@
+"""
 .. CMAQ Odds and Ends
 
 Odds and Ends
@@ -15,7 +16,8 @@ which has one variable (DUMMY). Note that this file also has latitude
 and longitude as variables that IOAPI would not see.
 
 .. code-block:: python
-
+"""
+if True:
   import PseudoNetCDF as pnc
   
   # create a GRIDDESC
@@ -34,7 +36,7 @@ and longitude as variables that IOAPI would not see.
   gf.updatemeta()
   gf.save('test.nc').close()
 
-
+"""
 Create a Variable Like Another
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -75,7 +77,9 @@ Then, we sort the polygons by distance to preferentially test close states.
 When a match is found, the loop is broken and moves on to the next cell.
 
 .. code-block:: python
+"""
 
+if True:
   import PseudoNetCDF as pnc
   import numpy as np
   import shapefile
@@ -128,6 +132,20 @@ When a match is found, the loop is broken and moves on to the next cell.
                   maskvar = f.variables[maskkey]
                   maskvar[0, 0, j, i] = 1
                   break
-  
+
+  # Add a synthesized variable  
+  f.eval("""
+  NOAA_NW = US_ID + US_OR + US_WA
+  NOAA_NW.long_name = 'NOAA_NW'
+  NOAA_NW.var_desc = 'NOAA Northwest Climate Region: Idaho, Oregon and Washingon'
+  """, inplace=True)
+
   # Save as a mask file
+  if 'DUMMY' in f.variables:
+      del f.variables['DUMMY']
+  delattr(f, 'VAR-LIST')
+  f.updatemeta()
+  f.SDATE = -635
+  f.TSTEP = 0
+  f.variables['TFLAG'][:, :, 0] = f.SDATE
   f.save('mask.nc')
