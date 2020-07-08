@@ -1,4 +1,3 @@
-"""
 .. CMAQ Odds and Ends
 
 Odds and Ends
@@ -16,8 +15,7 @@ which has one variable (DUMMY). Note that this file also has latitude
 and longitude as variables that IOAPI would not see.
 
 .. code-block:: python
-"""
-if True:
+  
   import PseudoNetCDF as pnc
   
   # create a GRIDDESC
@@ -36,7 +34,6 @@ if True:
   gf.updatemeta()
   gf.save('test.nc').close()
 
-"""
 Create a Variable Like Another
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -77,9 +74,7 @@ Then, we sort the polygons by distance to preferentially test close states.
 When a match is found, the loop is broken and moves on to the next cell.
 
 .. code-block:: python
-"""
-
-if True:
+  
   import PseudoNetCDF as pnc
   import numpy as np
   import shapefile
