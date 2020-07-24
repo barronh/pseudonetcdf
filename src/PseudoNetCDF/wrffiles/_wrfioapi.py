@@ -13,11 +13,7 @@ class wrf_base(PseudoNetCDFFile):
 
     def getCoordFile(self):
         from ..conventions.ioapi import add_cf_from_wrfioapi
-        varkeys = [
-            key for key in self.variables
-            if key.startswith('XLAT') or key.startswith('XLONG')
-        ]
-        cf = self.subsetVariables(varkeys)
+        cf = self.subsetVariables(list(self.getCoords()))
         add_cf_from_wrfioapi(cf)
         coordkeys = [k for k in cf.variables if k in cf.dimensions]
         coordkeys.extend(['longitude', 'latitude', 'time'])
@@ -26,6 +22,17 @@ class wrf_base(PseudoNetCDFFile):
 
     def __init__(self, *args, **kwds):
         super().__init__(self, *args, **kwds)
+        self._defCoords()
+
+    def _defCoords(self):
+        coordkeys = [
+            key for key in self.variables
+            if (
+                key.startswith('XLAT') or key.startswith('XLONG') or
+                key.startswith('Times')
+            )
+        ]
+        self.setCoords(coordkeys)
 
     def plot(self, varkey, **kwds):
         var = self.variables[varkey]
@@ -87,7 +94,7 @@ class wrf_base(PseudoNetCDFFile):
 class wrf(wrf_base, netcdf):
     def __init__(self, *args, **kwds):
         netcdf.__init__(self, *args, **kwds)
-        self.setCoords(['Times'])
+        self._defCoords()
 
     def _newlike(self):
         if self.get_dest() is not None:
