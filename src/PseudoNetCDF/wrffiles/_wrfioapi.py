@@ -60,7 +60,7 @@ class wrf_base(PseudoNetCDFFile):
             mymap_kw.pop('countries', True)
             mymap_kw.pop('states', False)
             mymap_kw.pop('counties', False)
-            bmap = cf.getMap(**mymap_kw)
+            bmap = self.getMap(**mymap_kw)
             if map_kw.get('coastlines', True):
                 bmap.drawcoastlines(ax=ax)
             if map_kw.get('countries', True):
@@ -72,16 +72,36 @@ class wrf_base(PseudoNetCDFFile):
 
         return ax
 
+    def val2idx(self, *args, **kwds):
+        cf = self.getCoordFile()
+        return PseudoNetCDFFile.val2idx(cf, *args, **kwds)
+
+    def xy2ll(self, *args, **kwds):
+        cf = self.getCoordFile()
+        return PseudoNetCDFFile.xy2ll(cf, *args, **kwds)
+
+    def ll2xy(self, *args, **kwds):
+        cf = self.getCoordFile()
+        return PseudoNetCDFFile.ll2xy(cf, *args, **kwds)
+
+    def ll2ij(self, *args, **kwds):
+        cf = self.getCoordFile()
+        return PseudoNetCDFFile.ll2ij(cf, *args, **kwds)
+
+    def ij2ll(self, *args, **kwds):
+        cf = self.getCoordFile()
+        return PseudoNetCDFFile.ij2ll(cf, *args, **kwds)
+
     def getMap(self, maptype='basemap_auto', **kwds):
         mykwds = kwds.copy()
+        cf = self.getCoordFile()
         if maptype.endswith('_auto'):
-            cf = self.getCoordFile()
             x = cf.variables['x']
             y = cf.variables['y']
             xmax = x.max() - x.min()
             ymax = y.max() - y.min()
-            lllon, lllat = self.xy2ll(0, 0)
-            urlon, urlat = self.xy2ll(xmax, ymax)
+            lllon, lllat = cf.xy2ll(0, 0)
+            urlon, urlat = cf.xy2ll(xmax, ymax)
             mykwds.setdefault('llcrnrlon', lllon)
             mykwds.setdefault('llcrnrlat', lllat)
             mykwds.setdefault('urcrnrlon', urlon)
