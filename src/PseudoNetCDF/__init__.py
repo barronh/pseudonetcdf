@@ -36,7 +36,8 @@ __all__ = ['aermodfiles',
            'toms',
            'units',
            'warn',
-           'woudcfiles']
+           'woudcfiles',
+           'wrffiles']
 
 from PseudoNetCDF.pncwarn import warn
 
@@ -62,6 +63,7 @@ from . import racmfiles
 from . import textfiles
 from . import toms
 from . import woudcfiles
+from . import wrffiles
 
 from ._getreader import anyfile, pncopen, pncmfopen, getreader, getreaderdict
 from ._getwriter import pncwrite
