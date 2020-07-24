@@ -56,11 +56,11 @@ def add_cf_from_wrfioapi(ifile, coordkeys=[]):
         wevar = ifile.createVariable('west_east', 'd', ('west_east',))
         wevar.units = 'm'
         wevar.standard_name = 'west_east'
-        wevar[:] = xvar[:] - xvar[:].min()
+        wevar[:] = xvar[:] + gridvar.false_easting
         snvar = ifile.createVariable('south_north', 'd', ('south_north',))
         snvar.units = 'm'
         snvar.standard_name = 'south_north'
-        snvar[:] = yvar[:] - yvar[:].min()
+        snvar[:] = yvar[:] + gridvar.false_northing
     except Exception as e:
         raise e
     for k in ifile.variables.keys():
@@ -107,8 +107,8 @@ def get_proj(ifile):
         var.latitude_of_projection_origin = ifile.MOAD_CEN_LAT
     elif projname == 'polar_stereographic':
         var.straight_vertical_longitude_from_pole = ifile.STAND_LON
-        var.latitude_of_projection_origin = ifile.TRUELAT1
-        var.standard_parallel = ifile.MOAD_CEN_LAT
+        var.latitude_of_projection_origin = ifile.MOAD_CEN_LAT
+        var.standard_parallel = ifile.TRUELAT1
 
     from PseudoNetCDF.coordutil import getproj4_from_cf_var
     from mpl_toolkits.basemap import pyproj
