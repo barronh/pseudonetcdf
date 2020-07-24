@@ -30,7 +30,7 @@ install:
 
 script:
   - flake8 --ignore=W605,W504,E741  src/PseudoNetCDF
-  - python -OO -c "import PseudoNetCDF";
+  - python -O -c "import PseudoNetCDF";
   - python -m PseudoNetCDF.test;
   - pytest src/PseudoNetCDF
 
