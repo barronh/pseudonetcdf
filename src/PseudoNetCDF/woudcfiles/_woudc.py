@@ -97,7 +97,7 @@ class woudcsonde(PseudoNetCDFFile):
         if hasattr(path, 'readline'):
             myf = path
         else:
-            myf = open(path, 'rU')
+            myf = open(path, 'r')
 
         meta = ''
         li = 0
