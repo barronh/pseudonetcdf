@@ -63,7 +63,7 @@ Example:
     def isMine(cls, path):
         try:
             ffifmt = openf(
-                path, 'rU', encoding='utf-8').readline().strip()[-4:]
+                path, 'r', encoding='utf-8').readline().strip()[-4:]
             if hasattr(ffifmt, 'decode'):
                 ffifmt = ffifmt.decode()
             testfmt = u'1001'
@@ -92,7 +92,7 @@ Returns:
         """
         lastattr = None
         PseudoNetCDFFile.__init__(self)
-        f = openf(path, 'rU', encoding=encoding)
+        f = openf(path, 'r', encoding=encoding)
         missing = []
         units = []
         line = f.readline()
