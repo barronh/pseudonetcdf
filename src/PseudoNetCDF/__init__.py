@@ -13,6 +13,7 @@ __all__ = ['aermodfiles',
            'cmaqfiles',
            'conventions',
            'coordutil',
+           'eosfiles',
            'epafiles',
            'geoschemfiles',
            'icarttfiles',
@@ -54,6 +55,7 @@ from . import aermodfiles
 from . import camxfiles
 from . import ceilometerfiles
 from . import cmaqfiles
+from . import eosfiles
 from . import epafiles
 from . import geoschemfiles
 from . import icarttfiles
