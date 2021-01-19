@@ -8,6 +8,11 @@ three examples used to illustrate its power.
 
 .. toctree::
       :maxdepth: 1
-   :glob:
 
-   examples/*
+   examples/pairmodobs.rst
+   examples/forecaststack.rst
+   examples/mapping.rst
+   examples/cmaqemisfromcsv.rst
+   examples/cmaqwindow.rst
+   examples/cmaqbcon.rst
+   examples/oddsandends.rst
