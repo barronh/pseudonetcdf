@@ -28,13 +28,15 @@ def add_cf_from_wrfioapi(ifile, coordkeys=[]):
         invar = ifile.variables['Times']
         for pk in invar.ncattrs():
             setattr(outvar, pk, getattr(invar, pk))
-        outvar.units = 'seconds since 1985-01-01T00:00:00Z'
+        outvar.units = 'seconds since 1985-01-01 00:00:00Z'
         invals = invar[:].copy().view('S19')
+        invals = np.char.decode(invals)
         sdate = np.datetime64('1985-01-01T00:00:00Z')
         timesince = (np.array([np.datetime64(time[0].replace(
             '_', 'T') + 'Z') for time in invals]) - sdate).astype('l')
         outvar[:] = timesince
-    except Exception:
+    except Exception as e:
+        print(e)
         pass
     # add projection
     grid_mapping_name = get_proj(ifile)
@@ -51,6 +53,14 @@ def add_cf_from_wrfioapi(ifile, coordkeys=[]):
         yvar.standard_name = 'y'
         yvar[:] = np.arange(yvar.size, dtype='d') * ifile.DY - \
             gridvar.false_northing + ifile.DY / 2
+        wevar = ifile.createVariable('west_east', 'd', ('west_east',))
+        wevar.units = 'm'
+        wevar.standard_name = 'west_east'
+        wevar[:] = xvar[:] + gridvar.false_easting
+        snvar = ifile.createVariable('south_north', 'd', ('south_north',))
+        snvar.units = 'm'
+        snvar.standard_name = 'south_north'
+        snvar[:] = yvar[:] + gridvar.false_northing
     except Exception as e:
         raise e
     for k in ifile.variables.keys():
@@ -97,8 +107,8 @@ def get_proj(ifile):
         var.latitude_of_projection_origin = ifile.MOAD_CEN_LAT
     elif projname == 'polar_stereographic':
         var.straight_vertical_longitude_from_pole = ifile.STAND_LON
-        var.latitude_of_projection_origin = ifile.TRUELAT1
-        var.standard_parallel = ifile.MOAD_CEN_LAT
+        var.latitude_of_projection_origin = ifile.MOAD_CEN_LAT
+        var.standard_parallel = ifile.TRUELAT1
 
     from PseudoNetCDF.coordutil import getproj4_from_cf_var
     from mpl_toolkits.basemap import pyproj
