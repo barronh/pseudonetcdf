@@ -66,7 +66,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             out = out.groups[key]
         else:
             out = out.variables[key]
-        
+
         return out
 
     def getMap(self, maptype='basemap_auto', **kwds):
