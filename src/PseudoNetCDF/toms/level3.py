@@ -30,7 +30,7 @@ def _groupdict(reo, line):
 def cdtoms(path, outfile=None):
     if outfile is None:
         outfile = PseudoNetCDFFile()
-    inlines = open(path, 'rU').readlines()
+    inlines = open(path, 'r').readlines()
     dayline = inlines[0]
     daygrp = _groupdict(dayre, dayline)
 

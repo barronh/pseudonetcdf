@@ -12,7 +12,7 @@ _camx_units = {
 
 
 def get_chemparam_names(chemparampath):
-    inlines = open(chemparampath, 'rU').readlines()
+    inlines = open(chemparampath, 'r').readlines()
     startaero = None
     for li, l in enumerate(inlines):
         if l[:14] == "     Gas Spec ":
