@@ -1,7 +1,8 @@
 __all__ = ['eos5']
 
 from collections import OrderedDict
-from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariable, pncopen
+from ..core._files import PseudoNetCDFFile
+from ..core._variables import PseudoNetCDFVariable
 
 
 class _dummyvar(object):
@@ -64,8 +65,10 @@ class eos5(PseudoNetCDFFile):
         kwds : mappable
             keyword arguments for pncopen
         """
+        from .. import pncopen
         self._tmpf = pncopen(path, *args, format='netcdf', **kwds)
-        object.__setattr__(self, 'groups', OrderedDict())
+        self.groups['HDFEOS'] = PseudoNetCDFFile()
+        self.groups['HDFEOS'].groups['SWATHS'] = PseudoNetCDFFile()
         self.parse_struct()
 
     def parse_struct(self):
@@ -75,17 +78,19 @@ class eos5(PseudoNetCDFFile):
         for line in linei:
             key, val = _keyval(line)
             if key == 'GROUP' and val.startswith('SWATH_'):
-                tmpf = PseudoNetCDFFile()
+                swathf = PseudoNetCDFFile()
+                swathf.groups['Geolocation Fields'] = PseudoNetCDFFile()
+                swathf.groups['Data Fields'] = PseudoNetCDFFile()
                 # tmp1f = PseudoNetCDFFile()
                 useddims = set()
             elif key == 'SwathName':
-                self.groups[val] = tmpf
-                SwathName = tmpf.SwathName = val
+                SwathName = swathf.SwathName = val
+                self['HDFEOS/SWATHS'].groups[SwathName] = swathf
             elif key == 'DimensionName':
                 dkey = val
                 dummy, val = _keyval(next(linei))
                 assert(dummy == 'Size')
-                tmpf.createDimension(dkey, int(val))
+                swathf.createDimension(dkey, int(val))
                 # tmp1f.createDimension(dkey, 1)
             elif (
                 key == 'OBJECT' and (
@@ -112,20 +117,20 @@ class eos5(PseudoNetCDFFile):
                 #         for k in tmpvar.ncattrs()
                 #     ])
                 # )
-                tmpf.variables[fldname] = _dummyvar(fldname, tmpvar, dims)
+                tmpvar = self[grpkey].variables[fldname] = _dummyvar(fldname, tmpvar, dims)
                 for di, dimkey in enumerate(dims):
-                    dim = tmpf.dimensions[dimkey]
+                    dim = swathf.dimensions[dimkey]
                     useddims.add(dimkey)
                     if dim.isunlimited():
-                        size = tmpf.variables[fldname].shape[di]
-                        newdim = tmpf.createDimension(dimkey, size)
+                        size = tmpvar.shape[di]
+                        newdim = swathf.createDimension(dimkey, size)
                         newdim.isunlimited(True)
             elif key == 'END_GROUP' and val.startswith('SWATH_'):
-                for dk in list(tmpf.dimensions):
+                for dk in list(swathf.dimensions):
                     if dk not in useddims:
-                        del tmpf.dimensions[dk]
+                        del swathf.dimensions[dk]
                         # del tmp1f.dimensions[dk]
-                self.groups[SwathName] = tmpf
+                self.groups['HDFEOS'].groups[SwathName] = swathf
 
 
 if __name__ == '__main__':
