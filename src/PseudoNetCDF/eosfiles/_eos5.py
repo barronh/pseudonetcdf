@@ -1,6 +1,5 @@
 __all__ = ['eos5']
 
-from collections import OrderedDict
 from ..core._files import PseudoNetCDFFile
 from ..core._variables import PseudoNetCDFVariable
 
@@ -117,7 +116,9 @@ class eos5(PseudoNetCDFFile):
                 #         for k in tmpvar.ncattrs()
                 #     ])
                 # )
-                tmpvar = self[grpkey].variables[fldname] = _dummyvar(fldname, tmpvar, dims)
+                tmpvar = self[grpkey].variables[fldname] = _dummyvar(
+                    fldname, tmpvar, dims
+                )
                 for di, dimkey in enumerate(dims):
                     dim = swathf.dimensions[dimkey]
                     useddims.add(dimkey)
