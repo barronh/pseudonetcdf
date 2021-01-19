@@ -56,6 +56,19 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
     using the Scientific.IO.NetCDF.NetCDFFile interface.
     """
 
+    def __getitem__(self, key):
+        keys = key.split('/')
+        out = self
+        for key in keys[:-1]:
+            out = out.groups[key]
+        key = keys[-1]
+        if key in out.groups:
+            out = out.groups[key]
+        else:
+            out = out.variables[key]
+        
+        return out
+
     def getMap(self, maptype='basemap_auto', **kwds):
         """
         Description
@@ -2063,6 +2076,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
 
     def __new__(mcl, *args, **kwds):
         new = super(PseudoNetCDFFile, mcl).__new__(mcl)
+        new.groups = OrderedDict()
         new.variables = OrderedDict()
         new.dimensions = PseudoNetCDFDimensions()
         new._ncattrs = ()
