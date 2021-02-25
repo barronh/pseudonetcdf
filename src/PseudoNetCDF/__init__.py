@@ -15,6 +15,7 @@ __all__ = ['aermodfiles',
            'coordutil',
            'epafiles',
            'geoschemfiles',
+           'grib',
            'icarttfiles',
            'MetaNetCDF',
            'noaafiles',
@@ -57,6 +58,7 @@ from . import ceilometerfiles
 from . import cmaqfiles
 from . import epafiles
 from . import geoschemfiles
+from . import grib
 from . import icarttfiles
 from . import noaafiles
 from . import racmfiles
