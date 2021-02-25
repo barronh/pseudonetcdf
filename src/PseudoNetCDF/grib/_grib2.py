@@ -1,7 +1,6 @@
 from collections import OrderedDict
 import numpy as np
-from .. import PseudoNetCDFFile, PseudoNetCDFVariable
-from .. import PseudoNetCDFVariables
+from .. import PseudoNetCDFFile, PseudoNetCDFVariables
 from datetime import datetime, timedelta
 import re
 
@@ -106,12 +105,139 @@ class grib2(PseudoNetCDFFile):
         for dk, dv in zip(tmpvar.dimensions, tmpvar.shape):
             self.createDimension(dk, dv)
 
+    def ll2ij(self, lon, lat, bounds='ignore', clean='none'):
+        """
+        Converts lon/lat to 0-based indicies (0,M), (0,N)
+
+        Parameters
+        ----------
+        lon : scalar or iterable
+            longitudes in decimal degrees
+        lat : scalar or iterable
+            latitudes in decimal degrees
+        bounds : string
+            ignore, error, warn if i,j are out of domain
+        clean : string
+            none - return values regardless of bounds;
+            mask - mask values out of bounds;
+            clip - return min(max(0, v), nx - 1)
+
+        Returns
+        -------
+        i, j : indices (0-based) for variables
+        """
+        lon = np.asarray(lon)
+        lat = np.asarray(lat)
+        proj = self.getproj()
+        x, y = proj(lon, lat)
+        i = self.val2idx('x', x)
+        yp = self.variables['y'][:]
+        if np.diff(yp).mean() < 0:
+            fp = np.arange(yp.size)[::-1] + 0.5
+            jf = np.interp(y, yp[::-1], fp, left=yp.size, right=0)
+            j = jf.round(0).astype('i')
+        else:
+            j = self.val2idx('y', y)
+
+        nx = len(self.dimensions['x'])
+        ny = len(self.dimensions['y'])
+
+        if clip:
+            i = np.minimum(np.maximum(0, i), nx - 1)
+            j = np.minimum(np.maximum(0, j), ny - 1)
+        if mask:
+            i = np.ma.masked_greater(np.ma.masked_less(i, 0), nx - 1)
+            j = np.ma.masked_greater(np.ma.masked_less(j, 0), ny - 1)
+
+        return i, j
+
+    def ij2ll(self, i, j):
+        """
+        Converts i, j to lon, lat (no false easting/northing)
+        using cell centers assuming 0-based i/j
+
+        Parameters
+        ----------
+        i : scalar/iterable
+            indicies (0-based) for the west-east dimension
+        j : scalar/iterable
+            indicies (0-based) for the south-north dimension
+
+        Returns
+        -------
+        lon, lat : scalars or iterables
+            longitudes and latitudes in decimal degrees
+        """
+        x = self.variables['x'][i]
+        y = self.variables['y'][j]
+        return self.xy2ll(x, y)
+
+    def xy2ll(self, x, y):
+        """
+        Converts x, y to lon, lat (no false easting/northing)
+
+        Parameters
+        ----------
+        x : scalar or iterable
+            projected west-east coordinates
+        y : scalar or iterable
+            projected south-north coordinates
+
+        Returns
+        -------
+        lon, lat : scalars or iterables
+            longitudes and latitudes in decimal degrees
+        """
+        x = np.asarray(x)
+        y = np.asarray(y)
+
+        p = self.getproj()
+        lon, lat = p(x, y, inverse=True)
+        return lon, lat
+
+    def getproj(self, withgrid=False, projformat='pyproj'):
+        """
+        Description
+
+        Parameters
+        ----------
+        withgrid : boolean
+            use grid units instead of meters
+        projformat : string
+            'pyproj' (default), 'proj4' or 'wkt' allows function to
+            return a pyproj projection object or a string in the
+            format of proj4 or WKT
+
+        Returns
+        -------
+        proj : string pyproj.Proj
+             (wkt, proj4) or pyprojProj (pyproj)
+        """
+        if withgrid:
+            raise ValueError('grib2 getproj with grid')
+
+        if projformat == 'proj4':
+            return self.proj4string
+        elif projformat != 'pyproj':
+            raise ValueError(
+                'grib2 getproj only supports projformat="pyproj"'
+                + f'; got {projformat}'
+            )
+
+        import pyproj
+        pstr = self.proj4string
+        proj = pyproj.Proj(pstr, preserve_units=withgrid)
+
+        return proj
+
     def _getvar(self, key):
         k2u = self._key2unit
         myunits = k2u[key]
         assert(all([myunits[0] == u for u in myunits]))
         zdim = '_'.join(key.split('_')[1:])
-        out = self.createVariable(key, 'f', ('time', zdim, 'y', 'x'), fill_value=-1e20)
+        out = self.createVariable(
+            key, 'f', ('time', zdim, 'y', 'x'), fill_value=-1e20
+        )
         unit = myunits[0]
         if unit.startswith('[') and unit.endswith(']'):
             unit = unit[1:-1]
