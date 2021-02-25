@@ -111,13 +111,13 @@ class grib2(PseudoNetCDFFile):
         myunits = k2u[key]
         assert(all([myunits[0] == u for u in myunits]))
         zdim = '_'.join(key.split('_')[1:])
-        out = PseudoNetCDFVariable(self, key, 'f', ('time', zdim, 'y', 'x'))
+        out = self.createVariable(key, 'f', ('time', zdim, 'y', 'x'), fill_value=-1e20)
         unit = myunits[0]
         if unit.startswith('[') and unit.endswith(']'):
             unit = unit[1:-1]
         out.units = unit
         out.standard_name = key
-        out[:] = np.nan
+        out[:] = np.ma.masked
         times = self.variables['time'][:]
         levels = None
         for idx in self._key2raster[key]:
