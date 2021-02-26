@@ -9,12 +9,39 @@ _shortnamere = re.compile('(.+)-(.+)')
 
 
 def _parseforecastseconds(md):
+    """
+    Convenience function to parse time in seconds from a raster
+    GetMetadata_Dict
+
+    Arguments
+    ---------
+    md : dict
+        Dictionary representing the raster metadata.
+
+    Returns
+    -------
+    fs : float
+        Forecast time in seconds
+    """
     fs = md['GRIB_FORECAST_SECONDS']
     fs = fs.replace(' sec', '').replace(' s', '')
     return float(fs)
 
 
 def _parseshortname(md):
+    """
+    Convenience function to parse coordinate name, level, and bounds from
+    a raster GetMetadata_Dict result.
+
+    Arguments
+    ---------
+    md : dict
+        Dictionary representing the raster metadata.
+
+    Returns
+    -------
+    coordname, level, bounds
+    """
     shortname = md['GRIB_SHORT_NAME']
     m = _shortnamere.match(shortname)
     if m is None:
@@ -27,14 +54,18 @@ def _parseshortname(md):
         low, hi = level.split('-')
         mid = (float(low) + float(hi)) / 2
         level = mid
+        bounds = tuple(sorted([low, hi]))
+        coordname = coordname + f'_{low}-{hi}'
     else:
         try:
             level = float(level)
+            bounds = None
         except Exception:
             coordname = shortname
             level = 0
+            bounds = None
 
-    return coordname, level
+    return coordname, level, bounds
 
 
 class grib2(PseudoNetCDFFile):
@@ -80,12 +111,16 @@ class grib2(PseudoNetCDFFile):
         k2u = self._key2unit = OrderedDict()
         times = set()
         zcoords = OrderedDict()
+        zbounds = OrderedDict()
         for i in range(1, nr + 1):
             mesg = ds.GetRasterBand(i)
             md = mesg.GetMetadata()
-            coordname, level = _parseshortname(md)
+            coordname, level, lbounds = _parseshortname(md)
             zcoords.setdefault(coordname, set())
             zcoords[coordname].add(level)
+            if lbounds is not None:
+                zbounds.setdefault(coordname, set())
+                zbounds[coordname].add(lbounds)
             key = md['GRIB_ELEMENT'] + '_' + coordname
             unit = md['GRIB_UNIT']
             k2r.setdefault(key, [])
@@ -114,24 +149,107 @@ class grib2(PseudoNetCDFFile):
         tv.description = 'GRIB_FORECAST_SECONDS'
         tv.units = refdate.strftime('seconds since %Y-%m-%dT%H:%M:%S+0000')
         tv[:] = sorted(times)
-        ulx, xres, xskew, uly, yskew, yres = ds.GetGeoTransform()
-        lrx = ulx + (ds.RasterXSize * xres)
-        lry = uly + (ds.RasterYSize * yres)
         for zk, zvals in zcoords.items():
             zv = self.createVariable(zk, 'd', (zk,))
             zv.units = zk
             zv[:] = sorted(zvals)
+
+        for zk, zbnds in zbounds.items():
+            try:
+                zv = self.createVariable(zk + '_bounds', 'd', (zk, 'nv'))
+                zv.units = zk
+                zv[:] = list(sorted(zbnds))
+            except Exception:
+                import warnings
+                warnings.warn(f'Unable to add {zk} bounds values {zbnds}')
+
         xv = self.createVariable('x', 'd', ('x',))
         xv.bounds = 'x_bounds'
-        xbv = self.createVariable('x_bounds', 'd', ('x', 'nv'))
-        xedges = np.linspace(ulx, lrx, ds.RasterXSize + 1)
+        self.createVariable('x_bounds', 'd', ('x', 'nv'))
+        yv = self.createVariable('y', 'd', ('y',))
+        yv.bounds = 'y_bounds'
+        self.createVariable('y_bounds', 'd', ('y', 'nv'))
+        ulx, xres, xskew, uly, yskew, yres = ds.GetGeoTransform()
+        self.reset_proj(
+            ulx=ulx, xres=xres, xskew=xskew,
+            uly=uly, yres=yres, yskey=yskew
+        )
+
+    def plot(self, *args, plottype='x-y', **kwds):
+        """Thin wrapper around PseudoNetCDFFile to set default plottype to x-y
+        For docs see PseudoNetCDFFile.plot
+        """
+        return PseudoNetCDFFile.plot(self, *args, **kwds)
+
+    def reset_proj(self, proj4string=None, wrf=False, **kwds):
+        """
+        Overwrite the coordinate variables x/y to change the projected
+        coordinates.
+
+        Arguments
+        ---------
+        proj4string : str
+            A new projection definition. It may change any part.
+        wrf : bool
+            If True, then recalculate the urx and ury using a symmetric WRF
+            domain based on lat_0 and lon_0 as the origin of counting.
+        kwds : keywords
+            Potential key words include ulx, uly, xres, yres, lrx, or lry
+            Other keywords that are passed will be ignored.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This will rarely be used.
+
+        It was added due to previous experience where the projection did not
+        accurately represent the data, which was on a WRF domain. The grib
+        radius was approximate, but could be improved to match WRF.
+        """
+        from osgeo import osr
+        kwds = kwds.copy()
+
+        xv = self.variables['x']
+        xbv = self.variables['x_bounds']
+        yv = self.variables['y']
+        ybv = self.variables['y_bounds']
+        xres = (xbv[:, 1] - xbv[:, 0]).mean(0)
+        yres = (ybv[:, 1] - ybv[:, 0]).mean(0)
+        ulx = xbv[0, 0]
+        uly = ybv[0, 0]
+        kwds.setdefault('xres', xres)
+        kwds.setdefault('yres', yres)
+        kwds.setdefault('ulx', ulx)
+        kwds.setdefault('uly', uly)
+
+        nx = xv.size
+        ny = yv.size
+
+        if proj4string is not None:
+            self.proj4string = proj4string
+            srs = osr.SpatialReference()
+            srs.ImportFromProj4(self.proj4string)
+            self.wkstring = srs.ExportToWkt()
+        if wrf:
+            x0 = -(nx + 1) / 2
+            y0 = -(ny + 1) / 2
+            ulx, uly = x0 * kwds['xres'], y0 * kwds['yres']
+            print(ulx, uly)
+            kwds.setdefault('ulx', ulx)
+            kwds.setdefault('uly', uly)
+
+        lrx = kwds['ulx'] + (nx * kwds['xres'])
+        lry = kwds['uly'] + (ny * kwds['yres'])
+        kwds.setdefault('lrx', lrx)
+        kwds.setdefault('lry', lry)
+        xedges = np.linspace(kwds['ulx'], kwds['lrx'], nx + 1)
         xbv[:, 0] = xedges[:-1]
         xbv[:, 1] = xedges[1:]
         xv[:] = xbv.mean(1)
-        yv = self.createVariable('y', 'd', ('y',))
-        yv.bounds = 'y_bounds'
-        ybv = self.createVariable('y_bounds', 'd', ('y', 'nv'))
-        yedges = np.linspace(uly, lry, ds.RasterYSize + 1)
+        yedges = np.linspace(kwds['uly'], kwds['lry'], ny + 1)
         ybv[:, 0] = yedges[:-1]
         ybv[:, 1] = yedges[1:]
         yv[:] = ybv.mean(1)
@@ -262,6 +380,21 @@ class grib2(PseudoNetCDFFile):
         return proj
 
     def _getvar(self, key):
+        """
+        Internal function used to create variables on the fly.
+
+        Arguments
+        ---------
+        key : str
+            Grib Raster band key, usually GRIB_ELEMENT hyphen and the last
+            part of GRIB_SHORT_NAME that cooresponds to the z-coordinate name
+
+        Returns
+        -------
+        pvar : PseudoNetCDFVariable
+            A PseudoNetCDFVariable with metadata and values read from the
+            RasterBands
+        """
         k2u = self._key2unit
         myunits = k2u[key]
         assert(all([myunits[0] == u for u in myunits]))
@@ -280,7 +413,7 @@ class grib2(PseudoNetCDFFile):
         for idx in self._key2raster[key]:
             mesg = self._dataset.GetRasterBand(idx)
             md = mesg.GetMetadata_Dict()
-            zk, level = _parseshortname(md)
+            zk, level, lbounds = _parseshortname(md)
             if levels is None:
                 levels = self.variables[zk]
 
