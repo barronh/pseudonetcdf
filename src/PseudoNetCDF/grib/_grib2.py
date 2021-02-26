@@ -76,6 +76,7 @@ class grib2(PseudoNetCDFFile):
 
         self.createDimension('x', ds.RasterXSize)
         self.createDimension('y', ds.RasterYSize)
+        self.createDimension('nv', 2)
         self.reftime = md['GRIB_REF_TIME'].strip()
         assert(self.reftime.endswith('sec UTC'))
         refseconds = int(self.reftime.split()[0])
@@ -97,13 +98,19 @@ class grib2(PseudoNetCDFFile):
             zv.units = zk
             zv[:] = sorted(zvals)
         xv = self.createVariable('x', 'd', ('x',))
-        xv[:] = np.linspace(ulx, lrx, ds.RasterXSize)
+        xv.bounds = 'x_bounds'
+        xbv = self.createVariable('x_bounds', 'd', ('x', 'nv'))
+        xedges = np.linspace(ulx, lrx, ds.RasterXSize + 1)
+        xbv[:, 0] = xedges[:-1]
+        xbv[:, 1] = xedges[1:]
+        xv[:] = xbv.mean(1)
         yv = self.createVariable('y', 'd', ('y',))
-        yv[:] = np.linspace(uly, lry, ds.RasterYSize)
-        key = keys[0]
-        tmpvar = self.variables[key]
-        for dk, dv in zip(tmpvar.dimensions, tmpvar.shape):
-            self.createDimension(dk, dv)
+        yv.bounds = 'y_bounds'
+        ybv = self.createVariable('y_bounds', 'd', ('y', 'nv'))
+        yedges = np.linspace(uly, lry, ds.RasterYSize + 1)
+        ybv[:, 0] = yedges[:-1]
+        ybv[:, 1] = yedges[1:]
+        yv[:] = ybv.mean(1)
 
     def ll2ij(self, lon, lat, bounds='ignore', clean='none'):
         """
