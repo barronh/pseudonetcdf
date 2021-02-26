@@ -39,6 +39,30 @@ def _parseshortname(md):
 
 class grib2(PseudoNetCDFFile):
     def __init__(self, path):
+        """
+        Arguments
+        ---------
+        path : str
+            path to a grib2 file
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        Initializes PseudoNetCDFFile that uses raster bands to construct 4D
+        data.
+          * Times are based on parsing the GRIB_FORECAST_SECONDS, and
+          * Levels are based on parsing the GRIB_SHORT_NAME
+            * Short names are parsed to split the z-coordinate system (e.g.,
+              HTGL, ISBL, SFC, etc) from the numeric descriptor.
+            * Numeric descriptors are used to construct coordinates
+          * Variables are the combination of GRIB_ELEMENT and the z-coordinate
+            system. this allows for multiple variables (e.g., TMP_SFC and
+            TMP_HTGL). Each variable will have all bands with that coordinate
+            type.
+        """
         try:
             from osgeo import gdal
             from osgeo import osr
@@ -149,10 +173,10 @@ class grib2(PseudoNetCDFFile):
         nx = len(self.dimensions['x'])
         ny = len(self.dimensions['y'])
 
-        if clip:
+        if clean == 'clip':
             i = np.minimum(np.maximum(0, i), nx - 1)
             j = np.minimum(np.maximum(0, j), ny - 1)
-        if mask:
+        if clean == 'mask':
             i = np.ma.masked_greater(np.ma.masked_less(i, 0), nx - 1)
             j = np.ma.masked_greater(np.ma.masked_less(j, 0), ny - 1)
 
