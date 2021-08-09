@@ -17,7 +17,8 @@ pip
 
 .. code-block:: bash
 
-  pip install http://github.com/barronh/pseudonetcdf.git
+  pip install pseudonetcdf
+  
 
 Prerequisites
 ~~~~~~~~~~~~~
