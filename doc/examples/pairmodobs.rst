@@ -48,7 +48,7 @@ ozone. Unzip both to a working directory.
   j = aqssubset['J'].values
   k = aqssubset['K'].values
   t = aqssubset['T'].values
-  aqssubset['ModOzone'] = aqf.variables['O3'][t, k, j, i]
+  aqssubset['ModOzone'] = aqf.variables['O3'][:][t, k, j, i]
 
   # Print Mean and Correlation
   print(aqssubset.filter(['Sample Measurement', 'ModOzone']).mean())
