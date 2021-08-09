@@ -12,8 +12,9 @@ PseudoNetCDF provides read, plot, and sometimes write capabilities for atmospher
 * ICARTT Data files (ffi1001)
 * CMAQ Files
 * GEOS-Chem Binary Punch/NetCDF files
+* and many more, for a full list of formats see `pncdump --list-formats`
 
-for a full list of formats see `pncdump --list-formats`
+Documentation on PseudoNetCDF is available at https://pseudonetcdf.readthedocs.io/
 
 # Example code
 
