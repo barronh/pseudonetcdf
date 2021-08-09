@@ -12,6 +12,38 @@ The `PseudoNetCDF.plot` function makes maps when `plottype` is `longitude-latitu
 
 To illustrate, how it works the three following code segments perform the same task using successively less code. In all three examples, the ACONC.nc file is an IOAPI output from CMAQ that contains the NO2 variable.
 
+Mapping with pycno
+~~~~~~~~~~~~~~~~~~
+
+This is the recommended method for creating a map for most air quality models, because it has the fewest dependencies. This example assumes a CMAQ or CAMx formatted NetCDF file. It requires `matplotlib`, `pyproj`, and `pycno` -- all of which can be installed on most systems with the simple command `pip install pyproj pseudonetcdf pycno`.
+
+.. code-block:: python
+
+  import matplotlib.pyplot as plt
+  import matplotlib.colors as mc
+  import PseudoNetCDF as pnc
+  import pycno
+  
+  path = 'ACONC.nc'
+  inputf = pnc.pncopen(path, format='uamiv')
+  # Create a Computer Network Overlay map drawing object
+  cno = pycno.cno(proj=inputf.getproj(withgrid=True))
+
+  # Get the variable to plot
+  plotvar = inputf.variables['NO2']
+  # take the first layer (0-based index), and then average time (the 0th dimension)
+  plotvals = plotvar[:, 0].mean(0)
+
+  # Create a tile plot
+  p = plt.pcolormesh(plotvals, norm=mc.LogNorm())
+  # Add the map
+  cno.draw()
+  # Add a colorbar
+  plt.colorbar(p, label=f'{plotvar.long_name.strip()} ({plotvar.units.strip()})')
+  # Save the figure
+  plt.savefig('example.png')  
+
+
 Mapping with Basemap
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -47,6 +79,7 @@ The first segment uses `netCDF4` to open the file, `numpy` to construct coordina
   
   plt.pcolormesh(x, y, lay1avgtime, norm=mc.LogNorm())
   plt.colorbar(label=varkey + ' ' + var.units.strip())
+  plt.savefig('example.png')
 
 Mapping Partial PseudoNetCDF
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,6 +109,7 @@ The second code segment uses `PseudoNetCDF` to open and get the map, but is othe
   
   plt.pcolormesh(x, y, lay1avgtime, norm=mc.LogNorm())
   plt.colorbar(label=varkey + ' ' + var.units.strip())
+  plt.savefig('example.png')
 
 
 Mapping with PseudoNetCDF Only
@@ -91,6 +125,7 @@ This third version relies on `PseudoNetCDF` to perform all steps.
   path = 'ACONC.nc'
   f = pnc.pncopen(path, format='ioapi')
   ax = f.plot('NO2', plot_kw=dict(norm=mc.LogNorm()))
+  plt.savefig('example.png')
 
 
 Additional Options for PseudoNetCDF.plot
