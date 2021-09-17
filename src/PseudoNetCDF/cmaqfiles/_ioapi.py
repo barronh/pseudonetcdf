@@ -535,7 +535,7 @@ Varable failures: {var_failed}
             if len(varliststr_old) % 16 == 0:
                 ivars = int(len(varliststr_old) // 16)
                 varlist = [
-                    varliststr_old[ivar*16:ivar*16+16].strip()
+                    varliststr_old[ivar * 16:ivar * 16 + 16].strip()
                     for ivar in range(ivars)
                 ]
             else:
