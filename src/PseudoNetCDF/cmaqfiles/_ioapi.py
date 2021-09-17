@@ -62,6 +62,128 @@ class ioapi_base(PseudoNetCDFFile):
         super().__init__(self, *args, **kwds)
         self.setCoords(['TFLAG'])
 
+    def audit_meta(self, fail='warn'):
+        """
+        Audit the IOAPI metadata. Checks existence of properties, dimensions
+        internal consistency of properties and dimensions, and character
+        lengths
+
+        Arguments
+        ---------
+        fail : bool
+           If fail, 'warn' or 'error' or 'ignore'
+
+        Returns
+        -------
+        passing, audit, var_audit:
+            audit stats and audit checklist dictionaries
+
+        """
+        audit = {}
+        dimlens = {}
+        for dk, dv in self.dimensions.items():
+            dimlens[dk] = len(dv)
+
+        for dk in ['TSTEP', 'DATE-TIME', 'PERIM', 'LAY', 'VAR', 'ROW', 'COL']:
+            audit[f'has_{dk}'] = dk in dimlens
+            if dk in ('TSTEP', 'DATE-TIME', 'PERIM'):
+                continue
+            audit[f'has_N{dk}S'] = hasattr(self, f'N{dk}S')
+            if audit[f'has_N{dk}S']:
+                audit[dk] = getattr(self, f'N{dk}S', 0) == dimlens[dk]
+
+        if audit['has_ROW'] and audit['has_COL'] and not audit['has_PERIM']:
+            del audit['has_PERIM']
+            hdims = ('ROW', 'COL')
+        elif audit['has_PERIM'] and not (audit['has_COL'] or audit['has_ROW']):
+            del audit['has_ROW']
+            del audit['has_COL']
+            hdims = ('PERIM',)
+
+        varliststr = getattr(self, 'VAR-LIST')
+        audit['VAR-LIST-LEN'] = (self.NVARS * 16) == len(varliststr)
+        checkvarliststr = self.getVarlist(update=False, retval='str')
+        checkvarlist = self.getVarlist(update=False, retval='list')
+        asisvarlist = self.getVarlist(update=False, prune=False, retval='list')
+        for varkey in asisvarlist:
+            audit[f'has_{varkey}'] = varkey in self.variables
+
+        audit['VAR-LIST'] = varliststr == checkvarliststr
+        var_audits = {}
+        proplens = {
+            'units': 16,
+            'long_name': 16,
+            'var_desc': 80,
+        }
+        for vk, var in self.variables.items():
+            var_audit = var_audits[vk] = {}
+            vardims = var.dimensions
+            varshape = var.shape
+            if vk == 'TFLAG':
+                var_audit['right_dims'] = (
+                    vardims == ('TSTEP', 'VAR', 'DATE-TIME')
+                )
+            else:
+                var_audit['right_dims'] = (
+                    vardims == ('TSTEP', 'LAY') + hdims
+                )
+            var_audit['ndims'] = len(varshape) == len(vardims)
+            for dk, vn in zip(vardims, varshape):
+                var_audit[f'shape_{dk}'] = vn == dimlens[dk]
+
+            for pk, pcl in proplens.items():
+                var_audit[f'has_{pk}'] = hasattr(var, pk)
+                var_audit[f'len_{pk}'] = len(getattr(var, pk, '')) == pcl
+
+            var_audit['SUMMARY'] = all(var_audit.values())
+            if vk in checkvarlist:
+                var_audit['INCLUDED'] = True
+                audit[f'var_{vk}'] = var_audit['SUMMARY']
+            else:
+                var_audit['INCLUDED'] = False
+
+        for pk, pcv in _ioapi_defaults.items():
+            hasp = hasattr(self, pk)
+            audit[f'has_{pk}'] = hasp
+            if hasp:
+                typep = isinstance(getattr(self, pk), type(pcv))
+            else:
+                typep = False
+            audit[f'type_{pk}'] = typep
+
+        proplens = {
+            'FILEDESC': 4800,
+            'HISTORY': 4800
+        }
+        for pk, pcl in proplens.items():
+            audit[f'has_{pk}'] = hasattr(self, pk)
+            audit[f'len_{pk}'] = len(getattr(self, pk, '')) <= pcl
+
+        hastflag = 'TFLAG' in self.variables
+        if hastflag:
+            t0 = self.variables['TFLAG'][0, 0]
+            audit['SDATE_TFLAG'] = (t0[0] == self.SDATE) or self.SDATE == -635
+            audit['STIME_TFLAG'] = t0[1] == self.STIME
+
+        audit['has_TFLAG'] = hastflag
+        passing = audit['SUMMARY'] = all(list(audit.values()))
+        if not passing:
+            if fail == 'ignore':
+                pass
+            elif fail == 'warn':
+                warn('Failed meta data audit review settings.')
+            else:
+                failed = str({k: v for k, v in audit.items() if not v})
+                var_failed = str({
+                    vk: {k: v for k, v in vv.items() if not v}
+                    for vk, vv in var_audits.items()
+                })
+                raise ValueError(f"""Failed audit.
+File failures: {failed}
+Varable failures: {var_failed}
+""")
+        return passing, audit, var_audits
+
     def _updatetime(self, write=True, create=False):
         from datetime import datetime
         t = datetime.now()
@@ -90,12 +212,20 @@ class ioapi_base(PseudoNetCDFFile):
                        fill_value=None, **properties):
         """
         Wrapper on PseudoNetCDF.createVariable that updates VAR-LIST,
-        NVARS, VAR, and TFLAG
+        NVARS, VAR, and TFLAG. Also adds long_name, var_desc, and units
+        if not already in properties. long_name and var_desc default to
+        name, while units defaults to unknown
 
         See also
         --------
         see PseudoNetCDFFile.createVariable
         """
+        from copy import copy
+        properties = copy(properties)
+        properties.setdefault('long_name', name.ljust(16))
+        properties.setdefault('var_desc', name.ljust(80))
+        properties.setdefault('units', 'unknown'.ljust(16))
+
         if name == 'TFLAG':
             fill_value = None
         out = PseudoNetCDFFile.createVariable(
@@ -379,27 +509,68 @@ class ioapi_base(PseudoNetCDFFile):
         self._updatetime()
         return keys
 
-    def getVarlist(self, update=True):
+    def getVarlist(self, update=True, prune=True, retval='list'):
         """
         Returns
         -------
         update : boolean
             update files attributes to be consistent
+        prune : bool
+            If True, remove variables that are missing or have
+            names longer than 16 characters
+        retval : str
+            Return formatted string 'str' or list otherwise
 
         Notes
         -----
         If VAR-LIST does not exist, it is added assuming all variables
         with dimensions ('TSTEP', 'LAY', ...) are variables
         """
-        if not hasattr(self, 'VAR-LIST'):
+        if getattr(self, 'VAR-LIST', ''):
             varliststr_old = ''
             varlist = [k for k, v in self.variables.items()
                        if v.dimensions[:2] == ('TSTEP', 'LAY')]
         else:
             varliststr_old = getattr(self, 'VAR-LIST')
-            varlist = [vk for vk in varliststr_old.split()
-                       if vk in self.variables]
-        varliststr_new = ''.join([vk.ljust(16) for vk in varlist])
+            if len(varliststr_old) % 16 == 0:
+                ivars = int(len(varliststr_old) // 16)
+                varlist = [
+                    varliststr_old[ivar*16:ivar*16+16].strip()
+                    for ivar in range(ivars)
+                ]
+            else:
+                varlist = varliststr_old.split()
+
+        # To be in the VAR-LIST, the variable must be shorter than 16
+        # and be present and have the typical IOAPI dimensions
+        vardimchecks = {}
+        for vk in varlist:
+            if vk in self.variables:
+                dims = tuple(self.variables[vk].dimensions)
+            else:
+                dims = ()
+            check = (
+                dims == ('TSTEP', 'LAY', 'ROW', 'COL')
+                or dims == ('TSTEP', 'LAY', 'PERIM')
+            )
+            if check and len(vk) > 16:
+                warn(
+                    f'{vk} name is too long ({len(vk)});'
+                    + ' not included in VAR-LIST'
+                )
+                check = False
+
+            vardimchecks[vk] = check
+
+        varlist = [
+            vk for vk in varlist
+            if prune and (
+                vardimchecks[vk]
+                and len(vk) <= 16
+            )
+        ]
+
+        varliststr_new = ''.join([vk.ljust(16)[:16] for vk in varlist])
         if update and varliststr_new != varliststr_old:
             setattr(self, 'VAR-LIST', varliststr_new)
         if update and len(varlist) != self.NVARS:
@@ -416,7 +587,10 @@ class ioapi_base(PseudoNetCDFFile):
         else:
             self.createDimension('VAR', newdimlen)
 
-        return varlist
+        if retval == 'str':
+            return varliststr_new
+        else:
+            return varlist
 
     def updatetflag(self, overwrite=None, startdate=None, tstep=None):
         if overwrite is None:
