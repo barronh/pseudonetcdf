@@ -1741,6 +1741,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                 return time
         elif 'TFLAG' in self.variables.keys():
             dates = self.variables['TFLAG'][:][:, 0, 0]
+            if (dates == -635).any():
+                warn('Dates of -635 set to 1970001')
+                dates[dates == -635] = 1970001
             times = self.variables['TFLAG'][:][:, 0, 1]
             yyyys = (dates // 1000).astype('i')
             jjj = dates % 1000
@@ -1766,8 +1769,13 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                 out = np.append(out, out[-1] + dt)
         elif hasattr(self, 'SDATE') and hasattr(self, 'STIME') and \
                 hasattr(self, 'TSTEP') and 'TSTEP' in self.dimensions:
+            jdate = self.SDATE
+            if jdate < 1:
+                warn(f'SDATE was {jdate}; using 1970001')
+                jdate = 1970001
+            hhmmss = self.STIME
             refdate = datetime.strptime(
-                '%07d %06d+0000' % (self.SDATE, self.STIME), '%Y%j %H%M%S%z')
+                '%07d %06d+0000' % (jdate, hhmmss), '%Y%j %H%M%S%z')
             tstepstr = '%06d' % self.TSTEP
             timeincr = timedelta(seconds=int(tstepstr[-2:])) + \
                 timedelta(minutes=int(tstepstr[-4:-2])) + \

@@ -447,6 +447,8 @@ class ioapi_base(PseudoNetCDFFile):
 
             tvar[:, :, 0] = yyyyjjj[:, None].repeat(tvar.shape[1], 1)
             tvar[:, :, 1] = hhmmss[:, None].repeat(tvar.shape[1], 1)
+            self.SDATE = tvar[0, 0, 0]
+            self.STIME = tvar[0, 0, 1]
         else:
             if len(self.dimensions['VAR']) == 0:
                 return
