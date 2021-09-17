@@ -58,7 +58,7 @@ class griddesc(ioapi_base):
         self.FTYPE = FTYPE
         self.VGTYP = VGTYP
         self.GDNAM = GDNAM
-        self.VGTOP = VGTOP
+        self.VGTOP = np.float32(VGTOP)
         self.VGLVLS = np.array(VGLVLS, dtype='f')
         self.NLAYS = len(VGLVLS) - 1
         self.UPNAM = 'GRIDDESC'
@@ -123,11 +123,10 @@ class griddesc(ioapi_base):
             )
         self.createVariable(
             'DUMMY', 'f', dims,
-            units='none',
+            units='none'.ljust(16),
             long_name='DUMMY'.ljust(16),
             var_desc='DUMMY'.ljust(80)
         )
-        setattr(self, 'VAR-LIST', 'DUMMY'.ljust(16))
 
         if self._synthvars is None:
             oldkeys = set(self.variables)
@@ -138,6 +137,9 @@ class griddesc(ioapi_base):
         pnc.conventions.ioapi.add_cf_from_ioapi(self)
         if self._synthvars is None:
             self._synthvars = set(self.variables).difference(oldkeys)
+
+        self.updatemeta()
+        self.getVarlist()
 
 
 if __name__ == '__main__':
