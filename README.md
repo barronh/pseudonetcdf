@@ -1,6 +1,6 @@
 # PseudoNetCDF like NetCDF except for many scientific format backends
 
-[![Build Status](https://travis-ci.org/barronh/pseudonetcdf.svg?branch=master)](https://travis-ci.org/barronh/pseudonetcdf)
+[![Build Status](https://app.travis-ci.com/barronh/pseudonetcdf.svg?branch=master)](https://app.travis-ci.com/github/barronh/pseudonetcdf)
 
 # Overview
 
