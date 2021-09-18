@@ -892,7 +892,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                 var = outf.copyVariable(
                     vv, key=vk, dimensions=ndims, withdata=False)
 
-                var[...] = np.expand_dims(self.variables[vk][...], axis=bi)
+                var[...] = np.expand_dims(vv[...], axis=bi)
         return outf
 
     def reorderDimensions(self, oldorder, neworder, inplace=False):
