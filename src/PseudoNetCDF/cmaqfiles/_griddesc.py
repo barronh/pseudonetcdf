@@ -1,4 +1,6 @@
 import PseudoNetCDF as pnc
+import os
+import io
 from datetime import datetime
 from collections import OrderedDict
 import numpy as np
@@ -27,10 +29,43 @@ class griddesc(ioapi_base):
 ' '
 """
     def __init__(
-        self, path, GDNAM=None, VGLVLS=[1., 0.], VGTOP=5000., FTYPE=1, VGTYP=7
+        self, path, GDNAM=None, VGLVLS=(1., 0.), VGTOP=5000., FTYPE=1, VGTYP=7,
+        withcf=True, **prop_kw
     ):
+        """
+        Arguments
+        ---------
+        path : str or file-like
+            If path is has a read method, it will be used directly.
+            If path is a path to a file on disk, it will be read.
+            If none of these, it will try to treat the path as content.
+        GDNAM : str
+            Name the grid to be used. If not provided, the first will be used
+        VGLVLS : tuple
+            Iterable of layer edge (k+1) values for the vertical grid.
+        VGTOP : float
+            Top of vertical grid.
+        VGTYP : int
+            Determines the units of VGLVLS and VGTOP. (7: WRF sigma-p,
+            6: meters asl, for more details see IOAPI documentation)
+        FTYPE : int
+            1 for gridded; 2 for boundary
+        withcf : bool
+            If true, then CF compatible variables that describe dimensions
+            and time are added.
+        prop_kw: mappable
+            Can provide additional IOAPI (or other) properties for the file.
+        """
         now = datetime.now()
-        gdlines = open(path, 'r').read().strip().split('\n')
+        if hasattr(path, 'read'):
+            gdf = path
+            path = '<inline>'
+        elif os.path.exists(path):
+            gdf = open(path, 'r')
+        else:
+            gdf = io.StringIO(path)
+            path = '<inline>'
+        gdlines = gdf.read().strip().split('\n')
         gdlines = [line.strip() for line in gdlines]
         assert(gdlines[0] == "' '")
         assert(gdlines[-1] == "' '")
@@ -73,10 +108,17 @@ class griddesc(ioapi_base):
         self.STIME = 0
         self.TSTEP = 0
         self._synthvars = None
-        self.addtime()
-        self.setgrid()
+        # user supplied properties should overwrite
+        # defaults above
+        for pk, pv in prop_kw.items():
+            self.setncattr(pk, pv)
 
-    def setgrid(self, key=None):
+        self.addtime()
+        self.setgrid(withcf=withcf)
+        self.updatemeta()
+        self.getVarlist()
+
+    def setgrid(self, key=None, withcf=True):
         if key is None:
             if self.GDNAM is None:
                 self.GDNAM = key = list(self._grd)[0]
@@ -86,7 +128,7 @@ class griddesc(ioapi_base):
         prj = self._prj[grd['PRJNAME']]
         self.setncatts(prj)
         self.setncatts(grd)
-        self.adddims()
+        self.adddims(withcf=withcf)
 
     def addtime(self):
         self.createDimension('TSTEP', 1).setunlimited(True)
@@ -100,10 +142,10 @@ class griddesc(ioapi_base):
             long_name='TFLAG'.ljust(16),
             var_desc='TFLAG'.ljust(80)
         )
-        tflag[:, :, 0] = -635
+        tflag[:, :, 0] = self.SDATE
         tflag[:, :, 1] = 0
 
-    def adddims(self):
+    def adddims(self, withcf=True):
         for k in 'LAY ROW COL PERIM'.split():
             if k in self.dimensions:
                 del self.dimensions[k]
@@ -134,12 +176,10 @@ class griddesc(ioapi_base):
             for key in self._synthvars:
                 if key in self.variables:
                     del self.variables[key]
-        pnc.conventions.ioapi.add_cf_from_ioapi(self)
+        if withcf:
+            pnc.conventions.ioapi.add_cf_from_ioapi(self)
         if self._synthvars is None:
             self._synthvars = set(self.variables).difference(oldkeys)
-
-        self.updatemeta()
-        self.getVarlist()
 
 
 if __name__ == '__main__':
