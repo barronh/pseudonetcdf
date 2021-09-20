@@ -1,4 +1,5 @@
 import PseudoNetCDF as pnc
+from PseudoNetCDF.pncwarn import warn
 import os
 import io
 from datetime import datetime
@@ -6,10 +7,10 @@ from collections import OrderedDict
 import numpy as np
 from ._ioapi import ioapi_base
 
-_prjp = ['GDTYP', 'P_ALP', 'P_BET', 'P_GAM', 'XCENT', 'YCENT']
-_grdp = [
+_prjp = ('GDTYP', 'P_ALP', 'P_BET', 'P_GAM', 'XCENT', 'YCENT')
+_grdp = (
     'PRJNAME', 'XORIG', 'YORIG', 'XCELL', 'YCELL', 'NCOLS', 'NROWS', 'NTHIK'
-]
+)
 
 
 class griddesc(ioapi_base):
@@ -30,7 +31,8 @@ class griddesc(ioapi_base):
 """
     def __init__(
         self, path, GDNAM=None, VGLVLS=(1., 0.), VGTOP=5000., FTYPE=1, VGTYP=7,
-        withcf=True, **prop_kw
+        SDATE=-635, STIME=0, TSTEP=0, var_kwds=None, nsteps=1, withcf=True,
+        **prop_kw
     ):
         """
         Arguments
@@ -48,8 +50,20 @@ class griddesc(ioapi_base):
         VGTYP : int
             Determines the units of VGLVLS and VGTOP. (7: WRF sigma-p,
             6: meters asl, for more details see IOAPI documentation)
+        SDATE : int
+            Starting julian date (YYYYJJJ) or -635
+        STIME : int
+            Starting time as HHMMSS
+        TSTEP : int
+            IOAPI time step in HHMMSS
         FTYPE : int
             1 for gridded; 2 for boundary
+        var_kwds: tuple, list, or dict
+            See setdefvars; Defaults to {'DUMMY': {'units': 'unknown'}}
+        nsteps : int
+            Number of time steps to use. Should be coupled with SDATE, STIME,
+            and TSTEP. nsteps > 1 is not compatible with time independent
+            (TSTEP=0) or SDATE=-635
         withcf : bool
             If true, then CF compatible variables that describe dimensions
             and time are added.
@@ -104,48 +118,120 @@ class griddesc(ioapi_base):
         self.CTIME = int(now.strftime('%H%M%S'))
         self.WDATE = self.CDATE
         self.WTIME = self.CTIME
-        self.SDATE = -635
-        self.STIME = 0
-        self.TSTEP = 0
+        self.SDATE = SDATE
+        self.STIME = STIME
+        self.TSTEP = TSTEP
         self._synthvars = None
         # user supplied properties should overwrite
         # defaults above
         for pk, pv in prop_kw.items():
             self.setncattr(pk, pv)
 
-        self.addtime()
+        self.setdefvars(var_kwds)
+        self.addtime(nsteps)
         self.setgrid(withcf=withcf)
         self.updatemeta()
         self.getVarlist()
 
+    def setdefvars(self, var_kwds):
+        """
+        Arguments
+        ---------
+        var_kwds: list, tuple, or dictionary
+            Variables with units or just a list of variables
+        """
+
+        if var_kwds is None:
+            var_kwds = {'DUMMY': {'units': 'unknown'}}
+        elif isinstance(var_kwds, (tuple, list)):
+            var_kwds = {k: 'unknown' for k in var_kwds}
+        elif hasattr(var_kwds, 'items'):
+            pass
+        else:
+            raise TypeError('var_kwds should be a list, tuple, or dictionary')
+
+        self._var_kwds = {}
+        for k, v in var_kwds.items():
+            if isinstance(v, str):
+                self._var_kwds[k] = {'units': v.ljust(16)}
+            elif isinstance(v, dict):
+                self._var_kwds[k] = {_k: _v for _k, _v in v.items()}
+            else:
+                raise TypeError(
+                    'var_kwds should have either str values (units) or a dict'
+                    + ' of all properties'
+                )
+
     def setgrid(self, key=None, withcf=True):
+        """
+        Remakes the file to use the grid specified by key
+
+        Arguments
+        ---------
+        key : str
+            GDNAM to set the grid of the file
+        withcf : bool
+            Passed to adddims
+
+        Returns
+        -------
+        None
+        """
         if key is None:
             if self.GDNAM is None:
-                self.GDNAM = key = list(self._grd)[0]
-            else:
-                key = self.GDNAM
+                self.GDNAM = list(self._grd)[0]
+
+            key = self.GDNAM.strip()
         grd = self._grd[key]
-        prj = self._prj[grd['PRJNAME']]
+        prj = self._prj[grd['PRJNAME'].strip()]
         self.setncatts(prj)
         self.setncatts(grd)
         self.adddims(withcf=withcf)
 
-    def addtime(self):
-        self.createDimension('TSTEP', 1).setunlimited(True)
+    def addtime(self, nsteps=1):
+        """
+        Adds TFLAG variable
+
+        Arguments
+        ---------
+        nsteps : int
+            Number of time steps to add
+
+        Returns
+        -------
+        None
+        """
+        self.createDimension('TSTEP', nsteps).setunlimited(True)
         self.createDimension('DATE-TIME', 2)
-        self.createDimension('VAR', 1)
-        self.NVARS = 1
-        tflag = self.createVariable(
-            'TFLAG', 'i',
-            ('TSTEP', 'VAR', 'DATE-TIME'),
-            units='<YYYYJJJ,HHMMSS>',
-            long_name='TFLAG'.ljust(16),
-            var_desc='TFLAG'.ljust(80)
-        )
-        tflag[:, :, 0] = self.SDATE
-        tflag[:, :, 1] = 0
+        self.NVARS = len(self._var_kwds)
+        self.createDimension('VAR', self.NVARS)
+        try:
+            self.updatetflag(overwrite=True)
+        except Exception as e:
+            warn(str(e))
+            tflag = self.createVariable(
+                'TFLAG', 'i',
+                ('TSTEP', 'VAR', 'DATE-TIME'),
+                units='<YYYYJJJ,HHMMSS>',
+                long_name='TFLAG'.ljust(16),
+                var_desc='TFLAG'.ljust(80)
+            )
+            tflag[:, :, 0] = self.SDATE
+            tflag[:, :, 1] = 0
 
     def adddims(self, withcf=True):
+        """
+        Add spatial dimensions
+
+        Arguments
+        ---------
+        withcf : bool
+            If true, add Climate and Forecasting convention variables
+
+        Returns
+        -------
+        None
+        """
         for k in 'LAY ROW COL PERIM'.split():
             if k in self.dimensions:
                 del self.dimensions[k]
@@ -163,12 +249,14 @@ class griddesc(ioapi_base):
                 'Only supports FTYPE 1 or 2; received ' +
                 str(self.FTYPE)
             )
-        self.createVariable(
-            'DUMMY', 'f', dims,
-            units='none'.ljust(16),
-            long_name='DUMMY'.ljust(16),
-            var_desc='DUMMY'.ljust(80)
-        )
+
+        for vark, varkw in self._var_kwds.items():
+            self.createVariable(
+                vark, 'f', dims,
+                long_name=vark.ljust(16),
+                var_desc=vark.ljust(80),
+                **varkw
+            )
 
         if self._synthvars is None:
             oldkeys = set(self.variables)
