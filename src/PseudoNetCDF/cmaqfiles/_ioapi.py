@@ -238,7 +238,7 @@ Varable failures: {var_failed}
         PseudoNetCDFFile.setncatts(self, attdict)
         self._updatetime()
 
-    def createVariable(self, name, type, dimensions,
+    def createVariable(self, name, type='f', dimensions=None,
                        fill_value=None, **properties):
         """
         Wrapper on PseudoNetCDF.createVariable that updates VAR-LIST,
@@ -252,10 +252,19 @@ Varable failures: {var_failed}
         see PseudoNetCDFFile.createVariable
         """
         from copy import copy
+
+        ftype = getattr(self, 'FTYPE', 1)
+        hasperim = 'PERIM' in self.dimensions
+        if dimensions is None:
+            dimensions = ('TSTEP', 'LAY', 'ROW', 'COL')
+            if (ftype == 2) and hasperim:
+                dimensions = ('TSTEP', 'LAY', 'PERIM')
+
         properties = copy(properties)
         properties.setdefault('long_name', name.ljust(16))
         properties.setdefault('var_desc', name.ljust(80))
         properties.setdefault('units', 'unknown'.ljust(16))
+
         for pk, pv in list(properties.items()):
             if pk in ('long_name', 'units'):
                 properties[pk] = pv.ljust(16)
@@ -264,10 +273,13 @@ Varable failures: {var_failed}
 
         if name == 'TFLAG':
             fill_value = None
+
         out = PseudoNetCDFFile.createVariable(
             self, name=name, type=type, dimensions=dimensions,
             fill_value=fill_value, **properties)
+
         self._add2Varlist([name])
+
         return out
 
     def copy(self, props=True, dimensions=True, variables=True, data=True):
