@@ -1903,7 +1903,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             outf = self._copywith(props=True, dimensions=True)
             for varkey in varkeys:
                 varo = self.variables[varkey]
-                newvaro = outf.copyVariable(varo, key=varkey, withdata=True)
+                outf.copyVariable(varo, key=varkey, withdata=True)
         return outf
 
     def sliceDimensions(self, newdims=('POINTS',), verbose=0, **dimslices):
