@@ -79,16 +79,19 @@ class PseudoNetCDFVariable(np.ndarray):
 
     def __str__(self):
         namekeys = ['_name', 'name', 'standard_name', 'long_name']
-        for nck in self.ncattrs():
-            if 'name' in nck:
-                namekeys.append(nck)
-
-        for nck in namekeys:
-            if hasattr(self, nck):
-                var_name = getattr(self, nck)
-                break
+        if hasattr(self, '_name'):
+            var_name = getattr(self, '_name').strip()
         else:
-            var_name = 'unknown'
+            for nck in self.ncattrs():
+                if 'name' in nck:
+                    namekeys.append(nck)
+
+            for nck in namekeys:
+                if hasattr(self, nck):
+                    var_name = getattr(self, nck).strip()
+                    break
+            else:
+                var_name = 'unknown'
 
         var_type = dict(float32='float',
                         float64='double',
@@ -192,6 +195,14 @@ class PseudoNetCDFVariable(np.ndarray):
         """
         if 'values' in kwds.keys():
             result = kwds.pop('values')
+            typecode = result.dtype.char
+            # Adding easy default dimension object;
+            # Avoiding PseudoNetCDFFile due to recursive dependence
+            if parent is None:
+                from ._files import PseudoNetCDFFile
+                parent = PseudoNetCDFFile()
+                for dk, dl in zip(dimensions, result.shape):
+                    parent.createDimension(dk, dl)
         else:
             shape = []
             for d in dimensions:

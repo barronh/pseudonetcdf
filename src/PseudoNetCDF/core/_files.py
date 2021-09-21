@@ -2257,7 +2257,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             copy of var in this file
         """
         if key is None:
-            for propk in ['name', 'standard_name', 'long_name']:
+            for propk in ['_name', 'name', 'standard_name', 'long_name']:
                 if hasattr(var, propk):
                     key = getattr(var, propk)
                     break

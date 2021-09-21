@@ -62,6 +62,36 @@ class ioapi_base(PseudoNetCDFFile):
         super().__init__(self, *args, **kwds)
         self.setCoords(['TFLAG'])
 
+    def __setattr__(self, k, v):
+        """
+        IOAPI has expected data types, which largely conform to the NetCDF3
+        classic data model. For example, integers are int32 and floats are
+        float64. However, VGTOP and VGLVLS are exceptions where the data type
+        is expected to be float32. Further, any character variables will have
+        one of three lengths: 16, 80, 80 * 60.
+        """
+        if k == 'VGTOP':
+            v = np.float32(v)
+        elif k == 'VGLVLS':
+            v = np.asarray(v, dtype='f')
+        elif k in ('FILEDESC', 'HISTORY'):
+            if len(v) > 4800:
+                warn(f'Truncating {k} 4800')
+                v = v[:4800]
+            v = v.ljust(4800)
+        elif k in ('GDNAM', 'UPNAM'):
+            if len(v) > 16:
+                warn(f'Truncating {k} to 16')
+                v = v[:16]
+            v = v.ljust(16)
+        elif k in ('EXEC_ID',):
+            if len(v) > 80:
+                warn(f'Truncating {k} to 80')
+                v = v[:80]
+            v = v.ljust(80)
+
+        super().__setattr__(k, v)
+
     def audit_meta(self, fail='warn'):
         """
         Audit the IOAPI metadata. Checks existence of properties, dimensions
@@ -208,30 +238,48 @@ Varable failures: {var_failed}
         PseudoNetCDFFile.setncatts(self, attdict)
         self._updatetime()
 
-    def createVariable(self, name, type, dimensions,
+    def createVariable(self, name, type='f', dimensions=None,
                        fill_value=None, **properties):
         """
         Wrapper on PseudoNetCDF.createVariable that updates VAR-LIST,
         NVARS, VAR, and TFLAG. Also adds long_name, var_desc, and units
         if not already in properties. long_name and var_desc default to
-        name, while units defaults to unknown
+        name, while units defaults to unknown. These properties will
+        also be adjusted to expected lengths (16, 80, 16).
 
         See also
         --------
         see PseudoNetCDFFile.createVariable
         """
         from copy import copy
+
+        ftype = getattr(self, 'FTYPE', 1)
+        hasperim = 'PERIM' in self.dimensions
+        if dimensions is None:
+            dimensions = ('TSTEP', 'LAY', 'ROW', 'COL')
+            if (ftype == 2) and hasperim:
+                dimensions = ('TSTEP', 'LAY', 'PERIM')
+
         properties = copy(properties)
         properties.setdefault('long_name', name.ljust(16))
         properties.setdefault('var_desc', name.ljust(80))
         properties.setdefault('units', 'unknown'.ljust(16))
 
+        for pk, pv in list(properties.items()):
+            if pk in ('long_name', 'units'):
+                properties[pk] = pv.ljust(16)
+            elif pk in ('var_desc',):
+                properties[pk] = pv.ljust(80)
+
         if name == 'TFLAG':
             fill_value = None
+
         out = PseudoNetCDFFile.createVariable(
             self, name=name, type=type, dimensions=dimensions,
             fill_value=fill_value, **properties)
+
         self._add2Varlist([name])
+
         return out
 
     def copy(self, props=True, dimensions=True, variables=True, data=True):
@@ -261,17 +309,28 @@ Varable failures: {var_failed}
         --------
         see PseudoNetCDFFile.copyVariable
         """
-        outvar = PseudoNetCDFFile.copyVariable(
-            self, var, key=key, dtype=dtype, dimensions=dimensions,
-            fill_value=fill_value, withdata=withdata)
         if key is None:
-            for propk in ['name', 'standard_name', 'long_name']:
+            for propk in ['_name', 'name', 'standard_name', 'long_name']:
                 if hasattr(var, propk):
                     key = getattr(var, propk)
+                    break
             else:
                 raise AttributeError(
                     'varkey must be supplied because var has no name, ' +
                     'standard_name or long_name')
+
+        outvar = PseudoNetCDFFile.copyVariable(
+            self, var, key=key, dtype=dtype, dimensions=dimensions,
+            fill_value=fill_value, withdata=withdata)
+
+        # The long_name should be the same as the copied key
+        outvar.long_name = key.ljust(16)
+        # The var_desc and units should default to the copied variable
+        if not hasattr(outvar, 'var_desc'):
+            outvar.var_desc = key.ljust(80)
+        if not hasattr(outvar, 'units'):
+            outvar.units = 'unknown'.ljust(16)
+
         self._add2Varlist([key])
         return outvar
 
