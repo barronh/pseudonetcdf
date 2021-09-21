@@ -14,7 +14,6 @@ __doc__ = """
 """
 
 import unittest
-from warnings import warn
 
 
 def timerange(datetime1, datetime2, step=100, eod=2400.0):
