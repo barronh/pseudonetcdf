@@ -15,8 +15,6 @@ __doc__ = """
 
 import unittest
 from warnings import warn
-warn(PendingDeprecationWarning(
-    "Time tuple will be replaced by datetime and dateutil"))
 
 
 def timerange(datetime1, datetime2, step=100, eod=2400.0):
