@@ -1911,8 +1911,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             outf = self._copywith(props=True, dimensions=True)
             for varkey in varkeys:
                 varo = self.variables[varkey]
-                newvaro = outf.copyVariable(varo, key=varkey, withdata=False)
-                newvaro[...] = varo[...]
+                outf.copyVariable(varo, key=varkey, withdata=True)
         return outf
 
     def sliceDimensions(self, newdims=('POINTS',), verbose=0, **dimslices):
@@ -2266,8 +2265,17 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                     'varkey must be supplied because var has no name, ' +
                     'standard_name or long_name')
 
+        if withdata:
+            try:
+                vals = var[:]
+            except Exception:
+                vals = var[...]
+        else:
+            vals = var
+
         if dtype is None:
-            dtype = var.dtype
+            dtype = vals.dtype
+
         if dimensions is None:
             dimensions = var.dimensions
         if fill_value is None:
@@ -2284,9 +2292,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         myvar.setncatts(attrs)
         if withdata:
             try:
-                myvar[:] = var[:]
+                myvar[:] = vals[:]
             except Exception:
-                myvar[...] = var[...]
+                myvar[...] = vals[...]
         return myvar
 
     def createVariable(self, name, type, dimensions, fill_value=None,
