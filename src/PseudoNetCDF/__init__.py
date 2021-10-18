@@ -40,13 +40,13 @@ __all__ = ['aermodfiles',
            'wrffiles',
            '__version__']
 
-from PseudoNetCDF.pncwarn import warn
-from PseudoNetCDF.version import version as __version__
+from .pncwarn import warn
+from .version import version as __version__
 
-from PseudoNetCDF.core import PseudoNetCDFFile
-from PseudoNetCDF.core import PseudoNetCDFVariable, PseudoNetCDFVariables
+from .core import PseudoNetCDFFile
+from .core import PseudoNetCDFVariable, PseudoNetCDFVariables
 
-from PseudoNetCDF import sci_var
+from . import sci_var
 from . import units
 from . import test
 from . import coordutil
