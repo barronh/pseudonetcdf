@@ -37,9 +37,11 @@ __all__ = ['aermodfiles',
            'units',
            'warn',
            'woudcfiles',
-           'wrffiles']
+           'wrffiles',
+           '__version__']
 
 from PseudoNetCDF.pncwarn import warn
+from PseudoNetCDF.version import version as __version__
 
 from PseudoNetCDF.core import PseudoNetCDFFile
 from PseudoNetCDF.core import PseudoNetCDFVariable, PseudoNetCDFVariables
