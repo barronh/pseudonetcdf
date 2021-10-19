@@ -2,5 +2,7 @@
 dist
 src/PseudoNetCDF.egg-info
 build
-src/PseudoNetCDF/version.py
 doc/_build
+.tox
+.cache
+.coverage

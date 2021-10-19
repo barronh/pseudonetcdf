@@ -147,7 +147,7 @@ script_list = ['scripts/pncmadis2pnceval.py', 'scripts/pncaqsraw4pnceval.py',
                'scripts/pncvertprofile.py', 'scripts/pncview',
                'scripts/pncview.py', 'scripts/pncwindrose.py']
 
-requires_list = ['numpy>=1.2', 'netCDF4', 'scipy', 'matplotlib', 'pyyaml']
+requires_list = ['numpy>=1.2', 'netCDF4', 'scipy', 'matplotlib', 'pyyaml', 'pandas']
 extra_requires_dict = {'textfiles': ['pandas'],
                        'projections': ['pyproj'],
                        'mapping': ['basemap'],
@@ -164,6 +164,7 @@ setup(name='PseudoNetCDF',
       long_description=long_desc,
       packages=packages,
       package_dir={'': 'src'},
+      include_package_data=True,
       package_data={'PseudoNetCDF': data},
       scripts=script_list,
       install_requires=requires_list,

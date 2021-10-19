@@ -223,7 +223,7 @@ class newresolution(PseudoNetCDFFile):
             newshape = list(a.shape)
             if mesh < 1:
                 def method(a):
-                    return self.__repeat(a, (1. / mesh), axisi)
+                    return self.__repeat(a, int(round(1 / mesh)), axisi)
                 newshape[axisi] = newshape[axisi] * mesh
             else:
                 newshape[axisi:axisi +

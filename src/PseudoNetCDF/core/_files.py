@@ -2684,7 +2684,7 @@ class PseudoNetCDFVariables(OrderedDefaultDict):
 
     def keys(self):
         return tuple(
-            self.__keys +
+            list(self.__keys) +
             [k for k in dict.keys(self) if k not in self.__keys])
 
     def __iter__(self):

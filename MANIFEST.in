@@ -1,1 +1,2 @@
 recursive-include src *.yaml *.py
+recursive-include src/PseudoNetCDF/testcase *
