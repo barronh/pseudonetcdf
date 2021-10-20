@@ -1,4 +1,3 @@
-import warnings
 import unittest
 
 
@@ -38,7 +37,7 @@ class TestFunc(unittest.TestCase):
         outval = list(nf.variables)
         chkval = ['arg1S__add_']
         self.assertTrue(outval == chkval)
-        
+
     def testRemovesingleton(self):
         from PseudoNetCDF.sci_var import removesingleton
         f = self._simplefile.copy()
@@ -68,7 +67,6 @@ class TestFunc(unittest.TestCase):
         outval = nf.variables['test'][:]
         chkval = np.array([[[[0]]]])
         self.assertTrue((outval == chkval).all())
-
 
     def testReducedim(self):
         from PseudoNetCDF.sci_var import reduce_dim
@@ -133,10 +131,9 @@ class TestFunc(unittest.TestCase):
         chkval = np.concatenate([tv] * 3, axis=0)
         outval = nf.variables['test']
         self.assertTrue((outval == chkval).all())
-        
+
     def testMerge(self):
         from PseudoNetCDF.sci_var import merge
-        import numpy as np
         f = self._simplefile.copy()
         f1 = f.renameVariable('test', 'test1')
         f2 = f.renameVariable('test', 'test2')
@@ -148,7 +145,6 @@ class TestFunc(unittest.TestCase):
 
     def testConvolvedim(self):
         from PseudoNetCDF.sci_var import convolve_dim
-        import numpy as np
         f = self._simplefile.copy()
         nf = convolve_dim(f, 't,valid,0.5,0.5')
         chkval = f.variables['test'].mean(0, keepdims=True)
@@ -191,7 +187,6 @@ class TestFunc(unittest.TestCase):
 
     def testGetvarpnc(self):
         from PseudoNetCDF.sci_var import getvarpnc
-        import numpy as np
         f = self._simplefile.copy()
         chkval = sorted(f.variables)
         f.copyVariable(f.variables['test'], key='test2')
@@ -203,7 +198,6 @@ class TestFunc(unittest.TestCase):
 
     def testMeshdim(self):
         from PseudoNetCDF.sci_var import mesh_dim
-        import numpy as np
         f = self._simplefile.copy()
         chkval = f.variables['test'][:].reshape(2, 3, 2, 2, 5).mean(3)
         nf = mesh_dim(f, 'y,2,mean')
@@ -217,7 +211,7 @@ class TestFunc(unittest.TestCase):
         nf = pncfunc(lambda x: x * 2 + 7, f)
         outval = nf.variables['test']
         self.assertTrue((outval == chkval).all())
-        
+
     def testPncbfunc(self):
         from PseudoNetCDF.core._functions import pncbfunc
         f = self._simplefile.copy()
@@ -225,9 +219,10 @@ class TestFunc(unittest.TestCase):
         nf = pncbfunc(lambda x, y: x * 2 + y, f, f)
         outval = nf.variables['test']
         self.assertTrue((outval == chkval).all())
-        
-        # warnings.warn(str(outval))
-"""    
+
+
+# warnings.warn(str(outval))
+"""
 def extract_from_file(f, lonlatfs, unique=False, gridded=None, method='nn',
 def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn',
 def pncfunc(func, ifile1, coordkeys=None, verbose=0):
