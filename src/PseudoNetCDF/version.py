@@ -1,9 +1,15 @@
+__all__ = ['version']
 
-# THIS FILE IS GENERATED FROM PseudoNetCDF SETUP.PY
-short_version = '3.2.1'
-version = '3.2.1'
-full_version = '3.2.1'
-git_revision = '4541fc956bc18376b6a5c98af5d324dcf2ce3414'
-release = True
-if not release:
-    version = full_version
+try:
+    from importlib.metadata import version as _version
+except ImportError:
+    # if the fallback library is missing, version will be incorrectly
+    # reported as 0.0.0
+    from importlib_metadata import version as _version
+
+try:
+    version = _version("PseudoNetCDF")
+except Exception:
+    # Local copy or not installed with setuptools.
+    # Disable minimum version checks on downstream libraries.
+    version = "9.9.9"
