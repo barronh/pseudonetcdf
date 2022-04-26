@@ -96,6 +96,7 @@ class TestMemmaps(unittest.TestCase):
             bpchfile = bpch(outpath)
         ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']
         np.testing.assert_allclose(ALD2, ALD2_check_slided_reduced)
+        os.remove(outpath)
 
     def testBPCH(self):
         import warnings
