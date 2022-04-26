@@ -71,8 +71,34 @@ class griddesc(ioapi_base):
             Can provide additional IOAPI (or other) properties for the file.
         """
         now = datetime.now()
+        prj = {}
+        grd = OrderedDict()
         if hasattr(path, 'read'):
             gdf = path
+            path = '<inline>'
+        elif path is None:
+            required_props = _prjp[1:] + _grdp[1:] + ('GDNAM',)
+            grid_kw = prop_kw.copy()
+            if GDNAM is None:
+                grid_kw['GDNAM'] = 'UNKNOWN'
+            else:
+                grid_kw['GDNAM'] = GDNAM
+            grid_kw.setdefault('NTHIK', 1)
+            grid_kw.setdefault('PRJNAME', 'UNKNOWN')
+            for rpk in required_props:
+                if rpk not in grid_kw:
+                    raise KeyError(
+                        f'{rpk} not found.'
+                        + f'If path is None, {required_props} are required'
+                    )
+            gdf = io.StringIO("""
+' '
+'{PRJNAME}'
+{GDTYP} {P_ALP} {P_BET} {P_GAM} {XCENT} {YCENT}
+' '
+'{GDNAM}'
+'{PRJNAME}' {XORIG} {YORIG} {XCELL} {YCELL} {NCOLS} {NROWS} {NTHIK}
+' '""".format(**grid_kw))
             path = '<inline>'
         elif os.path.exists(path):
             gdf = open(path, 'r')
@@ -84,8 +110,6 @@ class griddesc(ioapi_base):
         assert(gdlines[0] == "' '")
         assert(gdlines[-1] == "' '")
         i = 0
-        prj = {}
-        grd = OrderedDict()
         blanks = []
         while i < len(gdlines):
             line = gdlines[i]
