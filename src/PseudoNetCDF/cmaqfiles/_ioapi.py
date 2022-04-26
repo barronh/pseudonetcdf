@@ -987,6 +987,7 @@ Varable failures: {var_failed}
         return ax
 
     slice = sliceDimensions
+    subset = subsetVariables
     apply = applyAlongDimensions
 
 
