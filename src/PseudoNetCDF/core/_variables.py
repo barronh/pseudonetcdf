@@ -150,7 +150,10 @@ class PseudoNetCDFVariable(np.ndarray):
         return setattr(self, k, v)
 
     def getncattr(self, k):
-        return getattr(self, k)
+        if k in self._ncattrs:
+            return getattr(self, k)
+        else:
+            raise AttributeError(f'{k} Attribute not found')
 
     def setncatts(self, attdict):
         for pk, pv in attdict.items():

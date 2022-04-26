@@ -2373,6 +2373,12 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
     def ncattrs(self):
         return self._ncattrs
 
+    def getncattr(self, k):
+        if k in self._ncattrs:
+            return getattr(self, k)
+        else:
+            raise AttributeError(f'{k} Attribute not found')
+
     def setncattr(self, k, v):
         return setattr(self, k, v)
 
