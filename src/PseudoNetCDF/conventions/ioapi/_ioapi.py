@@ -358,12 +358,13 @@ def add_lcc_coordinates(ifileo):
         # except Exception:
         #    pass
         olddims = list(var.dimensions)
+        dims = [d for d in olddims]  # Why was I excluding time  if d != 'time'
         if _withlatlon:
             def io2cf(x):
                 return {'ROW': 'latitude', 'COL': 'longitude',
                         'TSTEP': 'time', 'LAY': 'level'}.get(x, x)
             dims = [io2cf(d) for d in olddims]
-        dims = [d for d in dims]  # Why was I excluding time  if d != 'time'
+
         if olddims != dims:
             if (varkey not in ('latitude', 'longitude') and
                 ('PERIM' in dims or
