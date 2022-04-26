@@ -158,6 +158,17 @@ class IOAPITest(unittest.TestCase):
             newf.variables['O3'][:]
         )
 
+    def testVarlist(self):
+        reff = self.testf.copy()
+        refv = ''.join(f'{k:16s}' for k in ['O3', 'NO2'])
+        assert(getattr(reff, 'VAR-LIST') == refv)
+        delattr(reff, 'VAR-LIST')
+        reff.updatemeta()
+        assert(getattr(reff, 'VAR-LIST') == refv)
+        setattr(reff, 'VAR-LIST', '')
+        reff.updatemeta()
+        assert(getattr(reff, 'VAR-LIST') == refv)
+
 
 class ProfileTest(unittest.TestCase):
     def setUp(self):

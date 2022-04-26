@@ -585,7 +585,7 @@ Varable failures: {var_failed}
         If VAR-LIST does not exist, it is added assuming all variables
         with dimensions ('TSTEP', 'LAY', ...) are variables
         """
-        if getattr(self, 'VAR-LIST', ''):
+        if getattr(self, 'VAR-LIST', '') == '':
             varliststr_old = ''
             varlist = [k for k, v in self.variables.items()
                        if v.dimensions[:2] == ('TSTEP', 'LAY')]
