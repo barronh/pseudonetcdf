@@ -2502,6 +2502,9 @@ class netcdf(PseudoNetCDFFile, NetCDFFile):
     def setncattr(self, k, v):
         return NetCDFFile.setncattr(self, k, v)
 
+    def getncattr(self, k):
+        return NetCDFFile.getncattr(self, k)
+
     def __setattr__(self, k, v):
         return NetCDFFile.__setattr__(self, k, v)
 

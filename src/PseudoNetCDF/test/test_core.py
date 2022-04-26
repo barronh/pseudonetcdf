@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariables
-from PseudoNetCDF import PseudoNetCDFVariable
+from PseudoNetCDF import PseudoNetCDFVariable, pncopen
 from . import requires_basemap, requires_pyproj
 from PseudoNetCDF.pncwarn import warn
 
@@ -636,7 +636,18 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         self.assertEqual(var.dtype.char, 'f')
 
     def testSave(self):
-        pass
+        import tempfile
+        import os
+        tncf = self.testncf.copy()
+        to3 = tncf.variables['O3'][:]
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            tmppath = os.path.join(tmpdirname, 'test.nc')
+            tncf.save(tmppath).close()
+            cncf = pncopen(tmppath)
+            np_all_close(to3, cncf.variables['O3'][:])
+            sncf = cncf.subset(['O3'])
+            np_all_close(to3, sncf.variables['O3'][:])
+            os.remove(tmppath)
 
     def testNcattrs(self):
         tncf = self.testncf
