@@ -39,8 +39,10 @@ def windrose(wd, ws, args):
     fig.suptitle('%s Wind Rose (%d)' % (args.title, ws.size), size=20)
     if args.fromnorth:
         # NNE, WNE, WSE, SSE, SSW, WSW, WNW, NNW
-        thetas = ((np.radians((wd) // width * width)).astype('f') %
-                  (2 * np.pi)).astype('f')
+        thetas = (
+            (np.radians((wd / width).round(0) * width)).astype('f')
+            % (2 * np.pi)
+        ).astype('f')
     else:
         # N, NE, E, SE, S, SW, W, NW
         thetas = (np.radians((wd.astype('d') + halfwidth) //
