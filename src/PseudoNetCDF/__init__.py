@@ -14,6 +14,8 @@ __all__ = ['aermodfiles',
            'conventions',
            'coordutil',
            'epafiles',
+           'pncfile',
+           'pncvar',
            'geoschemfiles',
            'icarttfiles',
            'MetaNetCDF',
@@ -70,6 +72,9 @@ from . import wrffiles
 from ._getreader import anyfile, pncopen, pncmfopen, getreader, getreaderdict
 from ._getwriter import pncwrite
 from .pncparse import PNC, pnc
+
+pncfile = PseudoNetCDFFile
+pncvar = PseudoNetCDFVariable
 
 for k in sci_var.__all__:
     if k not in __all__:

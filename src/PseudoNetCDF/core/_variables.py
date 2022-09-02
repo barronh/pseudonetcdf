@@ -12,6 +12,13 @@ class PseudoNetCDFVariable(np.ndarray):
     """
     __array_priority__ = 10000000.
 
+    @classmethod
+    def from_array(cls, key, arr, dims=None, **attrs):
+        if dims is None:
+            dims = tuple([f'phony_dim_{i}' for i in range(arr.ndim)])
+        outvar = cls(None, key, arr.dtype.char, dims, values=arr, **attrs)
+        return outvar
+
     def xarray(self, iscoord=False):
         """
         Experimental function

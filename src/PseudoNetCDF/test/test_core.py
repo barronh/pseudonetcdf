@@ -9,6 +9,46 @@ from PseudoNetCDF.pncwarn import warn
 np_all_close = np.testing.assert_allclose
 
 
+class PseudoNetCDFVariableTest(unittest.TestCase):
+    def setUp(self):
+        self.myarray = np.array([
+            [1, 1, 1, 1, 1],
+            [1, 2, 2, 2, 1],
+            [1, 2, 3, 2, 1],
+            [1, 2, 2, 2, 1],
+            [1, 1, 1, 1, 1],
+        ], dtype='f')
+
+    def testVar(self):
+        var = PseudoNetCDFVariable(
+            None, self.myarray, 'f', ('y', 'x'),
+            values=self.myarray, units='unknown',
+            long_name='unknown'
+        )
+        assert (
+            var.getncatts() == {
+                'units': 'unknown', 'long_name': 'unknown',
+            }
+        )
+        assert (var.dtype.char == 'f')
+        assert (var.dimensions == ('y', 'x'))
+        np_all_close(var[:], self.myarray)
+
+    def testFromArray(self):
+        var = PseudoNetCDFVariable.from_array(
+            'unknown', self.myarray, ('y', 'x'),
+            units='unknown', long_name='unknown'
+        )
+        assert (
+            var.getncatts() == {
+                'units': 'unknown', 'long_name': 'unknown',
+            }
+        )
+        assert (var.dtype.char == 'f')
+        assert (var.dimensions == ('y', 'x'))
+        np_all_close(var[:], self.myarray)
+
+
 class PseudoNetCDFFileTest(unittest.TestCase):
     def setUp(self):
         from datetime import datetime, timedelta
@@ -773,6 +813,20 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         tncf.variables = PseudoNetCDFVariables(const, ['NO', 'O3'])
         self.assertEqual(True, (tncf.variables['O3'] == arange(
             24 * 4 * 5 * 6).reshape(24, 4, 5, 6)).all())
+
+    def testFromArrays(self):
+        var = self.testncf.variables['O3']
+        arr = var.array().copy()
+        checkncf = PseudoNetCDFFile.from_arrays(
+            dims=('TSTEP', 'LAY', 'ROW', 'COL'), fileattrs={'a': 1},
+            **{'O3': arr}, nameattr='long_name'
+        )
+        checkvar = checkncf.variables['O3']
+        np_all_close(
+            checkvar[:], var[:]
+        )
+        assert (checkvar.getncattr('long_name') == 'O3')
+        assert (checkncf.a == 1)
 
     def runTest(self):
         pass
