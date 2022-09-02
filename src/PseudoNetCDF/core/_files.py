@@ -1351,6 +1351,32 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         return outd
 
     @classmethod
+    def from_arrays(cls, dims=None, attrs=None, fileattrs=None, **inarrkw):
+        """
+        Arguments
+        ---------
+        invarkw : kwds
+            NetCDF-like variables
+
+        Returns
+        -------
+        outf : PseudoNetcdf-like file
+        """
+        invarkw = {}
+        for key, arr in inarrkw.items():
+            if dims is None:
+                mydims = tuple([f'phony_dim_{i}' for i in range(arr.ndim)])
+            else:
+                mydims = dims
+            invarkw[key] = PseudoNetCDFVariable.from_array(key, arr, mydims)
+
+        out = cls.from_ncvs(**invarkw)
+        if fileattrs is not None:
+            out.setncatts(**fileattrs)
+
+        return out
+
+    @classmethod
     def from_ncvs(cls, *invars, **invarkw):
         """
         Arguments

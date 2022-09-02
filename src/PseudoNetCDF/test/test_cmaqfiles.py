@@ -169,6 +169,19 @@ class IOAPITest(unittest.TestCase):
         reff.updatemeta()
         assert(getattr(reff, 'VAR-LIST') == refv)
 
+    def testFromArrays(self):
+        from PseudoNetCDF.cmaqfiles import ioapi_base
+        vals = np.arange(120).reshape(2, 3, 4, 5)
+        test = ioapi_base.from_arrays(
+            attrs={'units': 'ppm'},
+            **{'test': vals}
+        )
+        assert (len(test.dimensions['TSTEP']) == 2)
+        assert (len(test.dimensions['LAY']) == 3)
+        assert (len(test.dimensions['ROW']) == 4)
+        assert (len(test.dimensions['COL']) == 5)
+        np_all_close(test.variables['test'][:].ravel(), np.arange(120))
+
 
 class ProfileTest(unittest.TestCase):
     def setUp(self):

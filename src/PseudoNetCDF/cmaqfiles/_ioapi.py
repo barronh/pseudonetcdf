@@ -1,5 +1,6 @@
 from PseudoNetCDF.pncwarn import warn
 from ..core._files import PseudoNetCDFFile, netcdf
+from ..core._variables import PseudoNetCDFVariable
 from collections import OrderedDict
 from PseudoNetCDF._getwriter import registerwriter
 
@@ -57,6 +58,52 @@ class ioapi_base(PseudoNetCDFFile):
     @classmethod
     def isMine(self, path, *args, **kwds):
         return False
+
+    @classmethod
+    def from_arrays(cls, dims=None, attrs=None, fileattrs=None, **inarrkw):
+        """
+        Arguments
+        ---------
+        invarkw : kwds
+            NetCDF-like variables
+
+        Returns
+        -------
+        outf : PseudoNetcdf-like file
+        """
+        import copy
+        invarkw = {}
+        for key, arr in inarrkw.items():
+            if attrs is None:
+                myattrs = {}
+            else:
+                myattrs = copy.copy(attrs)
+            myattrs.setdefault('units', 'unknown'.ljust(16))
+            myattrs.setdefault('long_name', key.ljust(16))
+            myattrs.setdefault('var_desc', key.ljust(80))
+            if dims is None:
+                if key == 'TFLAG':
+                    mydims = ('TSTEP', 'VAR', 'DATE-TIME')
+                elif arr.ndim == 2:
+                    mydims = ('ROW', 'COL')
+                elif arr.ndim == 3:
+                    mydims = ('TSTEP', 'LAY', 'PERIM')
+                elif arr.ndim == 4:
+                    mydims = ('TSTEP', 'LAY', 'ROW', 'COL')
+                else:
+                    mydims = tuple([f'phony_dim_{i}' for i in range(arr.ndim)])
+            else:
+                mydims = dims
+            invarkw[key] = PseudoNetCDFVariable.from_array(key, arr, mydims)
+
+        out = cls.from_ncvs(**invarkw)
+        if fileattrs is None:
+            fileattrs = {}
+        fileattrs.setdefault('SDATE', 1970001)
+        fileattrs.setdefault('STIME', 0)
+        fileattrs.setdefault('TSTEP', 10000)
+        out.updatemeta(fileattrs)
+        return out
 
     def __init__(self, *args, **kwds):
         super().__init__(self, *args, **kwds)
