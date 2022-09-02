@@ -929,7 +929,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                     newvals = np.rollaxis(newvals, axis=axisidx, start=newdi)
                     varorder.pop(axisidx)
                     varorder.insert(newdi, newdk)
-                assert(varorder == varneworder)
+                assert (varorder == varneworder)
                 newvals.dimensions = tuple(varorder)
                 outf.variables[vk] = newvals
             else:
@@ -1420,7 +1420,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         for invar in invars:
             for dk, ds in zip(invar.dimensions, invar.shape):
                 if dk in outf.dimensions:
-                    assert(ds == len(outf.dimensions[dk]))
+                    assert (ds == len(outf.dimensions[dk]))
                 else:
                     outf.createDimension(dk, ds)
             outf.copyVariable(invar)
@@ -1428,7 +1428,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         for inkey, invar in invarkw.items():
             for dk, ds in zip(invar.dimensions, invar.shape):
                 if dk in outf.dimensions:
-                    assert(ds == len(outf.dimensions[dk]))
+                    assert (ds == len(outf.dimensions[dk]))
                 else:
                     outf.createDimension(dk, ds)
             outf.copyVariable(invar, key=inkey)
@@ -1889,7 +1889,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                 shareddims[dimk] = len(dim)
         differentdims = [set(dims.keys()).difference(
             shareddims.keys()) for dims in dimensions]
-        assert(all([different.union([stackdim]) == set([stackdim])
+        assert (all([different.union([stackdim]) == set([stackdim])
                     for different in differentdims]))
         for dimkey in shareddims:
             ind = self.dimensions[dimkey]

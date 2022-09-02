@@ -218,7 +218,7 @@ class TestMemmap(unittest.TestCase):
         orig = open(inpath, 'rb').read()
         new = open(outpath, 'rb').read()
         os.remove(outpath)
-        assert(orig == new)
+        assert (orig == new)
 
 
 TestSuite = unittest.makeSuite(TestMemmap, 'test')

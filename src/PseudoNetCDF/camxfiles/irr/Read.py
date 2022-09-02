@@ -201,7 +201,7 @@ class irr(PseudoNetCDFFile):
         multiple = (tdiff.days * 24 * 3600. + tdiff.seconds) / \
             (tstep.days * 24 * 3600. + tstep.seconds)
         self.NSTEPS = self.time_step_count = int(multiple)
-        assert(multiple == int(multiple))
+        assert (multiple == int(multiple))
 
     def __gridrecords(self, pagrid):
         """
@@ -318,12 +318,14 @@ class irr(PseudoNetCDFFile):
             id = record['I']
             jd = record['J']
             kd = record['K']
-            assert((id == arange(istart, iend + 1)
+            assert ((id == arange(istart, iend + 1)
                     [None, :, None].repeat(nk, 2).repeat(nj, 0).ravel()).all())
-            assert((kd == arange(kstart, kend + 1)
+            assert ((kd == arange(kstart, kend + 1)
                     [None, None, :].repeat(ni, 1).repeat(nj, 0).ravel()).all())
-            assert(((jd == arange(jstart, jend + 1).repeat(ni * nk, 0))).all())
-            assert((date == d).all() and (time == t).all())
+            assert (
+                ((jd == arange(jstart, jend + 1).repeat(ni * nk, 0))).all()
+            )
+            assert ((date == d).all() and (time == t).all())
             for rxn in range(start, end):
                 variables['RXN_%02d' % rxn][ti, :, :, :] = \
                     temp[:, rxn - 1].reshape(nj, ni, nk).swapaxes(1, 2)\

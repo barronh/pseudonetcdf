@@ -175,7 +175,7 @@ class aqsraw(PseudoNetCDFFile):
                 temp[var_name].set_fill_value(-999)
             tmpvar = temp[var_name]
             var = self.variables[var_name]
-            assert(var.units == unit)
+            assert (var.units == unit)
             if last_time != this_time:
                 last_time = this_time
                 tidx = alltimes.index(this_time.to_pydatetime())

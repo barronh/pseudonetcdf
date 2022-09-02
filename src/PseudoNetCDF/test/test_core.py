@@ -292,7 +292,7 @@ class PseudoNetCDFFileTest(unittest.TestCase):
             )
             warn(prefix + ' got: ' + repr(idx))
             warn(prefix + ' chk: ' + repr(compare))
-            assert(np.ma.allclose(compare, idx))
+            assert (np.ma.allclose(compare, idx))
 
         mw = np.ma.masked_where
 

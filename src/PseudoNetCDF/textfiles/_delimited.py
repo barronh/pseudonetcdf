@@ -302,4 +302,4 @@ class TestCsv(unittest.TestCase):
                outmode='w', format='csv', verbose=0)
         out.seek(0, 0)
         outval = out.read()
-        assert(outval == self.checkval)
+        assert (outval == self.checkval)

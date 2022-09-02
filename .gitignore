@@ -6,3 +6,4 @@ doc/_build
 .tox
 .cache
 .coverage
+.ipynb_checkpoints

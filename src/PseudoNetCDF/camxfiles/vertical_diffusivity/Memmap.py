@@ -116,7 +116,7 @@ class TestMemmap(unittest.TestCase):
         pncgen(infile, outpath, format='camxfiles.vertical_diffusivity')
         orig = open(inpath, 'rb').read()
         new = open(outpath, 'rb').read()
-        assert(orig == new)
+        assert (orig == new)
         os.remove(outpath)
 
 

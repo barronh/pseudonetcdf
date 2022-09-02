@@ -394,7 +394,7 @@ class TestMemmaps(unittest.TestCase):
                outmode='w', format='bpch', verbose=0)
         orig = open(self.bpchpath, 'rb').read()
         new = open(self.bpchpath + '.check', 'rb').read()
-        assert(orig == new)
+        assert (orig == new)
         os.remove(self.bpchpath + '.check')
 
     def testBPCH2(self):

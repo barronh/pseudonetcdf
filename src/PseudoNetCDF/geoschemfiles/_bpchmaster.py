@@ -61,7 +61,7 @@ class TestMemmaps(unittest.TestCase):
                outmode='w', format='bpch', verbose=0)
         orig = open(self.bpchpath, 'rb').read()
         new = open(outpath, 'rb').read()
-        assert(orig == new)
+        assert (orig == new)
         os.remove(outpath)
         from PseudoNetCDF.sci_var import reduce_dim, slice_dim
         ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']

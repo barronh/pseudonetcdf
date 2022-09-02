@@ -1116,10 +1116,10 @@ class ioapi(ioapi_base, netcdf):
         try:
             f = netcdf(*args, **kwds)
             for dk in ['TSTEP', 'VAR', 'DATE-TIME']:
-                assert(dk in f.dimensions)
+                assert (dk in f.dimensions)
             attrlist = f.ncattrs()
             for pk in ['XORIG', 'XCELL', 'YCELL', 'YORIG', 'SDATE', 'STIME']:
-                assert(pk in attrlist)
+                assert (pk in attrlist)
             return True
         except Exception:
             return False

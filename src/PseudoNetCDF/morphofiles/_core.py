@@ -31,7 +31,7 @@ def MorphoIRRt(irrpath):
     name_line = ['N', 'T'] + rxn_names
     unit_line = mrglines.pop(0).split()
     unit_line = [unit for unit in unit_line]
-    assert(all([eval(v) == 0. for v in mrglines.pop(0).split()][2:]))
+    assert (all([eval(v) == 0. for v in mrglines.pop(0).split()][2:]))
     mrgfile = PseudoNetCDFFile()
     mrgfile.createDimension('TSTEP', len(mrglines))
     mrgfile.createDimension('DATE-TIME', 2)

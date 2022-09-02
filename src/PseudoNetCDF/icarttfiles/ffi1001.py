@@ -401,7 +401,7 @@ class TestFfi1001(unittest.TestCase):
         ncf2ffi1001(ffi1001file, outpath)
         newfile = ffi1001(outpath)
         for k, v in ffi1001file.variables.items():
-            assert(k in newfile.variables)
+            assert (k in newfile.variables)
             nv = newfile.variables[k]
             np.testing.assert_allclose(v[:], nv[:])
 

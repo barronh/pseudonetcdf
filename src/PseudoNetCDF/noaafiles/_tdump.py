@@ -131,7 +131,7 @@ class arltrajdump(PseudoNetCDFFile):
         """
         diagnostics = f.readline().strip().lower().split()
         ndiag = int(diagnostics[0])
-        assert((ndiag + 1) == len(diagnostics))
+        assert ((ndiag + 1) == len(diagnostics))
         """
         Record Loop #6 through the number of hours in the simulation
 

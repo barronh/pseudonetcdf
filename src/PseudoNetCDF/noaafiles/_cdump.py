@@ -77,7 +77,7 @@ class arlconcdump(PseudoNetCDFFile):
         infile = self._infile
         rec1 = np.fromfile(
             infile, dtype='>i,>S4,>i,>i,>i,>i,>i,>i,>i,>i', count=1)[0]
-        assert(rec1['f0'] == rec1['f9'])
+        assert (rec1['f0'] == rec1['f9'])
         nloc = self.NSTARTLOCS = rec1['f7']
         rec1['f8'] == 1
         self.METMODEL = rec1['f1'].decode()
@@ -97,7 +97,7 @@ class arlconcdump(PseudoNetCDFFile):
         INT*4 Release starting time (MINUTES)
         """
         rec2 = np.fromfile(infile, dtype='>i,>4i,>3f,>i,>i', count=nloc)
-        assert((rec2['f0'] == rec2['f4']).all())
+        assert ((rec2['f0'] == rec2['f4']).all())
         self.createDimension('starts', nloc)
         sy = self.createVariable('START_YEAR', 'i', ('starts',), units='year')
         sy[:] = rec2['f1'][:, 0]
@@ -126,7 +126,7 @@ class arlconcdump(PseudoNetCDFFile):
         REAL*4 Grid lower left corner (LATITUDE, LONGITUDE)
         """
         rec3 = np.fromfile(infile, dtype='>i,>2i,>2f,>2f,>i', count=1)[0]
-        assert(rec3['f0'] == rec3['f4'])
+        assert (rec3['f0'] == rec3['f4'])
 
         self.NLATS = rec3['f1'][0]
         self.NLONS = rec3['f1'][1]
@@ -145,7 +145,7 @@ class arlconcdump(PseudoNetCDFFile):
         infile.seek(-8, 1)
         rec4 = np.fromfile(
             infile, dtype='>i,>i,>{}i,>i'.format(nlays), count=1)[0]
-        assert(rec4['f0'] == rec4['f3'])
+        assert (rec4['f0'] == rec4['f3'])
         self.createDimension('layer', nlays)
         var = self.createVariable('layer', 'i', ('layer',))
         var.units = 'meters agl'
@@ -165,7 +165,7 @@ class arlconcdump(PseudoNetCDFFile):
         infile.seek(-8, 1)
         rec5 = np.fromfile(infile, dtype='>i,>i,>({},)S4,>i'.format(
             npols), count=1).squeeze()
-        assert(rec5['f0'] == rec5['f3'])
+        assert (rec5['f0'] == rec5['f3'])
         self.POLLUTANTS = b','.join(rec5['f2']).decode()
 
     def _datarec(self):
@@ -287,8 +287,8 @@ class arlconcdump(PseudoNetCDFFile):
         self.createDimension('latitude', nlats)
         self.createDimension('longitude', nlons)
         self.createDimension('nv', 2)
-        assert((lays[:, [0], :] == lays[:, :, :]).all())
-        assert((pols[:, :, [0]] == pols[:, :, :]).all())
+        assert ((lays[:, [0], :] == lays[:, :, :]).all())
+        assert ((pols[:, :, [0]] == pols[:, :, :]).all())
         if self._vector:
             poldims = ('points',)
             for key, idx in [('T', 0), ('J', -3), ('I', -2), ('K', -4)]:

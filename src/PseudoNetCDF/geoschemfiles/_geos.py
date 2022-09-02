@@ -94,7 +94,7 @@ class geos(PseudoNetCDFFile):
             dtype = '>S8' if ipad == 8 else '>f'
             if dtype == '>f':
                 elem = ipad / 4
-                assert((ipad % 4) == 0)
+                assert ((ipad % 4) == 0)
             else:
                 elem = 1
             if first:
@@ -192,7 +192,7 @@ class geos(PseudoNetCDFFile):
                     break
                 names.append(name)
             lasttype = dtype
-            assert(ipad == epad)
+            assert (ipad == epad)
         if 'a3' in path:
             nsteps = 8
         elif 'a6' in path or 'i6' in path:
@@ -211,7 +211,7 @@ class geos(PseudoNetCDFFile):
         def getem(key):
             thisblock = data[0]['data'][key]
             thisdata = thisblock['f6']
-            assert((thisblock['f3'] == thisblock['f7']).all())
+            assert ((thisblock['f3'] == thisblock['f7']).all())
             if len(thisdata.shape) == 3:
                 dims = ('time', 'latitude', 'longitude')
             elif thisdata.shape[1] == nlay_in:
@@ -271,7 +271,7 @@ class geos(PseudoNetCDFFile):
                                        [68, 69, 70, 71]]
                     else:
                         raise ValueError('Cannot reduce %s' % self.gtype)
-                    assert(len(lump_groups) == nlay)
+                    assert (len(lump_groups) == nlay)
 
                     for li, lump_group in enumerate(lump_groups):
                         if (len(lump_group) == 1 or

@@ -72,9 +72,9 @@ class icon_profile(ioapi_base):
         ks = keys[1:]
         for k in ks:
             try:
-                assert((np.char.strip(data[k]['name']) == profile_spcs).all())
-                assert(data[k].dtype == data_type)
-                assert(data[k].dtype == data_type)
+                assert ((np.char.strip(data[k]['name']) == profile_spcs).all())
+                assert (data[k].dtype == data_type)
+                assert (data[k].dtype == data_type)
             except AssertionError:
                 raise IOError('File is corrupt or inconsistent')
         varlist = []
@@ -158,15 +158,15 @@ class bcon_profile(ioapi_base):
         self.VGTOP = 5000
         for k in ks:
             try:
-                assert((np.char.strip(data[k]['name']) == profile_spcs).all())
-                assert(data[k].dtype == data_type)
-                assert(data[k].dtype == data_type)
+                assert ((np.char.strip(data[k]['name']) == profile_spcs).all())
+                assert (data[k].dtype == data_type)
+                assert (data[k].dtype == data_type)
             except AssertionError:
                 raise IOError('File is corrupt or inconsistent')
         varlist = []
         zwsen = zip(data['west'], data['south'], data['east'], data['north'])
         for w, s, e, n in zwsen:
-            assert(w[0] == s[0] and e[0] == n[0] and n[0] == s[0])
+            assert (w[0] == s[0] and e[0] == n[0] and n[0] == s[0])
             varkey = w[0].strip().decode()
             tmpvals = np.array(
                 [(lambda x: tuple(x)[1:])(_v) for _v in [s, e, n, w]]

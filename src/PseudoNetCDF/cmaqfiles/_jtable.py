@@ -37,9 +37,9 @@ class jtable(PseudoNetCDFFile):
             nlevels, nlats, nrxns, nangles)
         headers = np.fromstring(''.join(headers), sep=' ').reshape(
             nlevels, nlats, nrxns, 3)
-        assert((np.diff(headers[..., 0], axis=0) == 1).all())
-        assert((np.diff(headers[..., 1], axis=1) == 1).all())
-        assert((np.diff(headers[..., 2], axis=2) == 1).all())
+        assert ((np.diff(headers[..., 0], axis=0) == 1).all())
+        assert ((np.diff(headers[..., 1], axis=1) == 1).all())
+        assert ((np.diff(headers[..., 2], axis=2) == 1).all())
         self.SDATE = jdate
         self.NLAYS = nlevels
         self.NLATS = nlats
@@ -74,12 +74,12 @@ class jtable(PseudoNetCDFFile):
             v = self.variables[key_or_var].ravel()
         else:
             v = np.array(key_or_var)
-            assert(key_or_var.shape == (self.NLAYS, self.NLATS, self.NANGLES))
+            assert (key_or_var.shape == (self.NLAYS, self.NLATS, self.NANGLES))
         if isinstance(lay, (int, float)):
             idx = np.array((lay, lat, angle), ndmin=2)
         else:
             idx = np.array((lay, lat, angle)).swapaxes(0, 1)
-            assert(idx.shape[0] == 2)
+            assert (idx.shape[0] == 2)
         return griddata(points, v, idx)[0]
 
 
