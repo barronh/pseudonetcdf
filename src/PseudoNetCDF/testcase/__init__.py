@@ -1,6 +1,6 @@
 __all__ = ['camxfiles_paths', 'net_balance_paths', 'geoschemfiles_paths',
            'icarttfiles_paths', 'all_paths', 'self_described_paths',
-           'cmaqfiles_paths']
+           'cmaqfiles_paths', 'toms_paths']
 
 from os.path import join, abspath
 
@@ -43,6 +43,9 @@ for key, val in geoschemfiles_paths.items():
 
 icarttfiles_paths = dict(ffi1001=join(
     *__path__ + ['icarttfiles', 'test.ffi1001']))
+
+toms_paths = dict(tomsl3=join(
+    *__path__ + ['toms', 'test.txt']))
 
 ceilometerfiles_paths = dict(
     vaisala=join(

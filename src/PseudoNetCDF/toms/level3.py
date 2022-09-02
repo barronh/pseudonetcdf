@@ -7,6 +7,7 @@ from PseudoNetCDF.pncwarn import warn
 from re import compile
 import numpy as np
 from datetime import datetime
+import unittest
 
 
 dayre = compile(' Day:\s+(?P<jday>\d+) (?P<daystring>.{12})\s+EP/' +
@@ -30,7 +31,10 @@ def _groupdict(reo, line):
 def cdtoms(path, outfile=None):
     if outfile is None:
         outfile = PseudoNetCDFFile()
-    inlines = open(path, 'r').readlines()
+    if hasattr(path, 'readlines'):
+        inlines = path.readlines()
+    else:
+        inlines = open(path, 'r').readlines()
     dayline = inlines[0]
     daygrp = _groupdict(dayre, dayline)
 
@@ -45,10 +49,10 @@ def cdtoms(path, outfile=None):
         for i in [3, 2, 1]:
             daystr = ' '.join(dayparts[:i])
             try:
-                date = pd.to_datetime(daystr, box=False)
+                date = pd.to_datetime(daystr).to_numpy()
                 break
             except Exception as e:
-                print(e)
+                warn(e)
         else:
             date = np.datetime64('1970-01-01')
         rdate = np.datetime64('1970-01-01')
@@ -93,7 +97,7 @@ def cdtoms(path, outfile=None):
             lats.append(lat.strip())
 
     nlats = len(lats)
-    datablock = ''.join(datalines).replace(' ', '0')
+    datablock = ''.join(datalines).replace(' ', '0').replace('***', '999')
     nlons = len(datablock) // 3 // nlats
     outfile.createDimension('time', 1)
     outfile.createDimension('latitude', nlats)
@@ -128,12 +132,12 @@ def cdtoms(path, outfile=None):
     var[:, 1] = lon + lonstep / 2.
 
     var = outfile.createVariable(
-        'ozone', 'f', ('latitude', 'longitude'),
+        'ozone', 'f', ('time', 'latitude', 'longitude'),
         missing_value=999
     )
     var.units = 'matm-cm'
     var.long_name = var.var_desc = 'ozone'.ljust(16)
-    var[:] = np.ma.masked_values(
+    var[0] = np.ma.masked_values(
         np.array(
             [i for i in datablock],
             dtype='S1'
@@ -147,6 +151,22 @@ def cdtoms(path, outfile=None):
 class tomsl3(PseudoNetCDFFile):
     def __init__(self, path):
         cdtoms(path, self)
+
+
+class test_tomsl3(unittest.TestCase):
+    def setUp(self):
+        from PseudoNetCDF.testcase import toms_paths
+        self.tomspath = toms_paths['tomsl3']
+
+    def testTOMS2NCF(self):
+        import os
+        vfile = tomsl3(self.tomspath)
+        outpath = self.tomspath + '.nc'
+        ncfile = vfile.save(outpath)
+        for k, ncv in ncfile.variables.items():
+            vpv = vfile.variables[k]
+            np.testing.assert_allclose(ncv[...], vpv[...])
+        os.remove(outpath)
 
 
 if __name__ == '__main__':
