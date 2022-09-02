@@ -14,22 +14,22 @@ _camx_units = {
 def get_chemparam_names(chemparampath):
     inlines = open(chemparampath, 'r').readlines()
     startaero = None
-    for li, l in enumerate(inlines):
-        if l[:14] == "     Gas Spec ":
+    for li, myl in enumerate(inlines):
+        if myl[:14] == "     Gas Spec ":
             startgas = li + 1
-        if l[:14] == "     Aero Spec":
+        if myl[:14] == "     Aero Spec":
             endgas = li
             startaero = li + 1
-        if l[:16] == "Reaction Records":
+        if myl[:16] == "Reaction Records":
             if startaero is None:
                 endgas = li
             endaero = li
             break
 
-    gaskeys = tuple([l[5:15].strip() for l in inlines[startgas:endgas]])
+    gaskeys = tuple([_l[5:15].strip() for _l in inlines[startgas:endgas]])
     if startaero is None:
         return dict(gas=gaskeys, aer=())
-    aerkeys = tuple([l[5:15].strip() for l in inlines[startaero:endaero]])
+    aerkeys = tuple([_l[5:15].strip() for _l in inlines[startaero:endaero]])
     return dict(gas=gaskeys, aerosol=aerkeys)
 
 

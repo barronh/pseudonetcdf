@@ -539,16 +539,16 @@ def pack2d(RVARA, verbose=False):
     # START NUMPY VECTOR CODE
     ROLDS = np.zeros_like(RVAR[:, 0])
     ROLD = VAR1
-    for J in range(NY):
-        ICVAL = INT((RVAR[J, 0] - ROLD) * SCEXP + 127.5)
-        CVAR[J, 0] = ICVAL
+    for myJ in range(NY):
+        ICVAL = INT((RVAR[myJ, 0] - ROLD) * SCEXP + 127.5)
+        CVAR[myJ, 0] = ICVAL
         ROLD = FLOAT(ICVAL - 127) / SCEXP + ROLD
-        ROLDS[J] = ROLD
+        ROLDS[myJ] = ROLD
 
     ROLD = ROLDS
-    for I in range(1, NX):
-        ICVAL = INT((RVAR[:, I] - ROLD) * SCEXP + 127.5)
-        CVAR[:, I] = ICVAL
+    for myI in range(1, NX):
+        ICVAL = INT((RVAR[:, myI] - ROLD) * SCEXP + 127.5)
+        CVAR[:, myI] = ICVAL
         ROLD = FLOAT(ICVAL - 127) / SCEXP + ROLD
     KSUM = INT(CVAR.sum()) % 255
     # END NUMPY VECTOR CODE

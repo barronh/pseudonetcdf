@@ -11,8 +11,10 @@ def shadoz(inpath):
     datafile = open(inpath, 'r')
     datalines = datafile.read().split('\n')
     nmeta = int(datalines[0])
-    meta = dict([[w.strip() for w in l.split(': ')]
-                 for l in datalines[1:nmeta - 2]])
+    meta = dict([
+        [w.strip() for w in _l.split(': ')]
+        for _l in datalines[1:nmeta - 2]
+    ])
     varline, unitline = datalines[nmeta - 2:nmeta]
     varnames = spaces.split(varline)
     units = spaces.split(unitline)

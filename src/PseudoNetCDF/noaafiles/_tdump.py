@@ -46,28 +46,28 @@ class arltrajdump(PseudoNetCDFFile):
         5I6 - Data file starting Year, Month, Day, Hour, Forecast Hour
         """
         metgridlines = [f.readline().strip().split() for i in range(nmgrid)]
-        self.METGRIDS = ','.join([l[0] for l in metgridlines])
+        self.METGRIDS = ','.join([_l[0] for _l in metgridlines])
         self.createDimension('metgrid', nmgrid)
         v = self.createVariable('met_year', 'i', ('metgrid',))
         v.units = 'year'
         v.long_name = 'year'
-        v[:] = [int(l[1]) for l in metgridlines]
+        v[:] = [int(_l[1]) for _l in metgridlines]
         v = self.createVariable('met_month', 'i', ('metgrid',))
         v.units = 'month'
         v.long_name = 'month of the year'
-        v[:] = [int(l[2]) for l in metgridlines]
+        v[:] = [int(_l[2]) for _l in metgridlines]
         v = self.createVariable('met_day', 'i', ('metgrid',))
         v.units = 'day'
         v.long_name = 'day of the month'
-        v[:] = [int(l[3]) for l in metgridlines]
+        v[:] = [int(_l[3]) for _l in metgridlines]
         v = self.createVariable('met_hour', 'i', ('metgrid',))
         v.units = 'hour'
         v.long_name = 'hour of the day (GMT)'
-        v[:] = [int(l[4]) for l in metgridlines]
+        v[:] = [int(_l[4]) for _l in metgridlines]
         v = self.createVariable('met_forecast_hour', 'i', ('metgrid',))
         v.units = 'forecast_hour'
         v.long_name = 'hour of the forecast'
-        v[:] = [int(l[5]) for l in metgridlines]
+        v[:] = [int(_l[5]) for _l in metgridlines]
 
         """
         Record #3

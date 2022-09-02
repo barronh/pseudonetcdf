@@ -15,7 +15,7 @@ _split1 = 'Environment Tables for'
 def MorphoIRRt(irrpath):
     mrglines = open(irrpath).readlines()
     try:
-        datelines = [l for l in mrglines if _split1 in l]
+        datelines = [_l for _l in mrglines if _split1 in _l]
         datestr = datelines[0].split(_split1)[-1].strip()
         jday = int(datetime.strptime(datestr, '%d-%b-%y').strftime('%Y%j'))
     except Exception:

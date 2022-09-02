@@ -104,8 +104,8 @@ class woudcsonde(PseudoNetCDFFile):
         self.createDimension('site', 1)
         self.createDimension('flight', 1)
         self.createDimension('STRLEN', 64)
-        for l in myf:
-            key = l.strip().upper()
+        for myl in myf:
+            key = myl.strip().upper()
             if key == '#PROFILE':
                 break
             elif key.startswith('#'):
@@ -117,7 +117,7 @@ class woudcsonde(PseudoNetCDFFile):
                     li -= 1
                     break
             else:
-                meta += l
+                meta += myl
                 li += 1
 
         # after #PROFILE loop is broken

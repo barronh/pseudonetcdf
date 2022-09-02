@@ -912,17 +912,17 @@ class bpch1(bpch_base):
         self._tracerinfofile = tracerinfo
         if hasattr(tracerinfo, 'readlines') and hasattr(tracerinfo, 'seek'):
             tracer_data = dict()
-            for l in tracerinfo.readlines():
-                if l[0] not in ('#', ' '):
-                    tkey = int(l[52:61].strip())
+            for myl in tracerinfo.readlines():
+                if myl[0] not in ('#', ' '):
+                    tkey = int(myl[52:61].strip())
                     tdict = dict()
-                    tdict['NAME'] = l[:8].strip()
-                    tdict['FULLNAME'] = l[9:39].strip()
-                    tdict['MOLWT'] = float(l[39:49])
-                    tdict['C'] = int(l[49:52])
-                    tdict['TRACER'] = int(l[52:61])
-                    tdict['SCALE'] = float(l[61:71])
-                    tdict['UNIT'] = l[72:].strip()
+                    tdict['NAME'] = myl[:8].strip()
+                    tdict['FULLNAME'] = myl[9:39].strip()
+                    tdict['MOLWT'] = float(myl[39:49])
+                    tdict['C'] = int(myl[49:52])
+                    tdict['TRACER'] = int(myl[52:61])
+                    tdict['SCALE'] = float(myl[61:71])
+                    tdict['UNIT'] = myl[72:].strip()
                     tracer_data[tkey] = tdict
 
             tracer_names = dict([(k, v['NAME'])
@@ -951,10 +951,14 @@ class bpch1(bpch_base):
         self._diaginfofile = diaginfo
 
         if hasattr(diaginfo, 'read') and hasattr(diaginfo, 'seek'):
-            diag_data = dict([(l[9:49].strip(),
-                               dict(offset=int(l[:8]), desc=l[50:].strip()))
-                              for l in diaginfo.read().strip().split('\n')
-                              if l[0] != '#'])
+            diag_data = dict([
+                (
+                    myl[9:49].strip(),
+                    dict(offset=int(myl[:8]), desc=myl[50:].strip())
+                )
+                for myl in diaginfo.read().strip().split('\n')
+                if myl[0] != '#'
+            ])
         else:
             warn('Reading file without diaginfo.dat loses descriptive ' +
                  'information')
@@ -1152,7 +1156,7 @@ class bpch1(bpch_base):
                  "vertgrid='GEOS-5-NATIVE') -f \"bpch," +
                  "vertgrid='GEOS-5-NATIVE'\"" % vertgrid)
 
-        layerkeys = ['layer_bounds'] + ['layer%d' % l for l in layerns]
+        layerkeys = ['layer_bounds'] + ['layer%d' % myl for myl in layerns]
         keys.extend(layerkeys)
         keys.extend(['hyai', 'hyam', 'hybi', 'hybm',
                      'etai_pressure', 'etam_pressure'])
