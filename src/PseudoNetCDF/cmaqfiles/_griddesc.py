@@ -107,8 +107,8 @@ class griddesc(ioapi_base):
             path = '<inline>'
         gdlines = gdf.read().strip().split('\n')
         gdlines = [line.strip() for line in gdlines]
-        assert(gdlines[0] == "' '")
-        assert(gdlines[-1] == "' '")
+        assert (gdlines[0] == "' '")
+        assert (gdlines[-1] == "' '")
         i = 0
         blanks = []
         while i < len(gdlines):

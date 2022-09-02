@@ -23,7 +23,7 @@ class greasd(PseudoNetCDFFile):
             formats='>i >i >f >i >i >i >i'.split() +
                     ['>f'] * record_length + ['>i']))
         items = float(file_size) / float(pig_dtype.itemsize)
-        assert(items == int(items))
+        assert (items == int(items))
         self.NSTEPS = items = int(items)
         self.__memmap__ = memmap(pig_path, shape=items, dtype=pig_dtype)
         self.dimensions = dict(TSTEP=items, NPIG=self.NPIG)

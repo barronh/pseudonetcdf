@@ -91,17 +91,17 @@ class arlpardump(PseudoNetCDFFile):
         self.DAY = hdr[4]
         self.HOUR = hdr[5]
         self.MINUTES = hdr[6]
-        assert(rec1['f0'] == rec1['f2'])
+        assert (rec1['f0'] == rec1['f2'])
         datfmt = '>i,>({},)f,>i,>i,>6f,>i,>i,>5i,>i'.format(self.NPOLLUTANTS)
         self._fmt = np.dtype([('header', '>i,>7i,>i'),
                               ('data', datfmt, (self.NPARTICLES,))])
         data = np.fromfile(self._path, dtype=self._fmt)
-        assert(data.shape[0] == 1)
+        assert (data.shape[0] == 1)
         self._data = data[0]
         db = self._data['data']
-        assert((db['f0'] == db['f2']).all())
-        assert((db['f3'] == db['f5']).all())
-        assert((db['f6'] == db['f8']).all())
+        assert ((db['f0'] == db['f2']).all())
+        assert ((db['f3'] == db['f5']).all())
+        assert ((db['f6'] == db['f8']).all())
 
 
 if __name__ == '__main__':

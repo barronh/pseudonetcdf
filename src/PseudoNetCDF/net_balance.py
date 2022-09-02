@@ -114,9 +114,9 @@ class ctb_reader(pncf):
     def parse(self, lines):
         lines = lines[16:]
         parameters, daily, hourly = [], [], []
-        for l in lines:
+        for myl in lines:
             try:
-                p, d, h = l[:-1].split('\t')
+                p, d, h = myl[:-1].split('\t')
                 parameters.append(p)
                 daily.append(float(d))
                 hourly.append(float(h))
@@ -146,21 +146,21 @@ class net_reader(pncf):
         self.parse(lines, True)
 
     def parse(self, lines, fill=False):
-        for l in lines:
-            if net_time_dim_re.match(l) is not None and self.time == []:
-                self.time = net_time_re.findall(l)
-            elif net_name_re.search(l) is not None:
-                netrxn = l.strip()
+        for myl in lines:
+            if net_time_dim_re.match(myl) is not None and self.time == []:
+                self.time = net_time_re.findall(myl)
+            elif net_name_re.search(myl) is not None:
+                netrxn = myl.strip()
                 if netrxn not in self.nrxns:
                     self.nrxns.append(netrxn)
-            elif net_output_re.match(l) is not None:
-                spcn = net_spc_name_re.search(l).group()
+            elif net_output_re.match(myl) is not None:
+                spcn = net_spc_name_re.search(myl).group()
                 if spcn not in self.spc:
                     self.spc.append(spcn)
                 if fill:
                     slc = self.variables['NET'][:, self.nrxns.index(
                         netrxn), self.spc.index(spcn)]
-                    slc[:] = list(map(float, net_num_re.findall(l)))
+                    slc[:] = list(map(float, net_num_re.findall(myl)))
 
 
 class mrgaloft(pncf):

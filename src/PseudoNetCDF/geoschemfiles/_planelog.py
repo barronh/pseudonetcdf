@@ -40,7 +40,7 @@ if __name__ == '__main__':
     for label, key in [('O3', 'O3[:]'), ('NO2', 'NO2[:]')]:
         bvar = eval(key, None, bfile1.variables)
         b2var = eval(key, None, bfile1.variables)
-        assert((bvar == b2var).all())
+        assert ((bvar == b2var).all())
         print('\n%s (BASE: %6.2f)' % (label, bvar.mean()), file=sys.stdout)
         print('\n      BASE:', sep='', file=sys.stdout)
         np.percentile(

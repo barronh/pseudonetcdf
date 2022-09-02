@@ -389,7 +389,7 @@ def vertprofileplot(ifiles, args):
                 nl = len(ax.get_lines())
                 plt.sca(ax)
 
-        llabels = [l[0].get_label() for l in llines]
+        llabels = [_l[0].get_label() for _l in llines]
         plt.legend(llines, llabels, bbox_to_anchor=(.1, 1),
                    loc='upper left', bbox_transform=fig.transFigure, ncol=6)
         if edges:

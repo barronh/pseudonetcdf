@@ -15,7 +15,7 @@ _split1 = 'Environment Tables for'
 def MorphoIRRt(irrpath):
     mrglines = open(irrpath).readlines()
     try:
-        datelines = [l for l in mrglines if _split1 in l]
+        datelines = [_l for _l in mrglines if _split1 in _l]
         datestr = datelines[0].split(_split1)[-1].strip()
         jday = int(datetime.strptime(datestr, '%d-%b-%y').strftime('%Y%j'))
     except Exception:
@@ -31,7 +31,7 @@ def MorphoIRRt(irrpath):
     name_line = ['N', 'T'] + rxn_names
     unit_line = mrglines.pop(0).split()
     unit_line = [unit for unit in unit_line]
-    assert(all([eval(v) == 0. for v in mrglines.pop(0).split()][2:]))
+    assert (all([eval(v) == 0. for v in mrglines.pop(0).split()][2:]))
     mrgfile = PseudoNetCDFFile()
     mrgfile.createDimension('TSTEP', len(mrglines))
     mrgfile.createDimension('DATE-TIME', 2)

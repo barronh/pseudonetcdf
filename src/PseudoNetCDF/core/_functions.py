@@ -367,7 +367,7 @@ def extract_lonlat(f, lonlat, unique=False, gridded=None, method='nn',
             i1 = newshape.index(-1)
             if newshape.count(-1) > 1:
                 i2 = newshape.index(-1, i1 + 1)
-                assert(i1 == (i2 - 1))
+                assert (i1 == (i2 - 1))
                 newshape.pop(i2)
             i2df = interpclass(points, np.rollaxis(
                 v.reshape(*newshape), i1, 0))
@@ -901,11 +901,11 @@ def mesh_dim(f, mesh_def):
         aggfunc = getattr(np, aggfunc)
     if meshfactor < 1.:
         oldres = int(1. / meshfactor)
-        assert(1. / meshfactor == oldres)
+        assert (1. / meshfactor == oldres)
         newres = 1
     elif meshfactor > 1.:
         newres = int(meshfactor)
-        assert(meshfactor == newres)
+        assert (meshfactor == newres)
         oldres = 1
     from PseudoNetCDF.MetaNetCDF import newresolution
     nrf = newresolution(f, dimension=dimkey, oldres=oldres,
@@ -1016,7 +1016,7 @@ def stack_files(fs, stackdim, coordkeys=None):
             shareddims[dimk] = len(dim)
     differentdims = [set(dims.keys()).difference(
         shareddims.keys()) for dims in dimensions]
-    assert(all([different == set([stackdim]) for different in differentdims]))
+    assert (all([different == set([stackdim]) for different in differentdims]))
     from PseudoNetCDF.sci_var import Pseudo2NetCDF
     p2p = Pseudo2NetCDF(verbose=0)
     p2p.addDimensions(tmpf, f)

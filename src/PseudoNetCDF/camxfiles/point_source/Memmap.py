@@ -140,13 +140,13 @@ class point_source(PseudoNetCDFFile):
         self.__emiss_hdr = self.__memmap[offset:stop]\
                                .view(self.__emiss_hdr_fmt)
         offset += self.__emiss_hdr.nbytes // 4
-        assert((self.__emiss_hdr['SPAD'] == self.__emiss_hdr['EPAD']).all())
+        assert ((self.__emiss_hdr['SPAD'] == self.__emiss_hdr['EPAD']).all())
 
         stop = offset + self.__grid_hdr_fmt.itemsize // 4
         self.__grid_hdr = self.__memmap[offset:stop].view(self.__grid_hdr_fmt)
         offset += self.__grid_hdr.nbytes // 4
 
-        assert((self.__grid_hdr['SPAD'] == self.__grid_hdr['EPAD']).all())
+        assert ((self.__grid_hdr['SPAD'] == self.__grid_hdr['EPAD']).all())
         self.NAME = self.__emiss_hdr['name'][0, :, 0].copy().view('S10')[
             0].decode()
         self.NOTE = self.__emiss_hdr['note'][0, :, 0].copy().view('S60')[
@@ -168,7 +168,7 @@ class point_source(PseudoNetCDFFile):
         stop = offset + self.__cell_hdr_fmt.itemsize // 4
         self.__cell_hdr = self.__memmap[offset:stop].view(self.__cell_hdr_fmt)
         offset += self.__cell_hdr.nbytes // 4 + 1
-        assert((self.__cell_hdr['SPAD'] == self.__cell_hdr['EPAD']).all())
+        assert ((self.__cell_hdr['SPAD'] == self.__cell_hdr['EPAD']).all())
 
         nspec = self.__emiss_hdr['nspec'][0]
         self.ITZON = self.__emiss_hdr['itzon'][0]
@@ -186,7 +186,7 @@ class point_source(PseudoNetCDFFile):
         stop = offset + self.__nstk_hdr_fmt.itemsize // 4
         self.__nstk_hdr = self.__memmap[offset:stop].view(self.__nstk_hdr_fmt)
         offset += self.__nstk_hdr.nbytes // 4 + 1
-        assert((self.__nstk_hdr['SPAD'] == self.__nstk_hdr['EPAD']).all())
+        assert ((self.__nstk_hdr['SPAD'] == self.__nstk_hdr['EPAD']).all())
 
         nstk = self.__nstk_hdr['nstk'][0]
         self.createDimension('NSTK', nstk)
@@ -327,7 +327,7 @@ class TestMemmap(unittest.TestCase):
         # for k, v0 in infile.variables.items():
         #    v1 = outfile.variables[k]
         #    print(k, (v0[:] == v1[:]).all())
-        assert(orig == new)
+        assert (orig == new)
         os.remove(outpath)
 
 

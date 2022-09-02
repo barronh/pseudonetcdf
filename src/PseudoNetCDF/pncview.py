@@ -167,8 +167,8 @@ class TkApp:
                          'Tile Plot (2-D)', 'Plot (1-D)']
         for method in method_labels:
             self.method_list.insert(END, method)
-        var_keys = [k for k, v in self.ncffile.variables.items()
-                    if k not in _coordkeys]
+        var_keys = [_k for _k, v in self.ncffile.variables.items()
+                    if _k not in _coordkeys]
         var_keys.sort()
         self.vars = []
         for spc in var_keys:
@@ -306,7 +306,7 @@ def timeseries(ifile, varkey, options, before='', after=''):
     outpath = getattr(options, 'outpath', '.')
     time = gettime(ifile)
     var = ifile.variables[varkey]
-    dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
+    dims = [(_k, _l) for _l, _k in zip(var[:].shape, var.dimensions) if _l > 1]
     if len(dims) > 1:
         raise ValueError(
             'Time series can have 1 non-unity dimensions; got %d - %s' %
@@ -333,7 +333,7 @@ def plot(ifile, varkey, options, before='', after=''):
     import pylab as pl
     outpath = getattr(options, 'outpath', '.')
     var = ifile.variables[varkey]
-    dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
+    dims = [(_k, _l) for _l, _k in zip(var[:].shape, var.dimensions) if _l > 1]
     if len(dims) > 1:
         raise ValueError(
             'Plots can have only 1 non-unity dimensions; got %d - %s' %
@@ -362,7 +362,7 @@ def pressx(ifile, varkey, options, before='', after=''):
     outpath = getattr(options, 'outpath', '.')
     vert = cu.getpresbnds(ifile)
     var = ifile.variables[varkey]
-    dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
+    dims = [(_k, _l) for _l, _k in zip(var[:].shape, var.dimensions) if _l > 1]
     if len(dims) > 2:
         raise ValueError(
             'Press-x can have 2 non-unity dimensions; got %d - %s' %
@@ -399,7 +399,7 @@ def presslat(ifile, varkey, options, before='', after=''):
     lat = np.append(lat.squeeze()[..., :2].mean(
         1), lat.squeeze()[-1, 2:].mean(0))
     var = ifile.variables[varkey]
-    dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
+    dims = [(_k, _l) for _l, _k in zip(var[:].shape, var.dimensions) if _l > 1]
     if len(dims) > 2:
         raise ValueError(
             'Press-lat can have 2 non-unity dimensions; got %d - %s' %
@@ -440,7 +440,7 @@ def presslon(ifile, varkey, options, before='', after=''):
     lon = np.append(lon.squeeze()[..., [0, 3]].mean(
         1), lon.squeeze()[-1, [1, 2]].mean(0))
     var = ifile.variables[varkey]
-    dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
+    dims = [(_k, _l) for _l, _k in zip(var[:].shape, var.dimensions) if _l > 1]
     if len(dims) > 2:
         raise ValueError(
             'Press-lon plots can have 2 non-unity dimensions; got %d - %s' %
@@ -485,7 +485,7 @@ def tileplot(ifile, varkey, options, before='', after=''):
     exec(before)
     ax = plt.gca()
     print(varkey, end='')
-    dims = [(k, l) for l, k in zip(var[:].shape, var.dimensions) if l > 1]
+    dims = [(_k, _l) for _l, _k in zip(var[:].shape, var.dimensions) if _l > 1]
     if len(dims) > 2:
         raise ValueError(
             'Tile plots can have 2 non-unity dimensions; got %d - %s' %
@@ -516,7 +516,7 @@ def minmaxmean(ax, vals, vertcrd, **kwds):
     minval = vals.min(1)
     meanval = vals.mean(1)
     maxval = vals.max(1)
-    kwds.setdefault('edgecolor', 'k')
+    kwds.setdefault('edgecolor', '_k')
     kwds.setdefault('facecolor', 'grey')
     kwds.setdefault('alpha', 1)
     kwds.setdefault('ls', 'solid')

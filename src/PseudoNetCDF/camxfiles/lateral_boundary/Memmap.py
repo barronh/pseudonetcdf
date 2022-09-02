@@ -214,7 +214,7 @@ class lateral_boundary(PseudoNetCDFFile):
             self._boundary_def[bkey] = memmap(
                 self.__rffile, mode=self.__mode, dtype=__bound_fmt, shape=1,
                 offset=offset)
-            assert(self._boundary_def[bkey]['SPAD'] ==
+            assert (self._boundary_def[bkey]['SPAD'] ==
                    (__bound_fmt.itemsize - 8))
             offset += __bound_fmt.itemsize
 
@@ -352,7 +352,7 @@ class TestMemmap(unittest.TestCase):
         pncgen(infile, outpath, format='camxfiles.lateral_boundary')
         orig = open(inpath, 'rb').read()
         new = open(outpath, 'rb').read()
-        assert(orig == new)
+        assert (orig == new)
         os.remove(outpath)
 
 

@@ -42,7 +42,7 @@ def box_model_conc(conc_path, start_datetime):
 
 def box_model_mrg(conc_path, irr_path, start_datetime):
     irr_values = open(irr_path, 'r').readlines()
-    irr_values = [[float(f) for f in l.split()] for l in irr_values]
+    irr_values = [[float(f) for f in _l.split()] for _l in irr_values]
     irr_values = array(irr_values)
     lines = open(conc_path, 'r').readlines()[8:]
 
