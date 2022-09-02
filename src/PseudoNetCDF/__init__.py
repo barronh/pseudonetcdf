@@ -43,7 +43,7 @@ __all__ = ['aermodfiles',
            '__version__']
 
 from .pncwarn import warn
-from . import version as __version__
+from .version import version as __version__
 
 from .core import PseudoNetCDFFile
 from .core import PseudoNetCDFVariable, PseudoNetCDFVariables
