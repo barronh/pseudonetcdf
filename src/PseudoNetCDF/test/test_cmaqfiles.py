@@ -180,7 +180,15 @@ class IOAPITest(unittest.TestCase):
         assert (len(test.dimensions['LAY']) == 3)
         assert (len(test.dimensions['ROW']) == 4)
         assert (len(test.dimensions['COL']) == 5)
-        np_all_close(test.variables['test'][:].ravel(), np.arange(120))
+        checkvar = test.variables['test']
+        np_all_close(checkvar[:].ravel(), np.arange(120))
+        assert (
+            checkvar.getncatts() == {
+                'units': 'ppm'.ljust(16),
+                'long_name': 'test'.ljust(16),
+                'var_desc': 'test'.ljust(80),
+            }
+        )
 
 
 class ProfileTest(unittest.TestCase):

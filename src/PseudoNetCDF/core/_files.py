@@ -1351,28 +1351,53 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         return outd
 
     @classmethod
-    def from_arrays(cls, dims=None, attrs=None, fileattrs=None, **inarrkw):
+    def from_arrays(
+        cls, dims=None, attrs=None, nameattr='standard_name',
+        fileattrs=None, **inarrkw
+    ):
         """
+        Create a new ioapi file from arrays.
+
         Arguments
         ---------
-        invarkw : kwds
-            NetCDF-like variables
+        dims : iterable
+            Explicit dimensions. If not provided, they will be created as
+            phony_dim_{i} where i for i in range(ndim). For example, an array
+            of shape (2, 3) would have dimensions (phony_dim_0, phony_dim_1)
+        attrs : mappable
+            Attributes for all variables (e.g., units). long_name and
+            var_desc will be set based on key if not provided.
+        nameattr : str
+            Key for name as an attribute
+        fileattrs : mappable
+            Attributes for the file to be created.
+        inarrkw : mappable
+            Keys are the names of variables to be created and the value should
+            be an array of values.
 
         Returns
         -------
         outf : PseudoNetcdf-like file
         """
+        import copy
+
         invarkw = {}
+        if attrs is None:
+            attrs = {}
         for key, arr in inarrkw.items():
+            myattrs = copy.copy(attrs)
+            myattrs.setdefault(nameattr, key)
             if dims is None:
                 mydims = tuple([f'phony_dim_{i}' for i in range(arr.ndim)])
             else:
                 mydims = dims
-            invarkw[key] = PseudoNetCDFVariable.from_array(key, arr, mydims)
+            invarkw[key] = PseudoNetCDFVariable.from_array(
+                key, arr, mydims, **myattrs
+            )
 
         out = cls.from_ncvs(**invarkw)
         if fileattrs is not None:
-            out.setncatts(**fileattrs)
+            out.setncatts(fileattrs)
 
         return out
 

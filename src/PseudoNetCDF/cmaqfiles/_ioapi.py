@@ -60,12 +60,30 @@ class ioapi_base(PseudoNetCDFFile):
         return False
 
     @classmethod
-    def from_arrays(cls, dims=None, attrs=None, fileattrs=None, **inarrkw):
+    def from_arrays(
+        cls, dims=None, attrs=None, nameattr='long_name', fileattrs=None,
+        **inarrkw
+    ):
         """
+        Create a new ioapi file from arrays.
+
         Arguments
         ---------
-        invarkw : kwds
-            NetCDF-like variables
+        dims : iterable
+            Explicit dimensions. If not provided, they will be diagnosed:
+            TFLAG: ('TSTEP', 'VAR', 'DATE-TIME')
+            Other 4D: ('TSTEP', 'LAY', 'ROW', 'COL')
+            Other 3D: ('TSTEP', 'LAY', 'PERIM')
+            Other 2D: ('ROW', 'COL')
+        attrs : mappable
+            Attributes for all variables (e.g., units). long_name and
+            var_desc will be set based on key if not provided.
+        nameattr : str
+        fileattrs : mappable
+            Attributes for the file to be created.
+        inarrkw : mappable
+            Keys are the names of variables to be created and the value should
+            be an array of values.
 
         Returns
         -------
@@ -78,9 +96,13 @@ class ioapi_base(PseudoNetCDFFile):
                 myattrs = {}
             else:
                 myattrs = copy.copy(attrs)
-            myattrs.setdefault('units', 'unknown'.ljust(16))
-            myattrs.setdefault('long_name', key.ljust(16))
-            myattrs.setdefault('var_desc', key.ljust(80))
+            myattrs.setdefault(nameattr, key)
+            myattrs.setdefault('units', 'unknown')
+            myattrs.setdefault('long_name', key)
+            myattrs.setdefault('var_desc', key)
+            myattrs['units'] = myattrs['units'].ljust(16)
+            myattrs['long_name'] = myattrs['long_name'].ljust(16)
+            myattrs['var_desc'] = myattrs['var_desc'].ljust(80)
             if dims is None:
                 if key == 'TFLAG':
                     mydims = ('TSTEP', 'VAR', 'DATE-TIME')
@@ -94,7 +116,9 @@ class ioapi_base(PseudoNetCDFFile):
                     mydims = tuple([f'phony_dim_{i}' for i in range(arr.ndim)])
             else:
                 mydims = dims
-            invarkw[key] = PseudoNetCDFVariable.from_array(key, arr, mydims)
+            invarkw[key] = PseudoNetCDFVariable.from_array(
+                key, arr, mydims, **myattrs
+            )
 
         out = cls.from_ncvs(**invarkw)
         if fileattrs is None:
@@ -1054,6 +1078,13 @@ class ioapi(ioapi_base, netcdf):
         outf.set_varopt(**self.get_varopt())
         outf._updatetime(write=True, create=True)
         return outf
+
+    @classmethod
+    def from_arrays(cls, *args, **kwds):
+        """
+        Thin wrapper around ioapi_base.from_arrays
+        """
+        return ioapi_base.from_arrays(*args, **kwds)
 
     @classmethod
     def from_ncf(cls, infile):

@@ -818,12 +818,15 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         var = self.testncf.variables['O3']
         arr = var.array().copy()
         checkncf = PseudoNetCDFFile.from_arrays(
-            dims=('TSTEP', 'LAY', 'ROW', 'COL'),
-            **{'O3': arr},
+            dims=('TSTEP', 'LAY', 'ROW', 'COL'), fileattrs={'a': 1},
+            **{'O3': arr}, nameattr='long_name'
         )
+        checkvar = checkncf.variables['O3']
         np_all_close(
-            checkncf.variables['O3'], var[:]
+            checkvar[:], var[:]
         )
+        assert (checkvar.getncattr('long_name') == 'O3')
+        assert (checkncf.a == 1)
 
     def runTest(self):
         pass
