@@ -271,19 +271,19 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             f.val2idx('lon', -179.9, bounds='error')
-        
+
         with self.assertRaises(ValueError):
             f.val2idx('lon', 179.9, bounds='error')
-        
+
         iidx = f.val2idx('lon', -179.9, bounds='ignore')
         assert (iidx == 0)
-        lonb = f.createVariable(
+        f.createVariable(
             'lon_bounds', 'd', ('lon', 'nv'),
             values=np.array([lon - 0.5, lon + 0.5]).T
         )
         iidx = f.val2idx('lon', -179.9, bounds='error')
         assert (iidx == 0)
-        lonb = f.createVariable(
+        f.createVariable(
             'lon_bounds', 'd', ('lonedges'), values=np.linspace(-180, 180, 361)
         )
         iidx = f.val2idx('lon', -179.9, bounds='error')
