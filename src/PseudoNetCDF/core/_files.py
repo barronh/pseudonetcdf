@@ -557,26 +557,28 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             raise ValueError(
                 'val2idx is only implemented for 1-D coordinate variables'
             )
-        if method == 'bounds':
-            bounds_keys = [dim + '_bounds', dim + '_bnds']
-            if hasattr(dimv, 'bounds'):
-                bounds_keys.insert(0, dimv.bounds)
 
-            for dimbk in bounds_keys:
-                if dimbk not in self.variables:
-                    continue
-                dimbv = self.variables[dimbk]
-                if dimbv.ndim == 1:
-                    dimevals = dimbv[:]
-                elif dimbv.ndim == 2 and dimbv.shape[1] == 2:
-                    dimevals = np.append(dimbv[:, 0], dimbv[-1, 1])
-                else:
-                    raise ValueError(
-                        'val2idx is only implemented for 1-D or 2-D bounds' +
-                        '; {} has {}'.format(dimbk, dimbv.shape)
-                    )
-                break
+        bounds_keys = [dim + '_bounds', dim + '_bnds']
+        if hasattr(dimv, 'bounds'):
+            bounds_keys.insert(0, dimv.bounds)
+
+        dimevals = dimvals
+        for dimbk in bounds_keys:
+            if dimbk not in self.variables:
+                continue
+            dimbv = self.variables[dimbk]
+            if dimbv.ndim == 1:
+                dimevals = dimbv[:]
+            elif dimbv.ndim == 2 and dimbv.shape[1] == 2:
+                dimevals = np.append(dimbv[:, 0], dimbv[-1, 1])
             else:
+                raise ValueError(
+                    'val2idx is only implemented for 1-D or 2-D bounds' +
+                    '; {} has {}'.format(dimbk, dimbv.shape)
+                )
+            break
+        else:
+            if method == 'bounds':
                 warn('Approximating bounds for val2idx {}'.format(dim))
                 dval = np.diff(dimvals) / 2
                 start = dimvals[:1]
@@ -590,10 +592,11 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
                     dimvals[1:] - dval,
                     end
                 ])
-        else:
-            dimevals = dimvals
 
-        idx = np.arange(dimevals.size)
+        if method == 'bounds':
+            idx = np.arange(dimevals.size)
+        else:
+            idx = np.arange(dimvals.size)
         ddimevals = np.diff(dimevals)
 
         if (ddimevals < 0).all():
@@ -607,10 +610,12 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         # import pdb; pdb.set_trace()
         # left = dimevals[0] - 1
         # right = dimevals[-1] + 1
-        fidx = np.interp(val, dimevals, idx, left=left, right=right)
         if method == 'bounds':
+            fidx = np.interp(val, dimevals, idx, left=left, right=right)
             if right is None or right == dimevals[-1]:
                 fidx = np.minimum(fidx, dimvals.size - 1)
+        else:
+            fidx = np.interp(val, dimvals, idx, left=left, right=right)
 
         if method == 'exact':
             fidx = np.ma.masked_where(~np.in1d(val, dimvals), fidx)
@@ -624,11 +629,12 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             isleft = val < dimevals[0]
             isright = val > dimevals[-1]
             isout = isleft | isright
-            outmesg = 'Values are out of bounds:\n{}'.format(val[isout])
-            if bounds == 'warn':
-                warn(outmesg)
-            elif bounds == 'error':
-                raise ValueError(bounds)
+            if isout.any():
+                outmesg = 'Values are out of bounds:\n{}'.format(val[isout])
+                if bounds == 'warn':
+                    warn(outmesg)
+                elif bounds == 'error':
+                    raise ValueError(outmesg)
 
         if method == 'nearest':
             outidx = np.round(outfidx, 0).astype('i')

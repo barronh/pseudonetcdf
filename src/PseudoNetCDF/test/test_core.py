@@ -264,6 +264,31 @@ class PseudoNetCDFFileTest(unittest.TestCase):
               22.748563023301763, 22.748560872681754]]]
         return tncf
 
+    def testVal2idxBounds(self):
+        lon = np.linspace(-179.5, 179.5, 360)
+        f = PseudoNetCDFFile.from_arrays(
+            lon=lon, dims=('lon',), attrs=dict(bounds='lon_bounds')
+        )
+        with self.assertRaises(ValueError):
+            f.val2idx('lon', -179.9, bounds='error')
+
+        with self.assertRaises(ValueError):
+            f.val2idx('lon', 179.9, bounds='error')
+
+        iidx = f.val2idx('lon', -179.9, bounds='ignore')
+        assert (iidx == 0)
+        f.createVariable(
+            'lon_bounds', 'd', ('lon', 'nv'),
+            values=np.array([lon - 0.5, lon + 0.5]).T
+        )
+        iidx = f.val2idx('lon', -179.9, bounds='error')
+        assert (iidx == 0)
+        f.createVariable(
+            'lon_bounds', 'd', ('lonedges'), values=np.linspace(-180, 180, 361)
+        )
+        iidx = f.val2idx('lon', -179.9, bounds='error')
+        assert (iidx == 0)
+
     def testVal2idx(self):
         ncf = PseudoNetCDFFile()
         coorde = np.arange(9, dtype='f')
