@@ -2,7 +2,8 @@ import unittest
 import numpy as np
 from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariables
 from PseudoNetCDF import PseudoNetCDFVariable, pncopen
-from . import requires_basemap, requires_pyproj
+from . import requires_basemap, requires_pyproj, requires_matplotlib
+from . import compare_files
 from PseudoNetCDF.pncwarn import warn
 
 
@@ -523,6 +524,11 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         tncf = self.testncf
         tncf.getMap(maptype='basemap_auto')
 
+    @requires_matplotlib
+    def testPlot(self):
+        tncf = self.testncf
+        _ = tncf.plot('O3')
+
     @requires_pyproj
     def testGetproj(self):
         tncf = self.testncf
@@ -852,6 +858,83 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         )
         assert (checkvar.getncattr('long_name') == 'O3')
         assert (checkncf.a == 1)
+
+    def testMask(self):
+        o3 = self.testncf.variables['O3'][:]
+        # median is the average of 1439 and 1440
+        # 1439.5, so masks half. Using 1440
+        median = 1440
+        chkf = self.testncf.mask(less=median)
+        assert (chkf.variables['O3'].mask.sum() == 1440)
+        chkf = self.testncf.mask(less_equal=median)
+        assert (chkf.variables['O3'].mask.sum() == 1441)
+        chkf = self.testncf.mask(where=o3 < median)
+        assert (chkf.variables['O3'].mask.sum() == 1440)
+        chkf = self.testncf.mask(greater=median)
+        assert (chkf.variables['O3'].mask.sum() == 1439)
+        chkf = self.testncf.mask(greater_equal=median)
+        assert (chkf.variables['O3'].mask.sum() == 1440)
+
+    def testIsMine(self):
+        import tempfile
+        import os
+        from .. import PseudoNetCDFFile
+        from ..core import netcdf
+        tncf = self.testncf.copy()
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            tmppath = os.path.join(tmpdirname, 'test.nc')
+            tncf.save(tmppath).close()
+            assert ~PseudoNetCDFFile.isMine(tmppath)
+            assert netcdf.isMine(tmppath)
+            os.remove(tmppath)
+            with open(tmppath, 'w') as dummy:
+                dummy.write('hi')
+            assert ~netcdf.isMine(tmppath)
+            assert ~PseudoNetCDFFile.isMine(tmppath)
+            os.remove(tmppath)
+
+    def testFromNCF(self):
+        from .. import PseudoNetCDFFile
+        from ..core import netcdf
+
+        chkncf = PseudoNetCDFFile.from_ncf(self.testncf)
+        compare_files(chkncf, self.testncf)
+        chkncf = netcdf.from_ncf(self.testncf)
+        compare_files(chkncf, self.testncf)
+
+    def testNetcdf(self):
+        import tempfile
+        import os
+        from ..core import netcdf
+        tncf = self.testncf.copy()
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            tmppath = os.path.join(tmpdirname, 'test.nc')
+            cncf = netcdf(tmppath, mode='w')
+            cncf.setncatts(tncf.getncatts())
+            for dk, d in tncf.dimensions.items():
+                cncf.copyDimension(d, key=dk)
+            for vk, v in tncf.variables.items():
+                cncf.copyVariable(v, key=vk)
+            compare_files(tncf, cncf)
+            os.remove(tmppath)
+
+    def testOpenMFDataset(self):
+        import tempfile
+        import os
+        from ..core import netcdf
+        tncf = self.testncf.copy()
+        to3 = tncf.variables['O3'][:]
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            tmppath1 = os.path.join(tmpdirname, 'test1.nc')
+            tmppath2 = os.path.join(tmpdirname, 'test2.nc')
+            tncf.save(tmppath1).close()
+            tncf.save(tmppath2).close()
+            nt = len(tncf.dimensions['TSTEP'])
+            cncf = netcdf.open_mfdataset(tmppath1, tmppath2, stackdim='TSTEP')
+            np_all_close(cncf.variables['O3'][:nt], to3)
+            np_all_close(cncf.variables['O3'][nt:], to3)
+            os.remove(tmppath1)
+            os.remove(tmppath2)
 
     def runTest(self):
         pass

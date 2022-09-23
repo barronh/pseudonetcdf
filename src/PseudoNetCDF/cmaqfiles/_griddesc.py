@@ -130,7 +130,6 @@ class griddesc(ioapi_base):
         self._grd = grd
         self.FTYPE = FTYPE
         self.VGTYP = VGTYP
-        self.GDNAM = GDNAM
         self.VGTOP = np.float32(VGTOP)
         self.VGLVLS = np.array(VGLVLS, dtype='f')
         self.NLAYS = len(VGLVLS) - 1
@@ -202,7 +201,7 @@ class griddesc(ioapi_base):
         None
         """
         if key is None:
-            if self.GDNAM is None:
+            if getattr(self, 'GDNAM', None) is None:
                 self.GDNAM = list(self._grd)[0]
 
             key = self.GDNAM.strip()

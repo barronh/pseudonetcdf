@@ -1,0 +1,48 @@
+* These data were copied from a WOUDC file and then paired way down.
+
+#CONTENT
+Class,Category,Level,Form
+WOUDC,OzoneSonde,1.0,1
+
+#DATA_GENERATION
+Date,Agency,Version,ScientificAuthority
+2022-09-23,NA,0.0,Not Anybody (fake data)
+
+#PLATFORM
+Type,ID,Name,Country,GAW_ID
+STN,109,Hilo (HI),USA,HIH
+
+#INSTRUMENT
+Name,Model,Number
+ECC,2z,30730
+
+#LOCATION
+Latitude,Longitude,Height
+19.43,-155.04,11.0
+
+#TIMESTAMP
+UTCOffset,Date,Time
++00:00:00,2016-05-13,22:39:35
+
+#FLIGHT_SUMMARY
+IntegratedO3,CorrectionCode,SondeTotalO3,CorrectionFactor,TotalO3,WLCode,ObsType,Instrument,Number
+217.78
+
+#AUXILLARY_DATA
+RadioSonde,Sonde Climatology,Background Current,PumpRate,BackgroundCorr,KI Solution
+Imet,38.34,0.010,29.230,NOAA Average (Johnson et al. 2002),1% 1/10th Buffer (10 g/L KI 25 g/L KBr 0.5 g/L Na2HPO4 12H2O 0.125 g/L NaH2PO4 H2O)
+
+#PROFILE
+Pressure,O3PartialPressure,Temperature,WindSpeed,WindDirection,LevelCode,Duration,GPHeight,RelativeHumidity,SampleTemperature
+1013.390,2.304,26.970,4.560,43.270,,0,10.0,70.000,32.380
+950.480,2.534,18.960,2.550,73.120,,93,567.0,91.000,33.090
+850.840,2.489,14.640,3.130,197.420,,290,1513.0,86.000,34.320
+750.230,2.023,10.770,1.390,255.130,,500,2570.0,58.000,34.960
+650.280,5.196,7.180,7.880,238.150,,730,3748.0,13.000,35.380
+550.280,2.244,0.250,14.890,287.400,,987,5106.0,45.000,35.440
+450.170,1.656,-10.120,16.690,256.920,,1270,6686.0,24.000,35.270
+350.180,1.267,-24.310,19.430,240.660,,1575,8567.0,36.000,34.980
+250.150,0.693,-42.970,15.000,268.720,,1996,10930.0,43.000,33.790
+150.170,1.663,-66.750,21.000,247.530,,2621,14172.0,26.000,30.590
+50.000,7.487,-66.910,3.770,126.250,,3913,20673.0,6.000,22.930
+7.460,6.384,-33.240,18.990,97.480,,6062,33097.0,2.000,18.630

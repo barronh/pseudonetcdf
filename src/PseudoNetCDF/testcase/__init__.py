@@ -1,16 +1,24 @@
 __all__ = ['camxfiles_paths', 'net_balance_paths', 'geoschemfiles_paths',
            'icarttfiles_paths', 'all_paths', 'self_described_paths',
-           'cmaqfiles_paths', 'toms_paths']
+           'cmaqfiles_paths', 'toms_paths', 'woudcfiles_paths']
 
 from os.path import join, abspath
 
 cmaqfiles_paths = dict(
     icon_profile='cmaqfiles/profiles/test.icon_profile',
     bcon_profile='cmaqfiles/profiles/test.bcon_profile',
+    griddesc='cmaqfiles/griddesc/GRIDDESC',
 )
 
 for key, val in cmaqfiles_paths.items():
     cmaqfiles_paths[key] = abspath(join(*__path__ + val.split('/')))
+
+woudcfiles_paths = dict(
+    sonde='woudcfiles/test_woudc.csv',
+)
+
+for key, val in woudcfiles_paths.items():
+    woudcfiles_paths[key] = abspath(join(*__path__ + val.split('/')))
 
 camxfiles_paths = dict(
     wind='camxfiles/wind/test.wind',
