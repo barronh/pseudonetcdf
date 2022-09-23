@@ -1193,6 +1193,10 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         dimreduction : string or function
             dimensions not being used in the plot are removed using
             applyAlongDimensions(dimkey=dimreduction) where each dimenions
+        Returns
+        -------
+        ax : matplotlib.axes.Axes
+            Axes that was drawn on
         """
         import matplotlib.pyplot as plt
         from ..coordutil import getbounds
@@ -2581,7 +2585,8 @@ class netcdf(PseudoNetCDFFile, NetCDFFile):
         self.__dict__['_operator_exclude_vars'] = ()
         self.__dict__['_varopt'] = {}
         coords = [k for k in self.dimensions if k in self.variables]
-        self.setCoords(coords)
+        if len(coords) > 0:
+            self.setCoords(coords)
 
     @property
     def _mode(self):

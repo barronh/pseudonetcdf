@@ -76,6 +76,22 @@ class griddesc(unittest.TestCase):
         gfref.WTIME = gfref.CTIME = 0
         compare_files(gf, gfref)
 
+    def testSave(self):
+        import os
+        import tempfile
+        from ..cmaqfiles import griddesc
+        from ..testcase import cmaqfiles_paths
+        from .. import pncopen
+        from . import compare_files
+        gf = griddesc(cmaqfiles_paths['griddesc'], GDNAM='12US1')
+
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            tmppath = os.path.join(tmpdirname, 'test.nc')
+            gf.save(tmppath).close()
+            gfref = pncopen(tmppath, format='ioapi')
+            compare_files(gf, gfref)
+            os.remove(tmppath)
+
 
 class IOAPITest(unittest.TestCase):
     def setUp(self):

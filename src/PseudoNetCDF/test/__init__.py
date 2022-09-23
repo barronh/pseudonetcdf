@@ -21,6 +21,7 @@ def _importorskip(modname, minversion=None):
 
 
 has_pyproj, requires_pyproj = _importorskip('pyproj')
+has_matplotlib, requires_matplotlib = _importorskip('matplotlib')
 has_basemap, requires_basemap = _importorskip('mpl_toolkits.basemap')
 
 
