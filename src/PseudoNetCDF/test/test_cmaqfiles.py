@@ -5,6 +5,78 @@ import numpy as np
 np_all_close = np.testing.assert_allclose
 
 
+class griddesc(unittest.TestCase):
+    def testNamed(self):
+        from ..cmaqfiles import griddesc
+        from ..testcase import cmaqfiles_paths
+        griddesc(cmaqfiles_paths['griddesc'], GDNAM='12US1')
+
+    def testWrongGDTYP(self):
+        from ..cmaqfiles import griddesc
+        with self.assertRaises(TypeError):
+            griddesc(
+                None, GDNAM='12US1', GDTYP=4, P_ALP=33., P_BET=45., P_GAM=-97.,
+                XCENT=-97., YCENT=40., XORIG=-2556000., YORIG=-1728000.0,
+                XCELL=12000.0, YCELL=12000.0, NCOLS=459, NROWS=299, NTHIK=1,
+                FTYPE=1
+            )
+
+    def testWrongFYPE(self):
+        from ..cmaqfiles import griddesc
+        from ..testcase import cmaqfiles_paths
+        with self.assertRaises(ValueError):
+            griddesc(cmaqfiles_paths['griddesc'], FTYPE=3)
+
+    def testDefault(self):
+        from ..cmaqfiles import griddesc
+        from ..testcase import cmaqfiles_paths
+        griddesc(cmaqfiles_paths['griddesc'])
+
+    def testGridParams(self):
+        from ..cmaqfiles import griddesc
+        from ..testcase import cmaqfiles_paths
+        from . import compare_files
+        gf = griddesc(
+            None, GDNAM='12US1', GDTYP=2, P_ALP=33., P_BET=45., P_GAM=-97.,
+            XCENT=-97., YCENT=40., XORIG=-2556000., YORIG=-1728000.0,
+            XCELL=12000.0, YCELL=12000.0, NCOLS=459, NROWS=299, NTHIK=1,
+            FTYPE=1
+        )
+        gfref = griddesc(cmaqfiles_paths['griddesc'], GDNAM='12US1', FTYPE=1)
+        # Set properties that are expected to vary to the same values
+        gfref.HISTORY = ''
+        gfref.FILEDESC = ''
+        gf.HISTORY = ''
+        gf.FILEDESC = ''
+        gf.PRJNAME = ''
+        gfref.PRJNAME = ''
+        gf.WTIME = gf.CTIME = 0
+        gfref.WTIME = gfref.CTIME = 0
+        compare_files(gf, gfref)
+
+    def testPerimParams(self):
+        from ..cmaqfiles import griddesc
+        from ..testcase import cmaqfiles_paths
+        from . import compare_files
+        gf = griddesc(
+            None, GDNAM='12US1', GDTYP=2, P_ALP=33., P_BET=45., P_GAM=-97.,
+            XCENT=-97., YCENT=40., XORIG=-2556000., YORIG=-1728000.0,
+            XCELL=12000.0, YCELL=12000.0, NCOLS=459, NROWS=299, NTHIK=1,
+            FTYPE=2
+        )
+        gfref = griddesc(cmaqfiles_paths['griddesc'], GDNAM='12US1', FTYPE=2)
+        # Set properties that are expected to vary to the same values
+        gfref.HISTORY = ''
+        gfref.FILEDESC = ''
+        gf.HISTORY = ''
+        gf.FILEDESC = ''
+        gf.PRJNAME = ''
+        gfref.PRJNAME = ''
+        gf.WTIME = gf.CTIME = 0
+        gfref.WTIME = gfref.CTIME = 0
+        compare_files(gf, gfref)
+
+
 class IOAPITest(unittest.TestCase):
     def setUp(self):
         from datetime import datetime, timedelta

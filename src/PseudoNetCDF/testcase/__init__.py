@@ -7,6 +7,7 @@ from os.path import join, abspath
 cmaqfiles_paths = dict(
     icon_profile='cmaqfiles/profiles/test.icon_profile',
     bcon_profile='cmaqfiles/profiles/test.bcon_profile',
+    griddesc='cmaqfiles/griddesc/GRIDDESC',
 )
 
 for key, val in cmaqfiles_paths.items():
