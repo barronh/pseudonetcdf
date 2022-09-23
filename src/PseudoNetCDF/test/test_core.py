@@ -527,8 +527,7 @@ class PseudoNetCDFFileTest(unittest.TestCase):
     @requires_matplotlib
     def testPlot(self):
         tncf = self.testncf
-        ax = tncf.plot('O3')
-        
+        _ = tncf.plot('O3')
 
     @requires_pyproj
     def testGetproj(self):
@@ -882,7 +881,6 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         from .. import PseudoNetCDFFile
         from ..core import netcdf
         tncf = self.testncf.copy()
-        to3 = tncf.variables['O3'][:]
         with tempfile.TemporaryDirectory() as tmpdirname:
             tmppath = os.path.join(tmpdirname, 'test.nc')
             tncf.save(tmppath).close()
@@ -903,7 +901,7 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         compare_files(chkncf, self.testncf)
         chkncf = netcdf.from_ncf(self.testncf)
         compare_files(chkncf, self.testncf)
-        
+
     def testNetcdf(self):
         import tempfile
         import os
@@ -919,7 +917,7 @@ class PseudoNetCDFFileTest(unittest.TestCase):
                 cncf.copyVariable(v, key=vk)
             compare_files(tncf, cncf)
             os.remove(tmppath)
-       
+
     def testOpenMFDataset(self):
         import tempfile
         import os
@@ -937,6 +935,6 @@ class PseudoNetCDFFileTest(unittest.TestCase):
             np_all_close(cncf.variables['O3'][nt:], to3)
             os.remove(tmppath1)
             os.remove(tmppath2)
-       
+
     def runTest(self):
         pass
