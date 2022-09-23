@@ -210,7 +210,3 @@ class woudcsonde(PseudoNetCDFFile):
         outv.description = 'Pressure-weighted average vmr in ppm'
         outv[:] = out[:]
         return outf
-
-
-if __name__ == "__main__":
-    f = woudcsonde('20150813.ECC.1Z.1Z27925.JMA.csv')
