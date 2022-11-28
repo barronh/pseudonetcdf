@@ -111,12 +111,28 @@ def ncf2uamiv(ncffile, outpath):
     """
 
     emiss_hdr = np.zeros(shape=(1,), dtype=_emiss_hdr_fmt)
+    # name is a tricky attribute, so CAMx_NAME was used to 
+    # replace it. The FILEDESC property often has the name.
+    # otherwise, default to AVERAGE
+    nametxt = getattr(
+        ncffile, 'NAME', getattr(
+            ncffile, 'CAMx_NAME', getattr(
+                ncffile, 'FILEDESC', 'AVERAGE'
+            )
+        )
+    )
+    # The name must be exactly 10 characters long
+    nametxt = nametxt.ljust(10)[:10]
     emiss_hdr[0]['name'][:, :] = ' '
-    emiss_hdr[0]['name'][:, 0] = np.array(ncffile.NAME, dtype='>c')
+    emiss_hdr[0]['name'][:, 0] = np.array(nametxt, dtype='>c')
+    # Note should be there, but FILEDESC is used as a backup
+    notetxt = getattr(ncffile, 'NOTE', getattr(ncffile, 'FILEDESC', ''))
+    # Note must be exactly 40 characters long
+    notetxt = nametxt.ljust(60)[:60]
     emiss_hdr[0]['note'][:, :] = ' '
-    emiss_hdr[0]['note'][:, 0] = np.array(ncffile.NOTE, dtype='>c')
+    emiss_hdr[0]['note'][:, 0] = np.array(notetxt, dtype='>c')
     # gdtype = getattr(ncffile, 'GDTYP', -999)
-    emiss_hdr['itzon'][0] = ncffile.ITZON
+    emiss_hdr['itzon'][0] = getattr(ncffile, 'ITZON', 0)
     nspec = len(ncffile.dimensions['VAR'])
     emiss_hdr['nspec'] = nspec
 
@@ -125,9 +141,13 @@ def ncf2uamiv(ncffile, outpath):
     NLAYS = len(ncffile.dimensions['LAY'])
     grid_hdr = np.zeros(shape=(1,), dtype=_grid_hdr_fmt)
     grid_hdr['SPAD'] = grid_hdr.itemsize - 8
-    grid_hdr['plon'] = ncffile.PLON
-    grid_hdr['plat'] = ncffile.PLAT
-    grid_hdr['iutm'][0] = ncffile.IUTM
+    plon = getattr(ncffile, 'PLON', getattr(ncffile, 'XCENT'))
+    plat = getattr(ncffile, 'PLAT', getattr(ncffile, 'YCENT'))
+    tlat1 = getattr(ncffile, 'TLAT1', getattr(ncffile, 'P_ALP'))
+    tlat2 = getattr(ncffile, 'TLAT2', getattr(ncffile, 'P_BET'))
+    grid_hdr['plon'] = plon
+    grid_hdr['plat'] = plat
+    grid_hdr['iutm'][0] = getattr(ncffile, 'IUTM', 0)
     grid_hdr['xorg'] = ncffile.XORIG
     grid_hdr['yorg'] = ncffile.YORIG
     grid_hdr['delx'] = ncffile.XCELL
@@ -136,9 +156,9 @@ def ncf2uamiv(ncffile, outpath):
     grid_hdr['ny'] = NROWS
     grid_hdr['nz'] = NLAYS
     grid_hdr['iproj'] = ncffile.CPROJ
-    grid_hdr['tlat1'] = ncffile.TLAT1
-    grid_hdr['tlat2'] = ncffile.TLAT2
-    grid_hdr['istag'] = ncffile.ISTAG
+    grid_hdr['tlat1'] = tlat1
+    grid_hdr['tlat2'] = tlat2
+    grid_hdr['istag'] = getattr(ncffile, 'ISTAG', 0)
     grid_hdr['rdum5'] = 0.
     grid_hdr['EPAD'] = grid_hdr.itemsize - 8
 
