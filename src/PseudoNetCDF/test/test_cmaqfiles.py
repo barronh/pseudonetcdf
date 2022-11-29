@@ -27,10 +27,21 @@ class griddesc(unittest.TestCase):
         with self.assertRaises(ValueError):
             griddesc(cmaqfiles_paths['griddesc'], FTYPE=3)
 
-    def testDefault(self):
+    def testDefaultGDNAM(self):
         from ..cmaqfiles import griddesc
         from ..testcase import cmaqfiles_paths
-        griddesc(cmaqfiles_paths['griddesc'])
+        f = griddesc(cmaqfiles_paths['griddesc'])
+        self.assertEqual(f.GDNAM.strip(), '12US1')
+
+    def testSpecificGDNAM(self):
+        from ..cmaqfiles import griddesc
+        from ..testcase import cmaqfiles_paths
+        f = griddesc(cmaqfiles_paths['griddesc'], GDNAM='12US1')
+        self.assertEqual(f.GDNAM.strip(), '12US1')
+        self.assertEqual(f.NCOLS, 459)
+        f = griddesc(cmaqfiles_paths['griddesc'], GDNAM='36US3')
+        self.assertEqual(f.GDNAM.strip(), '36US3')
+        self.assertEqual(f.NCOLS, 172)
 
     def testGridParams(self):
         from ..cmaqfiles import griddesc

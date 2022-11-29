@@ -152,7 +152,7 @@ class griddesc(ioapi_base):
 
         self.setdefvars(var_kwds)
         self.addtime(nsteps)
-        self.setgrid(withcf=withcf)
+        self.setgrid(key=GDNAM, withcf=withcf)
         self.updatemeta()
         self.getVarlist()
 
@@ -207,6 +207,7 @@ class griddesc(ioapi_base):
             key = self.GDNAM.strip()
         grd = self._grd[key]
         prj = self._prj[grd['PRJNAME'].strip()]
+        self.setncattr('GDNAM', key)
         self.setncatts(prj)
         self.setncatts(grd)
         self.adddims(withcf=withcf)
