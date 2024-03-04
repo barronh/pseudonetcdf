@@ -69,21 +69,21 @@ class gcnc_base(PseudoNetCDFFile):
         else:
             missi, = np.where(i.mask)
             missj, = np.where(j.mask)
-            lowi, = np.where(~easter[missi].any(1))
-            highi, = np.where(~wester[missi].any(1))
-            lowj, = np.where(~norther[missj].any(1))
-            highj, = np.where(~souther[missj].any(1))
-            outb = (lowi | lowj | highi | highj)
+            outb = i.mask | j.mask
             nout = outb.sum()
             if nout > 0:
-                message = '{} Points out of bounds; {}'.format(
-                    nout, np.where(outb))
+                message = '{} Points out of bounds {:.1%}; {}'.format(
+                    nout, nout/i.size, np.where(outb))
                 if bounds == 'error':
                     raise ValueError(message)
                 else:
                     warn(message)
 
         if clean == 'clip':
+            highi, = np.where(easter[:].all(1))
+            lowi, = np.where(wester[:].all(1))
+            highj, = np.where(norther[:].all(1))
+            lowj, = np.where(souther[:].all(1))
             i[lowi] = 0
             i[highi] = nx - 1
             j[lowj] = 0
