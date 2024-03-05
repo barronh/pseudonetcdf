@@ -82,24 +82,25 @@ def registerreader(name, reader):
         return False
 
 
-def pncmfopen(*args, stackdim=None, **kwds):
+def pncmfopen(paths, *args, stackdim=None, **kwds):
     """Open any PNC supported format using pncopen on all files
     passed as teh first argument of pncmfopen. See pncopen
 
     Parameters
     ----------
+    paths : list
+        List of paths to open
     args : arguments
-        args[0] must be a list of paths, other arguments are format specific
+        pncopen arguments (see pncopen)
     stackdim : str
         dimension upon which to stack files
     kwds : dict
-        see pncopen for more details
+        pncopen and format-specific keywords (see pncopen for more details)
 
     Returns
     -------
     pfile : PseudoNetCDF
     """
-    paths = args[0]
     files = [pncopen(path, *args[1:], **kwds) for path in paths]
     file1 = files[0]
     return file1.stack(files[1:], stackdim=stackdim)
@@ -121,7 +122,8 @@ def pncopen(*args, **kwds):
     addcf : boolean
         to add CF conventions (not passed to reader; default: False)
     diskless : boolean
-        to add CF conventions (not passed to reader; default: False)
+        If addcf (default: False), the file must either be wrapped or loaded
+        into memory (diskless) to add attributes.
     help : boolean
         without format, returns help of pncopen and with format keyword,
         returns help of that class. See the __init__ interface for help
