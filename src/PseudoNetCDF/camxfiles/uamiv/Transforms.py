@@ -59,10 +59,10 @@ class osat(PseudoNetCDFFile):
         self.__regionsbyNm[''] = tuple(self.__regionsbyNm.keys())
 
         for k, v in sources.items():
-            if type(v) == str:
+            if isinstance(v, str):
                 sources[k] = (v,)
         for k, v in regions.items():
-            if type(v) == str:
+            if isinstance(v, str):
                 regions[k] = (v,)
 
         # Update with user supplied keys
