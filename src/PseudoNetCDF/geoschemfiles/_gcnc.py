@@ -73,7 +73,7 @@ class gcnc_base(PseudoNetCDFFile):
             nout = outb.sum()
             if nout > 0:
                 message = '{} Points out of bounds {:.1%}; {}'.format(
-                    nout, nout/i.size, np.where(outb))
+                    nout, nout / i.size, np.where(outb))
                 if bounds == 'error':
                     raise ValueError(message)
                 else:

@@ -123,7 +123,7 @@ class converters_dict(defaultdict):
             self[k] = v
 
     def __missing__(self, key):
-        if type(key) == tuple and key[0] == key[1]:
+        if isinstance(key, tuple) and key[0] == key[1]:
             return lambda a: a
 
 

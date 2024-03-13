@@ -170,11 +170,13 @@ def get_ioapi_sphere():
 
 
 _gdnames = {1: "latitude_longitude", 2: "lambert_conformal_conic",
+            3: "mercator", 5: "transverse_mercator",
             7: "mercator", 6: "polar_stereographic"}
 
 
 def getmapdef(ifileo, add=True):
-    gridname = _gdnames[ifileo.GDTYP]
+    gdtyp = ifileo.GDTYP
+    gridname = _gdnames[gdtyp]
     if add:
         mapdef = ifileo.createVariable(gridname, 'i', ())
     else:
@@ -188,17 +190,49 @@ def getmapdef(ifileo, add=True):
         mapdef.latitude_of_projection_origin = ifileo.P_ALP * 90
         mapdef.straight_vertical_longitude_from_pole = ifileo.P_GAM
         mapdef.standard_parallel = np.array([ifileo.P_BET], dtype='d')
-        # mapdef.standard_parallel = np.array([ifileo.P_BET], dtype = 'f')
+    elif mapdef.grid_mapping_name == "mercator" and gdtyp == 3:
+        from PseudoNetCDF.pncwarn import warn
+        warn('mercator is untested. Be cautious.')
+        # IOAPI documentation sys YCENT/XCENT same as P_ALP/P_BET
+        assert (ifileo.P_ALP == ifileo.YCENT)
+        assert (ifileo.P_BET == ifileo.XCENT)
+        mapdef.standard_parallel = np.array([ifileo.P_GAM], dtype='d')
+    elif mapdef.grid_mapping_name == "mercator" and gdtyp == 7:
+        assert (ifileo.P_ALP == ifileo.YCENT)
+        assert (ifileo.P_GAM == ifileo.XCENT)
+    elif mapdef.grid_mapping_name == "transverse_mercator" and gdtyp == 5:
+        from PseudoNetCDF.pncwarn import warn
+        warn('UTM is untested. Be cautious.')
+        # diagnosted using
+        # proj = pyproj.Proj('+proj=utm +zone=18 +R=6370000')
+        # cf = proj.crs.to_cf()
+        # {k: v for k, v in cf.items() if k not in ('crs_wkt',)}
+        mapdef.latitude_of_projection_origin = 0.0
+        mapdef.longitude_of_central_meridian = ifileo.P_ALP * 6 + -183
+        # where did this come from?
+        # mapdef.scale_factor_at_central_meridian: 0.9996
+    elif mapdef.grid_mapping_name == "transverse_mercator" and gdtyp == 8:
+        from PseudoNetCDF.pncwarn import warn
+        warn('transverse_mercator is untested. Be cautious.')
+        mapdef.standard_parallel = np.array([ifileo.P_ALP], dtype='d')
+        mapdef.scale_factor_at_central_meridian = ifileo.P_BET
+        mapdef.longitude_of_central_meridian = ifileo.P_GAM
+        assert (ifileo.P_ALP == ifileo.YCENT)
+        assert (ifileo.P_GAM == ifileo.XCENT)
     else:
         mapdef.standard_parallel = np.array(
             [ifileo.P_ALP, ifileo.P_BET], dtype='d')
-    if mapdef.grid_mapping_name != "latitude_longitude":
+
+    if gdtyp not in (1, 5):  # not in latitude_longitude UTM
         mapdef.latitude_of_projection_origin = ifileo.YCENT
         mapdef.longitude_of_central_meridian = ifileo.XCENT
+
+    if gdtyp not in (1,):  # not in latitude_longitude
         mapdef.false_northing = -ifileo.YORIG
         mapdef.false_easting = -ifileo.XORIG
         mapdef._CoordinateTransformType = "Projection"
         mapdef._CoordinateAxes = "x y"
+
     ioapi_sphere = get_ioapi_sphere()
     mapdef.semi_major_axis = getattr(ifileo, 'semi_major_axis', getattr(
         ifileo, 'earth_radius', ioapi_sphere[0]))
@@ -259,6 +293,7 @@ def add_lcc_coordinates(ifileo):
         lcc_x, lcc_y = np.meshgrid(x, y)
 
     if _withlatlon:
+        props = {k: mapdef.getncattr(k) for k in mapdef.ncattrs()}
         if ifileo.GDTYP == 2:
             mapstrs = ['+proj=lcc',
                        '+a=%s' % mapdef.semi_major_axis,
@@ -268,6 +303,13 @@ def add_lcc_coordinates(ifileo):
                        '+lat_2=%s' % mapdef.standard_parallel[1],
                        '+lat_0=%s' % mapdef.latitude_of_projection_origin]
             mapstr = ' '.join(mapstrs)
+            mapproj = pyproj.Proj(mapstr)
+        elif ifileo.GDTYP == 5:
+            props['zone'] = ifileo.P_ALP
+            mapstr = (
+                '+proj=utm +zone={zone:.0f} +a={semi_major_axis}'
+                + ' +b={semi_minor_axis}'
+            ).format(**props)
             mapproj = pyproj.Proj(mapstr)
         elif ifileo.GDTYP == 6:
             mapstr = ('+proj=stere +a={3} +b={4} ' +
@@ -286,6 +328,10 @@ def add_lcc_coordinates(ifileo):
         elif ifileo.GDTYP == 1:
             def mapproj(x, y, inverse):
                 return (x, y)
+        else:
+            CRS = pyproj.CRS.from_cf(props)
+            mapproj = pyproj.Proj(CRS)
+
         lon, lat = mapproj(lcc_x, lcc_y, inverse=True)
         lone, late = mapproj(lcc_xe.ravel(), lcc_ye.ravel(), inverse=True)
         lone = lone.reshape(*lcc_xe.shape)
@@ -417,5 +463,6 @@ def add_cf_from_ioapi(ifileo, coordkeys=[]):
     if ifileo.GDTYP in _gdnames:
         add_lcc_coordinates(ifileo)
     else:
-        raise TypeError('IOAPI is only aware of LCC (GDTYP=2)')
+        raise TypeError(f'PNC IOAPI aware of {_gdnames}; got {ifileo.GDTYP}')
+
     ifileo.Conventions = 'CF-1.6'

@@ -2,6 +2,7 @@ import PseudoNetCDF as pnc
 from PseudoNetCDF.pncwarn import warn
 import os
 import io
+import re
 from datetime import datetime
 from collections import OrderedDict
 import numpy as np
@@ -40,7 +41,8 @@ class griddesc(ioapi_base):
         path : str or file-like
             If path is has a read method, it will be used directly.
             If path is a path to a file on disk, it will be read.
-            If none of these, it will try to treat the path as content.
+            If none of these, treat the path as text content.
+            If path is None, load a griddesc using properties provided.
         GDNAM : str
             Name the grid to be used. If not provided, the first will be used
         VGLVLS : tuple
@@ -77,7 +79,7 @@ class griddesc(ioapi_base):
             gdf = path
             path = '<inline>'
         elif path is None:
-            required_props = _prjp[1:] + _grdp[1:] + ('GDNAM',)
+            required_props = _prjp[:] + _grdp[1:] + ('GDNAM',)
             grid_kw = prop_kw.copy()
             if GDNAM is None:
                 grid_kw['GDNAM'] = 'UNKNOWN'
@@ -87,11 +89,16 @@ class griddesc(ioapi_base):
             grid_kw.setdefault('PRJNAME', 'UNKNOWN')
             for rpk in required_props:
                 if rpk not in grid_kw:
+                    if path is None and 'GRIDDESC' in os.environ:
+                        path = os.environ['GRIDDESC']
+                        gdf = open(path, 'r')
+                        break
                     raise KeyError(
                         f'{rpk} not found.'
                         + f'If path is None, {required_props} are required'
                     )
-            gdf = io.StringIO("""
+            else:
+                gdf = io.StringIO("""
 ' '
 '{PRJNAME}'
 {GDTYP} {P_ALP} {P_BET} {P_GAM} {XCENT} {YCENT}
@@ -105,15 +112,25 @@ class griddesc(ioapi_base):
         else:
             gdf = io.StringIO(path)
             path = '<inline>'
-        gdlines = gdf.read().strip().split('\n')
+
+        gdtxt = gdf.read().replace(',', ' ').strip()
+        # Fortran allows exponential notation to use D or d
+        # instead of E or e, while Python does not.
+        dble = re.compile('([\d.])[Dd]([\d])')
+        gdtxt = dble.sub(r'\1e\2', gdtxt)
+        gdlines = gdtxt.split('\n')
         gdlines = [line.strip() for line in gdlines]
-        assert (gdlines[0] == "' '")
-        assert (gdlines[-1] == "' '")
+        # Remove comments that start with !
+        gdlines = [line.split('!')[0].strip() for line in gdlines]
+        # IOAPI does not verify first line, simply discards.
+        # dscgrid.f#L153
+        # assert (gdlines[0].replace(' ', '') == "''")
+        assert (gdlines[-1].replace(' ', '') == "''")
         i = 0
         blanks = []
         while i < len(gdlines):
             line = gdlines[i]
-            if line.strip() == "' '":
+            if line.strip() in ("' '", "''", ""):
                 blanks.append(i)
             else:
                 i += 1

@@ -320,7 +320,7 @@ def OpenRecordFile(rf):
 
     rf - str, unicode, file, RecordFile
     """
-    if type(rf) == RecordFile:
+    if isinstance(rf, RecordFile):
         pass
     else:
         rf = RecordFile(rf)
