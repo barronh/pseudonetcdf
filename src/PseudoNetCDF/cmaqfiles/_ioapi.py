@@ -190,7 +190,7 @@ class ioapi_base(PseudoNetCDFFile):
             if dk in ('TSTEP', 'DATE-TIME', 'PERIM'):
                 continue
             audit[f'has_N{dk}S'] = hasattr(self, f'N{dk}S')
-            if audit[f'has_N{dk}S']:
+            if audit[f'has_N{dk}S'] and dk in dimlens:
                 audit[dk] = getattr(self, f'N{dk}S', 0) == dimlens[dk]
 
         if audit['has_ROW'] and audit['has_COL'] and not audit['has_PERIM']:
