@@ -111,7 +111,7 @@ def get_proj(ifile):
         var.standard_parallel = ifile.TRUELAT1
 
     from PseudoNetCDF.coordutil import getproj4_from_cf_var
-    from mpl_toolkits.basemap import pyproj
+    import pyproj
     projstr = getproj4_from_cf_var(var)
     proj = pyproj.Proj(projstr)
     gcx, gcy = proj(ifile.CEN_LON, ifile.CEN_LAT)
