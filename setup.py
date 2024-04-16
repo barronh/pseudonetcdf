@@ -83,7 +83,7 @@ extra_requires_dict = {
 
 setup(
     name='PseudoNetCDF',
-    version='3.3.3',
+    version='3.4.0',
     author='Barron Henderson',
     author_email='barronh@gmail.com',
     maintainer='Barron Henderson',
@@ -100,6 +100,9 @@ setup(
     scripts=script_list,
     install_requires=requires_list,
     extras_require=extra_requires_dict,
+    entry_points={
+        "xarray.backends": ["pseudonetcdf=PseudoNetCDF.xarray_plugin:PseudoNetCDFBackend"],
+    },
     url='http://github.com/barronh/pseudonetcdf/',
     classifiers=[
         'Programming Language :: Python :: 2.7',
