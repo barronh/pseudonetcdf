@@ -111,7 +111,7 @@ def ncf2uamiv(ncffile, outpath):
     """
 
     emiss_hdr = np.zeros(shape=(1,), dtype=_emiss_hdr_fmt)
-    # name is a tricky attribute, so CAMx_NAME was used to 
+    # name is a tricky attribute, so CAMx_NAME was used to
     # replace it. The FILEDESC property often has the name.
     # otherwise, default to AVERAGE
     nametxt = getattr(
