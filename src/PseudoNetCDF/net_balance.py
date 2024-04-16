@@ -88,10 +88,11 @@ def net_reaction(net_rxns, net_rxn, time='Daily'):
         elif v < 0:
             reactants.extend((-1 * v, spc))
 
-    return ((
+    out = (
         " + ".join([tmp for i in reactants if isinstance(i, str)]) + " <-> "
         + " + ".join([tmp for i in products if isinstance(i, str)])
-    ) % tuple(reactants + products))
+    ) % tuple(reactants + products)
+    return out
 
 
 class ctb_reader(pncf):
