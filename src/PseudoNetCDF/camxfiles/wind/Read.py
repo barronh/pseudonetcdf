@@ -299,7 +299,7 @@ class wind(PseudoNetCDFFile):
     __iter__ = keys
 
     def getArray(self, krange=slice(1, None)):
-        if isinstance(krange, slice):
+        if not isinstance(krange, slice):
             if isinstance(krange, tuple):
                 krange = slice(*krange)
             if isinstance(krange, int):
