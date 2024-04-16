@@ -32,7 +32,7 @@ class sum_reader(pncf):
         return False
 
     def __init__(self, sumfile):
-        if type(sumfile) == str:
+        if isinstance(sumfile, str):
             self.sumfile = open(sumfile, 'r')
         else:
             self.sumfile = sumfile
@@ -88,9 +88,11 @@ def net_reaction(net_rxns, net_rxn, time='Daily'):
         elif v < 0:
             reactants.extend((-1 * v, spc))
 
-    return ((" + ".join([tmp for i in reactants if type(i) == str]) + " <-> " +
-             " + ".join([tmp for i in products if type(i) == str])) %
-            tuple(reactants + products))
+    out = (
+        " + ".join([tmp for i in reactants if isinstance(i, str)]) + " <-> "
+        + " + ".join([tmp for i in products if isinstance(i, str)])
+    ) % tuple(reactants + products)
+    return out
 
 
 class ctb_reader(pncf):
@@ -99,7 +101,7 @@ class ctb_reader(pncf):
         return False
 
     def __init__(self, file):
-        if type(file) == str:
+        if isinstance(file, str):
             file = open(file)
         lines = file.readlines()
         parameters, daily, peak = self.parse(lines)
@@ -135,7 +137,7 @@ class net_reader(pncf):
         self.nrxns = []
         self.time = []
 
-        if type(infile) == str:
+        if isinstance(infile, str):
             infile = open(infile)
         lines = infile.readlines()
         self.parse(lines, False)
