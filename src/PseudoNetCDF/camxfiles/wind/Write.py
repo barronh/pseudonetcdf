@@ -37,19 +37,19 @@ def ncf2wind(ncffile, outpath, tflag='TFLAG'):
         d = np.array(d, ndmin=1).astype('>i')
         d = (d % (d // 100000 * 100000)).astype('>i')
         lstag = ncffile.LSTAGGER
-        buf = np.array([12], dtype='>i').tostring()
-        outfile.write(buf + t.tostring() + d.tostring() +
-                      lstag.tostring() + buf)
+        buf = np.array([12], dtype='>i').tobytes()
+        outfile.write(buf + t.tobytes() + d.tobytes() +
+                      lstag.tobytes() + buf)
         for zi in range(nzcl):
             for varkey in varkeys:
                 vals = ncffile.variables[varkey][di, zi].astype('>f')
                 buf = np.array([(vals.size) * 4],
-                               ndmin=1).astype('>i').tostring()
+                               ndmin=1).astype('>i').tobytes()
                 outfile.write(buf)
                 vals.tofile(outfile)
                 outfile.write(buf)
         vals = np.array(0, dtype='>i')
-        buf = np.array([(vals.size) * 4], ndmin=1).astype('>i').tostring()
+        buf = np.array([(vals.size) * 4], ndmin=1).astype('>i').tobytes()
         outfile.write(buf)
         vals.astype('>f').tofile(outfile)
         outfile.write(buf)
