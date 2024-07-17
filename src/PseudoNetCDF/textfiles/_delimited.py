@@ -5,10 +5,12 @@ from warnings import warn
 from PseudoNetCDF._getwriter import registerwriter
 import unittest
 
-_coordkeys = ("time time_bounds TFLAG ETFLAG latitude latitude_bounds " +
-              "longitude longitude_bounds lat lat_bnds lon lon_bnds " +
-              "etam_pressure etai_pressure layer_bounds layer47 " +
-              "layer").split()
+_coordkeys = (
+    "Time time time_bounds TFLAG ETFLAG"  # Times
+    + " etam_pressure etai_pressure layer_bounds layer47 layer"  # Layers
+    + " latitude latitude_bounds lat lat_bnds"    # Latitudes
+    + " longitude longitude_bounds lon lon_bnds"  # Longitudes
+).split()
 
 
 class csv(PseudoNetCDFFile):
@@ -25,13 +27,13 @@ class csv(PseudoNetCDFFile):
             with pandas backend and names==True: header='infer'
             otherwise, passed directly as keyword
         backend : str or None
-            'numpy' numpy.recfromtxt or 'pandas' pandas.read_csv; defaults to
+            'numpy' numpy.genfromtxt or 'pandas' pandas.read_csv; defaults to
             pandas if available
         defaultcoord : str
             if no coordkeys are found, use this str to create a arbitrary
             coordinate based on each record
         kwds : mappable
-            corresponds to numpy.recfromtxt or pandas.read_csv keywords
+            corresponds to numpy.genfromtxt or pandas.read_csv keywords
 
         * Note: currently only works when all coordinate variables are 1-d
         """
@@ -45,12 +47,14 @@ class csv(PseudoNetCDFFile):
                     raise ValueError(
                         'pandas library not available, try another backend'
                     )
+                elif backend is None:
+                    backend = 'numpy'
 
         if backend == 'numpy':
             npkwds = kwds.copy()
             npkwds['names'] = names
             npkwds['delimiter'] = delimiter
-            data = np.recfromtxt(path, **npkwds)
+            data = np.genfromtxt(path, **npkwds)
         elif backend == 'pandas':
             pdkwds = kwds.copy()
             if names is True:
@@ -70,7 +74,7 @@ class csv(PseudoNetCDFFile):
             )
 
         varkeys = [vk for vk in data.dtype.names if vk not in coordkeys]
-        dimkeys = tuple([dk for dk in coordkeys if dk in data.dtype.names])
+        dimkeys = tuple([dk for dk in data.dtype.names if dk in coordkeys])
         dimvars = {}
         if len(dimkeys) == 0:
             dimkeys = (defaultcoord,)
@@ -145,9 +149,9 @@ def ncf2csv(ifile, outpath, delimiter=',', coordkeys=_coordkeys):
                 dv = ifile.variables[dk]
                 didx = tuple([iidx for i, iidx in enumerate(
                     idx) if dim[i] in dv.dimensions])
-                outvals.append(repr(dv[didx]))
+                outvals.append('{}'.format(dv[didx]))
             for vk, vv in zip(header, vars):
-                outvals.append(repr(vv[idx]))
+                outvals.append('{}'.format(vv[idx]))
             outtext = delimiter.join(outvals)
             print(outtext, file=outfile)
 
@@ -303,3 +307,11 @@ class TestCsv(unittest.TestCase):
         out.seek(0, 0)
         outval = out.read()
         assert (outval == self.checkval)
+
+    def testCSV(self):
+        import io
+        for backend in [None, 'pandas', 'numpy']:
+            chkf = csv(io.StringIO(self.checkval), backend=backend)
+            for k, refv in self.testfile.variables.items():
+                chkv = chkf.variables[k]
+                assert np.allclose(chkv, refv)

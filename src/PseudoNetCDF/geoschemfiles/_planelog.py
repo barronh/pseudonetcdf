@@ -16,7 +16,7 @@ class flightlogs(PseudoNetCDFFile):
         pfile._vars = dict()
 
         files = [open(path) for path in paths]
-        datas = [np.recfromtxt(f, names=True, case_sensitive=True)
+        datas = [np.genfromtxt(f, names=True, case_sensitive=True)
                  for f in files]
         data = np.ma.concatenate(datas)
         desired_unit = dict(O3='ppb', GMAO_TEMP='K', PRESS='hPa', TEMP='K')

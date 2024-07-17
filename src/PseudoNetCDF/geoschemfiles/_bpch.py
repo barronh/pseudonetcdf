@@ -1027,7 +1027,8 @@ class bpch1(bpch_base):
                 if offset == file_size:
                     dim = header[13][::-1]
                     # start = header[14][::-1]
-                    data_type = dtype('>i4, %s>f4, >i4' % str(tuple(dim[:])))
+                    dimstr = ', '.join(['{}'.format(d) for d in dim])
+                    data_type = dtype('>i4, (%s)>f4, >i4' % dimstr)
                     assert (data_type.itemsize == header[-2])
                     data_types.append(data_type)
                     if self.nogroup is True:
@@ -1042,7 +1043,8 @@ class bpch1(bpch_base):
                 break
             dim = header[13][::-1]
             # start = header[14][::-1]
-            data_type = dtype('>i4, %s>f4, >i4' % str(tuple(dim[:])))
+            dimstr = ', '.join(['{}'.format(d) for d in dim])
+            data_type = dtype('>i4, (%s)>f4, >i4' % dimstr)
             assert (data_type.itemsize == header[-2])
             data_types.append(data_type)
             if self.nogroup is True:

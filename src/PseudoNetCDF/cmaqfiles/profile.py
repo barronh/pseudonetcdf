@@ -2,9 +2,9 @@ from __future__ import print_function
 __all__ = ['bcon_profile', 'icon_profile']
 from ._ioapi import ioapi_base
 try:
-    from StringIO import StringIO as BytesIO
+    from StringIO import StringIO
 except ImportError:
-    from io import BytesIO
+    from io import StringIO
 import numpy as np
 # from datetime import datetime
 
@@ -25,17 +25,12 @@ def _getunit(varkey):
 
 def _profile2dict(lines, fieldnames):
     import re
-
-    data = np.recfromtxt(
-        BytesIO(
-            bytes(
-                re.sub(r'[ ]+"', '"', '\n'.join(lines)).replace('"', ''),
-                encoding='ascii'
-            )
-        ),
-        delimiter=' ', names=fieldnames,
-        converters=dict(names=lambda x: x.strip()),
-    )
+    # join lines and remove extra spaces within (e.g, "O3  ") then remove "
+    txt = '\n'.join(lines)
+    txt = re.sub(r'[ ]+"', '"', txt).replace('"', '')
+    # Use named dtypes to replicate recfromtxt functionality
+    dts = [(fn, {'name': 'S16'}.get(fn, 'd')) for fn in fieldnames]
+    data = np.genfromtxt(StringIO(txt), delimiter=' ', dtype=dts)
     return data
 
 
@@ -53,7 +48,7 @@ class icon_profile(ioapi_base):
         starts = [5]
         ends = [s + nspc for s in starts]
         keys = ['all']
-        fieldnames = ('name',) + tuple(['s%f' % i for i in sigmas])
+        fieldnames = ('name',) + tuple(['s%f' % i for i in sigmas[:-1]])
         data = dict([
             (k, _profile2dict(lines[s:e], fieldnames))
             for k, s, e in zip(keys, starts, ends)
@@ -138,7 +133,7 @@ class bcon_profile(ioapi_base):
         starts = [5 + i + i * nspc for i in range(4)]
         ends = [s + 1 + nspc for s in starts]
         keys = [lines[s].strip().lower() for s in starts]
-        fieldnames = ('name',) + tuple(['s%f' % i for i in sigmas])
+        fieldnames = ('name',) + tuple(['s%f' % i for i in sigmas[:-1]])
         data = dict([
             (k, _profile2dict(lines[s + 1:e], fieldnames))
             for k, s, e in zip(keys, starts, ends)
