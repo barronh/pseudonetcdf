@@ -18,8 +18,9 @@ class reader(PseudoNetCDFFile):
 
     def __init__(self, path):
         # import pdb; pdb.set_trace()
-        self._data = np.recfromtxt(
-            path, names=names, delimiter=delimiter, comments='*')
+        self._data = np.genfromtxt(
+            path, names=names, delimiter=delimiter, comments='*'
+        )
         self.createDimension('receptor', self._data.size)
         self.createDimension('StrLen', StrLen)
         for k, u in zip(names, units):

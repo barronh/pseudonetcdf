@@ -18,7 +18,7 @@ def ncf2temperature(ncffile, outpath):
         t = np.array(t / 100, ndmin=1, dtype='>f')
         d = np.array(d, ndmin=1).astype('>i')
         d = (d % (d // 100000 * 100000)).astype('>i')
-        buf = np.array(nelem, dtype='>i').tostring()
+        buf = np.array(nelem, dtype='>i').tobytes()
         outfile.write(buf)
         t.tofile(outfile)
         d.tofile(outfile)

@@ -353,22 +353,40 @@ class bpch2(bpch_base):
         return var
 
     def _gettracerinfo(self, path):
+
         tpath = os.path.join(os.path.dirname(path), 'tracerinfo.dat')
         if not os.path.exists(tpath):
             tpath = 'tracerinfo.dat'
-        self._tdata = np.recfromtxt(tpath, dtype=None, comments='#', names=[
-                                    'shortname', 'fullname', 'kgpermole',
-                                    'carbon', 'tracerid', 'scale', 'units'],
-                                    delimiter=[9, 30, 10, 3, 9, 10, 41],
-                                    autostrip=True)
+        names = [
+            'shortname', 'fullname', 'kgpermole', 'carbon', 'tracerid',
+            'scale', 'units'
+        ]
+        dtypes = ['S8', 'S30', 'f', 'i', 'i', 'f', 'S40']
+        kwds = dict(
+            dtype=dtypes, comments='#', names=names, autostrip=True,
+            delimiter=[9, 30, 10, 3, 9, 10, 41]
+        )
+        self._tdata = np.genfromtxt(tpath, **kwds)
+
+# NAME     (A8   )  Tracer name (up to 8 chars)
+#  --      (1X   )  1-character spacer
+# FULLNAME (A30  )  Full tracer name (up to 30 chars)
+# MOLWT    (E10.0)  Molecular weight (kg/mole)
+# C        (I3   )  For HC's: # moles C/moles tracer; otherwise set=1
+# TRACER   (I9   )  Tracer number (up to 9 digits)
+# SCALE    (E10.3)  Standard scale factor to convert to unit given below
+#  --      (1X   )  1-character spacer
+# UNIT     (A40  )  Unit string
 
     def _getdiaginfo(self, path):
         dpath = os.path.join(os.path.dirname(path), 'diaginfo.dat')
         if not os.path.exists(dpath):
             dpath = 'diaginfo.dat'
-        self._ddata = np.recfromtxt(dpath, dtype=None, comments='#', names=[
-                                    'offset', 'category', 'comment'],
-                                    delimiter=[9, 40, 100], autostrip=True)
+        kwds = dict(
+            dtype=['i', 'S40', 'S100'], comments='#', delimiter=[9, 40, 100],
+            names=['offset', 'category', 'comment'], autostrip=True,
+        )
+        self._ddata = np.genfromtxt(dpath, **kwds)
 
 # OFFSET    (I8 )  Constant to add to tracer numbers in order to distinguish
 #                  for the given diagnostic category, as stored in file

@@ -28,9 +28,9 @@ def ncf2one3d(ncffile, outpath, key=None, tflag='TFLAG'):
         d = (d % (d // 100000 * 100000)).astype('>i')
         for v2d in v3d:
             v2d = v2d.astype('>f')
-            buf = array((v2d.size + 2) * 4, ndmin=1).astype('>i').tostring()
-            outfile.write(buf + t.tostring() + d.tostring() +
-                          v2d.tostring() + buf)
+            buf = array((v2d.size + 2) * 4, ndmin=1).astype('>i').tobytes()
+            outfile.write(buf + t.tobytes() + d.tobytes() +
+                          v2d.tobytes() + buf)
     outfile.flush()
     return outfile
 

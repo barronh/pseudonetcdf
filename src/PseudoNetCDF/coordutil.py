@@ -580,9 +580,11 @@ def getproj4_from_cf_var(gridmapping, withgrid=False):
         else:
             warn('Currently not using:' + str(pk) + ' ' + str(pv))
 
-    # repr is required to prevent rounding of numpy array values
-    mapstr = ' '.join(['+%s=%s' % (k, v if isinstance(v, str) else repr(v))
-                       for k, v in mapstr_bits.items()])
+    # repr was used to prevent rounding of numpy array values [by explicit
+    # format specification].
+    # using '{}={}'.format succingly uses str as the default formatter.
+    # str is more consistent for numpy version 2.x capabilities
+    mapstr = ' '.join(['+{}={}'.format(k, v) for k, v in mapstr_bits.items()])
     return mapstr
 
 
