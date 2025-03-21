@@ -82,7 +82,7 @@ extra_requires_dict = {
 }
 
 setup(
-    name='PseudoNetCDF',
+    name='pseudonetcdf',
     version='3.4.1',
     author='Barron Henderson',
     author_email='barronh@gmail.com',
