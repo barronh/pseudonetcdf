@@ -814,3 +814,208 @@ def sigma2coeff(fromvglvls, tovglvls):
             # if li == 12:
             #    print(li, b, t, ll, ul, lay, bf, tf, min(bf, tf))
     return coeff
+
+
+def stdatm_from_pressure(P):
+    """
+    US Standard Atmosphere 1976 as implemented in eq 1.20 and 1.21
+    of Stuhl ISBN: 0-534-37214-7.
+
+    Arguments
+    ---------
+    P : array-like
+        Pressure in Pascals
+
+    Returns
+    -------
+    atmf : PseudoNetCDFFile
+        Has Temperature (T) and Pressure (P) and height (m)
+
+    Example
+    -------
+    atmf = stdatm(np.linspace(101325, 5000, 35), 50e2)
+    """
+    import numpy as np
+    from .core import PseudoNetCDFFile
+
+    # Adapted from Stuhl pg 13
+    T0 = 288.15  # K
+    P0 = 101325.  # Pa
+    dT = .0065  # K/m
+    ht = (T0 - T0 / (P / P0)**(1 / -5.25587)) / dT
+    hs = np.log(P / 22632) / -1.577e-4 + 11e3
+    Tm = 216.65 / (P / 5474.9)**(1 / 34.16319)
+    hm = (Tm - 216.65) / 0.001 + 20e3
+    h = np.where(P < 22632, hs, ht)
+    h = np.where(P < 5474.9, hm, h)
+    T = np.maximum(T0 - dT * h, 216.65)
+    T = np.where(P < 5474.9, Tm, T)
+    atmf = PseudoNetCDFFile.from_arrays(
+        P=P, T=T, h=h, dims=('LAY',),
+    )
+    atmf.variables['P'].setncattr('units', 'Pa')
+    atmf.variables['T'].setncattr('units', 'K')
+    atmf.variables['h'].setncattr('units', 'm_asl')
+    fdesc = """US Standard Atmosphere 1976 as implemented in eq 1.20 and 1.21
+    of Stuhl ISBN: 0-534-37214-7
+    """
+    atmf.setncattr('FILEDESC', fdesc)
+    return atmf
+
+
+def stdatm_from_vglvls(VGLVLS, VGTOP=50e2, ps=1.e5):
+    """
+    US Standard Atmosphere 1976 as implemented in eq 1.20 and 1.21
+    of Stuhl ISBN: 0-534-37214-7.
+
+    Arguments
+    ---------
+    VGLVLS : array-like
+        Terrain following pressure coordinates (p-ptop) / (psurf - ptop)
+    VGTOP : float
+        Top pressure (ptop)
+    ps : float
+        Surface pressure in Pa (default 1000hPa)
+
+    Returns
+    -------
+    atmf : PseudoNetCDFFile
+        Has Temperature (T) and Pressure (P) and height (m)
+
+    Example
+    -------
+    atmf = stdatm(np.linspace(1, 0, 35), 50e2)
+    """
+    import numpy as np
+    VGLVLS = np.asarray(VGLVLS)
+
+    P = VGLVLS * (ps - VGTOP) + VGTOP
+    atmf = stdatm_from_pressure(P)
+    atmf.setncattr('VGLVLS', VGLVLS.astype('f'))
+    atmf.setncattr('VGTOP', VGTOP)
+    return atmf
+
+
+def stdatm_from_height(h):
+    """
+    US Standard Atmosphere 1976 as implemented in eq 1.20 and 1.21
+    of Stuhl ISBN: 0-534-37214-7.
+
+    Arguments
+    ---------
+    h : array-like
+        geopotential height in meters
+
+    Returns
+    -------
+    atmf : PseudoNetCDFFile
+        Has Temperature (T) and Pressure (P) and height (m)
+
+    Example
+    -------
+    atmf = stdatm(np.linspace(0, 20e3, 21))
+    """
+    import numpy as np
+    from .core import PseudoNetCDFFile
+    h = np.asarray(h)
+    # Adapted from Stuhl pg 13
+    T0 = 288.15  # K
+    P0 = 101325.  # Pa
+    dT = .0065  # K/m
+    # up to 11km, use lapse=6.5K/km; between 11 and 20km use 216.65K
+    T = np.maximum(T0 - dT * h, 216.65)
+    # above 20km, dT = 0.001
+    T = np.where(h >= 20e3, 216.65 + 0.001 * (h - 20e3), T)
+    Pt = P0 * (T0 / T)**-5.255877
+    Ps = 22632. * np.exp(-1.577e-4 * (h - 11e3))
+    Pm = 5474.9 * (216.65 / T)**34.16319
+    P = np.where(h >= 11e3, Ps, Pt)
+    P = np.where(h >= 20e3, Pm, P)
+    atmf = PseudoNetCDFFile.from_arrays(
+        P=P, T=T, h=h, dims=('LAY',),
+    )
+    atmf.variables['P'].setncattr('units', 'Pa')
+    atmf.variables['T'].setncattr('units', 'K')
+    atmf.variables['h'].setncattr('units', 'm_asl')
+    fdesc = """US Standard Atmosphere 1976 as implemented in eq 1.20 and 1.21
+    of Stuhl ISBN: 0-534-37214-7
+    """
+    atmf.setncattr('FILEDESC', fdesc)
+    return atmf
+
+
+def vglvls2ab(VGLVLS, VGTOP, r=0.2, p0=1e5, astype='pnc'):
+    """
+    Adapted from Equation 1 in https://doi.org/10.1175/MWR-D-18-0334.1 to
+    create an P = A + B * ps [Pa] equation.
+
+    Arguments
+    ---------
+    VGLVLS : array-like
+        VGLVLS property from MCIP output (P - Ptop) / Psfc - Ptop)
+    VGTOP : array-like
+        Pressure at top (Ptop) in Pa
+    r : float
+        Pure pressure convergence point.
+    p0 : float
+        Reference pressure Pa
+    astype : str
+        Choices dict, dataframe or pnc. See returns for more information.
+
+    Returns
+    -------
+    ab : dict, pandas.DataFrame, or PseudoNetCDFFile
+        Hybrid data coordinates A [Pa] and B [1] for mid-levels (hyam, hybm)
+        and interfaces (hyai, hybi).
+        ab output type depends on astype:
+            dict: a dictionary of arrays with hyam, hybm, hyai, and hybi keys,
+            dataframe: pandas.DataFrame A, B, and level (interface or mid),
+            pnc: netcdf-like file with structured data and metadata.
+    """
+    import numpy as np
+    hi = VGLVLS.astype('d')  # at interfaces
+    hm = (hi[1:] + hi[:-1]) / 2  # mid-levels
+    c1 = 2. * r**2 / (1 - r)**3
+    c2 = -r * (4. + r + r**2) / (1 - r)**3
+    c3 = 2 * (1. + r + r**2) / (1 - r)**3
+    c4 = -(1 + r) / (1 - r)**3
+
+    def to_ab(h):
+        B = c1 + c2 * h + c3 * h**2 + c4 * h**3
+        B = np.where(h >= 1, 1, B)
+        B = np.where(h <= r, 0, B)
+        A = (h - B) * (p0 - VGTOP) + VGTOP - B * VGTOP
+        return A, B
+
+    hyai, hybi = to_ab(hi)
+    hyam, hybm = to_ab(hm)
+    if astype == 'dict':
+        out = dict(hyai=hyai, hybi=hybi, hyam=hyam, hybm=hybm)
+        return out
+    elif astype == 'dataframe':
+        from pandas import concat, DataFrame
+        df = concat([
+            DataFrame({'VGLVL': hi, 'A': hyai, 'B': hybi}).set_index('VGLVL'),
+            DataFrame({'VGLVL': hm, 'A': hyam, 'B': hybm}).set_index('VGLVL'),
+        ], keys=['interface', 'mid'], names=['level'])
+        df = df.reset_index().set_index('VGLVL').sort_index(ascending=False)
+        return df[['A', 'B', 'level']]
+    elif astype in 'pnc':
+        from .core import PseudoNetCDFFile
+        outf = PseudoNetCDFFile()
+        outf.createDimension('LAY', hyam.size)
+        outf.createDimension('ILAY', hyai.size)
+        attrs = {'units': 'Pa', 'long_name': 'hyam'}
+        outf.createVariable('hyam', 'd', ('LAY',), values=hyam, **attrs)
+        attrs = {'units': '1', 'long_name': 'hybm'}
+        outf.createVariable('hybm', 'd', ('LAY',), values=hybm, **attrs)
+        attrs = {'units': 'Pa', 'long_name': 'hyai'}
+        outf.createVariable('hyai', 'd', ('ILAY',), values=hyai, **attrs)
+        attrs = {'units': '1', 'long_name': 'hybi'}
+        outf.createVariable('hybi', 'd', ('ILAY',), values=hybi, **attrs)
+        outf.setncattr('VGLVLS', VGLVLS)
+        outf.setncattr('VGTOP', VGTOP)
+        outf.setncattr('VGTYP', -9999)
+        return outf
+    else:
+        raise KeyError('astype must be array, dataframe, or pnc')
