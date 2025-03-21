@@ -55,7 +55,6 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
     methods that a file should present to act like a netCDF file
     using the Scientific.IO.NetCDF.NetCDFFile interface.
     """
-
     def getMap(self, maptype='basemap_auto', **kwds):
         """
         Description
@@ -2445,6 +2444,52 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
 
     def delncattr(self, k):
         self.__delattr__(k)
+
+    def __getitem__(self, key):
+        """
+        Added getitem interface mimicing the netcdf4.Dataset method
+        """
+        if key not in self.variables:
+            raise KeyError(f'{key} not in {list(self.variables)}')
+        else:
+            return self.variables[key]
+
+    def __setitem__(self, key, args):
+        """
+        Added setitem mimicing the xarray.Dataset method
+        """
+        if not isinstance(args, (tuple,)):
+            args = (args,)
+        nargs = len(args)
+        if nargs == 1:
+            v = args[0]
+            if isinstance(v, PseudoNetCDFVariable):
+                self.variables[key] = v
+                return
+            elif isinstance(v, NetCDFVariable):
+                dims = v.dimensions
+                attrs = {k: v.getncattr(k) for k in v.ncattrs()}
+                args = dims, v[:], attrs
+            else:
+                v = np.asarray(v)
+                tmpf = PseudoNetCDFFile.from_arrays(**{key: v})
+                self.variables[key] = tmpf.variables[key]
+                return
+
+        dims = args[0]
+        v = args[1]
+        if nargs > 3:
+            raise ValueError('expected v or dims, v[, attrs]')
+        elif nargs == 3:
+            attrs = args[2]
+        else:
+            attrs = {'standard_name': key}
+
+        for dk, dv in zip(dims, v.shape):
+            if dk not in self.dimensions:
+                self.createDimension(dk, dv)
+        dt = v.dtype.char
+        self.createVariable(key, dt, dims, values=v, **attrs)
 
     def __add__(self, lhs):
         from ._functions import pncbo
