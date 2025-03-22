@@ -6,7 +6,7 @@ Text-based Files
 Aircraft
 ~~~~~~~~
 
-.. autoclass:: PseudoNetCDF.icarttfiles.ffi1001
+.. autoclass:: PseudoNetCDF.icarttfiles.ffi1001.ffi1001
     :members:
 
 Sondes

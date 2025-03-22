@@ -48,6 +48,14 @@ class l100(PseudoNetCDFFile):
         return lines
 
     def __init__(self, path):
+        """
+        Arguments:
+        path - str path to NOAA sonde l100 file
+
+        Returns:
+        l100 - PseudoNetCDF file with longitude, latitude, time, site and
+               data variables from the file.
+        """
         try:
             import pandas as pd
         except Exception:

@@ -4,6 +4,7 @@
    
    pncopen
    core
+   api/index
 
 Detailed API
 ~~~~~~~~~~~~
