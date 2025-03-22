@@ -10,14 +10,14 @@ jobs:
       - uses: actions/setup-python@v3
       - name: Install dependencies
         run: |
-          pip install -r doc/requirements.txt
+          pip install -r docs/requirements.txt
       - name: Install pseudonetcdf
         run: |
           pip install -e .
           pip install -e . --no-deps --force-reinstall
       - name: Sphinx build
         run: |
-          cd doc
+          cd docs
           make html
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
@@ -25,5 +25,5 @@ jobs:
         with:
           publish_branch: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: doc/_build/html
+          publish_dir: docs/build/html
           force_orphan: true
