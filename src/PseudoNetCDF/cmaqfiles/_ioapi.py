@@ -52,6 +52,70 @@ def ioapi_sort_meta(infile):
     for vk in ['TFLAG'] + allvars:
         infile.variables[vk] = myvariables[vk]
 
+def meta_from_ioapi(infile):
+    inf = infile
+    mf = PseudoNetCDFFile()
+    for dk in 'TSTEP LAY ROW COL PERIM':
+        if dk in infile.dimensions:
+            ind = infile.variables[dk]
+            mf.createDimension(dk, len(ind)).setunlimited(ind.isunlimited())
+
+    mf.createDimension('nv', 2)
+    time = inf.getTimes(bounds=False)
+    timeb = inf.getTimes(bounds=True)
+
+    tv = mf.createVariable(
+        'TSTEP', 'd', ('TSTEP',), bounds='TIME_BOUNDS',
+        units='hours since 1970-01-01 00:00:00+0000'
+    )
+    tv[:] = mf.date2num(time, timekey='TSTEP')
+
+    tbv = mf.createVariable(
+        'TSTEP_BOUNDS', 'd', ('TSTEP', 'nv'),
+        units='hours since 1970-01-01 00:00:00+0000'
+    )
+    tbv[:, 0] = mf.date2num(timeb[:-1], timekey='TSTEP')
+    tbv[:, 1] = mf.date2num(timeb[1:], timekey='TSTEP')
+
+    mf.createVariable(
+        'LAY', 'd', ('LAY',), units='VGLVLS', bounds='LAY_BOUNDS',
+    )[:] = (infile.VGLVLS[:-1] + infile.VGLVLS[1:]) / 2
+    mf.createVariable(
+        'LAY_BOUNDS', 'd', ('LAY', 'nv'), units='VGLVLS'
+    )[:] = np.array([infile.VGLVLS[:-1], infile.VGLVLS[1:]]).T
+
+    if 'PERIM' in mf.dimensions:
+        perimb = np.arange(len(mf.dimensions['PERIM']) + 1)
+        pv = mf.createVariable(
+            'PERIM', 'd', ('PERIM',), units='none'
+        )
+        pbv = mf.createVariable(
+            'PERIM_BOUNDS', 'd', ('PERIM', 'nv'), units='none'
+        )
+        pv[:] = (perimb[1:] + perimb[:-1]) / 2
+        pv[:, 0] = perimb[:-1]
+        pv[:, 1] = perimb[1:]
+    else:
+        xb = inf.XORIG + np.arange(inf.NCOLS + 1) inf.XCELL
+        yb = inf.YORIG + np.arange(inf.NROWS + 1) inf.YCELL
+        x = (xb[:-1] + xb[1:]) / 2
+        y = (yb[:-1] + yb[1:]) / 2
+        mf.createVariable(
+            'ROW', 'd', ('ROW',), units='meters', bounds='ROW_BOUNDS',
+        )[:] = y
+        mf.createVariable(
+            'ROW_BOUNDS', 'd', ('ROW', 'nv'), units='meters'
+        )[:] = np.array([yb[:-1], yb[1:]]).T
+
+        mf.createVariable(
+            'COL', 'd', ('COL',), units='meters', bounds='COL_BOUNDS',
+        )[:] = x
+        mf.createVariable(
+            'COL_BOUNDS', 'd', ('COL', 'nv'), units='meters'
+        )[:] = np.array([xb[:-1], xb[1:]]).T
+
+    return mf
+
 
 class ioapi_base(PseudoNetCDFFile):
     @classmethod
@@ -592,8 +656,9 @@ class ioapi_base(PseudoNetCDFFile):
 
         return PseudoNetCDFFile.getMap(self, maptype=maptype, **kwds)
 
-    def plot(self, varkey, plottype='longitude-latitude', ax_kw=None,
-             plot_kw=None, cbar_kw=None, map_kw=None, dimreduction='mean'):
+    def plot(self, varkey, plottype=None, ax_kw=None,
+             plot_kw=None, cbar_kw=None, map_kw=None, dimreduction='mean',
+             ax=None):
         """
         Parameters
         ----------
@@ -617,8 +682,10 @@ class ioapi_base(PseudoNetCDFFile):
             dimensions not being used in the plot are removed
             using applyAlongDimensions(dimkey=dimreduction) where
             each dimenions
+        ax : matplotlib.Axes
+            instance of Axes for plotting if ax is provided, ax_kw are
+            properties to be set
         """
-
         import matplotlib.pyplot as plt
         from ..coordutil import getbounds
 
@@ -642,6 +709,13 @@ class ioapi_base(PseudoNetCDFFile):
         dimlens = dict([(dk, len(self.dimensions[dk]))
                         for dk in var.dimensions])
         dimpos = dict([(dk, di) for di, dk in enumerate(var.dimensions)])
+        if plottype is None:
+            # Use last two dimensions; if only one add profile keyword
+            mydims = list(var.dimensions)
+            plottype = '-'.join((mydims[-2:][::-1] + ['profile'])[:2])
+            if plottype == "COL-ROW":
+                plottype = 'longitude-latitude'
+
         raw_xkey, raw_ykey = plottype.split('-')
         d2d = {'time': 'TSTEP', 'latitude': 'ROW',
                'longitude': 'COL', 'pressure': 'LAY'}
@@ -674,7 +748,11 @@ class ioapi_base(PseudoNetCDFFile):
         else:
             x = getbounds(myf, xkey)
 
-        ax = plt.gca(**ax_kw)
+        if ax is None:
+            ax = plt.gca(**ax_kw)
+        else:
+            plt.setp(ax, **ax_kw)
+
         if ykey in ('profile',):
             y = getbounds(myf, xkey)
             x1 = vals[:].min(1)

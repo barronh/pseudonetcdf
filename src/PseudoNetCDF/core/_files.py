@@ -104,7 +104,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             myproj = self.getproj(withgrid=True, projformat='proj4')
             return basemap_from_proj4(myproj, **kwds)
         elif maptype == 'cartopy':
-            raise ValueError('cartopy is not yet implemented')
+            from PseudoNetCDF.coordutil import cartopy_from_proj4
+            myproj = self.getproj(withgrid=True, projformat='proj4')
+            return cartopy_from_proj4(myproj, **kwds)
         else:
             raise ValueError(
                 'maptype must be basemap, basemap_auto, or cartopy')
@@ -1154,8 +1156,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             print('')
         return outf
 
-    def plot(self, varkey, plottype='longitude-latitude', ax_kw=None,
-             plot_kw=None, cbar_kw=None, map_kw=None, dimreduction='mean'):
+    def plot(self, varkey, plottype=None, ax_kw=None, plot_kw=None,
+             cbar_kw=None, map_kw=None, dimreduction='mean', ax=None):
         """
         Parameters
         ----------
@@ -1178,6 +1180,9 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         dimreduction : string or function
             dimensions not being used in the plot are removed using
             applyAlongDimensions(dimkey=dimreduction) where each dimenions
+        ax : matplotlib.Axes
+            instance of Axes for plotting if ax is provided, ax_kw are
+            properties to be set
         """
         import matplotlib.pyplot as plt
         from ..coordutil import getbounds
@@ -1198,6 +1203,11 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
 
         apply2dim = {}
         var = self.variables[varkey]
+        if plottype is None:
+            # Use last two dimensions; if only one add profile keyword
+            mydims = list(var.dimensions)
+            plottype = '-'.join((mydims[-2:][::-1] + ['profile'])[:2])
+
         varunit = varkey
         if hasattr(var, 'units'):
             varunit += ' ' + var.units.strip()
@@ -1234,7 +1244,11 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         else:
             x = getbounds(myf, xkey)
 
-        ax = plt.gca(**ax_kw)
+        if ax is None:
+            ax = plt.gca(**ax_kw)
+        else:
+            plt.setp(ax, **ax_kw)
+
         if ykey in ('profile',):
             y = getbounds(myf, xkey)
             x1 = vals[:].min(1)

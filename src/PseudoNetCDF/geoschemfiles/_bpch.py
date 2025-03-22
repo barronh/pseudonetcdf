@@ -485,9 +485,9 @@ class bpch_base(PseudoNetCDFFile):
         else:
             return time
 
-    def plot(self, varkey, plottype='longitude-latitude', ax_kw=None,
+    def plot(self, varkey, plottype=None, ax_kw=None,
              plot_kw=None, cbar_kw=None, map_kw=None, dimreduction='mean',
-             laykey=None):
+             laykey=None, ax=None):
         """
         Parameters
         ----------
@@ -506,6 +506,9 @@ class bpch_base(PseudoNetCDFFile):
                        using applyAlongDimensions(dimkey=dimreduction) where
                        each dimenions
         laykey : name of the layer dimension (e.g., layer47)
+        ax : matplotlib.Axes
+            instance of Axes for plotting if ax is provided, ax_kw are
+            properties to be set
         """
         import matplotlib.pyplot as plt
         from ..coordutil import getbounds
@@ -533,6 +536,12 @@ class bpch_base(PseudoNetCDFFile):
                 if k.startswith('layer'):
                     laykey = k
                     break
+
+        if plottype is None:
+            # Use last two dimensions; if only one add profile keyword
+            mydims = list(var.dimensions)
+            plottype = '-'.join((mydims[-2:][::-1] + ['profile'])[:2])
+
         xkey, ykey = plottype.split('-')
         for dimkey in 'longitude latitude time'.split():
             if dimkey in var.dimensions:

@@ -841,24 +841,27 @@ class arlpackedbit(PseudoNetCDFFile):
         return out
 
     def getMap(self, maptype='basemap_auto', **kwds):
-        if 'latitude_bounds' in self.variables:
-            return PseudoNetCDFFile.getMap(self, maptype=maptype, **kwds)
+        """
+        Thin wrapper on PseudoNetCDFFile.getMap. Adds awareness of the x/y
+        variables for use in basemap auto.
+        """
+        vars = self.variables
+        if maptype == 'basemap_auto' and 'latitude_bounds' not in vars:
+            myproj = self.getproj(withgrid=True, projformat='pyproj')
+            kwds = kwds.copy()
+            llcrnrlon, llcrnrlat = myproj(
+                vars['x'][0], vars['y'][0], inverse=True
+            )
+            urcrnrlon, urcrnrlat = myproj(
+                vars['x'][-1], vars['y'][-1], inverse=True
+            )
+            kwds['llcrnrlon'] = llcrnrlon
+            kwds['llcrnrlat'] = llcrnrlat
+            kwds['urcrnrlon'] = urcrnrlon
+            kwds['urcrnrlat'] = urcrnrlat
+            maptype = 'basemap'
 
-        from PseudoNetCDF.coordutil import basemap_from_proj4
-        kwds = kwds.copy()
-        myproj = self.getproj(withgrid=True, projformat='pyproj')
-        myprojstr = self.getproj(withgrid=True, projformat='proj4')
-        llcrnrlon, llcrnrlat = myproj(
-            self.variables['x'][0], self.variables['y'][0], inverse=True
-        )
-        urcrnrlon, urcrnrlat = myproj(
-            self.variables['x'][-1], self.variables['y'][-1], inverse=True
-        )
-        kwds['llcrnrlon'] = llcrnrlon
-        kwds['llcrnrlat'] = llcrnrlat
-        kwds['urcrnrlon'] = urcrnrlon
-        kwds['urcrnrlat'] = urcrnrlat
-        return basemap_from_proj4(myprojstr, **kwds)
+        return PseudoNetCDFFile.getMap(self, maptype=maptype, **kwds)
 
     def plot(self, *args, **kwds):
         kwds.setdefault('plottype', 'x-y')

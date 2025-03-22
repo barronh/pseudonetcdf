@@ -740,6 +740,143 @@ def getmap(ifile, resolution='i'):
     return m
 
 
+def proj4_params_from_str(proj4):
+    names = dict(lcc='lcc', sinu='sinu', stere='stere', merc='merc')
+    modstr = proj4.replace('+', ',').replace('no_defs', '').strip()
+
+    while modstr.startswith(','):
+        modstr = modstr[1:]
+
+    out = eval('dict(' + modstr + ')', None, names)
+    return out
+
+
+def stere_from_proj4_params(proj4_params, **kwds):
+    """
+    Arguments
+    ---------
+    proj4 : dict
+        proj4 properties as a dictionary
+    kwds : dict
+        specific to the cartopy.crs.Stereographic projection
+    """
+    from cartopy.crs import Stereographic
+    return Stereographic(
+        central_latitude=proj4_params['lat_0'],
+        central_longitude=proj4_params['lon_0'],
+        false_easting=proj4_params.get('x_0', 0),
+        false_northing=proj4_params.get('y_0', 0),
+        true_scale_latitude=proj4_params.get('lat_1', None),
+        **kwds
+    )
+
+
+def utm_from_proj4_params(proj4_params, **kwds):
+    """
+    Arguments
+    ---------
+    proj4 : dict
+        proj4 properties as a dictionary
+    kwds : dict
+        specific to the cartopy.crs.UTM projection
+    """
+    from cartopy.crs import UTM
+    return UTM(
+        zone=proj4_params['zone'],
+        false_easting=proj4_params.get('x_0', 0),
+        false_northing=proj4_params.get('y_0', 0),
+        **kwds
+    )
+
+
+def merc_from_proj4_params(proj4_params, **kwds):
+    """
+    Arguments
+    ---------
+    proj4 : dict
+        proj4 properties as a dictionary
+    kwds : dict
+        specific to the cartopy.crs.Mercator projection
+    """
+    from cartopy.crs import Mercator
+    import pyproj
+    p = pyproj.Proj(proj4_params, preserve_units=True)
+    minlon, minlat = p(0, 0)
+    lat_ts = proj4_params.get('lat_ts', proj4_params.get('lat_1', 0))
+    return Mercator(
+        central_longitude=proj4_params['lon_0'],
+        latitude_true_scale=lat_ts,
+        false_easting=proj4_params.get('x_0', 0),
+        false_northing=proj4_params.get('y_0', 0),
+        **kwds
+    )
+
+
+def lcc_from_proj4_params(proj4_params, **kwds):
+    """
+    Arguments
+    ---------
+    proj4 : dict
+        proj4 properties as a dictionary
+    kwds : dict
+        specific to the cartopy.crs.LambertConformal projection
+    """
+    from cartopy.crs import LambertConformal
+    lat1 = proj4_params.get('lat_1', None)
+    lat2 = proj4_params.get('lat_2', None)
+    if lat1 is None:
+        standard_parallels = None
+    elif lat2 is None:
+        standard_parallels = lat1
+    else:
+        standard_parallels = lat1, lat2
+    return LambertConformal(
+        central_longitude=proj4_params['lon_0'],
+        central_latitude=proj4_params['lat_0'],
+        standard_parallels=standard_parallels,
+        false_easting=proj4_params.get('x_0', 0),
+        false_northing=proj4_params.get('y_0', 0),
+        **kwds
+    )
+
+
+def cartopy_from_proj4(proj4, **kwds):
+    """
+    Arguments
+    ---------
+    proj4 : str or dict
+        proj4 definition of a projection
+    kwds : dict
+        additional keywords for cartopy projection
+
+    Returns
+    -------
+    proj = cartopy.CRS
+    """
+    if isinstance(proj4, str):
+        proj4_params = proj4_params_from_str(proj4)
+    elif isinstance(proj4, dict):
+        proj4_params = proj4
+    else:
+        raise TypeError('proj4 can be string or dict')
+
+    funcs = dict(
+        lcc=lcc_from_proj4_params,
+        stere=stere_from_proj4_params,
+        merc=merc_from_proj4_params,
+        utm=utm_from_proj4_params
+    )
+    projk = proj4_params['proj']
+    if projk in funcs:
+        proj = funcs[projk](proj4_params, **kwds)
+    else:
+        raise KeyError(
+            'Currently only supports lcc, stere, and merc projections.'
+        )
+
+    return proj
+
+
 def getinterpweights(xs, nxs, kind='linear', fill_value='extrapolate',
                      extrapolate=False):
     """
