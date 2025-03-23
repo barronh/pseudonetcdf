@@ -221,6 +221,6 @@ class TestMemmap(unittest.TestCase):
         assert (orig == new)
 
 
-TestSuite = unittest.makeSuite(TestMemmap, 'test')
+# TestSuite = unittest.makeSuite(TestMemmap, 'test')
 if __name__ == '__main__':
     unittest.main()
