@@ -618,7 +618,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             fidx = np.interp(val, dimvals, idx, left=left, right=right)
 
         if method == 'exact':
-            fidx = np.ma.masked_where(~np.in1d(val, dimvals), fidx)
+            fidx = np.ma.masked_where(~np.isin(val, dimvals), fidx)
 
         if clean == 'mask':
             outfidx = np.ma.masked_invalid(fidx)
