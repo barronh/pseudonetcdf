@@ -1,4 +1,3 @@
-"""
 .. CMAQ Spatial Subset
 
 CMAQ Spatial Subset
