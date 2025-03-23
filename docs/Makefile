@@ -5,15 +5,17 @@
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 SPHINXPROJ    = PseudoNetCDF
-SOURCEDIR     = .
-BUILDDIR      = _build
+SOURCEDIR     = source
+BUILDDIR      = build
 
 # Put it first so that "make" without argument is like "make help".
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 .PHONY: help Makefile
-
+clean:
+	rm -r build source/api
+    
 all:
 	$(MAKE) html
 
@@ -23,4 +25,4 @@ all:
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 api:
-	sphinx-apidoc -f --maxdepth=1 -o ./sources ../src/PseudoNetCDF
+	sphinx-apidoc -f --maxdepth=1 -o ./source/api ../src/PseudoNetCDF

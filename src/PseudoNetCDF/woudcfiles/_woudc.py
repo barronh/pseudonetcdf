@@ -84,10 +84,15 @@ class woudcsonde(PseudoNetCDFFile):
                 var[:] = val
         return nmetalines, newblock
 
-    def __init__(self, path, debug=False, na_values=['\s+', '*', '99999']):
+    def __init__(self, path, debug=False, na_values=None):
         """
+        Arguments:
         path - path or file-like object.
+        debug - boolean to show extra info
+        na_values - values to use a NaN; (default: ['\s+', '*', '99999'])
         """
+        if na_values is None:
+            na_values = ['\s+', '*', '99999']
         try:
             import pandas as pd
         except Exception:

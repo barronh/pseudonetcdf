@@ -76,7 +76,6 @@ Example:
                  default_ulod_flag=-7777, default_ulod_value='N/A'):
         """
 Arguments:
-   self - implied input (not supplied in call)
    path - path to file
    keysubs - dictionary of characters to remove from variable keys and
              their replacements
