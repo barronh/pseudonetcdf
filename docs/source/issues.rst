@@ -1,19 +1,3 @@
-.. toctree::
-   :maxdepth: 3
-   :caption: Contents:
-   
-   pncopen
-   core
-   api/index
-
-Detailed API
-~~~~~~~~~~~~
-
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
 Get in touch
 ~~~~~~~~~~~~
 

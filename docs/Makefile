@@ -13,7 +13,9 @@ help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 .PHONY: help Makefile
-
+clean:
+	rm -r build source/api
+    
 all:
 	$(MAKE) html
 

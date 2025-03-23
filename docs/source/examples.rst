@@ -7,12 +7,12 @@ PseudoNetCDF gets used for hundreds of different activities. So far, there are
 three examples used to illustrate its power.
 
 .. toctree::
-      :maxdepth: 1
+   :maxdepth: 1
 
-   examples/pairmodobs.rst
-   examples/forecaststack.rst
-   examples/mapping.rst
-   examples/cmaqemisfromcsv.rst
-   examples/cmaqwindow.rst
-   examples/cmaqbcon.rst
-   examples/oddsandends.rst
+   examples/pairmodobs
+   examples/forecaststack
+   examples/mapping
+   examples/cmaqemisfromcsv
+   examples/cmaqwindow
+   examples/cmaqbcon
+   examples/oddsandends

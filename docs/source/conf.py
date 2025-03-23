@@ -19,7 +19,8 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../src'))
+pncpath = os.path.abspath('../../src')
+sys.path.insert(0, pncpath)
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -62,7 +63,7 @@ author = 'Barron H. Henderson'
 # built documents.
 #
 # The short X.Y version.
-with open('../setup.py') as sf:
+with open('../../setup.py') as sf:
     for l in sf.readlines():
         if l.startswith('    version='):
             version = l.strip().split('\'')[-2]

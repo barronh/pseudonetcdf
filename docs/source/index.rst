@@ -17,12 +17,11 @@ quality data written in other formats. The interface was designed based on
 Scientific.io.netcdf and netcdf4-python. Then it grew to provide meta-data
 aware spatial and temporal processing, some inspired by xarray and pandas.
 
-* :doc:`quick`
-* :doc:`examples`
-* :doc:`readers`
 * :doc:`installing`
-* :doc:`pncopen`
-* :doc:`core`
+* :doc:`quick`: Short examples.
+* :doc:`examples`: Short real-world applications.
+* :doc:`readers`: Details about available formats.
+* :doc:`core`: Some high-level description of what makes PseuodNetCDF work.
 
 .. toctree::
    :maxdepth: 2
@@ -34,5 +33,6 @@ aware spatial and temporal processing, some inspired by xarray and pandas.
    examples
    readers
    installing
-   api
-   modules
+   core
+   api/PseudoNetCDF
+   issues

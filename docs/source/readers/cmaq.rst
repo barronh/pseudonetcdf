@@ -4,11 +4,8 @@ CMAQ
 ~~~~
 
 CMAQ uses a reader that inherits many methods from PseudoNetCDFFile, but
-relies on the ioapi_base class to update meta-data
+relies on the ioapi_base class to update meta-data.
 
-.. autoclass:: PseudoNetCDF.cmaqfiles.ioapi
-    :members:
-    :inherited-members:
-
-.. autoclass:: PseudoNetCDF.cmaqfiles.ioapi_base
-    :members:
+* :class:`ioapi <PseudoNetCDF.cmaqfiles.ioapi>`: CMAQ NetCDF reader.
+* :class:`cmaqomidat <PseudoNetCDF.cmaqfiles.cmaqomidat>`: OMI input file.
+* :class:`griddesc <PseudoNetCDF.cmaqfiles.griddesc>`: GRIDDESC reader to make files like CMAQ that are useful as a starting place.
