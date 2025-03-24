@@ -1,6 +1,6 @@
 # PseudoNetCDF like NetCDF except for many scientific format backends
 
-[![Docs](https://github.com/barronh/pseudonetcdf/actions/workflows/documentation.yaml/badge.svg)](https://barronh.github.io/pseudonetcdf)
+[![Docs](https://github.com/barronh/pseudonetcdf/actions/workflows/documentation.yml/badge.svg)](https://barronh.github.io/pseudonetcdf)
 [![Tests](https://github.com/barronh/pseudonetcdf/actions/workflows/tests.yml/badge.svg)]()
 [![Publish](https://github.com/barronh/pseudonetcdf/actions/workflows/python-publish.yml/badge.svg)](https://pypi.org/p/pseudonetcdf)
 
