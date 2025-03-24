@@ -502,6 +502,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         else:
             out = np.interp(x, xp, idx, left=np.nan, right=np.nan)
             if index:
+                out = np.nan_to_num(out, nan=np.iinfo('i').min)
                 out = np.ma.masked_less(np.ma.floor(out).astype('i'), 0)
 
         return out
