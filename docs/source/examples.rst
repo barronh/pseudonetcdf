@@ -16,3 +16,4 @@ three examples used to illustrate its power.
    examples/cmaqwindow
    examples/cmaqbcon
    examples/oddsandends
+   examples/icartt

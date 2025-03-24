@@ -18,16 +18,18 @@ and longitude as variables that IOAPI would not see.
   
   import PseudoNetCDF as pnc
   
-  # create a GRIDDESC
-  with open('GRIDDESC', 'w') as gf:
-      gf.write(
-         "' '\n'LamCon_40N_97W'\n 2 33.000 45.000 -97.000 -97.000 40.000\n" +
-         "' '\n'12US1'\n'LamCon_40N_97W' " +
-         "-2556000.0 -1728000.0 12000.0 12000.0 459 299 1\n' '"
-      )
-
+  # Either open GRIDDESC from disk or create one in memory
+  gdpath = '/path/to/GRIDDESC'
+  gdpath = """' '
+  'LamCon_40N_97W'\n 2 33.000 45.000 -97.000 -97.000 40.000
+  ' '
+  '12US1'
+  'LamCon_40N_97W' -2556000.0 -1728000.0 12000.0 12000.0 459 299 1
+  ' '
+  """
+  
   # Create a Template
-  gf = pnc.pncopen('GRIDDESC', format='griddesc')
+  gf = pnc.pncopen(gdpath, format='griddesc')
   gf.SDATE = 2016001
   gf.updatetflag(overwrite=True)
   delattr(gf, 'VAR-LIST')

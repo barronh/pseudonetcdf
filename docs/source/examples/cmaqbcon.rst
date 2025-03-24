@@ -16,17 +16,19 @@ simulation, but could have come from a coarser domain.
 .. code-block:: python
 
   import PseudoNetCDF as pnc
-  
-  # create a GRIDDESC
-  with open('GRIDDESC', 'w') as gf:
-      gf.write(
-         "' '\n'LamCon_40N_97W'\n 2 33.000 45.000 -97.000 -97.000 40.000\n" +
-         "' '\n'12US1'\n'LamCon_40N_97W' " +
-         "-2556000.0 -1728000.0 12000.0 12000.0 459 299 1\n' '"
-      )
 
-  # Create a Template
-  gf = pnc.pncopen('GRIDDESC', format='griddesc', FTYPE=2)
+  # Either open GRIDDESC from disk or create one in memory
+  gdpath = '/path/to/GRIDDESC'
+  gdpath = """' '
+  'LamCon_40N_97W'\n 2 33.000 45.000 -97.000 -97.000 40.000
+  ' '
+  '12US1'
+  'LamCon_40N_97W' -2556000.0 -1728000.0 12000.0 12000.0 459 299 1
+  ' '
+  """
+  gf = pnc.pncopen(gdpath, format='griddesc', FTYPE=2, SDATE=1970001, TSTEP=0)
+ 
+  # Assumes you have a CMAQ 3D CONC file on same vertical grid 
   concf = pnc.pncopen('CONC.nc', format='ioapi')
   i, j = concf.ll2ij(
       gf.variables['longitude'][:],
