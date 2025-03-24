@@ -1,0 +1,421 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>matplotlib.cm &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">matplotlib.cm</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for matplotlib.cm</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Builtin colormaps, colormap handling utilities, and the `ScalarMappable` mixin.</span>
+
+<span class="sd">.. seealso::</span>
+
+<span class="sd">  :doc:`/gallery/color/colormap_reference` for a list of builtin colormaps.</span>
+
+<span class="sd">  :ref:`colormap-manipulation` for examples of how to make</span>
+<span class="sd">  colormaps.</span>
+
+<span class="sd">  :ref:`colormaps` an in-depth discussion of choosing</span>
+<span class="sd">  colormaps.</span>
+
+<span class="sd">  :ref:`colormapnorms` for more details about data normalization.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mpl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">_api</span><span class="p">,</span> <span class="n">colors</span>
+<span class="c1"># TODO make this warn on access</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colorizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">_ScalarMappable</span> <span class="k">as</span> <span class="n">ScalarMappable</span>  <span class="c1"># noqa</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib._cm</span><span class="w"> </span><span class="kn">import</span> <span class="n">datad</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib._cm_listed</span><span class="w"> </span><span class="kn">import</span> <span class="n">cmaps</span> <span class="k">as</span> <span class="n">cmaps_listed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib._cm_multivar</span><span class="w"> </span><span class="kn">import</span> <span class="n">cmap_families</span> <span class="k">as</span> <span class="n">multivar_cmaps</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib._cm_bivar</span><span class="w"> </span><span class="kn">import</span> <span class="n">cmaps</span> <span class="k">as</span> <span class="n">bivar_cmaps</span>
+
+
+<span class="n">_LUTSIZE</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;image.lut&#39;</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_gen_cmap_registry</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a dict mapping standard colormap names to standard colormaps, as</span>
+<span class="sd">    well as the reversed colormaps.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cmap_d</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">cmaps_listed</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">datad</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">cmap_d</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>  <span class="c1"># Precache the cmaps at a fixed lutsize..</span>
+            <span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">_LUTSIZE</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;red&#39;</span> <span class="ow">in</span> <span class="n">spec</span> <span class="k">else</span>
+            <span class="n">colors</span><span class="o">.</span><span class="n">ListedColormap</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="s1">&#39;listed&#39;</span><span class="p">],</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;listed&#39;</span> <span class="ow">in</span> <span class="n">spec</span> <span class="k">else</span>
+            <span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">_LUTSIZE</span><span class="p">))</span>
+
+    <span class="c1"># Register colormap aliases for gray and grey.</span>
+    <span class="n">aliases</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># alias -&gt; original name</span>
+        <span class="s1">&#39;grey&#39;</span><span class="p">:</span> <span class="s1">&#39;gray&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;gist_grey&#39;</span><span class="p">:</span> <span class="s1">&#39;gist_gray&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;gist_yerg&#39;</span><span class="p">:</span> <span class="s1">&#39;gist_yarg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Grays&#39;</span><span class="p">:</span> <span class="s1">&#39;Greys&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">alias</span><span class="p">,</span> <span class="n">original_name</span> <span class="ow">in</span> <span class="n">aliases</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">cmap_d</span><span class="p">[</span><span class="n">original_name</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">cmap</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">alias</span>
+        <span class="n">cmap_d</span><span class="p">[</span><span class="n">alias</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmap</span>
+
+    <span class="c1"># Generate reversed cmaps.</span>
+    <span class="k">for</span> <span class="n">cmap</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">cmap_d</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="n">rmap</span> <span class="o">=</span> <span class="n">cmap</span><span class="o">.</span><span class="n">reversed</span><span class="p">()</span>
+        <span class="n">cmap_d</span><span class="p">[</span><span class="n">rmap</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">rmap</span>
+    <span class="k">return</span> <span class="n">cmap_d</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ColormapRegistry</span><span class="p">(</span><span class="n">Mapping</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Container for colormaps that are known to Matplotlib by name.</span>
+
+<span class="sd">    The universal registry instance is `matplotlib.colormaps`. There should be</span>
+<span class="sd">    no need for users to instantiate `.ColormapRegistry` themselves.</span>
+
+<span class="sd">    Read access uses a dict-like interface mapping names to `.Colormap`\s::</span>
+
+<span class="sd">        import matplotlib as mpl</span>
+<span class="sd">        cmap = mpl.colormaps[&#39;viridis&#39;]</span>
+
+<span class="sd">    Returned `.Colormap`\s are copies, so that their modification does not</span>
+<span class="sd">    change the global definition of the colormap.</span>
+
+<span class="sd">    Additional colormaps can be added via `.ColormapRegistry.register`::</span>
+
+<span class="sd">        mpl.colormaps.register(my_colormap)</span>
+
+<span class="sd">    To get a list of all registered colormaps, you can do::</span>
+
+<span class="sd">        from matplotlib import colormaps</span>
+<span class="sd">        list(colormaps)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmaps</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cmaps</span> <span class="o">=</span> <span class="n">cmaps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_builtin_cmaps</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">cmaps</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmaps</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s2"> is not a known colormap name&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cmaps</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cmaps</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;ColormapRegistry; available colormaps:</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span>
+                <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a list of the registered colormap names.</span>
+
+<span class="sd">        This exists only for backward-compatibility in `.pyplot` which had a</span>
+<span class="sd">        ``plt.colormaps()`` method. The recommended way to get this list is</span>
+<span class="sd">        now ``list(colormaps)``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmap</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a new colormap.</span>
+
+<span class="sd">        The colormap name can then be used as a string argument to any ``cmap``</span>
+<span class="sd">        parameter in Matplotlib. It is also available in ``pyplot.get_cmap``.</span>
+
+<span class="sd">        The colormap registry stores a copy of the given colormap, so that</span>
+<span class="sd">        future changes to the original colormap instance do not affect the</span>
+<span class="sd">        registered colormap. Think of this as the registry taking a snapshot</span>
+<span class="sd">        of the colormap at registration.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cmap : matplotlib.colors.Colormap</span>
+<span class="sd">            The colormap to register.</span>
+
+<span class="sd">        name : str, optional</span>
+<span class="sd">            The name for the colormap. If not given, ``cmap.name`` is used.</span>
+
+<span class="sd">        force : bool, default: False</span>
+<span class="sd">            If False, a ValueError is raised if trying to overwrite an already</span>
+<span class="sd">            registered name. True supports overwriting registered colormaps</span>
+<span class="sd">            other than the builtin colormaps.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_api</span><span class="o">.</span><span class="n">check_isinstance</span><span class="p">(</span><span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">cmap</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
+                <span class="c1"># don&#39;t allow registering an already existing cmap</span>
+                <span class="c1"># unless explicitly asked to</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;A colormap named &quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot; is already registered.&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_builtin_cmaps</span><span class="p">:</span>
+                <span class="c1"># We don&#39;t allow overriding a builtin.</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Re-registering the builtin cmap &quot;</span>
+                                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> is not allowed.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Warn that we are updating an already existing colormap</span>
+            <span class="n">_api</span><span class="o">.</span><span class="n">warn_external</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Overwriting the cmap </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> &quot;</span>
+                               <span class="s2">&quot;that was already in the registry.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cmaps</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmap</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c1"># Someone may set the extremes of a builtin colormap and want to register it</span>
+        <span class="c1"># with a different name for future lookups. The object would still have the</span>
+        <span class="c1"># builtin name, so we should update it to the registered name</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmaps</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cmaps</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">unregister</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove a colormap from the registry.</span>
+
+<span class="sd">        You cannot remove built-in colormaps.</span>
+
+<span class="sd">        If the named colormap is not registered, returns with no error, raises</span>
+<span class="sd">        if you try to de-register a default colormap.</span>
+
+<span class="sd">        .. warning::</span>
+
+<span class="sd">            Colormap names are currently a shared namespace that may be used</span>
+<span class="sd">            by multiple packages. Use `unregister` only if you know you</span>
+<span class="sd">            have registered that name before. In particular, do not</span>
+<span class="sd">            unregister just in case to clean the name before registering a</span>
+<span class="sd">            new colormap.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            The name of the colormap to be removed.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If you try to remove a default built-in colormap.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_builtin_cmaps</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cannot unregister </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> which is a builtin &quot;</span>
+                             <span class="s2">&quot;colormap.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cmaps</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmap</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a color map specified through *cmap*.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cmap : str or `~matplotlib.colors.Colormap` or None</span>
+
+<span class="sd">            - if a `.Colormap`, return it</span>
+<span class="sd">            - if a string, look it up in ``mpl.colormaps``</span>
+<span class="sd">            - if None, return the Colormap defined in :rc:`image.cmap`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Colormap</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the default color map</span>
+        <span class="k">if</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;image.cmap&quot;</span><span class="p">]]</span>
+
+        <span class="c1"># if the user passed in a Colormap, simply return it</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span> <span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">cmap</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">_api</span><span class="o">.</span><span class="n">check_in_list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_colormaps</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+            <span class="c1"># otherwise, it must be a string so look it up</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">cmap</span><span class="p">]</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s1">&#39;get_cmap expects None or an instance of a str or Colormap . &#39;</span> <span class="o">+</span>
+            <span class="sa">f</span><span class="s1">&#39;you passed </span><span class="si">{</span><span class="n">cmap</span><span class="si">!r}</span><span class="s1"> of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+
+
+<span class="c1"># public access to the colormaps should be via `matplotlib.colormaps`. For now,</span>
+<span class="c1"># we still create the registry here, but that should stay an implementation</span>
+<span class="c1"># detail.</span>
+<span class="n">_colormaps</span> <span class="o">=</span> <span class="n">ColormapRegistry</span><span class="p">(</span><span class="n">_gen_cmap_registry</span><span class="p">())</span>
+<span class="nb">globals</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">_colormaps</span><span class="p">)</span>
+
+<span class="n">_multivar_colormaps</span> <span class="o">=</span> <span class="n">ColormapRegistry</span><span class="p">(</span><span class="n">multivar_cmaps</span><span class="p">)</span>
+
+<span class="n">_bivar_colormaps</span> <span class="o">=</span> <span class="n">ColormapRegistry</span><span class="p">(</span><span class="n">bivar_cmaps</span><span class="p">)</span>
+
+
+<span class="c1"># This is an exact copy of pyplot.get_cmap(). It was removed in 3.9, but apparently</span>
+<span class="c1"># caused more user trouble than expected. Re-added for 3.9.1 and extended the</span>
+<span class="c1"># deprecation period for two additional minor releases.</span>
+<div class="viewcode-block" id="get_cmap">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.plotutil.html#PseudoNetCDF.plotutil.colors.get_cmap">[docs]</a>
+<span class="nd">@_api</span><span class="o">.</span><span class="n">deprecated</span><span class="p">(</span>
+    <span class="s1">&#39;3.7&#39;</span><span class="p">,</span>
+    <span class="n">removal</span><span class="o">=</span><span class="s1">&#39;3.11&#39;</span><span class="p">,</span>
+    <span class="n">alternative</span><span class="o">=</span><span class="s2">&quot;``matplotlib.colormaps[name]`` or ``matplotlib.colormaps.get_cmap()``&quot;</span>
+                <span class="s2">&quot; or ``pyplot.get_cmap()``&quot;</span>
+    <span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_cmap</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lut</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get a colormap instance, defaulting to rc values if *name* is None.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : `~matplotlib.colors.Colormap` or str or None, default: None</span>
+<span class="sd">        If a `.Colormap` instance, it will be returned. Otherwise, the name of</span>
+<span class="sd">        a colormap known to Matplotlib, which will be resampled by *lut*. The</span>
+<span class="sd">        default, None, means :rc:`image.cmap`.</span>
+<span class="sd">    lut : int or None, default: None</span>
+<span class="sd">        If *name* is not already a Colormap instance and *lut* is not None, the</span>
+<span class="sd">        colormap will be resampled to have *lut* entries in the lookup table.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Colormap</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;image.cmap&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">name</span>
+    <span class="n">_api</span><span class="o">.</span><span class="n">check_in_list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_colormaps</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">lut</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_colormaps</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_colormaps</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">resampled</span><span class="p">(</span><span class="n">lut</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ensure_cmap</span><span class="p">(</span><span class="n">cmap</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ensure that we have a `.Colormap` object.</span>
+
+<span class="sd">    For internal use to preserve type stability of errors.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cmap : None, str, Colormap</span>
+
+<span class="sd">        - if a `Colormap`, return it</span>
+<span class="sd">        - if a string, look it up in mpl.colormaps</span>
+<span class="sd">        - if None, look up the default color map in mpl.colormaps</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Colormap</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span> <span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cmap</span>
+    <span class="n">cmap_name</span> <span class="o">=</span> <span class="n">cmap</span> <span class="k">if</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;image.cmap&quot;</span><span class="p">]</span>
+    <span class="c1"># use check_in_list to ensure type stability of the exception raised by</span>
+    <span class="c1"># the internal usage of this (ValueError vs KeyError)</span>
+    <span class="k">if</span> <span class="n">cmap_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_colormaps</span><span class="p">:</span>
+        <span class="n">_api</span><span class="o">.</span><span class="n">check_in_list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_colormaps</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap_name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colormaps</span><span class="p">[</span><span class="n">cmap_name</span><span class="p">]</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

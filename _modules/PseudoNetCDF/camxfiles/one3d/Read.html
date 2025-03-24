@@ -1,0 +1,465 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.camxfiles.one3d.Read &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.camxfiles.one3d.Read</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.camxfiles.one3d.Read</h1><div class="highlight"><pre>
+<span></span><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;one3d&#39;</span><span class="p">]</span>
+<span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">.. _Read</span>
+<span class="s2">:mod:`Read` -- one3d Read interface</span>
+<span class="s2">============================================</span>
+
+<span class="s2">.. module:: Read</span>
+<span class="s2">   :platform: Unix, Windows</span>
+<span class="s2">   :synopsis: Provides :ref:`PseudoNetCDF` random access read for CAMx</span>
+<span class="s2">              generic 1 3D variable wind files.  See</span>
+<span class="s2">              PseudoNetCDF.sci_var.PseudoNetCDFFile for interface details</span>
+<span class="s2">.. moduleauthor:: Barron Henderson &lt;barronh@unc.edu&gt;</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># Distribution packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">unittest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
+
+<span class="c1"># Site-Packages</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">zeros</span><span class="p">,</span> <span class="n">array</span>
+
+<span class="c1"># This Package modules</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.camxfiles.timetuple</span><span class="w"> </span><span class="kn">import</span> <span class="n">timediff</span><span class="p">,</span> <span class="n">timeadd</span><span class="p">,</span> <span class="n">timerange</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.camxfiles.FortranFileUtil</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenRecordFile</span><span class="p">,</span> <span class="n">read_into</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span><span class="p">,</span> <span class="n">PseudoNetCDFVariables</span>
+
+<span class="c1"># for use in identifying uncaught nan</span>
+<span class="n">listnan</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\xff\xc0\x00\x00</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">checkarray</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span>
+<span class="n">checkarray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">listnan</span>
+<span class="n">array_nan</span> <span class="o">=</span> <span class="n">checkarray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="one3d">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.one3d.html#PseudoNetCDF.camxfiles.Readers.one3d">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">one3d</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    one3d provides a PseudoNetCDF interface for CAMx</span>
+<span class="sd">    one3d files.  Where possible, the inteface follows</span>
+<span class="sd">    IOAPI conventions (see www.baronams.com).</span>
+
+<span class="sd">    ex:</span>
+<span class="sd">        &gt;&gt;&gt; one3d_path = &#39;camx_one3d.bin&#39;</span>
+<span class="sd">        &gt;&gt;&gt; rows,cols = 65,83</span>
+<span class="sd">        &gt;&gt;&gt; one3dfile = one3d(one3d_path,rows,cols)</span>
+<span class="sd">        &gt;&gt;&gt; one3dfile.variables.keys()</span>
+<span class="sd">        [&#39;TFLAG&#39;, &#39;UNKNOWN&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; tflag = one3dfile.variables[&#39;TFLAG&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; tflag.dimensions</span>
+<span class="sd">        (&#39;TSTEP&#39;, &#39;VAR&#39;, &#39;DATE-TIME&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; tflag[0,0,:]</span>
+<span class="sd">        array([2005185,       0])</span>
+<span class="sd">        &gt;&gt;&gt; tflag[-1,0,:]</span>
+<span class="sd">        array([2005185,  240000])</span>
+<span class="sd">        &gt;&gt;&gt; v = one3dfile.variables[&#39;UNKNOWN&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; v.dimensions</span>
+<span class="sd">        (&#39;TSTEP&#39;, &#39;LAY&#39;, &#39;ROW&#39;, &#39;COL&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; v.shape</span>
+<span class="sd">        (25, 28, 65, 83)</span>
+<span class="sd">        &gt;&gt;&gt; one3dfile.dimensions</span>
+<span class="sd">        {&#39;TSTEP&#39;: 25, &#39;LAY&#39;: 28, &#39;ROW&#39;: 65, &#39;COL&#39;: 83}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">id_fmt</span> <span class="o">=</span> <span class="s2">&quot;fi&quot;</span>
+    <span class="n">data_fmt</span> <span class="o">=</span> <span class="s2">&quot;f&quot;</span>
+    <span class="n">var_name</span> <span class="o">=</span> <span class="s2">&quot;UNKNOWN&quot;</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;UNKNOWN&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rf</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialization included reading the header and learning</span>
+<span class="sd">        about the format.</span>
+
+<span class="sd">        see __readheader and __gettimestep() for more info</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">rffile</span> <span class="o">=</span> <span class="n">OpenRecordFile</span><span class="p">(</span><span class="n">rf</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">id_size</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id_fmt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__readheader</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__gettimestep</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">rows</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cols</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell_count</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">rows</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell_count</span> <span class="o">/</span> <span class="n">cols</span>
+        <span class="k">elif</span> <span class="n">cols</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell_count</span> <span class="o">/</span> <span class="n">rows</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cols</span> <span class="o">*</span> <span class="n">rows</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell_count</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">((</span><span class="s2">&quot;The product of cols (</span><span class="si">%d</span><span class="s2">) and rows (</span><span class="si">%d</span><span class="s2">) &quot;</span> <span class="o">+</span>
+                                  <span class="s2">&quot;must equal cells (</span><span class="si">%d</span><span class="s2">)&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span>
+                                                              <span class="bp">self</span><span class="o">.</span><span class="n">cell_count</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_step_count</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;COL&#39;</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlayers</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__var_get</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">var_name</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__var_get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">,</span> <span class="n">var_desc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var_name</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span>
+                     <span class="n">long_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var_name</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getArray</span><span class="p">()</span>
+
+        <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="s1">&#39;COL&#39;</span><span class="p">))</span>
+        <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">values</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">props</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">var</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__readheader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        __readheader reads the header section of the vertical diffusivity file</span>
+<span class="sd">        it initializes each header field (see CAMx Users Manual for a list)</span>
+<span class="sd">        as properties of the ipr class</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_start_byte</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rffile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id_fmt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">record_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rffile</span><span class="o">.</span><span class="n">record_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">padded_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">record_size</span> <span class="o">+</span> <span class="mi">8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cell_count</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">record_size</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">id_size</span><span class="p">)</span> <span class="o">//</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_fmt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">record_fmt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">id_fmt</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_fmt</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cell_count</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__gettimestep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Header information provides start and end date, but does not</span>
+<span class="sd">        indicate the increment between.  This routine reads the first</span>
+<span class="sd">        and second date/time and initializes variables indicating the</span>
+<span class="sd">        timestep length and the anticipated number.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rffile</span><span class="o">.</span><span class="n">_newrecord</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">padded_size</span>
+        <span class="p">)</span>
+        <span class="n">d</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nlayers</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">timediff</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">start_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">),</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">t</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rffile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id_fmt</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nlayers</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_step</span> <span class="o">=</span> <span class="n">timediff</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">start_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">),</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="n">d</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">timeadd</span><span class="p">((</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_step</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span> <span class="o">=</span> <span class="n">timeadd</span><span class="p">((</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">time_step</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_step_count</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">timediff</span><span class="p">(</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">end_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span><span class="p">))</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_step</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__timerecords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        routine returns the number of records to increment from the</span>
+<span class="sd">        data start byte to find the first time</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">d</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">dt</span>
+        <span class="n">nsteps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+            <span class="n">timediff</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">start_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">),</span>
+                     <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_step</span><span class="p">)</span>
+        <span class="n">nk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__layerrecords</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlayers</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nsteps</span> <span class="o">*</span> <span class="n">nk</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__layerrecords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        routine returns the number of records to increment from the</span>
+<span class="sd">        data start byte to find the first klayer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__recordposition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        routine uses timerecords and layerrecords multiplied</span>
+<span class="sd">        by the fortran padded size to return the byte position</span>
+<span class="sd">        of the specified record</span>
+
+<span class="sd">        date - integer</span>
+<span class="sd">        time - float</span>
+<span class="sd">        k - integer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ntime</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__timerecords</span><span class="p">((</span><span class="n">date</span><span class="p">,</span> <span class="n">time</span><span class="p">))</span>
+        <span class="n">nk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__layerrecords</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">nk</span> <span class="o">+</span> <span class="n">ntime</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">padded_size</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_start_byte</span>
+
+<div class="viewcode-block" id="one3d.seek">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.one3d.html#PseudoNetCDF.camxfiles.Readers.one3d.seek">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">seek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">chkvar</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Move file cursor to beginning of specified record</span>
+<span class="sd">        see __recordposition for a definition of variables</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">date</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span>
+        <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span>
+
+        <span class="k">if</span> <span class="n">chkvar</span><span class="p">:</span>
+            <span class="n">chkt1</span> <span class="o">=</span> <span class="n">timediff</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">end_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span><span class="p">),</span> <span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">time</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="n">chkt2</span> <span class="o">=</span> <span class="n">timediff</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">start_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">),</span>
+                             <span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">time</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">chkt1</span> <span class="ow">or</span> <span class="n">chkt2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">((</span><span class="s2">&quot;Vertical Diffusivity file includes &quot;</span> <span class="o">+</span>
+                                <span class="s2">&quot;(</span><span class="si">%i</span><span class="s2">,</span><span class="si">%6.1f</span><span class="s2">) thru (</span><span class="si">%i</span><span class="s2">,</span><span class="si">%6.1f</span><span class="s2">); you requested &quot;</span> <span class="o">+</span>
+                                <span class="s2">&quot;(</span><span class="si">%i</span><span class="s2">,</span><span class="si">%6.1f</span><span class="s2">)&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_date</span><span class="p">,</span>
+                                                 <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
+                                                 <span class="bp">self</span><span class="o">.</span><span class="n">end_date</span><span class="p">,</span>
+                                                 <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">time</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">k</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlayers</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">((</span><span class="s2">&quot;Vertical Diffusivity file include layers 1&quot;</span> <span class="o">+</span>
+                                <span class="s2">&quot;thru </span><span class="si">%i</span><span class="s2">; you requested </span><span class="si">%i</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlayers</span><span class="p">,</span>
+                                                                <span class="n">k</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rffile</span><span class="o">.</span><span class="n">_newrecord</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__recordposition</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="one3d.read">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.one3d.html#PseudoNetCDF.camxfiles.Readers.one3d.read">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        provide direct access to the underlying RecordFile read</span>
+<span class="sd">        method</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rffile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">record_fmt</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="one3d.read_into">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.one3d.html#PseudoNetCDF.camxfiles.Readers.one3d.read_into">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_into</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        put values from rffile read into dest</span>
+<span class="sd">        dest - numpy or numeric array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">read_into</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rffile</span><span class="p">,</span> <span class="n">dest</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id_fmt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_fmt</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="one3d.seekandreadinto">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.one3d.html#PseudoNetCDF.camxfiles.Readers.one3d.seekandreadinto">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">seekandreadinto</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        see seek and read_into</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_into</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="one3d.seekandread">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.one3d.html#PseudoNetCDF.camxfiles.Readers.one3d.seekandread">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">seekandread</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        see seek and read</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="one3d.values">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.one3d.html#PseudoNetCDF.camxfiles.Readers.one3d.values">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">seekandread</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="one3d.items">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.one3d.html#PseudoNetCDF.camxfiles.Readers.one3d.items">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seekandread</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="one3d.keys">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.one3d.html#PseudoNetCDF.camxfiles.Readers.one3d.keys">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">timerange</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlayers</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">k</span></div>
+
+    <span class="fm">__iter__</span> <span class="o">=</span> <span class="n">keys</span>
+
+<div class="viewcode-block" id="one3d.getArray">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.one3d.html#PseudoNetCDF.camxfiles.Readers.one3d.getArray">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">getArray</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">time_step_count</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlayers</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;ROW&#39;</span><span class="p">]),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;COL&#39;</span><span class="p">])),</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ti</span><span class="p">,</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timerange</span><span class="p">()):</span>
+            <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlayers</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seekandreadinto</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">ti</span><span class="p">,</span> <span class="n">ki</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">a</span></div>
+
+
+<div class="viewcode-block" id="one3d.timerange">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.one3d.html#PseudoNetCDF.camxfiles.Readers.one3d.timerange">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">timerange</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">timerange</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">start_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">),</span>
+                         <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">end_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_step</span><span class="p">),</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">time_step</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestRead</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">runTest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testKV</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF.testcase</span>
+        <span class="n">inpath</span> <span class="o">=</span> <span class="n">PseudoNetCDF</span><span class="o">.</span><span class="n">testcase</span><span class="o">.</span><span class="n">camxfiles_paths</span><span class="p">[</span><span class="s1">&#39;vertical_diffusivity&#39;</span><span class="p">]</span>
+        <span class="n">vdfile</span> <span class="o">=</span> <span class="n">one3d</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">checkv</span> <span class="o">=</span> <span class="n">array</span><span class="p">([</span><span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">4.76359320e+00</span><span class="p">,</span> <span class="mf">1.92715893e+01</span><span class="p">,</span>
+                        <span class="mf">1.52158489e+01</span><span class="p">,</span> <span class="mf">7.20601225e+00</span><span class="p">,</span> <span class="mf">1.84097159e+00</span><span class="p">,</span>
+                        <span class="mf">2.63084507e+01</span><span class="p">,</span> <span class="mf">1.27621298e+01</span><span class="p">,</span> <span class="mf">1.06348248e+01</span><span class="p">,</span>
+                        <span class="mf">2.22587357e+01</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.69009724e+01</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">2.23075104e+01</span><span class="p">,</span> <span class="mf">1.27485418e+01</span><span class="p">,</span>
+                        <span class="mf">1.45508013e+01</span><span class="p">,</span> <span class="mf">1.45637455e+01</span><span class="p">,</span> <span class="mf">2.95294094e+01</span><span class="p">,</span>
+                        <span class="mf">3.02676849e+01</span><span class="p">,</span> <span class="mf">2.84974957e+01</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">6.93706131e+00</span><span class="p">,</span> <span class="mf">3.07418957e+01</span><span class="p">,</span> <span class="mf">3.41300621e+01</span><span class="p">,</span>
+                        <span class="mf">1.66266994e+01</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">2.53920174e+01</span><span class="p">,</span>
+                        <span class="mf">1.92539787e+01</span><span class="p">,</span> <span class="mf">2.32906532e+01</span><span class="p">,</span> <span class="mf">5.96702042e+01</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">2.24458847e+01</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">5.45038452e+01</span><span class="p">,</span> <span class="mf">3.45825729e+01</span><span class="p">,</span> <span class="mf">3.43578224e+01</span><span class="p">,</span>
+                        <span class="mf">3.76071548e+01</span><span class="p">,</span> <span class="mf">6.76799850e+01</span><span class="p">,</span> <span class="mf">7.33648529e+01</span><span class="p">,</span>
+                        <span class="mf">7.35801239e+01</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">6.38178444e+00</span><span class="p">,</span>
+                        <span class="mf">4.39327278e+01</span><span class="p">,</span> <span class="mf">5.00754166e+01</span><span class="p">,</span> <span class="mf">2.44474106e+01</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">3.51700935e+01</span><span class="p">,</span> <span class="mf">2.71137428e+01</span><span class="p">,</span>
+                        <span class="mf">3.40312347e+01</span><span class="p">,</span> <span class="mf">8.85775909e+01</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">3.13994522e+01</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">8.07169266e+01</span><span class="p">,</span>
+                        <span class="mf">5.12892876e+01</span><span class="p">,</span> <span class="mf">5.05734329e+01</span><span class="p">,</span> <span class="mf">5.56603966e+01</span><span class="p">,</span>
+                        <span class="mf">1.00394188e+02</span><span class="p">,</span> <span class="mf">1.08980370e+02</span><span class="p">,</span> <span class="mf">1.09251083e+02</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.64916098e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.22205174e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.05408611e+01</span><span class="p">,</span>
+                        <span class="mf">1.26687222e+01</span><span class="p">,</span> <span class="mf">1.21386652e+01</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.93040049e+00</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.39350021e+00</span><span class="p">,</span> <span class="mf">1.02697349e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.82250175e+01</span><span class="p">,</span> <span class="mf">2.90407104e+01</span><span class="p">,</span>
+                        <span class="mf">2.83827496e+01</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">2.02609706e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.44422662e+00</span><span class="p">,</span>
+                        <span class="mf">1.02998519e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">2.60322971e+01</span><span class="p">,</span> <span class="mf">4.26534195e+01</span><span class="p">,</span> <span class="mf">4.17046585e+01</span><span class="p">],</span>
+                       <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;f&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">vdfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;UNKNOWN&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">checkv</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

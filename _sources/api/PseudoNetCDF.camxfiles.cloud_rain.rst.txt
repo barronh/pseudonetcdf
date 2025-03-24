@@ -1,0 +1,37 @@
+PseudoNetCDF.camxfiles.cloud\_rain package
+==========================================
+
+Submodules
+----------
+
+PseudoNetCDF.camxfiles.cloud\_rain.Memmap module
+------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.cloud_rain.Memmap
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.cloud\_rain.Transforms module
+----------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.cloud_rain.Transforms
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.cloud\_rain.Write module
+-----------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.cloud_rain.Write
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.camxfiles.cloud_rain
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,819 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.pncview &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.pncview</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.pncview</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_function</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;mapplot&#39;</span><span class="p">,</span> <span class="s1">&#39;profile&#39;</span><span class="p">,</span> <span class="s1">&#39;tileplot&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;presslon&#39;</span><span class="p">,</span> <span class="s1">&#39;presslat&#39;</span><span class="p">,</span> <span class="s1">&#39;timeseries&#39;</span><span class="p">,</span> <span class="s1">&#39;OptionDict&#39;</span><span class="p">]</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF.coordutil</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cu</span>
+
+
+<span class="n">_pre_code</span> <span class="o">=</span> <span class="s1">&#39;plt.close(); plt.rcParams[&quot;image.cmap&quot;] = &quot;jet&quot;&#39;</span>
+<span class="n">_before_code</span> <span class="o">=</span> <span class="s1">&#39;plt.figure(); plt.interactive(True); &#39;</span>
+<span class="n">_after_code</span> <span class="o">=</span> <span class="s1">&#39;ax.set_title(varkey); plt.draw()&#39;</span>
+<span class="n">_post_code</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="n">_coastlines_opt</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">_countries_opt</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">_states_opt</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">_counties_opt</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">_coordkeys</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;latitude&#39;</span><span class="p">,</span> <span class="s1">&#39;longitude&#39;</span><span class="p">,</span> <span class="s1">&#39;latitude_bounds&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;longitude_bounds&#39;</span><span class="p">,</span> <span class="s1">&#39;time_bounds&#39;</span><span class="p">,</span> <span class="s1">&#39;tau0&#39;</span><span class="p">,</span> <span class="s1">&#39;tau1&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;TFLAG&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="OptionDict">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncview.OptionDict">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptionDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        coastlines = %(_coastlines_opt)s</span>
+<span class="sd">        countries = %(_countries_opt)s</span>
+<span class="sd">        states = %(_states_opt)s</span>
+<span class="sd">        counties = %(_counties_opt)s</span>
+<span class="sd">        pre_txt = Code to run before any plots (%(_pre_code)s)</span>
+<span class="sd">        before_txt = Code to run before each variable-plot (%(_before_code)s)</span>
+<span class="sd">        after_txt = Code to run after each plot (%(_after_code)s)</span>
+<span class="sd">        post_txt = Code to run after all plots (%(_post_code)s)</span>
+<span class="sd">        &quot;&quot;&quot;</span> <span class="o">%</span> <span class="nb">globals</span><span class="p">()</span>
+        <span class="nb">dict</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coastlines</span><span class="o">=</span><span class="n">_coastlines_opt</span><span class="p">,</span>
+                      <span class="n">countries</span><span class="o">=</span><span class="n">_countries_opt</span><span class="p">,</span> <span class="n">states</span><span class="o">=</span><span class="n">_states_opt</span><span class="p">,</span>
+                      <span class="n">counties</span><span class="o">=</span><span class="n">_counties_opt</span><span class="p">,</span> <span class="n">pre_txt</span><span class="o">=</span><span class="n">_pre_code</span><span class="p">,</span>
+                      <span class="n">before_txt</span><span class="o">=</span><span class="n">_before_code</span><span class="p">,</span> <span class="n">after_txt</span><span class="o">=</span><span class="n">_after_code</span><span class="p">,</span>
+                      <span class="n">post_txt</span><span class="o">=</span><span class="n">_post_code</span><span class="p">)</span>
+        <span class="nb">dict</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;outpath&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;outpath is a required option&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
+
+
+
+<span class="n">defaultoption</span> <span class="o">=</span> <span class="n">OptionDict</span><span class="p">(</span><span class="n">outpath</span><span class="o">=</span><span class="s1">&#39;pncview&#39;</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TkApp</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ncffile</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">Tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Checkbutton</span><span class="p">,</span> <span class="n">Frame</span><span class="p">,</span> <span class="n">Label</span><span class="p">,</span> <span class="n">Scrollbar</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">Tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Listbox</span><span class="p">,</span> <span class="n">Button</span><span class="p">,</span> <span class="n">IntVar</span><span class="p">,</span> <span class="n">Tk</span><span class="p">,</span> <span class="n">VERTICAL</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">Tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">EXTENDED</span><span class="p">,</span> <span class="n">END</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">SINGLE</span><span class="p">,</span> <span class="n">Entry</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">Tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringVar</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">DISABLED</span><span class="p">,</span> <span class="n">LEFT</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Checkbutton</span><span class="p">,</span> <span class="n">Frame</span><span class="p">,</span> <span class="n">Label</span><span class="p">,</span> <span class="n">Scrollbar</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Listbox</span><span class="p">,</span> <span class="n">Button</span><span class="p">,</span> <span class="n">IntVar</span><span class="p">,</span> <span class="n">Tk</span><span class="p">,</span> <span class="n">VERTICAL</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">EXTENDED</span><span class="p">,</span> <span class="n">END</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">SINGLE</span><span class="p">,</span> <span class="n">Entry</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringVar</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">DISABLED</span><span class="p">,</span> <span class="n">LEFT</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;tkinter unavailable&#39;</span><span class="p">)</span>
+
+        <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">Tk</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ncffile</span> <span class="o">=</span> <span class="n">ncffile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="n">options</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotted_variables</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">Frame</span><span class="p">(</span><span class="n">master</span><span class="p">)</span>
+        <span class="n">frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">codeframe</span> <span class="o">=</span> <span class="n">Frame</span><span class="p">(</span><span class="n">master</span><span class="p">)</span>
+        <span class="n">codeframe</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">metaframe</span> <span class="o">=</span> <span class="n">Frame</span><span class="p">(</span><span class="n">master</span><span class="p">)</span>
+        <span class="n">metaframe</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">goframe</span> <span class="o">=</span> <span class="n">Frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+        <span class="n">goframe</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">var_label</span> <span class="o">=</span> <span class="n">Label</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Select Variable&#39;</span><span class="p">)</span>
+        <span class="n">var_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">var_scrollbar</span> <span class="o">=</span> <span class="n">Scrollbar</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">var_scrollbar</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="n">N</span> <span class="o">+</span> <span class="n">S</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span> <span class="o">=</span> <span class="n">Listbox</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">selectmode</span><span class="o">=</span><span class="n">EXTENDED</span><span class="p">,</span>
+                           <span class="n">exportselection</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                           <span class="n">yscrollcommand</span><span class="o">=</span><span class="n">var_scrollbar</span><span class="o">.</span><span class="n">set</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">var_scrollbar</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">yview</span><span class="p">)</span>
+
+        <span class="n">what_to_do</span> <span class="o">=</span> <span class="n">Label</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Execute&#39;</span><span class="p">)</span>
+        <span class="n">what_to_do</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method_list</span> <span class="o">=</span> <span class="n">Listbox</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">selectmode</span><span class="o">=</span><span class="n">SINGLE</span><span class="p">,</span> <span class="n">exportselection</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method_list</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pre_txt</span> <span class="o">=</span> <span class="n">StringVar</span><span class="p">()</span>
+        <span class="n">pre_label</span> <span class="o">=</span> <span class="n">Label</span><span class="p">(</span><span class="n">codeframe</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Before any figures, execute code&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pre_txt</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">_pre_code</span><span class="p">)</span>
+        <span class="n">pre_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pre</span> <span class="o">=</span> <span class="n">Entry</span><span class="p">(</span><span class="n">codeframe</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_txt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pre</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;E&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">before_txt</span> <span class="o">=</span> <span class="n">StringVar</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">before_txt</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">_before_code</span><span class="p">)</span>
+        <span class="n">before_label</span> <span class="o">=</span> <span class="n">Label</span><span class="p">(</span>
+            <span class="n">codeframe</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Before each figure, execute code&#39;</span><span class="p">)</span>
+        <span class="n">before_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">before</span> <span class="o">=</span> <span class="n">Entry</span><span class="p">(</span><span class="n">codeframe</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">before_txt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">before</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;E&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">after_txt</span> <span class="o">=</span> <span class="n">StringVar</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">after_txt</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">_after_code</span><span class="p">)</span>
+        <span class="n">after_label</span> <span class="o">=</span> <span class="n">Label</span><span class="p">(</span><span class="n">codeframe</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;After each figure, execute code&#39;</span><span class="p">)</span>
+        <span class="n">after_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">after</span> <span class="o">=</span> <span class="n">Entry</span><span class="p">(</span><span class="n">codeframe</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">after_txt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;E&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">post_txt</span> <span class="o">=</span> <span class="n">StringVar</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">post_txt</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">_post_code</span><span class="p">)</span>
+        <span class="n">post_label</span> <span class="o">=</span> <span class="n">Label</span><span class="p">(</span><span class="n">codeframe</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;After all figures, execute code&#39;</span><span class="p">)</span>
+        <span class="n">post_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">post</span> <span class="o">=</span> <span class="n">Entry</span><span class="p">(</span><span class="n">codeframe</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">post_txt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">post</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;E&#39;</span><span class="p">)</span>
+
+        <span class="n">options_label</span> <span class="o">=</span> <span class="n">Label</span><span class="p">(</span><span class="n">goframe</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Options:&#39;</span><span class="p">)</span>
+        <span class="n">options_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logscale</span> <span class="o">=</span> <span class="n">IntVar</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logscale</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">Checkbutton</span><span class="p">(</span><span class="n">goframe</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;log-scale?&quot;</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logscale</span><span class="p">)</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">coastlines</span> <span class="o">=</span> <span class="n">IntVar</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coastlines</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">_coastlines_opt</span><span class="p">)</span>
+        <span class="n">coastlines</span> <span class="o">=</span> <span class="n">Checkbutton</span><span class="p">(</span>
+            <span class="n">goframe</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;coastlines?&quot;</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coastlines</span><span class="p">,</span>
+            <span class="n">justify</span><span class="o">=</span><span class="n">LEFT</span><span class="p">)</span>
+        <span class="n">coastlines</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">countries</span> <span class="o">=</span> <span class="n">IntVar</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">countries</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">_countries_opt</span><span class="p">)</span>
+        <span class="n">countries</span> <span class="o">=</span> <span class="n">Checkbutton</span><span class="p">(</span>
+            <span class="n">goframe</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;countries?&quot;</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">countries</span><span class="p">,</span> <span class="n">justify</span><span class="o">=</span><span class="n">LEFT</span><span class="p">)</span>
+        <span class="n">countries</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="n">IntVar</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">_states_opt</span><span class="p">)</span>
+        <span class="n">states</span> <span class="o">=</span> <span class="n">Checkbutton</span><span class="p">(</span><span class="n">goframe</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;states?&quot;</span><span class="p">,</span>
+                             <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">,</span> <span class="n">justify</span><span class="o">=</span><span class="n">LEFT</span><span class="p">)</span>
+        <span class="n">states</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">counties</span> <span class="o">=</span> <span class="n">IntVar</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">counties</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">_counties_opt</span><span class="p">)</span>
+        <span class="n">counties</span> <span class="o">=</span> <span class="n">Checkbutton</span><span class="p">(</span><span class="n">goframe</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;counties?&quot;</span><span class="p">,</span>
+                               <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">counties</span><span class="p">,</span> <span class="n">justify</span><span class="o">=</span><span class="n">LEFT</span><span class="p">)</span>
+        <span class="n">counties</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">execute_button</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span>
+            <span class="n">goframe</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Make Figure&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">execute_button</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">methods</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;mapplot&#39;</span><span class="p">,</span> <span class="s1">&#39;presslat&#39;</span><span class="p">,</span> <span class="s1">&#39;presslon&#39;</span><span class="p">,</span> <span class="s1">&#39;time-lat&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;profile&#39;</span><span class="p">,</span> <span class="s1">&#39;timeseries&#39;</span><span class="p">,</span> <span class="s1">&#39;pressx&#39;</span><span class="p">,</span> <span class="s1">&#39;tileplot&#39;</span><span class="p">,</span> <span class="s1">&#39;plot&#39;</span><span class="p">]</span>
+        <span class="n">method_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;lat-lon&#39;</span><span class="p">,</span> <span class="s1">&#39;press-lat&#39;</span><span class="p">,</span> <span class="s1">&#39;press-lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time-lat&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;Vertical Profile&#39;</span><span class="p">,</span> <span class="s1">&#39;Time Series&#39;</span><span class="p">,</span> <span class="s1">&#39;press-? (2-D)&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;Tile Plot (2-D)&#39;</span><span class="p">,</span> <span class="s1">&#39;Plot (1-D)&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">method_labels</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">method_list</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">END</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+        <span class="n">var_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">_k</span> <span class="k">for</span> <span class="n">_k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncffile</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">_k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_coordkeys</span><span class="p">]</span>
+        <span class="n">var_keys</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vars</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">spc</span> <span class="ow">in</span> <span class="n">var_keys</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">END</span><span class="p">,</span> <span class="n">spc</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spc</span><span class="p">)</span>
+
+        <span class="n">meta_label</span> <span class="o">=</span> <span class="n">Label</span><span class="p">(</span><span class="n">metaframe</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Common Data Language Header:&#39;</span><span class="p">)</span>
+        <span class="n">meta_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">)</span>
+        <span class="n">meta_scrollbar</span> <span class="o">=</span> <span class="n">Scrollbar</span><span class="p">(</span><span class="n">metaframe</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">meta_scrollbar</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="n">N</span> <span class="o">+</span> <span class="n">S</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span><span class="n">metaframe</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">118</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span>
+                         <span class="n">relief</span><span class="o">=</span><span class="s1">&#39;flat&#39;</span><span class="p">,</span> <span class="n">yscrollcommand</span><span class="o">=</span><span class="n">meta_scrollbar</span><span class="o">.</span><span class="n">set</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncdump</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncdump</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">StringIO</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+        <span class="n">pdump</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">pncdump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncffile</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="n">pdump</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">pdump</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">END</span><span class="p">,</span> <span class="n">pdump</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">DISABLED</span><span class="p">)</span>
+        <span class="n">help</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="n">goframe</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Help&#39;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">help</span><span class="p">)</span>
+        <span class="n">help</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+        <span class="n">quit</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="n">goframe</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Quit&#39;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">quit</span><span class="p">)</span>
+        <span class="n">quit</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+        <span class="n">master</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">help</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;pl is pylab: details at matplotlib;&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">quit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_var</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="nb">list</span><span class="o">.</span><span class="n">curselection</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">items</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">items</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">items</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_var</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_list</span><span class="o">.</span><span class="n">curselection</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">items</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">methods</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">items</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">items</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;clear&#39;</span><span class="p">)</span>
+        <span class="nb">vars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_var</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotted_variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotted_variables</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">vars</span><span class="p">)</span>
+        <span class="n">methods</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_methods</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">logscale</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logscale</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">coastlines</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coastlines</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">countries</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">countries</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">counties</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">counties</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">pre_txt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_txt</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">before_txt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">before_txt</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">after_txt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">after_txt</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">post_txt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_txt</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">plotwithopts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncffile</span><span class="p">,</span> <span class="n">methods</span><span class="p">,</span> <span class="nb">vars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">plotwithopts</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="nb">vars</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">defaultoption</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">getvarpnc</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncgen</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncgen</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+    <span class="c1"># dummy assignment so that flake8 sees plt as used</span>
+    <span class="c1"># plt is loaded into the environment for exec</span>
+    <span class="n">varkey</span> <span class="o">=</span> <span class="n">plt</span>
+
+    <span class="n">exec</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">pre_txt</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">varkey</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">:</span>
+        <span class="n">figpath</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">method</span><span class="p">)(</span><span class="n">ifile</span><span class="o">=</span><span class="n">ifile</span><span class="p">,</span> <span class="n">varkey</span><span class="o">=</span><span class="n">varkey</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+                               <span class="n">before</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">before_txt</span><span class="p">,</span>
+                               <span class="n">after</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">after_txt</span><span class="p">)</span>
+        <span class="n">pncgen</span><span class="p">(</span><span class="n">getvarpnc</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">vars</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">_coordkeys</span><span class="p">)),</span>
+               <span class="n">figpath</span> <span class="o">+</span> <span class="s1">&#39;.nc&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">post_txt</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">StartTk</span><span class="p">(</span><span class="n">ncffile</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="n">TkApp</span><span class="p">(</span><span class="n">ncffile</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">pncview</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="c1"># add a gui for plotting</span>
+    <span class="k">return</span> <span class="n">StartTk</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">gettime</span><span class="p">(</span><span class="n">ifile</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFVariable</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+    <span class="k">if</span> <span class="s1">&#39;time&#39;</span> <span class="ow">in</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">units</span>
+        <span class="n">tunit</span><span class="p">,</span> <span class="n">datestr</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; since &#39;</span><span class="p">)</span>
+        <span class="n">sdate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">datestr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+            <span class="s1">&#39; UTC&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">sdate</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">tunit</span><span class="p">:</span> <span class="n">t</span><span class="p">})</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">time</span><span class="p">[:]])</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;time&#39;</span>
+    <span class="k">elif</span> <span class="s1">&#39;TFLAG&#39;</span> <span class="ow">in</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">][:]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">axi</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[(</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%07d</span><span class="s1"> </span><span class="si">%06d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">),</span> <span class="s1">&#39;%Y%j %H%M%S&#39;</span><span class="p">))</span>
+             <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">x</span><span class="p">])</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;time&#39;</span>
+    <span class="k">elif</span> <span class="s1">&#39;time&#39;</span> <span class="ow">in</span> <span class="n">ifile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ifile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]))</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;steps&#39;</span>
+    <span class="k">elif</span> <span class="s1">&#39;TSTEP&#39;</span> <span class="ow">in</span> <span class="n">ifile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ifile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;steps&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;No time found&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,),</span>
+                                <span class="n">values</span><span class="o">=</span><span class="n">time</span><span class="p">[:],</span> <span class="n">units</span><span class="o">=</span><span class="n">unit</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="timeseries">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncview.timeseries">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">timeseries</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">varkey</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">before</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">pylab</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+    <span class="n">outpath</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="s1">&#39;outpath&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">gettime</span><span class="p">(</span><span class="n">ifile</span><span class="p">)</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varkey</span><span class="p">]</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="p">[(</span><span class="n">_k</span><span class="p">,</span> <span class="n">_l</span><span class="p">)</span> <span class="k">for</span> <span class="n">_l</span><span class="p">,</span> <span class="n">_k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span> <span class="k">if</span> <span class="n">_l</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;Time series can have 1 non-unity dimensions; got </span><span class="si">%d</span><span class="s1"> - </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
+            <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">dims</span><span class="p">)))</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">before</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">varkey</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">logscale</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot_date</span><span class="p">(</span><span class="n">time</span><span class="p">[:]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s1">&#39;standard_name&#39;</span><span class="p">,</span>
+                          <span class="n">varkey</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">var</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="s1">&#39;png&#39;</span>
+    <span class="n">figpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="s1">&#39;_ts_&#39;</span> <span class="o">+</span> <span class="n">varkey</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">fmt</span><span class="p">)</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">after</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">figpath</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saved fig&#39;</span><span class="p">,</span> <span class="n">figpath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">figpath</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">varkey</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">before</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">pylab</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+    <span class="n">outpath</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="s1">&#39;outpath&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varkey</span><span class="p">]</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="p">[(</span><span class="n">_k</span><span class="p">,</span> <span class="n">_l</span><span class="p">)</span> <span class="k">for</span> <span class="n">_l</span><span class="p">,</span> <span class="n">_k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span> <span class="k">if</span> <span class="n">_l</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;Plots can have only 1 non-unity dimensions; got </span><span class="si">%d</span><span class="s1"> - </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
+            <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">dims</span><span class="p">)))</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">before</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">varkey</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">logscale</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;unknown&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s1">&#39;standard_name&#39;</span><span class="p">,</span>
+                          <span class="n">varkey</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">var</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="s1">&#39;png&#39;</span>
+    <span class="n">figpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="s1">&#39;_1d_&#39;</span> <span class="o">+</span> <span class="n">varkey</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">fmt</span><span class="p">)</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">after</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">figpath</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saved fig&#39;</span><span class="p">,</span> <span class="n">figpath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">figpath</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">pressx</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">varkey</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">before</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">Normalize</span><span class="p">,</span> <span class="n">LogNorm</span>
+    <span class="n">outpath</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="s1">&#39;outpath&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+    <span class="n">vert</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">getpresbnds</span><span class="p">(</span><span class="n">ifile</span><span class="p">)</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varkey</span><span class="p">]</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="p">[(</span><span class="n">_k</span><span class="p">,</span> <span class="n">_l</span><span class="p">)</span> <span class="k">for</span> <span class="n">_l</span><span class="p">,</span> <span class="n">_k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span> <span class="k">if</span> <span class="n">_l</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;Press-x can have 2 non-unity dimensions; got </span><span class="si">%d</span><span class="s1"> - </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
+            <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">dims</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">logscale</span><span class="p">:</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">LogNorm</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">Normalize</span><span class="p">()</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">before</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">varkey</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">patches</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">vert</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">)</span>
+    <span class="c1"># ax.set_xlabel(X.units.strip())</span>
+    <span class="c1"># ax.set_ylabel(Y.units.strip())</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">patches</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">vert</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">vert</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="s1">&#39;png&#39;</span>
+    <span class="n">figpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="s1">&#39;_PRESX_&#39;</span> <span class="o">+</span> <span class="n">varkey</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">fmt</span><span class="p">)</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">after</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">figpath</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saved fig&#39;</span><span class="p">,</span> <span class="n">figpath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">figpath</span>
+
+
+<div class="viewcode-block" id="presslat">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncview.presslat">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">presslat</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">varkey</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">before</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">Normalize</span><span class="p">,</span> <span class="n">LogNorm</span>
+    <span class="n">outpath</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="s1">&#39;outpath&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+    <span class="n">vert</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">getpresbnds</span><span class="p">(</span><span class="n">ifile</span><span class="p">)</span>
+    <span class="n">lat</span><span class="p">,</span> <span class="n">latunit</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">getlatbnds</span><span class="p">(</span><span class="n">ifile</span><span class="p">)</span>
+    <span class="n">lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lat</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
+        <span class="mi">1</span><span class="p">),</span> <span class="n">lat</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varkey</span><span class="p">]</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="p">[(</span><span class="n">_k</span><span class="p">,</span> <span class="n">_l</span><span class="p">)</span> <span class="k">for</span> <span class="n">_l</span><span class="p">,</span> <span class="n">_k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span> <span class="k">if</span> <span class="n">_l</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;Press-lat can have 2 non-unity dimensions; got </span><span class="si">%d</span><span class="s1"> - </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
+            <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">dims</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">logscale</span><span class="p">:</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">LogNorm</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">Normalize</span><span class="p">()</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">before</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">varkey</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">patches</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolor</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">vert</span><span class="p">,</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">)</span>
+    <span class="c1"># ax.set_xlabel(X.units.strip())</span>
+    <span class="c1"># ax.set_ylabel(Y.units.strip())</span>
+    <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">patches</span><span class="p">)</span>
+    <span class="n">vunit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="n">varkey</span> <span class="o">+</span> <span class="s1">&#39; (&#39;</span> <span class="o">+</span> <span class="n">vunit</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span><span class="p">)</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%.2g</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">(</span>
+    <span class="p">),</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">)</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%.2g</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(</span>
+    <span class="p">),</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">vert</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">vert</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">lat</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">lat</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="s1">&#39;png&#39;</span>
+    <span class="n">figpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="s1">&#39;_PRESSLAT_&#39;</span> <span class="o">+</span> <span class="n">varkey</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">fmt</span><span class="p">)</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">after</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">figpath</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saved fig&#39;</span><span class="p">,</span> <span class="n">figpath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">figpath</span></div>
+
+
+
+<div class="viewcode-block" id="presslon">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncview.presslon">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">presslon</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">varkey</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">before</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">Normalize</span><span class="p">,</span> <span class="n">LogNorm</span>
+    <span class="n">outpath</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="s1">&#39;outpath&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+    <span class="n">vert</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">getpresbnds</span><span class="p">(</span><span class="n">ifile</span><span class="p">)</span>
+    <span class="n">lon</span><span class="p">,</span> <span class="n">lonunit</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">getlonbnds</span><span class="p">(</span><span class="n">ifile</span><span class="p">)</span>
+    <span class="n">lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lon</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()[</span><span class="o">...</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
+        <span class="mi">1</span><span class="p">),</span> <span class="n">lon</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varkey</span><span class="p">]</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="p">[(</span><span class="n">_k</span><span class="p">,</span> <span class="n">_l</span><span class="p">)</span> <span class="k">for</span> <span class="n">_l</span><span class="p">,</span> <span class="n">_k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span> <span class="k">if</span> <span class="n">_l</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;Press-lon plots can have 2 non-unity dimensions; got </span><span class="si">%d</span><span class="s1"> - </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
+            <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">dims</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">logscale</span><span class="p">:</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">LogNorm</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">Normalize</span><span class="p">()</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">before</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">varkey</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">patches</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolor</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">vert</span><span class="p">,</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">)</span>
+    <span class="c1"># ax.set_xlabel(X.units.strip())</span>
+    <span class="c1"># ax.set_ylabel(Y.units.strip())</span>
+    <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">patches</span><span class="p">)</span>
+    <span class="n">vunit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="n">varkey</span> <span class="o">+</span> <span class="s1">&#39; (&#39;</span> <span class="o">+</span> <span class="n">vunit</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span><span class="p">)</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%.2g</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">(</span>
+    <span class="p">),</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">)</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%.2g</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(</span>
+    <span class="p">),</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">vert</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">vert</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">lon</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">lon</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="s1">&#39;png&#39;</span>
+    <span class="n">figpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="s1">&#39;_PRESLON_&#39;</span> <span class="o">+</span> <span class="n">varkey</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">fmt</span><span class="p">)</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">after</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">figpath</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saved fig&#39;</span><span class="p">,</span> <span class="n">figpath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">figpath</span></div>
+
+
+
+<div class="viewcode-block" id="tileplot">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncview.tileplot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tileplot</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">varkey</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">before</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">Normalize</span><span class="p">,</span> <span class="n">LogNorm</span>
+    <span class="n">outpath</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="s1">&#39;outpath&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varkey</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">logscale</span><span class="p">:</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">LogNorm</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">Normalize</span><span class="p">()</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">before</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">varkey</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="p">[(</span><span class="n">_k</span><span class="p">,</span> <span class="n">_l</span><span class="p">)</span> <span class="k">for</span> <span class="n">_l</span><span class="p">,</span> <span class="n">_k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span> <span class="k">if</span> <span class="n">_l</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;Tile plots can have 2 non-unity dimensions; got </span><span class="si">%d</span><span class="s1"> - </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
+            <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">dims</span><span class="p">)))</span>
+    <span class="n">patches</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolor</span><span class="p">(</span><span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="c1"># ax.set_xlabel(X.units.strip())</span>
+    <span class="c1"># ax.set_ylabel(Y.units.strip())</span>
+    <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">patches</span><span class="p">)</span>
+    <span class="n">vunit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="n">varkey</span> <span class="o">+</span> <span class="s1">&#39; (&#39;</span> <span class="o">+</span> <span class="n">vunit</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span><span class="p">)</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%.2g</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">(</span>
+    <span class="p">),</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">)</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%.2g</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(</span>
+    <span class="p">),</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="s1">&#39;png&#39;</span>
+    <span class="n">figpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="s1">&#39;_2D_&#39;</span> <span class="o">+</span> <span class="n">varkey</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">fmt</span><span class="p">)</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">after</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">figpath</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saved fig&#39;</span><span class="p">,</span> <span class="n">figpath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">figpath</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">minmaxmean</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">vertcrd</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+    <span class="n">minval</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">meanval</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">maxval</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">kwds</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;edgecolor&#39;</span><span class="p">,</span> <span class="s1">&#39;_k&#39;</span><span class="p">)</span>
+    <span class="n">kwds</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;facecolor&#39;</span><span class="p">,</span> <span class="s1">&#39;grey&#39;</span><span class="p">)</span>
+    <span class="n">kwds</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">kwds</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;ls&#39;</span><span class="p">,</span> <span class="s1">&#39;solid&#39;</span><span class="p">)</span>
+    <span class="n">linekwds</span> <span class="o">=</span> <span class="n">kwds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">linekwds</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">linekwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;edgecolor&#39;</span><span class="p">)</span>
+    <span class="n">linekwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;facecolor&#39;</span><span class="p">)</span>
+    <span class="n">linekwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">)</span>
+    <span class="n">linekwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;ls&#39;</span><span class="p">)</span>
+    <span class="n">fillkwds</span> <span class="o">=</span> <span class="n">kwds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="n">line</span><span class="p">,</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">meanval</span><span class="p">,</span> <span class="n">vertcrd</span><span class="p">,</span> <span class="o">**</span><span class="n">linekwds</span><span class="p">)</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">minval</span><span class="p">[:</span><span class="n">vertcrd</span><span class="o">.</span><span class="n">size</span><span class="p">],</span> <span class="n">maxval</span><span class="p">[:</span><span class="n">vertcrd</span><span class="o">.</span><span class="n">size</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">vertcrd</span><span class="p">[:],</span> <span class="n">vertcrd</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">mask</span> <span class="o">|</span> <span class="n">y</span><span class="o">.</span><span class="n">mask</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span>
+    <span class="nb">range</span><span class="p">,</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">fillkwds</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">line</span><span class="p">,</span> <span class="nb">range</span>
+
+
+<div class="viewcode-block" id="profile">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncview.profile">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">profile</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">varkey</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">before</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">varkey</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">outpath</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="s1">&#39;outpath&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">vert</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">getpresmid</span><span class="p">(</span><span class="n">ifile</span><span class="p">)</span>
+        <span class="n">vunit</span> <span class="o">=</span> <span class="s1">&#39;Pa&#39;</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">vert</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">getsigmamid</span><span class="p">(</span><span class="n">ifile</span><span class="p">)</span>
+        <span class="n">vunit</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;\sigma&#39;</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varkey</span><span class="p">]</span>
+
+    <span class="n">dims</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">knownvert</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">,</span> <span class="s1">&#39;LAY&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;layer</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">72</span><span class="p">)]:</span>
+        <span class="k">if</span> <span class="n">knownvert</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">:</span>
+            <span class="n">vidx</span> <span class="o">=</span> <span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">knownvert</span><span class="p">)</span>
+            <span class="k">break</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;No known vertical coordinate; got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
+    <span class="n">vert</span> <span class="o">=</span> <span class="n">vert</span><span class="p">[:</span><span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">vidx</span><span class="p">]]</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rollaxis</span><span class="p">(</span><span class="n">var</span><span class="p">[:],</span> <span class="n">vidx</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vert</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="n">minmaxmean</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">vert</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">varkey</span> <span class="o">+</span> <span class="s1">&#39; (&#39;</span> <span class="o">+</span> <span class="n">units</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">vunit</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">vert</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">vert</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">logscale</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="s1">&#39;png&#39;</span>
+    <span class="n">figpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="s1">&#39;_profile_&#39;</span> <span class="o">+</span> <span class="n">varkey</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">fmt</span><span class="p">)</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">after</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">figpath</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saved fig&#39;</span><span class="p">,</span> <span class="n">figpath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">figpath</span></div>
+
+
+
+<div class="viewcode-block" id="mapplot">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncview.mapplot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mapplot</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">varkey</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">before</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ifile - a pseudonetcdf file</span>
+<span class="sd">    varkey - the variable to plot</span>
+<span class="sd">    options - argparse name space with mapping options</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">Normalize</span><span class="p">,</span> <span class="n">LogNorm</span>
+    <span class="n">outpath</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="s1">&#39;outpath&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+    <span class="nb">map</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">getmap</span><span class="p">(</span><span class="n">ifile</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">map</span><span class="o">.</span><span class="n">projection</span> <span class="o">==</span> <span class="s1">&#39;cyl&#39;</span><span class="p">:</span>
+        <span class="n">latb</span><span class="p">,</span> <span class="n">latunit</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">getlatbnds</span><span class="p">(</span><span class="n">ifile</span><span class="p">)[:]</span>
+        <span class="n">lonb</span><span class="p">,</span> <span class="n">lonunit</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">getlonbnds</span><span class="p">(</span><span class="n">ifile</span><span class="p">)[:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">latb</span><span class="p">,</span> <span class="n">latunit</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">getybnds</span><span class="p">(</span><span class="n">ifile</span><span class="p">)[:]</span>
+        <span class="n">lonb</span><span class="p">,</span> <span class="n">lonunit</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">getxbnds</span><span class="p">(</span><span class="n">ifile</span><span class="p">)[:]</span>
+    <span class="k">if</span> <span class="n">latb</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="n">lonb</span><span class="o">.</span><span class="n">ndim</span> <span class="ow">and</span> <span class="n">lonb</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">LON</span><span class="p">,</span> <span class="n">LAT</span> <span class="o">=</span> <span class="n">lonb</span><span class="p">,</span> <span class="n">latb</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">LON</span><span class="p">,</span> <span class="n">LAT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">lonb</span><span class="p">,</span> <span class="n">latb</span><span class="p">)</span>
+
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">logscale</span><span class="p">:</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">LogNorm</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">Normalize</span><span class="p">()</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varkey</span><span class="p">]</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">before</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="n">vunit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">varkey</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">coastlines</span><span class="p">:</span>
+            <span class="nb">map</span><span class="o">.</span><span class="n">drawcoastlines</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">countries</span><span class="p">:</span>
+            <span class="nb">map</span><span class="o">.</span><span class="n">drawcountries</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="nb">map</span><span class="o">.</span><span class="n">drawstates</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">counties</span><span class="p">:</span>
+            <span class="nb">map</span><span class="o">.</span><span class="n">drawcounties</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;nomap&#39;</span><span class="p">)</span>
+        <span class="k">pass</span>
+    <span class="n">patches</span> <span class="o">=</span> <span class="nb">map</span><span class="o">.</span><span class="n">pcolor</span><span class="p">(</span><span class="n">LON</span><span class="p">,</span> <span class="n">LAT</span><span class="p">,</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">lonunit</span> <span class="o">==</span> <span class="s1">&#39;x (LCC m)&#39;</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">get_major_formatter</span><span class="p">()</span><span class="o">.</span><span class="n">set_scientific</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">get_major_formatter</span><span class="p">()</span><span class="o">.</span><span class="n">set_powerlimits</span><span class="p">((</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">latunit</span> <span class="o">==</span> <span class="s1">&#39;y (LCC m)&#39;</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">get_major_formatter</span><span class="p">()</span><span class="o">.</span><span class="n">set_scientific</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">get_major_formatter</span><span class="p">()</span><span class="o">.</span><span class="n">set_powerlimits</span><span class="p">((</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">lonunit</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">latunit</span><span class="p">)</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="n">LAT</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">LAT</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="n">LON</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">LON</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">width</span> <span class="o">&gt;</span> <span class="n">height</span><span class="p">:</span>
+        <span class="n">orientation</span> <span class="o">=</span> <span class="s1">&#39;horizontal&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">orientation</span> <span class="o">=</span> <span class="s1">&#39;vertical&#39;</span>
+    <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">patches</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="n">orientation</span><span class="p">)</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="n">varkey</span> <span class="o">+</span> <span class="s1">&#39; (&#39;</span> <span class="o">+</span> <span class="n">vunit</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">orientation</span> <span class="o">==</span> <span class="s1">&#39;vertical&#39;</span><span class="p">:</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%.2g</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">(</span>
+        <span class="p">),</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">)</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%.2g</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(</span>
+        <span class="p">),</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">.5</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%.2g</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">(</span>
+        <span class="p">),</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">.5</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%.2g</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">var</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(</span>
+        <span class="p">),</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">formatter</span><span class="o">.</span><span class="n">set_scientific</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">formatter</span><span class="o">.</span><span class="n">set_powerlimits</span><span class="p">((</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">update_ticks</span><span class="p">()</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="s1">&#39;png&#39;</span>
+    <span class="n">figpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="s1">&#39;_map_&#39;</span> <span class="o">+</span> <span class="n">varkey</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">fmt</span><span class="p">)</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">after</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">figpath</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saved fig&#39;</span><span class="p">,</span> <span class="n">figpath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">figpath</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.pncparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncparse</span>
+    <span class="n">ifiles</span><span class="p">,</span> <span class="n">options</span> <span class="o">=</span> <span class="n">pncparse</span><span class="p">(</span>
+        <span class="n">has_ofile</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plot_options</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ifiles</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+            <span class="s1">&#39;pncview can operate on only 1 file; user requested </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">ifiles</span><span class="p">))</span>
+    <span class="n">ifile</span><span class="p">,</span> <span class="o">=</span> <span class="n">ifiles</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">interactive</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">method_vars</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">plotcommands</span><span class="p">:</span>
+        <span class="n">pieces</span> <span class="o">=</span> <span class="n">method_vars</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="n">plotargs</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pieces</span> <span class="k">if</span> <span class="s1">&#39;=&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">p</span><span class="p">]</span>
+        <span class="n">plotkwds</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pieces</span> <span class="k">if</span> <span class="s1">&#39;=&#39;</span> <span class="ow">in</span> <span class="n">p</span><span class="p">]</span>
+        <span class="n">method</span><span class="p">,</span> <span class="o">=</span> <span class="n">plotargs</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span>
+        <span class="nb">vars</span> <span class="o">=</span> <span class="n">plotargs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">plotoptions</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;OptionDict(outpath=&quot;</span><span class="si">%s</span><span class="s1">&quot;,</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span>
+                           <span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">outpath</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plotkwds</span><span class="p">)))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">plotoptions</span><span class="o">.</span><span class="n">logscale</span><span class="p">)</span>
+        <span class="n">plotwithopts</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="nb">vars</span><span class="p">,</span> <span class="n">plotoptions</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">interactive</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">plotcommands</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">pncview</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

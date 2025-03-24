@@ -1,0 +1,539 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.camxfiles.uamiv package &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PseudoNetCDF.camxfiles.vertical_diffusivity package" href="PseudoNetCDF.camxfiles.vertical_diffusivity.html" />
+    <link rel="prev" title="PseudoNetCDF.camxfiles.temperature package" href="PseudoNetCDF.camxfiles.temperature.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core Objects</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="PseudoNetCDF.html">PseudoNetCDF package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PseudoNetCDF.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.aermodfiles.html">PseudoNetCDF.aermodfiles package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="PseudoNetCDF.camxfiles.html">PseudoNetCDF.camxfiles package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="PseudoNetCDF.camxfiles.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PseudoNetCDF.camxfiles.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PseudoNetCDF.camxfiles.html#module-PseudoNetCDF.camxfiles.ArrayTransforms">PseudoNetCDF.camxfiles.ArrayTransforms module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PseudoNetCDF.camxfiles.html#module-PseudoNetCDF.camxfiles.FortranFileUtil">PseudoNetCDF.camxfiles.FortranFileUtil module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PseudoNetCDF.camxfiles.html#module-PseudoNetCDF.camxfiles.Memmaps">PseudoNetCDF.camxfiles.Memmaps module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PseudoNetCDF.camxfiles.html#module-PseudoNetCDF.camxfiles.Readers">PseudoNetCDF.camxfiles.Readers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PseudoNetCDF.camxfiles.html#module-PseudoNetCDF.camxfiles.Writers">PseudoNetCDF.camxfiles.Writers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PseudoNetCDF.camxfiles.html#module-PseudoNetCDF.camxfiles.aerosol_names">PseudoNetCDF.camxfiles.aerosol_names module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PseudoNetCDF.camxfiles.html#module-PseudoNetCDF.camxfiles.timetuple">PseudoNetCDF.camxfiles.timetuple module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PseudoNetCDF.camxfiles.html#module-PseudoNetCDF.camxfiles.units">PseudoNetCDF.camxfiles.units module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PseudoNetCDF.camxfiles.html#module-PseudoNetCDF.camxfiles.util">PseudoNetCDF.camxfiles.util module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PseudoNetCDF.camxfiles.html#module-PseudoNetCDF.camxfiles">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.ceilometerfiles.html">PseudoNetCDF.ceilometerfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.cmaqfiles.html">PseudoNetCDF.cmaqfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.conventions.html">PseudoNetCDF.conventions package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.core.html">PseudoNetCDF.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.derived.html">PseudoNetCDF.derived package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.epafiles.html">PseudoNetCDF.epafiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.geoschemfiles.html">PseudoNetCDF.geoschemfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.icarttfiles.html">PseudoNetCDF.icarttfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.noaafiles.html">PseudoNetCDF.noaafiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.plotutil.html">PseudoNetCDF.plotutil package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.racmfiles.html">PseudoNetCDF.racmfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.raob.html">PseudoNetCDF.raob package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.test.html">PseudoNetCDF.test package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.testcase.html">PseudoNetCDF.testcase package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.textfiles.html">PseudoNetCDF.textfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.toms.html">PseudoNetCDF.toms package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.woudcfiles.html">PseudoNetCDF.woudcfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.wrffiles.html">PseudoNetCDF.wrffiles package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.ArrayTransforms">PseudoNetCDF.ArrayTransforms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.MetaNetCDF">PseudoNetCDF.MetaNetCDF module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.coordutil">PseudoNetCDF.coordutil module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.net_balance">PseudoNetCDF.net_balance module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.netcdf">PseudoNetCDF.netcdf module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncdump">PseudoNetCDF.pncdump module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pnceval">PseudoNetCDF.pnceval module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncgen">PseudoNetCDF.pncgen module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncload">PseudoNetCDF.pncload module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncparse">PseudoNetCDF.pncparse module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncview">PseudoNetCDF.pncview module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncwarn">PseudoNetCDF.pncwarn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.register">PseudoNetCDF.register module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.sci_var">PseudoNetCDF.sci_var module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.units">PseudoNetCDF.units module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.userfuncs">PseudoNetCDF.userfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.version">PseudoNetCDF.version module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.xarray_plugin">PseudoNetCDF.xarray_plugin module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="PseudoNetCDF.html">PseudoNetCDF package</a></li>
+          <li class="breadcrumb-item"><a href="PseudoNetCDF.camxfiles.html">PseudoNetCDF.camxfiles package</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.camxfiles.uamiv package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/PseudoNetCDF.camxfiles.uamiv.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pseudonetcdf-camxfiles-uamiv-package">
+<h1>PseudoNetCDF.camxfiles.uamiv package<a class="headerlink" href="#pseudonetcdf-camxfiles-uamiv-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-PseudoNetCDF.camxfiles.uamiv.Memmap">
+<span id="pseudonetcdf-camxfiles-uamiv-memmap-module"></span><h2>PseudoNetCDF.camxfiles.uamiv.Memmap module<a class="headerlink" href="#module-PseudoNetCDF.camxfiles.uamiv.Memmap" title="Link to this heading"></a></h2>
+<section id="module-Memmap">
+<span id="memmap-uamiv-memmap-interface"></span><h3><a class="reference internal" href="PseudoNetCDF.camxfiles.wind.html#module-Memmap" title="Memmap: Provides :ref:`PseudoNetCDF` memory map for CAMx wind files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile for interface details (Unix, Windows)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Memmap</span></code></a> – uamiv Memmap interface<a class="headerlink" href="#module-Memmap" title="Link to this heading"></a></h3>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Memmap.uamiv">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.camxfiles.uamiv.Memmap.</span></span><span class="sig-name descname"><span class="pre">uamiv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Memmap.html#uamiv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Memmap.uamiv" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="PseudoNetCDF.cmaqfiles.html#PseudoNetCDF.cmaqfiles.ioapi_base" title="PseudoNetCDF.cmaqfiles._ioapi.ioapi_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">ioapi_base</span></code></a></p>
+<p>uamiv provides a PseudoNetCDF interface for CAMx
+uamiv files.  Where possible, the inteface follows
+IOAPI conventions (see www.baronams.com).</p>
+<dl>
+<dt>ex:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uamiv_path</span> <span class="o">=</span> <span class="s1">&#39;camx_uamiv.bin&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uamivfile</span> <span class="o">=</span> <span class="n">uamiv</span><span class="p">(</span><span class="n">uamiv_path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uamivfile</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+<span class="go">[&#39;TFLAG&#39;, &#39;O3&#39;, &#39;NO&#39;, &#39;NO2&#39;, ...]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tflag</span> <span class="o">=</span> <span class="n">uamivfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tflag</span><span class="o">.</span><span class="n">dimensions</span>
+<span class="go">(&#39;TSTEP&#39;, &#39;VAR&#39;, &#39;DATE-TIME&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tflag</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,:]</span>
+<span class="go">array([2005185,       0])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tflag</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,:]</span>
+<span class="go">array([2005185,  240000])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v</span> <span class="o">=</span> <span class="n">uamivfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;O3&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v</span><span class="o">.</span><span class="n">dimensions</span>
+<span class="go">(&#39;TSTEP&#39;, &#39;LAY&#39;, &#39;ROW&#39;, &#39;COL&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(25, 28, 65, 83)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uamivfile</span><span class="o">.</span><span class="n">dimensions</span>
+<span class="go">{&#39;TSTEP&#39;: 25, &#39;LAY&#39;: 28, &#39;ROW&#39;: 65, &#39;COL&#39;: 83}</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rf</strong> (<em>string</em><em> or </em><a class="reference internal" href="PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.RecordFile" title="PseudoNetCDF.camxfiles.FortranFileUtil.RecordFile"><em>RecordFile</em></a>) – usually a path to a CAMx formatted file, can be a FortranFileUtil
+RecordFile object.</p></li>
+<li><p><strong>mode</strong> (<em>string</em>) – file open mode read (‘r’), write (‘w’), append (‘a’, ‘r+’)</p></li>
+<li><p><strong>P_ALP</strong> (<em>float</em>) – see IOAPI GRIDDESC documentation</p></li>
+<li><p><strong>P_BET</strong> (<em>float</em>) – see IOAPI GRIDDESC documentation</p></li>
+<li><p><strong>P_GAM</strong> (<em>float</em>) – see IOAPI GRIDDESC documentation</p></li>
+<li><p><strong>XCENT</strong> (<em>float</em>) – see IOAPI GRIDDESC documentation</p></li>
+<li><p><strong>YCENT</strong> (<em>float</em>) – see IOAPI GRIDDESC documentation</p></li>
+<li><p><strong>GDTYP</strong> (<em>float</em>) – see IOAPI GRIDDESC documentation</p></li>
+<li><p><strong>endian</strong> (<em>string</em>) – ‘big’ or ‘little’ usually only if mistaken compile</p></li>
+<li><p><strong>chemparam</strong> (<em>None</em><em> or </em><em>string</em>) – used to identify gases and aerosols</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – PseudoNetCDFFile populated from file</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.camxfiles.uamiv.Memmap.uamiv" title="PseudoNetCDF.camxfiles.uamiv.Memmap.uamiv">uamiv</a></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Memmap.uamiv.isMine">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">isMine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Memmap.html#uamiv.isMine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Memmap.uamiv.isMine" title="Link to this definition"></a></dt>
+<dd><p>True if this file or object can be identified
+for use by this class. Useful to override for
+classes that can be initialized from disk.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.camxfiles.uamiv.Read">
+<span id="pseudonetcdf-camxfiles-uamiv-read-module"></span><h2>PseudoNetCDF.camxfiles.uamiv.Read module<a class="headerlink" href="#module-PseudoNetCDF.camxfiles.uamiv.Read" title="Link to this heading"></a></h2>
+<section id="module-Read">
+<span id="read-uamiv-read-interface"></span><h3><a class="reference internal" href="PseudoNetCDF.camxfiles.wind.html#module-Read" title="Read: Provides :ref:`PseudoNetCDF` random access read for CAMx wind files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile for interface details (Unix, Windows)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Read</span></code></a> – uamiv Read interface<a class="headerlink" href="#module-Read" title="Link to this heading"></a></h3>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.camxfiles.uamiv.Read.</span></span><span class="sig-name descname"><span class="pre">uamiv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Read.html#uamiv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="PseudoNetCDF.core.html#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core._files.PseudoNetCDFFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">PseudoNetCDFFile</span></code></a></p>
+<p>uamiv provides a PseudoNetCDF interface for CAMx
+uamiv files.  Where possible, the inteface follows
+IOAPI conventions (see www.baronams.com).</p>
+<dl>
+<dt>ex:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uamiv_path</span> <span class="o">=</span> <span class="s1">&#39;camx_uamiv.bin&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rows</span><span class="p">,</span><span class="n">cols</span> <span class="o">=</span> <span class="mi">65</span><span class="p">,</span><span class="mi">83</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uamivfile</span> <span class="o">=</span> <span class="n">uamiv</span><span class="p">(</span><span class="n">uamiv_path</span><span class="p">,</span><span class="n">rows</span><span class="p">,</span><span class="n">cols</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uamivfile</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+<span class="go">[&#39;TFLAG&#39;, &#39;O3&#39;, &#39;NO&#39;, &#39;NO2&#39;, ...]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tflag</span> <span class="o">=</span> <span class="n">uamivfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tflag</span><span class="o">.</span><span class="n">dimensions</span>
+<span class="go">(&#39;TSTEP&#39;, &#39;VAR&#39;, &#39;DATE-TIME&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tflag</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,:]</span>
+<span class="go">array([2005185,       0])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tflag</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,:]</span>
+<span class="go">array([2005185,  240000])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v</span> <span class="o">=</span> <span class="n">uamivfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;O3&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v</span><span class="o">.</span><span class="n">dimensions</span>
+<span class="go">(&#39;TSTEP&#39;, &#39;LAY&#39;, &#39;ROW&#39;, &#39;COL&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(25, 28, 65, 83)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uamivfile</span><span class="o">.</span><span class="n">dimensions</span>
+<span class="go">{&#39;TSTEP&#39;: 25, &#39;LAY&#39;: 28, &#39;ROW&#39;: 65, &#39;COL&#39;: 83}</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Initialization included reading the header and learning
+about the format.</p>
+<p>see __readheader and __gettimestep() for more info</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.cell_hdr_fmt">
+<span class="sig-name descname"><span class="pre">cell_hdr_fmt</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'iiii'</span></em><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.cell_hdr_fmt" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Read.html#uamiv.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.close" title="Link to this definition"></a></dt>
+<dd><p>Does nothing.  Implemented for continuity with Scientific.IO.NetCDF</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.data_fmt">
+<span class="sig-name descname"><span class="pre">data_fmt</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'f'</span></em><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.data_fmt" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.emiss_hdr_fmt">
+<span class="sig-name descname"><span class="pre">emiss_hdr_fmt</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'10i60i3ifif'</span></em><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.emiss_hdr_fmt" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.getArray">
+<span class="sig-name descname"><span class="pre">getArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">krange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">slice(1,</span> <span class="pre">None,</span> <span class="pre">None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nspec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">slice(None,</span> <span class="pre">None,</span> <span class="pre">None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">slice(None,</span> <span class="pre">None,</span> <span class="pre">None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">slice(None,</span> <span class="pre">None,</span> <span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Read.html#uamiv.getArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.getArray" title="Link to this definition"></a></dt>
+<dd><p>Method takes slice arguments. Alternatively, takes a hashable object
+with 2 values (e.g., the list: [0,3]).
+Arguments:
+krange    vertical slice (1 indexed)
+nspec     species  slice (0 indexed)
+nx        column   slice (0 indexed)
+ny        row      slice (0 indexed)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.grid_hdr_fmt">
+<span class="sig-name descname"><span class="pre">grid_hdr_fmt</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ffiffffiiiiifff'</span></em><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.grid_hdr_fmt" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.header">
+<span class="sig-name descname"><span class="pre">header</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Read.html#uamiv.header"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.header" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.id_fmt">
+<span class="sig-name descname"><span class="pre">id_fmt</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'i10i'</span></em><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.id_fmt" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.id_size">
+<span class="sig-name descname"><span class="pre">id_size</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">44</span></em><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.id_size" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.idum">
+<span class="sig-name descname"><span class="pre">idum</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.idum" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.ione">
+<span class="sig-name descname"><span class="pre">ione</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.ione" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.items">
+<span class="sig-name descname"><span class="pre">items</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Read.html#uamiv.items"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.items" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.keys">
+<span class="sig-name descname"><span class="pre">keys</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Read.html#uamiv.keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.keys" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.rdum">
+<span class="sig-name descname"><span class="pre">rdum</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></em><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.rdum" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.read">
+<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Read.html#uamiv.read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.read" title="Link to this definition"></a></dt>
+<dd><p>Provide direct access to record file read</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.read_into">
+<span class="sig-name descname"><span class="pre">read_into</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Read.html#uamiv.read_into"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.read_into" title="Link to this definition"></a></dt>
+<dd><p>Transfer values from current record to dest
+dest - numeric or numpy array</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.seek">
+<span class="sig-name descname"><span class="pre">seek</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chkvar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Read.html#uamiv.seek"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.seek" title="Link to this definition"></a></dt>
+<dd><p>Move file cursor to the beginning of the specified record
+see __recordposition for parameter definitions</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.seekandread">
+<span class="sig-name descname"><span class="pre">seekandread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Read.html#uamiv.seekandread"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.seekandread" title="Link to this definition"></a></dt>
+<dd><p>see seek and read</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.seekandreadinto">
+<span class="sig-name descname"><span class="pre">seekandreadinto</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Read.html#uamiv.seekandreadinto"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.seekandreadinto" title="Link to this definition"></a></dt>
+<dd><p>see seek and read_into</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.spc_fmt">
+<span class="sig-name descname"><span class="pre">spc_fmt</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'10i'</span></em><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.spc_fmt" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.time_hdr_fmt">
+<span class="sig-name descname"><span class="pre">time_hdr_fmt</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ifif'</span></em><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.time_hdr_fmt" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.timerange">
+<span class="sig-name descname"><span class="pre">timerange</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Read.html#uamiv.timerange"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.timerange" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Read.uamiv.values">
+<span class="sig-name descname"><span class="pre">values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Read.html#uamiv.values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Read.uamiv.values" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.camxfiles.uamiv.Transforms">
+<span id="pseudonetcdf-camxfiles-uamiv-transforms-module"></span><h2>PseudoNetCDF.camxfiles.uamiv.Transforms module<a class="headerlink" href="#module-PseudoNetCDF.camxfiles.uamiv.Transforms" title="Link to this heading"></a></h2>
+<section id="write-camx-uamiv-variable-transformations">
+<h3><a class="reference internal" href="PseudoNetCDF.camxfiles.wind.html#module-0" title="Write: Provides :ref:`PseudoNetCDF` writer for CAMx wind files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile for interface details (Unix, Windows)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Write</span></code></a> – CAMx uamiv variable transformations<a class="headerlink" href="#write-camx-uamiv-variable-transformations" title="Link to this heading"></a></h3>
+<span class="target" id="module-Write"></span></section>
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Transforms.osat">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.camxfiles.uamiv.Transforms.</span></span><span class="sig-name descname"><span class="pre">osat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Transforms.html#osat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Transforms.osat" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="PseudoNetCDF.core.html#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core._files.PseudoNetCDFFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">PseudoNetCDFFile</span></code></a></p>
+<p>OSAT provides a way of slicing and summing tagged species.</p>
+<dl class="simple">
+<dt>sources - dictionary of name and id for CAMx source codes</dt><dd><p>(i.e. {‘SOURCES1-5’: ‘001’,’002’,’003’,’004’,’005’})</p>
+</dd>
+<dt>regions - dictionary of name and id for CAMx region codes</dt><dd><p>(i.e. {‘REGIONS1-5’: ‘001’,’002’,’003’,’004’,’005’})</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p># Source and regions definitions
+sources={‘SOURCES1-5’: (‘001’,’002’,’003’,’004’,’005’)}
+regions={‘REGIONS1-5’: (‘001’,’002’,’003’,’004’,’005’)}
+# File initiation
+osatfile=osat(‘path’,sources,regions)
+# Variable (v) would return the sum of all O3V for all five
+# sources and all five regions
+v=osatfile.variables[‘O3V_SOURCES1-5_REGIONS1-5’]</p>
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.camxfiles.uamiv.Write">
+<span id="pseudonetcdf-camxfiles-uamiv-write-module"></span><h2>PseudoNetCDF.camxfiles.uamiv.Write module<a class="headerlink" href="#module-PseudoNetCDF.camxfiles.uamiv.Write" title="Link to this heading"></a></h2>
+<section id="module-0">
+<span id="write-camx-uamiv-writer"></span><h3><a class="reference internal" href="PseudoNetCDF.camxfiles.wind.html#module-0" title="Write: Provides :ref:`PseudoNetCDF` writer for CAMx wind files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile for interface details (Unix, Windows)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Write</span></code></a> – CAMx uamiv  writer<a class="headerlink" href="#module-0" title="Link to this heading"></a></h3>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Write.ncf2uamiv">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.camxfiles.uamiv.Write.</span></span><span class="sig-name descname"><span class="pre">ncf2uamiv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ncffile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outpath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Write.html#ncf2uamiv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Write.ncf2uamiv" title="Link to this definition"></a></dt>
+<dd><p>ncf2uamiv converts a ncffile to a uamiv file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ncffile</strong> (<em>PseudoNetCDF-like object</em>) – <p>Must be open and have all properties of a uamiv
+file as produced by PseudoNetCDF.camxfiles
+1) IOAPI conventions
+2) UAMIV specific properties: PLON PLAT IUTM CPROJ</p>
+<blockquote>
+<div><p>TLAT1 TLAT2 ISTAG</p>
+</div></blockquote>
+</p></li>
+<li><p><strong>outpath</strong> (<em>string</em>) – path to create a uamiv file output</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outfile</strong> – File object is in write binary mode and has the
+uamiv file as its contents</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>file object</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>$ # test.uamiv must be a file in uamiv format
+$ pncgen -f uamiv test.uamiv test.uamiv.nc
+$ python -c ”
+ncpath = ‘test.uamiv.nc’
+uamivpath = ‘test.uamiv.nc.uamiv’
+from netCDF4 import Dataset
+from PseudoNetCDF.camxfiles.uamiv.Write import ncf2uamiv
+inncf = Dataset(ncpath)
+ncf2uamiv(inncf, uamivpath)
+”
+# If uamivpath does not include EOD, the diff will be perfect
+diff test.uamiv test.uamiv.nc.uamiv</p>
+<p># If uamivpath includes EOD, the diff may yield difference.
+# The ONLY difference will be time flags for the end of a day.
+# Most time software agrees – there is no such thing as 2002154T24:00.
+# Some CAMx files, however, have a 2400 time.
+# PseudoNetCDF interprets this equivalently as 2002155T00:00
+$ python -c “from PseudoNetCDF.camxfiles.Memmaps import uamiv
+import numpy as np
+old = uamiv(‘test.uamiv’)
+new = uamiv(‘test.uamiv.nc.uamiv’)
+for k in old.variables.keys():</p>
+<blockquote>
+<div><p>check = (old.variables[k][…] == new.variables[k][…])
+if not check.all():</p>
+<blockquote>
+<div><p>print(k)
+if k == ‘ETFLAG’:</p>
+<blockquote>
+<div><p>diffidx = np.where(~check)[:2]</p>
+</div></blockquote>
+<dl class="simple">
+<dt>else:</dt><dd><p>diffidx = np.where(~check)</p>
+</dd>
+</dl>
+<p>print(old.variables[k][diffidx])
+print(new.variables[k][diffidx])</p>
+</div></blockquote>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Write.write_emissions">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.camxfiles.uamiv.Write.</span></span><span class="sig-name descname"><span class="pre">write_emissions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vals</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Write.html#write_emissions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Write.write_emissions" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.camxfiles.uamiv.Write.write_emissions_ncf">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.camxfiles.uamiv.Write.</span></span><span class="sig-name descname"><span class="pre">write_emissions_ncf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/camxfiles/uamiv/Write.html#write_emissions_ncf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.camxfiles.uamiv.Write.write_emissions_ncf" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.camxfiles.uamiv">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-PseudoNetCDF.camxfiles.uamiv" title="Link to this heading"></a></h2>
+<section id="uamiv-uam-iv-file-interfaces">
+<h3><code class="xref py py-mod docutils literal notranslate"><span class="pre">uamiv</span></code> – UAM-IV File Interfaces<a class="headerlink" href="#uamiv-uam-iv-file-interfaces" title="Link to this heading"></a></h3>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="PseudoNetCDF.camxfiles.temperature.html" class="btn btn-neutral float-left" title="PseudoNetCDF.camxfiles.temperature package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="PseudoNetCDF.camxfiles.vertical_diffusivity.html" class="btn btn-neutral float-right" title="PseudoNetCDF.camxfiles.vertical_diffusivity package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

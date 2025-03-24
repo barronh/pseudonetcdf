@@ -1,0 +1,29 @@
+PseudoNetCDF.camxfiles.lateral\_boundary package
+================================================
+
+Submodules
+----------
+
+PseudoNetCDF.camxfiles.lateral\_boundary.Memmap module
+------------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.lateral_boundary.Memmap
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.lateral\_boundary.Write module
+-----------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.lateral_boundary.Write
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.camxfiles.lateral_boundary
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,354 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.camxfiles.irr.Memmap &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.camxfiles.irr.Memmap</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.camxfiles.irr.Memmap</h1><div class="highlight"><pre>
+<span></span><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;irr&#39;</span><span class="p">]</span>
+<span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">.. _Memmap</span>
+<span class="s2">:mod:`Memmap` -- irr Memmap interface</span>
+<span class="s2">============================================</span>
+
+<span class="s2">.. module:: Memmap</span>
+<span class="s2">   :platform: Unix, Windows</span>
+<span class="s2">   :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx</span>
+<span class="s2">              irr files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile</span>
+<span class="s2">              for interface details</span>
+<span class="s2">.. moduleauthor:: Barron Henderson &lt;barronh@unc.edu&gt;</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="c1"># Distribution packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">unittest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+
+<span class="c1"># Site-Packages</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">zeros</span><span class="p">,</span> <span class="n">memmap</span><span class="p">,</span> <span class="n">dtype</span>
+
+<span class="c1"># This Package modules</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.camxfiles.timetuple</span><span class="w"> </span><span class="kn">import</span> <span class="n">timeadd</span><span class="p">,</span> <span class="n">timerange</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.camxfiles.FortranFileUtil</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenRecordFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span><span class="p">,</span> <span class="n">PseudoNetCDFVariable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFVariables</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.ArrayTransforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvertCAMxTime</span>
+
+<span class="c1"># for use in identifying uncaught nan</span>
+<span class="n">listnan</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\xff\xc0\x00\x00</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">checkarray</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span>
+<span class="n">checkarray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">listnan</span>
+<span class="n">array_nan</span> <span class="o">=</span> <span class="n">checkarray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_isMine</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">testf</span> <span class="o">=</span> <span class="n">OpenRecordFile</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">testf</span><span class="o">.</span><span class="n">record_size</span> <span class="o">==</span> <span class="mi">80</span><span class="p">:</span>
+        <span class="n">testf</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">testf</span><span class="o">.</span><span class="n">record_size</span> <span class="o">==</span> <span class="mi">16</span><span class="p">:</span>
+            <span class="n">testf</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">testf</span><span class="o">.</span><span class="n">record_size</span> <span class="o">==</span> <span class="mi">28</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span>
+
+
+<div class="viewcode-block" id="irr">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.irr.html#PseudoNetCDF.camxfiles.Memmaps.irr">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">irr</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    irr provides a PseudoNetCDF interface for CAMx</span>
+<span class="sd">    irr files.  Where possible, the inteface follows</span>
+<span class="sd">    IOAPI conventions (see www.baronams.com).</span>
+
+<span class="sd">    ex:</span>
+<span class="sd">        &gt;&gt;&gt; irr_path = &#39;camx_irr.bin&#39;</span>
+<span class="sd">        &gt;&gt;&gt; rows,cols = 65,83</span>
+<span class="sd">        &gt;&gt;&gt; irrfile = irr(irr_path,rows,cols)</span>
+<span class="sd">        &gt;&gt;&gt; irrfile.variables.keys()</span>
+<span class="sd">        [&#39;TFLAG&#39;, &#39;RXN_01&#39;, &#39;RXN_02&#39;, &#39;RXN_03&#39;, ...]</span>
+<span class="sd">        &gt;&gt;&gt; v = irrfile.variables[&#39;RXN_01&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; tflag = irrfile.variables[&#39;TFLAG&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; tflag.dimensions</span>
+<span class="sd">        (&#39;TSTEP&#39;, &#39;VAR&#39;, &#39;DATE-TIME&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; tflag[0,0,:]</span>
+<span class="sd">        array([2005185,       0])</span>
+<span class="sd">        &gt;&gt;&gt; tflag[-1,0,:]</span>
+<span class="sd">        array([2005185,  240000])</span>
+<span class="sd">        &gt;&gt;&gt; v.dimensions</span>
+<span class="sd">        (&#39;TSTEP&#39;, &#39;LAY&#39;, &#39;ROW&#39;, &#39;COL&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; v.shape</span>
+<span class="sd">        (25, 28, 65, 83)</span>
+<span class="sd">        &gt;&gt;&gt; irrfile.dimensions</span>
+<span class="sd">        {&#39;TSTEP&#39;: 25, &#39;LAY&#39;: 28, &#39;ROW&#39;: 65, &#39;COL&#39;: 83}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">id_fmt</span> <span class="o">=</span> <span class="s2">&quot;if5i&quot;</span>
+    <span class="n">data_fmt</span> <span class="o">=</span> <span class="s2">&quot;f&quot;</span>
+
+<div class="viewcode-block" id="irr.isMine">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.irr.html#PseudoNetCDF.camxfiles.Memmaps.irr.isMine">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">isMine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_isMine</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rf</span><span class="p">,</span> <span class="n">multi</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialization included reading the header and learning</span>
+<span class="sd">        about the format.</span>
+
+<span class="sd">        see __readheader and __gettimestep() for more info</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__rffile</span> <span class="o">=</span> <span class="n">OpenRecordFile</span><span class="p">(</span><span class="n">rf</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__readheader</span><span class="p">()</span>
+        <span class="n">irr_record_type</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">names</span><span class="o">=</span><span class="p">([</span><span class="s1">&#39;SPAD&#39;</span><span class="p">,</span> <span class="s1">&#39;DATE&#39;</span><span class="p">,</span> <span class="s1">&#39;TIME&#39;</span><span class="p">,</span> <span class="s1">&#39;PAGRID&#39;</span><span class="p">,</span> <span class="s1">&#39;NEST&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="s1">&#39;J&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;K&#39;</span><span class="p">]</span> <span class="o">+</span>
+                        <span class="p">[</span><span class="s1">&#39;RXN_</span><span class="si">%02d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrxns</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">+</span>
+                        <span class="p">[</span><span class="s1">&#39;EPAD&#39;</span><span class="p">]),</span>
+                 <span class="n">formats</span><span class="o">=</span><span class="p">([</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">]</span> <span class="o">+</span>
+                          <span class="p">[</span><span class="s1">&#39;&gt;f&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrxns</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">+</span>
+                          <span class="p">[</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">])))</span>
+
+        <span class="n">varkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">irr_record_type</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="mi">8</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">)</span>
+        <span class="n">padatatype</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">pavarkeys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_step_count</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">varkeys</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;DATE-TIME&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">di</span><span class="p">,</span> <span class="n">domain</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_padomains</span><span class="p">):</span>
+            <span class="n">dk</span> <span class="o">=</span> <span class="s1">&#39;PA</span><span class="si">%02d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">di</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="n">dk</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span>
+            <span class="n">pavarkeys</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">varkeys</span><span class="p">])</span>
+            <span class="n">grp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">[</span><span class="n">dk</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">propk</span><span class="p">,</span> <span class="n">propv</span> <span class="ow">in</span> <span class="n">domain</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">grp</span><span class="p">,</span> <span class="n">propk</span><span class="p">,</span> <span class="n">propv</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_step_count</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">varkeys</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;DATE-TIME&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;COL&#39;</span><span class="p">,</span> <span class="n">domain</span><span class="p">[</span><span class="s1">&#39;iend&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">domain</span><span class="p">[</span><span class="s1">&#39;istart&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="n">domain</span><span class="p">[</span><span class="s1">&#39;jend&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">domain</span><span class="p">[</span><span class="s1">&#39;jstart&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="n">domain</span><span class="p">[</span><span class="s1">&#39;tlay&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">domain</span><span class="p">[</span><span class="s1">&#39;blay&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">padatatype</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">dk</span><span class="p">,</span> <span class="n">irr_record_type</span><span class="p">,</span>
+                               <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">grp</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;ROW&#39;</span><span class="p">]),</span>
+                                <span class="nb">len</span><span class="p">(</span><span class="n">grp</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;COL&#39;</span><span class="p">]),</span>
+                                <span class="nb">len</span><span class="p">(</span><span class="n">grp</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;LAY&#39;</span><span class="p">]))))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_padomains</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">pncols</span> <span class="o">=</span> <span class="n">domain</span><span class="p">[</span><span class="s1">&#39;iend&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">domain</span><span class="p">[</span><span class="s1">&#39;istart&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">pnrows</span> <span class="o">=</span> <span class="n">domain</span><span class="p">[</span><span class="s1">&#39;jend&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">domain</span><span class="p">[</span><span class="s1">&#39;jstart&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">pnlays</span> <span class="o">=</span> <span class="n">domain</span><span class="p">[</span><span class="s1">&#39;tlay&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">domain</span><span class="p">[</span><span class="s1">&#39;blay&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;COL&#39;</span><span class="p">,</span> <span class="n">pncols</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="n">pnrows</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="n">pnlays</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">propk</span><span class="p">,</span> <span class="n">propv</span> <span class="ow">in</span> <span class="n">domain</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">grp</span><span class="p">,</span> <span class="n">propk</span><span class="p">,</span> <span class="n">propv</span><span class="p">)</span>
+
+            <span class="n">varget</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__variables</span><span class="p">,</span> <span class="n">dk</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_padomains</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariables</span><span class="p">(</span><span class="n">varget</span><span class="p">,</span> <span class="n">varkeys</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">grp</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariables</span><span class="p">(</span><span class="n">varget</span><span class="p">,</span> <span class="n">varkeys</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__memmaps</span> <span class="o">=</span> <span class="n">memmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__rffile</span><span class="o">.</span><span class="n">infile</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">dtype</span><span class="p">(</span>
+            <span class="n">padatatype</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_start_byte</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmaps</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__decorator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">pncfv</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">decor</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s1">&#39;ppm/hr&#39;</span><span class="p">,</span>
+                        <span class="n">var_desc</span><span class="o">=</span><span class="n">k</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span> <span class="n">long_name</span><span class="o">=</span><span class="n">k</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">decor</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">pncfv</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pncfv</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">rxn</span><span class="p">):</span>
+        <span class="n">pncvar</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span>
+        <span class="k">if</span> <span class="n">rxn</span> <span class="o">==</span> <span class="s1">&#39;TFLAG&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ConvertCAMxTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__memmaps</span><span class="p">[</span><span class="n">pk</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">][</span><span class="s1">&#39;DATE&#39;</span><span class="p">],</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">__memmaps</span><span class="p">[</span><span class="n">pk</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">][</span><span class="s1">&#39;TIME&#39;</span><span class="p">],</span>
+                                   <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">[</span><span class="n">pk</span><span class="p">]</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;VAR&#39;</span><span class="p">]))</span>
+        <span class="n">tmpvals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmaps</span><span class="p">[</span><span class="n">pk</span><span class="p">][</span><span class="n">rxn</span><span class="p">]</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__decorator</span><span class="p">(</span><span class="n">rxn</span><span class="p">,</span>
+                                <span class="n">pncvar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxn</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span>
+                                       <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="s1">&#39;COL&#39;</span><span class="p">),</span>
+                                       <span class="n">values</span><span class="o">=</span><span class="n">tmpvals</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__readheader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        __readheader reads the header section of the ipr file</span>
+<span class="sd">        it initializes each header field (see CAMx Users Manual for a list)</span>
+<span class="sd">        as properties of the ipr class</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__rffile</span><span class="o">.</span><span class="n">record_size</span> <span class="o">==</span> <span class="mi">80</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runmessage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__rffile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;80s&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">__rffile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;ifif&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_step</span> <span class="o">=</span> <span class="mf">100.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_step_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">timerange</span><span class="p">()])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_grids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">grid</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__rffile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;i&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_grids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="nb">dict</span><span class="p">(</span>
+                    <span class="nb">zip</span><span class="p">(</span>
+                        <span class="p">[</span><span class="s1">&#39;orgx&#39;</span><span class="p">,</span> <span class="s1">&#39;orgy&#39;</span><span class="p">,</span> <span class="s1">&#39;ncol&#39;</span><span class="p">,</span> <span class="s1">&#39;nrow&#39;</span><span class="p">,</span> <span class="s1">&#39;xsize&#39;</span><span class="p">,</span> <span class="s1">&#39;ysize&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;iutm&#39;</span><span class="p">],</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">__rffile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;iiiiiii&quot;</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_padomains</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">padomain</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__rffile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;i&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_padomains</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="nb">dict</span><span class="p">(</span>
+                    <span class="nb">zip</span><span class="p">(</span>
+                        <span class="p">[</span><span class="s1">&#39;grid&#39;</span><span class="p">,</span> <span class="s1">&#39;istart&#39;</span><span class="p">,</span> <span class="s1">&#39;iend&#39;</span><span class="p">,</span> <span class="s1">&#39;jstart&#39;</span><span class="p">,</span> <span class="s1">&#39;jend&#39;</span><span class="p">,</span> <span class="s1">&#39;blay&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;tlay&#39;</span><span class="p">],</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">__rffile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;iiiiiii&quot;</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nrxns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__rffile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;i&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_start_byte</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__rffile</span><span class="o">.</span><span class="n">record_start</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">record_fmt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">id_fmt</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nrxns</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_fmt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">record_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__rffile</span><span class="o">.</span><span class="n">record_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">padded_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">record_size</span> <span class="o">+</span> <span class="mi">8</span>
+        <span class="n">domain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padomains</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">records_per_time</span> <span class="o">=</span> <span class="p">(</span><span class="n">domain</span><span class="p">[</span><span class="s1">&#39;iend&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">domain</span><span class="p">[</span><span class="s1">&#39;istart&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span>\
+                                <span class="p">(</span><span class="n">domain</span><span class="p">[</span><span class="s1">&#39;jend&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">domain</span><span class="p">[</span><span class="s1">&#39;jstart&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span>\
+                                <span class="p">(</span><span class="n">domain</span><span class="p">[</span><span class="s1">&#39;tlay&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">domain</span><span class="p">[</span><span class="s1">&#39;blay&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_data_block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">padded_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">records_per_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_step</span> <span class="o">=</span> <span class="mf">100.</span>
+
+<div class="viewcode-block" id="irr.timerange">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.irr.html#PseudoNetCDF.camxfiles.Memmaps.irr.timerange">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">timerange</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">timerange</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">start_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_step</span><span class="p">),</span>
+                         <span class="n">timeadd</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">end_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span><span class="p">),</span>
+                         <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_step</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_step</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestMemmap</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">runTest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testIRR</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Test not implemented; data too big for distribution&#39;</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

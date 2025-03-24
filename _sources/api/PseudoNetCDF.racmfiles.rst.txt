@@ -1,0 +1,21 @@
+PseudoNetCDF.racmfiles package
+==============================
+
+Submodules
+----------
+
+PseudoNetCDF.racmfiles.boxmodel module
+--------------------------------------
+
+.. automodule:: PseudoNetCDF.racmfiles.boxmodel
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.racmfiles
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,29 @@
+PseudoNetCDF.camxfiles.ipr package
+==================================
+
+Submodules
+----------
+
+PseudoNetCDF.camxfiles.ipr.Memmap module
+----------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.ipr.Memmap
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.ipr.Read module
+--------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.ipr.Read
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.camxfiles.ipr
+   :members:
+   :show-inheritance:
+   :undoc-members:

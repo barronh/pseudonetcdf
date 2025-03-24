@@ -1,0 +1,45 @@
+PseudoNetCDF.camxfiles.vertical\_diffusivity package
+====================================================
+
+Submodules
+----------
+
+PseudoNetCDF.camxfiles.vertical\_diffusivity.Memmap module
+----------------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.vertical_diffusivity.Memmap
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.vertical\_diffusivity.Read module
+--------------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.vertical_diffusivity.Read
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.vertical\_diffusivity.Transforms module
+--------------------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.vertical_diffusivity.Transforms
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.vertical\_diffusivity.Write module
+---------------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.vertical_diffusivity.Write
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.camxfiles.vertical_diffusivity
+   :members:
+   :show-inheritance:
+   :undoc-members:

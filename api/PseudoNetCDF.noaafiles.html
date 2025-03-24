@@ -1,0 +1,431 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.noaafiles package &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PseudoNetCDF.plotutil package" href="PseudoNetCDF.plotutil.html" />
+    <link rel="prev" title="PseudoNetCDF.icarttfiles package" href="PseudoNetCDF.icarttfiles.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core Objects</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="PseudoNetCDF.html">PseudoNetCDF package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PseudoNetCDF.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.aermodfiles.html">PseudoNetCDF.aermodfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.camxfiles.html">PseudoNetCDF.camxfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.ceilometerfiles.html">PseudoNetCDF.ceilometerfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.cmaqfiles.html">PseudoNetCDF.cmaqfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.conventions.html">PseudoNetCDF.conventions package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.core.html">PseudoNetCDF.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.derived.html">PseudoNetCDF.derived package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.epafiles.html">PseudoNetCDF.epafiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.geoschemfiles.html">PseudoNetCDF.geoschemfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.icarttfiles.html">PseudoNetCDF.icarttfiles package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">PseudoNetCDF.noaafiles package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.noaafiles.arltime">PseudoNetCDF.noaafiles.arltime module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.noaafiles">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.plotutil.html">PseudoNetCDF.plotutil package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.racmfiles.html">PseudoNetCDF.racmfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.raob.html">PseudoNetCDF.raob package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.test.html">PseudoNetCDF.test package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.testcase.html">PseudoNetCDF.testcase package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.textfiles.html">PseudoNetCDF.textfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.toms.html">PseudoNetCDF.toms package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.woudcfiles.html">PseudoNetCDF.woudcfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.wrffiles.html">PseudoNetCDF.wrffiles package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.ArrayTransforms">PseudoNetCDF.ArrayTransforms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.MetaNetCDF">PseudoNetCDF.MetaNetCDF module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.coordutil">PseudoNetCDF.coordutil module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.net_balance">PseudoNetCDF.net_balance module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.netcdf">PseudoNetCDF.netcdf module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncdump">PseudoNetCDF.pncdump module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pnceval">PseudoNetCDF.pnceval module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncgen">PseudoNetCDF.pncgen module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncload">PseudoNetCDF.pncload module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncparse">PseudoNetCDF.pncparse module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncview">PseudoNetCDF.pncview module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncwarn">PseudoNetCDF.pncwarn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.register">PseudoNetCDF.register module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.sci_var">PseudoNetCDF.sci_var module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.units">PseudoNetCDF.units module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.userfuncs">PseudoNetCDF.userfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.version">PseudoNetCDF.version module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.xarray_plugin">PseudoNetCDF.xarray_plugin module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="PseudoNetCDF.html">PseudoNetCDF package</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.noaafiles package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/PseudoNetCDF.noaafiles.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pseudonetcdf-noaafiles-package">
+<h1>PseudoNetCDF.noaafiles package<a class="headerlink" href="#pseudonetcdf-noaafiles-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-PseudoNetCDF.noaafiles.arltime">
+<span id="pseudonetcdf-noaafiles-arltime-module"></span><h2>PseudoNetCDF.noaafiles.arltime module<a class="headerlink" href="#module-PseudoNetCDF.noaafiles.arltime" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.noaafiles.arltime.arl2time">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.noaafiles.arltime.</span></span><span class="sig-name descname"><span class="pre">arl2time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">YY</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MM</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DD</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">HH</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/noaafiles/arltime.html#arl2time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.noaafiles.arltime.arl2time" title="Link to this definition"></a></dt>
+<dd><p>Convert ARL time pieces to a datetime object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>YY</strong> (<em>integer year</em><em> (</em><em>2</em><em> or </em><em>4 digits</em><em>)</em>)</p></li>
+<li><p><strong>MM</strong> (<em>integer month</em><em> (</em><em>1-12</em><em>)</em>)</p></li>
+<li><p><strong>DD</strong> (<em>integer day</em><em> (</em><em>1-31</em><em>)</em>)</p></li>
+<li><p><strong>HH</strong> (<em>integer hour</em><em> (</em><em>0-23</em><em>)</em>)</p></li>
+<li><p><strong>mm</strong> (<em>integer minute</em><em> (</em><em>0-59</em><em>)</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>d</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>datetime object from datetime.strptime</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.noaafiles">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-PseudoNetCDF.noaafiles" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.noaafiles.arlconcdump">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.noaafiles.</span></span><span class="sig-name descname"><span class="pre">arlconcdump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/noaafiles/_cdump.html#arlconcdump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.noaafiles.arlconcdump" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="PseudoNetCDF.core.html#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core._files.PseudoNetCDFFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">PseudoNetCDFFile</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.noaafiles.arlconcdump.isMine">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">isMine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/noaafiles/_cdump.html#arlconcdump.isMine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.noaafiles.arlconcdump.isMine" title="Link to this definition"></a></dt>
+<dd><p>True if this file or object can be identified
+for use by this class. Useful to override for
+classes that can be initialized from disk.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.noaafiles.arlpackedbit">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.noaafiles.</span></span><span class="sig-name descname"><span class="pre">arlpackedbit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/noaafiles/_arl.html#arlpackedbit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.noaafiles.arlpackedbit" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="PseudoNetCDF.core.html#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core._files.PseudoNetCDFFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">PseudoNetCDFFile</span></code></a></p>
+<p>arlpackedbit reads files formatted according to NOAA’s arl packed bit
+format</p>
+<p>Format as follows:</p>
+<dl>
+<dt>for t in times:</dt><dd><dl class="simple">
+<dt>thdtype = dtype([(‘YYMMDDHHFF’, ‘&gt;10S’), (‘LEVEL’, ‘&gt;2S’),</dt><dd><p>(‘GRID’, ‘&gt;2S’) , (‘INDX’, ‘&gt;4S’), (‘Z1’, ‘&gt;4S’),
+(‘MB’, ‘2&gt;14S’),  (‘SRCE’, ‘&gt;S4’), (‘MGRID’, ‘&gt;S3’),
+(‘VSYS’, ‘&gt;S2’), (‘POLLAT’, ‘&gt;S7’), (‘POLLON’, ‘&gt;S7’),
+(‘REFLAT’,’&gt;S7’), (‘REFLON’,’&gt;S7’), (‘GRIDX’,’&gt;S7’),
+(‘ORIENT’,’&gt;S7’), (‘TANLAT’,’&gt;S7’), (‘SYNCHX’,’&gt;S7’),
+(‘SYNCHY’,’&gt;S7’), (‘SYNCHLAT’,’&gt;S7’),
+(‘SYNCHLON’,’&gt;S7’), (‘RESERVED’, ‘&gt;S7’),
+(‘NX’, ‘&gt;S3’), (‘NY’, ‘&gt;S3’), (‘NZ’, ‘&gt;S3’),
+(‘VSYS2’, ‘&gt;S2’), (‘LENH’, ‘&gt;S4’)]) +
+ny * nx - 158 - 50</p>
+</dd>
+</dl>
+<p>ny+nx-
+for surfacekey in surfacekeys:</p>
+<blockquote>
+<div><p>YYMMDDHHFFLLGGVVVVEEEEPPPPPPPPPPPPPPVVVVVVVVVVVVVV+
+P(ny,nx)</p>
+</div></blockquote>
+<dl class="simple">
+<dt>for layerkey in layerkeys:</dt><dd><dl class="simple">
+<dt>for layer in layers:</dt><dd><p>YYMMDDHHFFLLGGVVVVEEEEPPPPPPPPPPPPPPVVVVVVVVVVVVVV+
+P(ny,nx)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>YY = %y in strftime for GMT date
+MM = %m in strftime
+DD = %d in strftime
+HH = %H of model hour
+FF = %H of forecast hour
+LL = 2-digit layer
+GG = 2-digit grid
+IIII = ‘INDX’
+ZZZZ = 4-digit integer 0
+XXXXXXXXXXXXX = %14.7e 0
+YYYYYYYYYYYYY = %14.7e 0
+EEEE = 4-digit integer exponent
+PPPPPPPPPPPPP = %14.7e precision
+VVVVVVVVVVVVV = %14.7e value R(1,1)
+P(ny,nx) = ny by nx 1-byte values dervied from real values (R) according</p>
+<blockquote>
+<div><p>to the formula below.</p>
+</div></blockquote>
+<p>P(i,j) = (Ri,j  - Ri-1,j)* (2**(7-(ln dRmax / ln 2)))</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>string</em>) – path to arl packed bit formatted file</p></li>
+<li><p><strong>shape</strong> (<em>tuple</em><em> or </em><em>None</em>) – shape of file to over ride derived shape</p></li>
+<li><p><strong>earth_radius</strong> (<em>scalar</em>) – radius of the earth used in converting projected to lat/lon</p></li>
+<li><p><strong>synchlon</strong> (<em>scalar</em>) – The SYNCHLON variable has 6 digits of precision in the file
+this keyword allows you to provide more.</p></li>
+<li><p><strong>synchlat</strong> (<em>scalar</em>) – The SYNCHLAT variable has 6 digits of precision in the file
+this keyword allows you to provide more.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>arlf</strong> – PseudoNetCDF file with packed bit contents unpacked</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.noaafiles.arlpackedbit" title="PseudoNetCDF.noaafiles.arlpackedbit">arlpackedbit</a></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.noaafiles.arlpackedbit.getMap">
+<span class="sig-name descname"><span class="pre">getMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maptype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'basemap_auto'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/noaafiles/_arl.html#arlpackedbit.getMap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.noaafiles.arlpackedbit.getMap" title="Link to this definition"></a></dt>
+<dd><p>Description</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>maptype</strong> (<em>string</em>) – <p>choices ‘basemap’, ‘basemap_auto’, ‘cartopy’ (not yet)
+basemap : attempts to open a basemap with only supplied kwds
+basemap_auto : automatically adds llcrnrlon,llcrnrlat,u</p>
+<blockquote>
+<div><p>rcrnrlon,urcrnrlat based on longitude_bounds</p>
+</div></blockquote>
+</p></li>
+<li><p><strong>**kwds</strong> (<em>keywords</em>) – for basemap or cartopy</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>map</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>basemap or cartopy axis</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.noaafiles.arlpackedbit.getproj">
+<span class="sig-name descname"><span class="pre">getproj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">withgrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">projformat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pyproj'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/noaafiles/_arl.html#arlpackedbit.getproj"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.noaafiles.arlpackedbit.getproj" title="Link to this definition"></a></dt>
+<dd><p>Description</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>withgrid</strong> (<em>boolean</em>) – use grid units instead of meters</p></li>
+<li><p><strong>projformat</strong> (<em>string</em>) – ‘pyproj’ (default), ‘proj4’ or ‘wkt’ allows function to
+return a pyproj projection object or a string in the
+format of proj4 or WKT</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>proj</strong> – (wkt, proj4) or pyprojProj (pyproj)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string pyproj.Proj</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.noaafiles.arlpackedbit.isMine">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">isMine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/noaafiles/_arl.html#arlpackedbit.isMine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.noaafiles.arlpackedbit.isMine" title="Link to this definition"></a></dt>
+<dd><p>True if this file or object can be identified
+for use by this class. Useful to override for
+classes that can be initialized from disk.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.noaafiles.arlpackedbit.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/noaafiles/_arl.html#arlpackedbit.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.noaafiles.arlpackedbit.plot" title="Link to this definition"></a></dt>
+<dd><p>See PseudoNetCDF.PseudoNetCDFFile.plot. For this file,
+the default plottype is ‘x-y’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.noaafiles.arlpardump">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.noaafiles.</span></span><span class="sig-name descname"><span class="pre">arlpardump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/noaafiles/_pdump.html#arlpardump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.noaafiles.arlpardump" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="PseudoNetCDF.core.html#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core._files.PseudoNetCDFFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">PseudoNetCDFFile</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.noaafiles.arlpardump.isMine">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">isMine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/noaafiles/_pdump.html#arlpardump.isMine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.noaafiles.arlpardump.isMine" title="Link to this definition"></a></dt>
+<dd><p>True if this file or object can be identified
+for use by this class. Useful to override for
+classes that can be initialized from disk.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.noaafiles.arltrajdump">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.noaafiles.</span></span><span class="sig-name descname"><span class="pre">arltrajdump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/noaafiles/_tdump.html#arltrajdump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.noaafiles.arltrajdump" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="PseudoNetCDF.core.html#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core._files.PseudoNetCDFFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">PseudoNetCDFFile</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.noaafiles.arltrajdump.getTimes">
+<span class="sig-name descname"><span class="pre">getTimes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/noaafiles/_tdump.html#arltrajdump.getTimes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.noaafiles.arltrajdump.getTimes" title="Link to this definition"></a></dt>
+<dd><p>Get an array of datetime objects</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datetype</strong> (<em>string</em><em> or </em><em>numpy.dtype</em>) – ‘datetime’ or datetime64 dtype</p></li>
+<li><p><strong>bounds</strong> (<em>boolean</em>) – get time boundaries</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – datetime objects or array of numpy’s datetype type</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>self must have a time or TFLAG variable</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.noaafiles.arltrajdump.isMine">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">isMine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/noaafiles/_tdump.html#arltrajdump.isMine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.noaafiles.arltrajdump.isMine" title="Link to this definition"></a></dt>
+<dd><p>True if this file or object can be identified
+for use by this class. Useful to override for
+classes that can be initialized from disk.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.noaafiles.l100">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.noaafiles.</span></span><span class="sig-name descname"><span class="pre">l100</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/noaafiles/_l100.html#l100"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.noaafiles.l100" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="PseudoNetCDF.core.html#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core._files.PseudoNetCDFFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">PseudoNetCDFFile</span></code></a></p>
+<p>Arguments:
+path - str path to NOAA sonde l100 file</p>
+<p>Returns:
+l100 - PseudoNetCDF file with longitude, latitude, time, site and</p>
+<blockquote>
+<div><p>data variables from the file.</p>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.noaafiles.l100.avgSigma">
+<span class="sig-name descname"><span class="pre">avgSigma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vglvls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vgtop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hyai</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hybi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copyall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">levelname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'LAY'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/noaafiles/_l100.html#l100.avgSigma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.noaafiles.l100.avgSigma" title="Link to this definition"></a></dt>
+<dd><p>vglvls - sigma coordinate
+vgtop - top in Pa</p>
+<p>hyai - hybrid eta-component hPa
+hybi - hybrid sigma-component</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.noaafiles.l100.isMine">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">isMine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/noaafiles/_l100.html#l100.isMine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.noaafiles.l100.isMine" title="Link to this definition"></a></dt>
+<dd><p>Must have correct names on line 28</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="PseudoNetCDF.icarttfiles.html" class="btn btn-neutral float-left" title="PseudoNetCDF.icarttfiles package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="PseudoNetCDF.plotutil.html" class="btn btn-neutral float-right" title="PseudoNetCDF.plotutil package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

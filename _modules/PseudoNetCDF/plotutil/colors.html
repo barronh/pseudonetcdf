@@ -1,0 +1,184 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.plotutil.colors &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../plotutil.html">PseudoNetCDF.plotutil</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.plotutil.colors</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.plotutil.colors</h1><div class="highlight"><pre>
+<span></span><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;register&#39;</span><span class="p">,</span> <span class="s1">&#39;get_cmap&#39;</span><span class="p">,</span> <span class="s1">&#39;register_norm&#39;</span><span class="p">,</span> <span class="s1">&#39;get_norm&#39;</span><span class="p">]</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">from_levels_and_colors</span><span class="p">,</span> <span class="n">Normalize</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.cm</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_cmap</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mpl</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">register</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colormaps</span><span class="o">.</span><span class="n">register</span>
+<span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+    <span class="n">register</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">register_cmap</span>
+
+
+<span class="n">_registered_norms</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<div class="viewcode-block" id="get_norm">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.plotutil.html#PseudoNetCDF.plotutil.colors.get_norm">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_norm</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">_registered_norms</span>
+    <span class="k">return</span> <span class="n">_registered_norms</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="register_norm">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.plotutil.html#PseudoNetCDF.plotutil.colors.register_norm">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_norm</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">norm</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">_registered_norms</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">norm</span><span class="p">,</span> <span class="n">Normalize</span><span class="p">):</span>
+        <span class="n">_registered_norms</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">norm</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s1">&#39;cmap should be an instance of Normalize; got &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">norm</span><span class="p">)))</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_addusepaaqi</span><span class="p">():</span>
+    <span class="n">aqicolors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="s1">&#39;yellow&#39;</span><span class="p">,</span> <span class="s1">&#39;orange&#39;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;purple&#39;</span><span class="p">,</span> <span class="s1">&#39;maroon&#39;</span><span class="p">]</span>
+    <span class="n">aqic</span> <span class="o">=</span> <span class="n">aqicolors</span>
+    <span class="n">bounds_colors</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">bounds_colors</span><span class="p">[(</span><span class="s1">&#39;O3&#39;</span><span class="p">,</span> <span class="s1">&#39;mda8&#39;</span><span class="p">,</span> <span class="s1">&#39;ppbv&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">55</span><span class="p">,</span> <span class="mi">71</span><span class="p">,</span> <span class="mi">86</span><span class="p">,</span> <span class="mi">106</span><span class="p">,</span> <span class="mi">200</span><span class="p">],</span>
+                                             <span class="n">aqic</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;black&#39;</span><span class="p">],</span> <span class="s1">&#39;max&#39;</span><span class="p">)</span>
+    <span class="n">bounds_colors</span><span class="p">[(</span><span class="s1">&#39;O3&#39;</span><span class="p">,</span> <span class="s1">&#39;mda8&#39;</span><span class="p">,</span> <span class="s1">&#39;ppmv&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.055</span><span class="p">,</span> <span class="mf">0.071</span><span class="p">,</span> <span class="mf">0.086</span><span class="p">,</span>
+                                              <span class="mf">0.106</span><span class="p">,</span> <span class="mf">0.0200</span><span class="p">],</span>
+                                             <span class="n">aqic</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;black&#39;</span><span class="p">],</span> <span class="s1">&#39;max&#39;</span><span class="p">)</span>
+    <span class="n">bounds_colors</span><span class="p">[(</span><span class="s1">&#39;O3&#39;</span><span class="p">,</span> <span class="s1">&#39;mda1&#39;</span><span class="p">,</span> <span class="s1">&#39;ppbv&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="p">([</span><span class="mi">125</span><span class="p">,</span> <span class="mi">165</span><span class="p">,</span> <span class="mi">205</span><span class="p">,</span> <span class="mi">405</span><span class="p">,</span> <span class="mi">604</span><span class="p">],</span>
+                                             <span class="p">[</span><span class="s1">&#39;white&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">aqic</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;black&#39;</span><span class="p">],</span>
+                                             <span class="s1">&#39;both&#39;</span><span class="p">)</span>
+    <span class="n">pmb</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">12.1</span><span class="p">,</span> <span class="mf">35.5</span><span class="p">,</span> <span class="mf">55.5</span><span class="p">,</span> <span class="mf">150.5</span><span class="p">,</span> <span class="mf">250.5</span><span class="p">,</span> <span class="mf">500.4</span><span class="p">]</span>
+    <span class="n">pmc</span> <span class="o">=</span> <span class="n">aqic</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;black&#39;</span><span class="p">]</span>
+    <span class="n">bounds_colors</span><span class="p">[(</span><span class="s1">&#39;PM25&#39;</span><span class="p">,</span> <span class="s1">&#39;a24&#39;</span><span class="p">,</span> <span class="s1">&#39;micrograms/m**3&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span><span class="n">pmb</span><span class="p">,</span> <span class="n">pmc</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="n">bnds</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">extend</span><span class="p">)</span> <span class="ow">in</span> <span class="n">bounds_colors</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="s1">&#39;usepa&#39;</span><span class="p">,</span> <span class="s1">&#39;aqi&#39;</span><span class="p">,)</span> <span class="o">+</span> <span class="n">key</span><span class="p">)</span>
+        <span class="n">cmap</span><span class="p">,</span> <span class="n">norm</span> <span class="o">=</span> <span class="n">from_levels_and_colors</span><span class="p">(</span><span class="n">bnds</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">extend</span><span class="o">=</span><span class="n">extend</span><span class="p">)</span>
+        <span class="n">register</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+        <span class="n">register_norm</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">)</span>
+
+
+<span class="n">_addusepaaqi</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+    <span class="n">varkey</span> <span class="o">=</span> <span class="s1">&#39;O3&#39;</span>
+    <span class="n">intv</span> <span class="o">=</span> <span class="s1">&#39;mda8&#39;</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;ppbv&#39;</span>
+
+    <span class="n">colorscale</span> <span class="o">=</span> <span class="s1">&#39;usepa_aqi_&#39;</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">varkey</span><span class="p">,</span> <span class="n">intv</span><span class="p">,</span> <span class="n">unit</span><span class="p">])</span>
+    <span class="n">norm</span> <span class="o">=</span> <span class="n">get_norm</span><span class="p">(</span><span class="n">colorscale</span><span class="p">)</span>
+    <span class="n">cmap</span> <span class="o">=</span> <span class="n">get_cmap</span><span class="p">(</span><span class="n">colorscale</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flipud</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">pcolor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;test.png&#39;</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

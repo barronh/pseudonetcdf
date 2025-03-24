@@ -1,0 +1,29 @@
+PseudoNetCDF.camxfiles.landuse package
+======================================
+
+Submodules
+----------
+
+PseudoNetCDF.camxfiles.landuse.Memmap module
+--------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.landuse.Memmap
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.landuse.Write module
+-------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.landuse.Write
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.camxfiles.landuse
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,261 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick Start &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=149be4c9"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Example Use Cases" href="examples.html" />
+    <link rel="prev" title="PseudoNetCDF User’s Guide" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#import-pseudonetcdf">Import PseudoNetCDF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#open-a-file">Open a File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#get-help">Get Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subset-on-dimension">Subset on Dimension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#apply-function-on-a-dimension">Apply Function on a Dimension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#make-a-plot">Make a plot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#derive-variables">Derive Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stack-files-on-dimensions">Stack Files on Dimensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extract-coordinates">Extract Coordinates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#copy-a-file-to-memory">Copy a File to Memory</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Quick Start</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quick.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quick-start">
+<h1>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h1>
+<p>This section provides a quick overview of how to work with PseudoNetCDF. Each
+quick example is cumulative. If you don’t understand something, look at the
+previous sections.</p>
+<section id="import-pseudonetcdf">
+<h2>Import PseudoNetCDF<a class="headerlink" href="#import-pseudonetcdf" title="Link to this heading"></a></h2>
+<p>First, PseudoNetCDF should be imported as <cite>pnc</cite> for brevity.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pnc</span>
+</pre></div>
+</div>
+</section>
+<section id="open-a-file">
+<h2>Open a File<a class="headerlink" href="#open-a-file" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="api/PseudoNetCDF.html#PseudoNetCDF.pncopen" title="PseudoNetCDF.pncopen"><code class="xref py py-func docutils literal notranslate"><span class="pre">pncopen()</span></code></a> helps PseudoNetCDF open many types of files, but
+is most well tested with Air Quality related files including models (e.g.,
+CAMx, CMAQ, GEOS-Chem) and observations (e.g., woudc sondes, AQS, aircraft
+icartt). These examples are from publicly available data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># from CAMx Test Case v6</span>
+<span class="n">camxpath1</span> <span class="o">=</span> <span class="s1">&#39;CAMx.v6.40.midwest.36.12.noMPI.20020603.avrg.grd02&#39;</span>
+<span class="n">camxf</span> <span class="o">=</span> <span class="n">pnc</span><span class="o">.</span><span class="n">pncopen</span><span class="p">(</span><span class="n">camxpath1</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;uamiv&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># from CMAQ Test Case v5.2</span>
+<span class="n">cmaqpath1</span> <span class="o">=</span> <span class="s1">&#39;CCTM_ACONC_v52_cb6r3_intel17.0_SE52BENCH_20110701.nc&#39;</span>
+<span class="n">cmaqf</span> <span class="o">=</span> <span class="n">pnc</span><span class="o">.</span><span class="n">pncopen</span><span class="p">(</span><span class="n">cmaqpath1</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;ioapi&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># from the GEOS-Chem benchmark v12</span>
+<span class="n">gcpath1</span> <span class="o">=</span> <span class="s1">&#39;ctm.bpch&#39;</span>
+<span class="n">gcf</span> <span class="o">=</span> <span class="n">pnc</span><span class="o">.</span><span class="n">pncopen</span><span class="p">(</span><span class="n">gcpath1</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;bpch&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># from the INTEX-NA NASA campaign</span>
+<span class="n">ictpath</span> <span class="o">=</span> <span class="s1">&#39;HOX_DC8_20040626_R0.ict&#39;</span>
+<span class="n">ictf</span> <span class="o">=</span> <span class="n">pnc</span><span class="o">.</span><span class="n">pncopen</span><span class="p">(</span><span class="n">ictpath</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;ffi1001&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># from the woudc.org</span>
+<span class="n">woudcpath</span> <span class="o">=</span> <span class="s1">&#39;bu20170609.b18.csv&#39;</span>
+<span class="n">wdcf</span> <span class="o">=</span> <span class="n">pnc</span><span class="o">.</span><span class="n">pncopen</span><span class="p">(</span><span class="n">woudcpath</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;woudcsonde&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Don’t know the format of your file… leave out the format keyword and
+PseudoNetCDF will try to figure it out for you.</p>
+</section>
+<section id="get-help">
+<h2>Get Help<a class="headerlink" href="#get-help" title="Link to this heading"></a></h2>
+<p>Most objects have are documented, so use help if you want to know more. For
+example, if you wanted to learn more about opening a file
+<code class="xref py py-func docutils literal notranslate"><span class="pre">pnc.pncopen()</span></code>, use :func:help</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">help</span><span class="p">(</span><span class="n">pnc</span><span class="o">.</span><span class="n">pncopen</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="subset-on-dimension">
+<h2>Subset on Dimension<a class="headerlink" href="#subset-on-dimension" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="api/PseudoNetCDF.html#PseudoNetCDF.PseudoNetCDFFile.sliceDimensions" title="PseudoNetCDF.PseudoNetCDFFile.sliceDimensions"><code class="xref py py-func docutils literal notranslate"><span class="pre">sliceDimensions()</span></code></a> is one of the most basic jobs of PNC. The sliceDimensions method will
+extract just the selected elements on one or more dimensions (e.g., LAY). This
+method works with <cite>slice</cite> objects, integers, and arrays.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lay1f</span> <span class="o">=</span> <span class="n">camxf</span><span class="o">.</span><span class="n">sliceDimensions</span><span class="p">(</span><span class="n">LAY</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="apply-function-on-a-dimension">
+<h2>Apply Function on a Dimension<a class="headerlink" href="#apply-function-on-a-dimension" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="api/PseudoNetCDF.html#PseudoNetCDF.PseudoNetCDFFile.applyAlongDimensions" title="PseudoNetCDF.PseudoNetCDFFile.applyAlongDimensions"><code class="xref py py-func docutils literal notranslate"><span class="pre">applyAlongDimensions()</span></code></a> applies functions
+on dimensions and is the second most basic jobs of PNC. Functions can be numpy
+array method names (e.g., ‘mean’, ‘std’, ‘sum’) or any function.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">timeavgf</span> <span class="o">=</span> <span class="n">camxf</span><span class="o">.</span><span class="n">applyAlongDimensions</span><span class="p">(</span><span class="n">TSTEP</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="make-a-plot">
+<h2>Make a plot<a class="headerlink" href="#make-a-plot" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="api/PseudoNetCDF.html#PseudoNetCDF.PseudoNetCDFFile.plot" title="PseudoNetCDF.PseudoNetCDFFile.plot"><code class="xref py py-func docutils literal notranslate"><span class="pre">plot()</span></code></a> interface tries to make some
+simple plotting easy. It also allows keyword configuration and object-based
+interaction with the created plot by returning the axes that was plotted on.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ax</span> <span class="o">=</span> <span class="n">lay1f</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;O3&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;O3.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="derive-variables">
+<h2>Derive Variables<a class="headerlink" href="#derive-variables" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="api/PseudoNetCDF.html#PseudoNetCDF.PseudoNetCDFFile.eval" title="PseudoNetCDF.PseudoNetCDFFile.eval"><code class="xref py py-func docutils literal notranslate"><span class="pre">eval()</span></code></a> is very like <cite>pandas.DataFrame.eval</cite>. It requires the non-derived
+variables to be in the file or calculated earlier in a multi-line script.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">noxf</span> <span class="o">=</span> <span class="n">lay1f</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;NOx = NO + NO2&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="stack-files-on-dimensions">
+<h2>Stack Files on Dimensions<a class="headerlink" href="#stack-files-on-dimensions" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="api/PseudoNetCDF.html#PseudoNetCDF.PseudoNetCDFFile.stack" title="PseudoNetCDF.PseudoNetCDFFile.stack"><code class="xref py py-func docutils literal notranslate"><span class="pre">stack()</span></code></a> method allows files to be
+concatenated on a dimension. All other dimensions must be of the same length.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">camxpath1</span> <span class="o">=</span> <span class="s1">&#39;CAMx.v6.40.midwest.36.12.noMPI.20020603.avrg.grd02&#39;</span>
+<span class="n">camxpath2</span> <span class="o">=</span> <span class="s1">&#39;CAMx.v6.40.midwest.36.12.noMPI.20020604.avrg.grd02&#39;</span>
+<span class="n">camx1f</span> <span class="o">=</span> <span class="n">pnc</span><span class="o">.</span><span class="n">pncopen</span><span class="p">(</span><span class="n">camxpath1</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;uamiv&#39;</span><span class="p">)</span>
+<span class="n">camx2f</span> <span class="o">=</span> <span class="n">pnc</span><span class="o">.</span><span class="n">pncopen</span><span class="p">(</span><span class="n">camxpath2</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;uamiv&#39;</span><span class="p">)</span>
+<span class="n">camxf</span> <span class="o">=</span> <span class="n">camx1f</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">camx2f</span><span class="p">,</span> <span class="s1">&#39;TSTEP&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="extract-coordinates">
+<h2>Extract Coordinates<a class="headerlink" href="#extract-coordinates" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="api/PseudoNetCDF.html#PseudoNetCDF.PseudoNetCDFFile.ll2ij" title="PseudoNetCDF.PseudoNetCDFFile.ll2ij"><code class="xref py py-func docutils literal notranslate"><span class="pre">ll2ij()</span></code></a> converts longitude and
+latitude to indices (0-based) and the
+<a class="reference internal" href="api/PseudoNetCDF.html#PseudoNetCDF.PseudoNetCDFFile.time2t" title="PseudoNetCDF.PseudoNetCDFFile.time2t"><code class="xref py py-func docutils literal notranslate"><span class="pre">time2t()</span></code></a> function converts datetime
+objects to time indices (0-based). This makes it easy to extract time and space
+elements from a file. Currently, there is not a comparable vertical method.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="n">obslon</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="o">-</span><span class="mi">90</span><span class="p">]</span>
+<span class="n">obslat</span> <span class="o">=</span> <span class="p">[</span><span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">]</span>
+<span class="n">obsdatstrs</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="n">datetime</span><span class="p">(</span><span class="mi">2002</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+  <span class="n">datetime</span><span class="p">(</span><span class="mi">2002</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">camxf</span><span class="o">.</span><span class="n">ll2ij</span><span class="p">(</span><span class="n">obslon</span><span class="p">,</span> <span class="n">obslat</span><span class="p">)</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">0</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">camxf</span><span class="o">.</span><span class="n">time2t</span><span class="p">(</span><span class="n">obstimes</span><span class="p">)</span>
+
+<span class="n">atobsf</span> <span class="o">=</span> <span class="n">camxf</span><span class="o">.</span><span class="n">sliceDimensions</span><span class="p">(</span><span class="n">TSTEP</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">LAY</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">ROW</span><span class="o">=</span><span class="n">j</span><span class="p">,</span> <span class="n">COL</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="copy-a-file-to-memory">
+<h2>Copy a File to Memory<a class="headerlink" href="#copy-a-file-to-memory" title="Link to this heading"></a></h2>
+<p>Finally, it is often nice to make an in-memory copy of a file. Sometimes it can
+be as a template or other times it helps methods work more efficiently.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">inmemf</span> <span class="o">=</span> <span class="n">camxf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="PseudoNetCDF User’s Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="examples.html" class="btn btn-neutral float-right" title="Example Use Cases" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

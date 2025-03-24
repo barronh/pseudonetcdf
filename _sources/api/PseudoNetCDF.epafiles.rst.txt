@@ -1,0 +1,10 @@
+PseudoNetCDF.epafiles package
+=============================
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.epafiles
+   :members:
+   :show-inheritance:
+   :undoc-members:

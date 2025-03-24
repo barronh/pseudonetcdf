@@ -1,0 +1,21 @@
+PseudoNetCDF.icarttfiles package
+================================
+
+Submodules
+----------
+
+PseudoNetCDF.icarttfiles.ffi1001 module
+---------------------------------------
+
+.. automodule:: PseudoNetCDF.icarttfiles.ffi1001
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.icarttfiles
+   :members:
+   :show-inheritance:
+   :undoc-members:

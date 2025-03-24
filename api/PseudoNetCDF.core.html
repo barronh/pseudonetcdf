@@ -1,0 +1,1877 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.core package &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PseudoNetCDF.derived package" href="PseudoNetCDF.derived.html" />
+    <link rel="prev" title="PseudoNetCDF.conventions.ioapi package" href="PseudoNetCDF.conventions.ioapi.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core Objects</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="PseudoNetCDF.html">PseudoNetCDF package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PseudoNetCDF.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.aermodfiles.html">PseudoNetCDF.aermodfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.camxfiles.html">PseudoNetCDF.camxfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.ceilometerfiles.html">PseudoNetCDF.ceilometerfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.cmaqfiles.html">PseudoNetCDF.cmaqfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.conventions.html">PseudoNetCDF.conventions package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">PseudoNetCDF.core package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.core">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.derived.html">PseudoNetCDF.derived package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.epafiles.html">PseudoNetCDF.epafiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.geoschemfiles.html">PseudoNetCDF.geoschemfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.icarttfiles.html">PseudoNetCDF.icarttfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.noaafiles.html">PseudoNetCDF.noaafiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.plotutil.html">PseudoNetCDF.plotutil package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.racmfiles.html">PseudoNetCDF.racmfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.raob.html">PseudoNetCDF.raob package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.test.html">PseudoNetCDF.test package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.testcase.html">PseudoNetCDF.testcase package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.textfiles.html">PseudoNetCDF.textfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.toms.html">PseudoNetCDF.toms package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.woudcfiles.html">PseudoNetCDF.woudcfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.wrffiles.html">PseudoNetCDF.wrffiles package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.ArrayTransforms">PseudoNetCDF.ArrayTransforms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.MetaNetCDF">PseudoNetCDF.MetaNetCDF module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.coordutil">PseudoNetCDF.coordutil module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.net_balance">PseudoNetCDF.net_balance module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.netcdf">PseudoNetCDF.netcdf module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncdump">PseudoNetCDF.pncdump module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pnceval">PseudoNetCDF.pnceval module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncgen">PseudoNetCDF.pncgen module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncload">PseudoNetCDF.pncload module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncparse">PseudoNetCDF.pncparse module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncview">PseudoNetCDF.pncview module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncwarn">PseudoNetCDF.pncwarn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.register">PseudoNetCDF.register module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.sci_var">PseudoNetCDF.sci_var module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.units">PseudoNetCDF.units module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.userfuncs">PseudoNetCDF.userfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.version">PseudoNetCDF.version module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.xarray_plugin">PseudoNetCDF.xarray_plugin module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="PseudoNetCDF.html">PseudoNetCDF package</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.core package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/PseudoNetCDF.core.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pseudonetcdf-core-package">
+<h1>PseudoNetCDF.core package<a class="headerlink" href="#pseudonetcdf-core-package" title="Link to this heading"></a></h1>
+<section id="module-PseudoNetCDF.core">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-PseudoNetCDF.core" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoIOAPIVariable">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">PseudoIOAPIVariable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typecode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoIOAPIVariable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoIOAPIVariable" title="Link to this definition"></a></dt>
+<dd><p>Creates a variable using the dimensions as defined in
+the parent object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> (<a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile"><em>PseudoNetCDFFile</em></a>) – an object with a dimensions variable</p></li>
+<li><p><strong>name</strong> (<em>string</em>) – name for variable</p></li>
+<li><p><strong>typecode</strong> (<em>string</em><em> or </em><em>numpy.dtype</em>) – numpy style typecode</p></li>
+<li><p><strong>dimensions</strong> (<em>tuple</em><em> of </em><em>strings</em>) – dimension names to be used from parent</p></li>
+<li><p><strong>**kwds</strong> (<em>dictionary</em>) – units: default = none
+long_name: default = name
+var_desc: default = name</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFDimension">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">PseudoNetCDFDimension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_dimensions.html#PseudoNetCDFDimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFDimension" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Dimension object responds like that of netcdf4-python</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFDimension.isunlimited">
+<span class="sig-name descname"><span class="pre">isunlimited</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_dimensions.html#PseudoNetCDFDimension.isunlimited"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFDimension.isunlimited" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>out</strong> – is the dimension unlimited</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>boolean</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFDimension.setunlimited">
+<span class="sig-name descname"><span class="pre">setunlimited</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unlimited</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_dimensions.html#PseudoNetCDFDimension.setunlimited"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFDimension.setunlimited" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>unlimited</strong> (<em>boolean</em>) – largely decorative in PseudoNetCDF, but important in persisting</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">PseudoNetCDFFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pnc</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>PseudoNetCDFFile provides an interface and standard set of
+methods that a file should present to act like a netCDF file
+using the Scientific.IO.NetCDF.NetCDFFile interface.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">dimfuncs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.apply" title="Link to this definition"></a></dt>
+<dd><p>Similar to numpy.apply_along_axis, but for damed dimensions and
+processes dimensions as well as variables</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dimfuncs</strong> (<em>dictionary</em>) – key value pairs where the key is a dimensions and the value is a
+1D function (func1d) or a dictionary. If the value is a dictionary
+it must include func1d as a function and any keyword arguments as
+additional options</p></li>
+<li><p><strong>verbose</strong> (<em>integer</em>) – 0 silent, 1 show variable, 2 show dimensions and variables</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance with variables and dimensions after processing</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.applyAlongDimensions">
+<span class="sig-name descname"><span class="pre">applyAlongDimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">dimfuncs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.applyAlongDimensions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.applyAlongDimensions" title="Link to this definition"></a></dt>
+<dd><p>Similar to numpy.apply_along_axis, but for damed dimensions and
+processes dimensions as well as variables</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dimfuncs</strong> (<em>dictionary</em>) – key value pairs where the key is a dimensions and the value is a
+1D function (func1d) or a dictionary. If the value is a dictionary
+it must include func1d as a function and any keyword arguments as
+additional options</p></li>
+<li><p><strong>verbose</strong> (<em>integer</em>) – 0 silent, 1 show variable, 2 show dimensions and variables</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance with variables and dimensions after processing</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.close" title="Link to this definition"></a></dt>
+<dd><p>Does nothing.  Implemented for continuity with Scientific.IO.NetCDF</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">props</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.copy" title="Link to this definition"></a></dt>
+<dd><p>Function for making copies of the same type</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>props</strong> (<em>boolean</em>) – include properties (default: True)</p></li>
+<li><p><strong>dimensions</strong> (<em>boolean</em>) – include dimensions (default: True)</p></li>
+<li><p><strong>variables</strong> (<em>boolean</em>) – include variable structures (default: True)</p></li>
+<li><p><strong>data</strong> (<em>boolean</em>) – include variable data (default: True)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PseudoNetCDFFile instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.copyDimension">
+<span class="sig-name descname"><span class="pre">copyDimension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimlen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unlimited</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.copyDimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.copyDimension" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.copyVariable">
+<span class="sig-name descname"><span class="pre">copyVariable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">withdata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.copyVariable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.copyVariable" title="Link to this definition"></a></dt>
+<dd><p>Copy var into self as vark</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>var</strong> (<a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFVariable" title="PseudoNetCDF.core.PseudoNetCDFVariable"><em>PseudoNetCDFVariable</em></a>) – netCDF4.Variable-like object (must have ncattrs and setncatts)</p></li>
+<li><p><strong>key</strong> (<em>string</em>) – key for variable in self (can be omitted if var has name,
+standard_name, or long_name)</p></li>
+<li><p><strong>dtype</strong> (<em>string</em><em> or </em><em>numpy.dtype</em>) – change the data type to dtype</p></li>
+<li><p><strong>dimensions</strong> (<em>iterable</em><em> of </em><em>strings</em>) – change the dimensions to dimensions</p></li>
+<li><p><strong>fill_value</strong> (<em>integer</em><em> or </em><em>flaot</em>) – change the fill_value to this values</p></li>
+<li><p><strong>withdata</strong> (<em>boolean</em>) – default True, copies data</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>myvar</strong> – copy of var in this file</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PseuodNetCDFVairable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.createDimension">
+<span class="sig-name descname"><span class="pre">createDimension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.createDimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.createDimension" title="Link to this definition"></a></dt>
+<dd><p>Create a dimension</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – name for dimension</p></li>
+<li><p><strong>length</strong> (<em>integer</em>) – maximum length of dimension</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>dim</strong> – new dimension</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PseudoNetCDFDimensions</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.createVariable">
+<span class="sig-name descname"><span class="pre">createVariable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">properties</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.createVariable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.createVariable" title="Link to this definition"></a></dt>
+<dd><p>Create a variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – name for new variable</p></li>
+<li><p><strong>type</strong> (<em>string</em><em> or </em><em>numpy dtype</em>) – code (e.g., ‘f’, ‘i’, ‘d’)</p></li>
+<li><p><strong>dimensions</strong> (<em>tuple</em><em> of </em><em>strigns</em>) – dimension keys that can be found in objects’ dimensions dictionary</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>var</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>new variable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.date2num">
+<span class="sig-name descname"><span class="pre">date2num</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timekey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'time'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.date2num"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.date2num" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> (<em>array-like</em>) – array of datetime.datetime objects</p></li>
+<li><p><strong>timekey</strong> (<em>str</em>) – time variable key which requires units and should have calendar.
+If calendar is missing, standard is the default. default ‘time’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>num</strong> – time in relative time as defined by units of time variable
+(i.e., timekey) which defaults to ‘time’</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array-like</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.delncattr">
+<span class="sig-name descname"><span class="pre">delncattr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.delncattr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.delncattr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.dump">
+<span class="sig-name descname"><span class="pre">dump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.dump" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.eval">
+<span class="sig-name descname"><span class="pre">eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copyall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.eval" title="Link to this definition"></a></dt>
+<dd><p>Evaluate expr and return a PseudoNetCDFFile object with resutl</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expr</strong> (<em>string</em>) – expression to evaluate</p></li>
+<li><p><strong>inplace</strong> (<em>boolean</em>) – create the new variable in this netcdf file (default False)</p></li>
+<li><p><strong>copyall</strong> (<em>boolean</em>) – if not inplace, should all variables be copied to new file</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance with renamed variable (this file if inplace = True)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.flush">
+<span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.flush" title="Link to this definition"></a></dt>
+<dd><p>Does nothing.  Implemented for continuity with Scientific.IO.NetCDF</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.from_arrays">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nameattr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'standard_name'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileattrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inarrkw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.from_arrays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.from_arrays" title="Link to this definition"></a></dt>
+<dd><p>Create a new ioapi file from arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dims</strong> (<em>iterable</em>) – Explicit dimensions. If not provided, they will be created as
+phony_dim_{i} where i for i in range(ndim). For example, an array
+of shape (2, 3) would have dimensions (phony_dim_0, phony_dim_1)</p></li>
+<li><p><strong>attrs</strong> (<em>mappable</em>) – Attributes for all variables (e.g., units). long_name and
+var_desc will be set based on key if not provided.</p></li>
+<li><p><strong>nameattr</strong> (<em>str</em>) – Key for name as an attribute</p></li>
+<li><p><strong>fileattrs</strong> (<em>mappable</em>) – Attributes for the file to be created.</p></li>
+<li><p><strong>inarrkw</strong> (<em>mappable</em>) – Keys are the names of variables to be created and the value should
+be an array of values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PseudoNetcdf-like file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.from_ncf">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_ncf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.from_ncf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.from_ncf" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>infile</strong> (<em>PseudoNetCDF-like file</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PseudoNetcdf-like file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.from_ncvs">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_ncvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">invars</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">invarkw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.from_ncvs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.from_ncvs" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>invars</strong> (<em>list</em>) – NetCDF-like variable must have standard_name, long_name or name</p></li>
+<li><p><strong>invarkw</strong> (<em>kwds</em>) – NetCDF-like variables</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PseudoNetcdf-like file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.getCoords">
+<span class="sig-name descname"><span class="pre">getCoords</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.getCoords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.getCoords" title="Link to this definition"></a></dt>
+<dd><p>Return a list of coordkeys</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.getMap">
+<span class="sig-name descname"><span class="pre">getMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maptype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'basemap_auto'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.getMap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.getMap" title="Link to this definition"></a></dt>
+<dd><p>Description</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>maptype</strong> (<em>string</em>) – <p>choices ‘basemap’, ‘basemap_auto’, ‘cartopy’ (not yet)
+basemap : attempts to open a basemap with only supplied kwds
+basemap_auto : automatically adds llcrnrlon,llcrnrlat,u</p>
+<blockquote>
+<div><p>rcrnrlon,urcrnrlat based on longitude_bounds</p>
+</div></blockquote>
+</p></li>
+<li><p><strong>**kwds</strong> (<em>keywords</em>) – for basemap or cartopy</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>map</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>basemap or cartopy axis</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.getTimes">
+<span class="sig-name descname"><span class="pre">getTimes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datetype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'datetime'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.getTimes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.getTimes" title="Link to this definition"></a></dt>
+<dd><p>Get an array of datetime objects</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datetype</strong> (<em>string</em><em> or </em><em>numpy.dtype</em>) – ‘datetime’ or datetime64 dtype</p></li>
+<li><p><strong>bounds</strong> (<em>boolean</em>) – get time boundaries</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – datetime objects or array of numpy’s datetype type</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>self must have a time or TFLAG variable</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.get_dest">
+<span class="sig-name descname"><span class="pre">get_dest</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.get_dest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.get_dest" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – path where a new file is created on some action</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>If None, a file is created in memory.
+Else, a netcdf file is created on disk.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.get_varopt">
+<span class="sig-name descname"><span class="pre">get_varopt</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.get_varopt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.get_varopt" title="Link to this definition"></a></dt>
+<dd><p>Get options</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>options</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dictionary of options</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.getncattr">
+<span class="sig-name descname"><span class="pre">getncattr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.getncattr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.getncattr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.getncatts">
+<span class="sig-name descname"><span class="pre">getncatts</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.getncatts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.getncatts" title="Link to this definition"></a></dt>
+<dd><p>Return all ncattrs keys and values as a dictionary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>attdict</strong> – key/value pairs of properties</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dictionary</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.getproj">
+<span class="sig-name descname"><span class="pre">getproj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">withgrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">projformat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pyproj'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.getproj"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.getproj" title="Link to this definition"></a></dt>
+<dd><p>Description</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>withgrid</strong> (<em>boolean</em>) – use grid units instead of meters</p></li>
+<li><p><strong>projformat</strong> (<em>string</em>) – ‘pyproj’ (default), ‘proj4’ or ‘wkt’ allows function to
+return a pyproj projection object or a string in the
+format of proj4 or WKT</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>proj</strong> – (wkt, proj4) or pyprojProj (pyproj)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string pyproj.Proj</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.ij2ll">
+<span class="sig-name descname"><span class="pre">ij2ll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.ij2ll"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.ij2ll" title="Link to this definition"></a></dt>
+<dd><p>Converts i, j to lon, lat (no false easting/northing)
+using cell centers assuming 0-based i/j</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i</strong> (<em>scalar/iterable</em>) – indicies (0-based) for the west-east dimension</p></li>
+<li><p><strong>j</strong> (<em>scalar/iterable</em>) – indicies (0-based) for the south-north dimension</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>lon, lat</strong> – longitudes and latitudes in decimal degrees</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>scalars or iterables</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.insertDimension">
+<span class="sig-name descname"><span class="pre">insertDimension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">newonly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multionly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">before</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">after</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">newdims</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.insertDimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.insertDimension" title="Link to this definition"></a></dt>
+<dd><p>Insert dimensions with keys and lengths from newdims</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>**newdims</strong> (<em>dictionary</em>) – where key is the new dimension and value is the length</p></li>
+<li><p><strong>newonly</strong> (<em>boolean</em>) – Only add dimension to variables that do not already have it,
+default True</p></li>
+<li><p><strong>multionly</strong> (<em>boolean</em>) – Only add dimension if there are already more than one (good
+for ignoring coordinate dimensions)</p></li>
+<li><p><strong>before</strong> (<em>string</em>) – if variable has this dimension, insert the new dimension before
+it. Otherwise, add to the beginning. (before takes precedence)</p></li>
+<li><p><strong>after</strong> (<em>string</em>) – if variable has this dimension, insert the new dimension after it.
+Otherwise, add to the beginning.</p></li>
+<li><p><strong>inplace</strong> (<em>boolean</em>) – create the new variable in this netcdf file (default False)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance will new dimension in dimensions and variables</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ol class="arabic simple">
+<li><p>Adding a non unity dimension will cause the data to be repeated
+along the new axis.</p></li>
+<li><p>If order of addition matters, use multiple calls. newdimsuse
+will be a non-ordered dictionary</p></li>
+</ol>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.interpDimension">
+<span class="sig-name descname"><span class="pre">interpDimension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dimkey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newdimvals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordkey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">interpkwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.interpDimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.interpDimension" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dimkey</strong> (<em>string</em>) – the new dimension for interpolation</p></li>
+<li><p><strong>newdimvals</strong> (<em>iterable</em>) – the new values to interpolate to</p></li>
+<li><p><strong>coordkey</strong> (<em>string</em>) – the variable to use as the old coordinate values</p></li>
+<li><p><strong>interptype</strong> (<em>string</em>) – <dl class="simple">
+<dt>‘linear’ or ‘conserve’. linear uses a linear interpolation</dt><dd><p>conserve uses a mass conserving interpolation</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>extrapolate</strong> (<em>boolean</em>) – allow extrapolation beyond bounds with linear, default False</p></li>
+<li><p><strong>fill_value</strong> (<em>numeric value</em>) – set fill value (e.g, nan) to prevent extrapolation or edge
+continuation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance with all variables interpolated</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>When extrapolate is false, the edge values are used for points beyond
+the inputs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.isMine">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">isMine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.isMine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.isMine" title="Link to this definition"></a></dt>
+<dd><p>True if this file or object can be identified
+for use by this class. Useful to override for
+classes that can be initialized from disk.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.iswritable">
+<span class="sig-name descname"><span class="pre">iswritable</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.iswritable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.iswritable" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.ll2ij">
+<span class="sig-name descname"><span class="pre">ll2ij</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ignore'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.ll2ij"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.ll2ij" title="Link to this definition"></a></dt>
+<dd><p>Converts lon/lat to 0-based indicies (0,M), (0,N)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lon</strong> (<em>scalar</em><em> or </em><em>iterable</em>) – longitudes in decimal degrees</p></li>
+<li><p><strong>lat</strong> (<em>scalar</em><em> or </em><em>iterable</em>) – latitudes in decimal degrees</p></li>
+<li><p><strong>bounds</strong> (<em>string</em>) – ignore, error, warn if i,j are out of domain</p></li>
+<li><p><strong>clean</strong> (<em>string</em>) – none - return values regardless of bounds;
+mask - mask values out of bounds;
+clip - return min(max(0, v), nx - 1)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>i, j</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>indices (0-based) for variables</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.ll2xy">
+<span class="sig-name descname"><span class="pre">ll2xy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.ll2xy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.ll2xy" title="Link to this definition"></a></dt>
+<dd><p>Converts lon/lat to x distances (no false easting/northing)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lon</strong> (<em>scalar</em><em> or </em><em>iterable</em>) – longitudes in decimal degrees</p></li>
+<li><p><strong>lat</strong> (<em>scalar</em><em> or </em><em>iterable</em>) – latitudes in decimal degrees</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>x, y</strong> – coordinates in map projection (meters or radians)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple of arrays</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.mask">
+<span class="sig-name descname"><span class="pre">mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">where</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">less</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">less_equal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">greater</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">greater_equal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">equal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invalid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-999</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.mask" title="Link to this definition"></a></dt>
+<dd><p>Apply mask to all variables of same shape or just where dimensions
+match.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>where</strong> (<em>array-like</em>) – boolean array to use as a mask see numpy.ma.masked_where</p></li>
+<li><p><strong>greater</strong> (<em>scalar</em>) – mask when values are greater than this value see
+numpy.ma.masked_greater</p></li>
+<li><p><strong>less</strong> (<em>scalar</em>) – mask when values are less than this value see
+numpy.ma.masked_less</p></li>
+<li><p><strong>greater_equal</strong> (<em>scalar</em>) – mask when values are greater than or equal to this value see
+numpy.ma.masked_greater</p></li>
+<li><p><strong>less_equal</strong> (<em>scalar</em>) – mask when values are less than or equal to this value see
+numpy.ma.masked_less</p></li>
+<li><p><strong>values</strong> (<em>scalar</em>) – mask when values are equal to this value within standard floating
+point see numpy.ma.masked_values</p></li>
+<li><p><strong>equal</strong> (<em>scalar</em>) – mask when values are exactly this value (i.e., integers) see
+numpy.ma.masked_equal</p></li>
+<li><p><strong>invalid</strong> (<em>boolean</em>) – mask when values are invalid, see numpy.ma.masked_invalid</p></li>
+<li><p><strong>mask</strong> (<em>array-like</em>) – alias for where</p></li>
+<li><p><strong>dims</strong> (<em>iterable</em><em> of </em><em>strings</em>) – only apply “mask” or “where” to variables with these dimensions
+no effet on other masks</p></li>
+<li><p><strong>fill_value</strong> (<em>scalar</em>) – value to use as the fill_value for new arrays</p></li>
+<li><p><strong>coords</strong> (<em>boolean</em>) – if True, apply masks to coordinate variables. Default, False</p></li>
+<li><p><strong>verbose</strong> (<em>int</em>) – level of verbosity for function, mostly for debugging</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance with masked variables</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ma</span></code></dt><dd><p>all masks are passing throught to <a href="#id3"><span class="problematic" id="id4">numpy.ma.masked_</span></a>…</p>
+</dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>mask options are not mutually exclusive. the order is where, greater,
+greater_equal, less, less_equal, values, equal, invalid</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.ncattrs">
+<span class="sig-name descname"><span class="pre">ncattrs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.ncattrs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.ncattrs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.open_mfdataset">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">open_mfdataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stackdim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.open_mfdataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.open_mfdataset" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">varkey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plottype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax_kw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_kw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_kw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_kw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimreduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.plot" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>varkey</strong> (<em>string</em>) – the variable to plot</p></li>
+<li><p><strong>plottype</strong> (<em>string</em>) – any dimension name pair delimited by a hyphen (e.g.,
+longitude-latitude, latitude-pressure, longitude-pressure,
+vertical-profile, time-longitude, time-latitude, time-pressure)
+defaults to the last two dimensions.</p></li>
+<li><p><strong>ax_kw</strong> (<em>dictionary</em>) – keywords for the axes to be created</p></li>
+<li><p><strong>plot_kw</strong> (<em>dictionary</em>) – keywords for the plot (plot, scatter, or pcolormesh) to be
+created</p></li>
+<li><p><strong>cbar_kw</strong> (<em>dictionary</em><em> or </em><em>bool</em><em> or </em><em>None</em>) – keywords for the colorbar; if True or None, use defaults.
+If False, do not create a colorbar</p></li>
+<li><p><strong>map_kw</strong> (<em>dictionary</em><em> or </em><em>bool</em><em> or </em><em>None</em>) – keywords for the getMap routine, which is only used with
+map capable dimensions (ie, plottype=’longitude-latitude’)
+If True or None, use default configuration dict(countries=True,
+coastlines=True, states=False, counties=False). If False,
+do not draw a map.</p></li>
+<li><p><strong>dimreduction</strong> (<em>string</em><em> or </em><em>function</em>) – dimensions not being used in the plot are removed using
+applyAlongDimensions(dimkey=dimreduction) where each dimenions</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ax</strong> – Axes that was drawn on</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>matplotlib.axes.Axes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.removeSingleton">
+<span class="sig-name descname"><span class="pre">removeSingleton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dimkey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.removeSingleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.removeSingleton" title="Link to this definition"></a></dt>
+<dd><p>Return a netcdflike object with dimensions sliced</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dimkey</strong> (<em>string</em>) – key of dimension to be evaluated for removal; if None, evaluate
+all. only singleton dimensions will be removed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance with dimensions removed</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.renameDimension">
+<span class="sig-name descname"><span class="pre">renameDimension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oldkey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newkey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.renameDimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.renameDimension" title="Link to this definition"></a></dt>
+<dd><p>Rename dimension (oldkey) in dimensions and in all variables</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>oldkey</strong> (<em>string</em>) – dimension to be renamed</p></li>
+<li><p><strong>newkey</strong> (<em>string</em>) – new dame for dimension</p></li>
+<li><p><strong>inplace</strong> (<em>boolean</em>) – create the new variable in this netcdf file (default False)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance with renamed variable (this file if inplace = True)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.renameDimensions">
+<span class="sig-name descname"><span class="pre">renameDimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">newkeys</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.renameDimensions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.renameDimensions" title="Link to this definition"></a></dt>
+<dd><p>Rename dimension (oldkey) in dimensions and in all variables</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>**newkeys</strong> (<em>dictionary</em>) – where key is the oldkey and value is the newkey</p></li>
+<li><p><strong>inplace</strong> (<em>boolean</em>) – create the new variable in this netcdf file (default False)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance with renamed variable (this file if inplace = True)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.renameVariable">
+<span class="sig-name descname"><span class="pre">renameVariable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oldkey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newkey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copyall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.renameVariable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.renameVariable" title="Link to this definition"></a></dt>
+<dd><p>Rename variable (oldkey)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>oldkey</strong> (<em>string</em>) – variable to be renamed</p></li>
+<li><p><strong>newkey</strong> (<em>string</em>) – new dame for variable</p></li>
+<li><p><strong>inplace</strong> (<em>boolean</em>) – create the new variable in this netcdf file (default False)</p></li>
+<li><p><strong>copyall</strong> (<em>boolean</em>) – if not inplace, should all variables be copied to new file</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance with renamed variable (this file if inplace = True)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.renameVariables">
+<span class="sig-name descname"><span class="pre">renameVariables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copyall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">newkeys</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.renameVariables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.renameVariables" title="Link to this definition"></a></dt>
+<dd><p>Rename variables for each oldkey: newkey dictionary item</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>**newkeys</strong> (<em>dictionary</em>) – where key is the oldkey and value is the newkey</p></li>
+<li><p><strong>inplace</strong> (<em>boolean</em>) – create the new variable in this netcdf file (default False)</p></li>
+<li><p><strong>copyall</strong> (<em>boolean</em>) – if not inplace, should all variables be copied to new file</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance with renamed variable (this file if inplace = True)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.reorderDimensions">
+<span class="sig-name descname"><span class="pre">reorderDimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oldorder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neworder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.reorderDimensions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.reorderDimensions" title="Link to this definition"></a></dt>
+<dd><p>Evaluate expr and return a PseudoNetCDFFile object with resutl</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>oldorder</strong> (<em>iterable</em><em> of </em><em>strings</em>) – dimension names in existing order</p></li>
+<li><p><strong>neworder</strong> (<em>iterable</em><em> of </em><em>strings</em>) – dimension names in new order</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance with dimensions reordered in variables</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.save" title="Link to this definition"></a></dt>
+<dd><p>Provides access to pncwrite for self</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pncwrite</strong> (<em>see Help</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>see Help pncwrite</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.setCoords">
+<span class="sig-name descname"><span class="pre">setCoords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ignore'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.setCoords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.setCoords" title="Link to this definition"></a></dt>
+<dd><p>Set a variable as a coordinate variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>keys</strong> (<em>iterable</em><em> of </em><em>strings</em>) – keys for coord variables</p></li>
+<li><p><strong>missing</strong> (<em>string</em>) – action if missing ‘ignore’, ‘skip’ or ‘error’
+ignore - add in case used later
+skip   - do not add
+error  - raise an error</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Coordinate variables are excluded from math</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.set_dest">
+<span class="sig-name descname"><span class="pre">set_dest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.set_dest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.set_dest" title="Link to this definition"></a></dt>
+<dd><p>Sets the path where a new file is created on some action</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – path for new file</p></li>
+<li><p><strong>**options</strong> (<em>keywords for constructor</em>) – options for new file creation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.set_varopt">
+<span class="sig-name descname"><span class="pre">set_varopt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.set_varopt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.set_varopt" title="Link to this definition"></a></dt>
+<dd><p>Set options to be used when creating any Variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**options</strong> (<em>options for createVariable</em>) – optional keywords to be supplied when creating new variables in
+destination file</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.setncattr">
+<span class="sig-name descname"><span class="pre">setncattr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.setncattr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.setncattr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.setncatts">
+<span class="sig-name descname"><span class="pre">setncatts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attdict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.setncatts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.setncatts" title="Link to this definition"></a></dt>
+<dd><p>Set ncattrs from attdict keys and values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>attdict</strong> (<em>dictionary</em>) – key/value pairs of properties</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.slice">
+<span class="sig-name descname"><span class="pre">slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">newdims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('POINTS',)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">dimslices</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.slice" title="Link to this definition"></a></dt>
+<dd><p>Return a netcdflike object with dimensions sliced</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>newdims</strong> (<em>iterable</em><em> of </em><em>strings</em>) – names for new dimensions. When more than one iterable applies to a
+variable slice, fancy indexing removes both dimensions and creates
+a new one of the iterable lengths</p></li>
+<li><p><strong>**dimslices</strong> (<em>dictionary</em>) – key value pairs where the key is a dimension and the value is a
+valid slice object (slices, ints or iterables) if iterables are
+provided, all iterables must be the same size and shape. If the
+arrays are not 1D, newdims must have ndim names</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance with variables and dimensions sliced</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.sliceDimensions">
+<span class="sig-name descname"><span class="pre">sliceDimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">newdims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('POINTS',)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">dimslices</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.sliceDimensions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.sliceDimensions" title="Link to this definition"></a></dt>
+<dd><p>Return a netcdflike object with dimensions sliced</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>newdims</strong> (<em>iterable</em><em> of </em><em>strings</em>) – names for new dimensions. When more than one iterable applies to a
+variable slice, fancy indexing removes both dimensions and creates
+a new one of the iterable lengths</p></li>
+<li><p><strong>**dimslices</strong> (<em>dictionary</em>) – key value pairs where the key is a dimension and the value is a
+valid slice object (slices, ints or iterables) if iterables are
+provided, all iterables must be the same size and shape. If the
+arrays are not 1D, newdims must have ndim names</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance with variables and dimensions sliced</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.stack">
+<span class="sig-name descname"><span class="pre">stack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stackdim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.stack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.stack" title="Link to this definition"></a></dt>
+<dd><p>Concatenates all variables on stackdim</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>other</strong> (<em>instance</em><em> or </em><em>list</em><em> of </em><em>PseudoNetCDFFiles</em>) – files to add to this file along stackdim</p></li>
+<li><p><strong>stackdim</strong> (<em>str</em>) – dimension name</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance with stacked variables and dimension equal to new length</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.subset">
+<span class="sig-name descname"><span class="pre">subset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">varkeys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepcoords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.subset" title="Link to this definition"></a></dt>
+<dd><p>Return a PseudoNetCDFFile with only varkeys</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>varkeys</strong> (<em>iterable</em><em> of </em><em>strings</em>) – keys to keep</p></li>
+<li><p><strong>inplace</strong> (<em>boolean</em>) – if true (default false), then remove other variable from
+this file</p></li>
+<li><p><strong>exclude</strong> (<em>boolean</em>) – if True (default False), then remove just these variables</p></li>
+<li><p><strong>keepcoords</strong> (<em>boolean</em>) – if True (default True), keep coordinate variables</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance with variables</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.subsetVariables">
+<span class="sig-name descname"><span class="pre">subsetVariables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">varkeys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepcoords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.subsetVariables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.subsetVariables" title="Link to this definition"></a></dt>
+<dd><p>Return a PseudoNetCDFFile with only varkeys</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>varkeys</strong> (<em>iterable</em><em> of </em><em>strings</em>) – keys to keep</p></li>
+<li><p><strong>inplace</strong> (<em>boolean</em>) – if true (default false), then remove other variable from
+this file</p></li>
+<li><p><strong>exclude</strong> (<em>boolean</em>) – if True (default False), then remove just these variables</p></li>
+<li><p><strong>keepcoords</strong> (<em>boolean</em>) – if True (default True), keep coordinate variables</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – instance with variables</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile">PseudoNetCDFFile</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.sync">
+<span class="sig-name descname"><span class="pre">sync</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.sync" title="Link to this definition"></a></dt>
+<dd><p>Does nothing.  Implemented for continuity with Scientific.IO.NetCDF</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.time2idx">
+<span class="sig-name descname"><span class="pre">time2idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timekey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.time2idx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.time2idx" title="Link to this definition"></a></dt>
+<dd><p>Convert datetime objects to dimension indices</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> (<em>array-like</em>) – array of datetime.datetime objects</p></li>
+<li><p><strong>dim</strong> (<em>str</em>) – dimension name for val2idx</p></li>
+<li><p><strong>timekey</strong> (<em>str</em>) – time variable key. None defaults to dim</p></li>
+<li><p><strong>kwds</strong> (<em>mappable</em>) – see val2idx</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>idx</strong> – time index (0-based)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array-like</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.time2t">
+<span class="sig-name descname"><span class="pre">time2t</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nearest'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.time2t"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.time2t" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> (<em>array</em><em> of </em><em>datetime.datetime objects</em>)</p></li>
+<li><p><strong>interp</strong> (<em>'nearest'</em><em>, </em><em>'bounds'</em><em>, </em><em>'bounds_close'</em>)</p></li>
+<li><p><strong>index</strong> (<em>return index</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>t</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>fractional time or if index, integers for indexing</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.val2idx">
+<span class="sig-name descname"><span class="pre">val2idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nearest'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'warn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mask'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.val2idx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.val2idx" title="Link to this definition"></a></dt>
+<dd><p>Convert coordinate values to indices</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dim</strong> (<em>str</em>) – name of dimensions, which must have a coordinate variable</p></li>
+<li><p><strong>val</strong> (<em>array-like</em>) – value in coordinate space</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – <dl class="simple">
+<dt>nearest, bounds, exact - each calculates the index differently</dt><dd><ul>
+<li><p>nearest : uses interp with coord values and rounds</p></li>
+<li><p>bounds : uses interp between bounding values and truncates</p></li>
+<li><dl class="simple">
+<dt>exact<span class="classifier">returns indices for exact coord values with other</span></dt><dd><p>indices masked (clean keyword has no effect)</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>bounds</strong> (<em>str</em>) – ignore, error, warn if i,j are out of domain</p></li>
+<li><p><strong>left</strong> (<em>scalar</em>) – see np.interp</p></li>
+<li><p><strong>right</strong> (<em>scalar</em>) – see np.interp</p></li>
+<li><p><strong>clean</strong> (<em>{'none'</em><em>, </em><em>'mask'}</em>) – <p>none - return values regardless of bounds;
+mask - mask invalid values (use with left/right=np.nan);</p>
+<blockquote>
+<div><p>has no affect with method exact</p>
+</div></blockquote>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>i</strong> – indices (0-based) for variables</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array-like</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFFile.xy2ll">
+<span class="sig-name descname"><span class="pre">xy2ll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFFile.xy2ll"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFFile.xy2ll" title="Link to this definition"></a></dt>
+<dd><p>Converts x, y to lon, lat (no false easting/northing)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>scalar</em><em> or </em><em>iterable</em>) – projected west-east coordinates</p></li>
+<li><p><strong>y</strong> (<em>scalar</em><em> or </em><em>iterable</em>) – projected south-north coordinates</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>lon, lat</strong> – longitudes and latitudes in decimal degrees</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>scalars or iterables</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFMaskedVariable">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">PseudoNetCDFMaskedVariable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typecode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'f'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFMaskedVariable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFMaskedVariable" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFVariable" title="PseudoNetCDF.core._variables.PseudoNetCDFVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">PseudoNetCDFVariable</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">MaskedArray</span></code></p>
+<p>Creates a variable using the dimensions as defined in
+the parent object</p>
+<dl class="simple">
+<dt>parent: PseudoNetCDFFile</dt><dd><p>an object with a dimensions variable</p>
+</dd>
+<dt>name: string</dt><dd><p>name for variable</p>
+</dd>
+<dt>typecode: string or numpy.dtype</dt><dd><p>numpy style typecode</p>
+</dd>
+<dt>dimensions: tuple of strings</dt><dd><p>dimension names to be used from parent</p>
+</dd>
+<dt><a href="#id1"><span class="problematic" id="id2">**</span></a>kwds: dictionary</dt><dd><p>keywords to be added as properties to the variable. The keyword
+‘values’ is a special case that will be used as the starting
+values of the array</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFMaskedVariable.array">
+<span class="sig-name descname"><span class="pre">array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFMaskedVariable.array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFMaskedVariable.array" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>out</strong> – parent type view object</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy.ma.masked_array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFMaskedVariable.assignValue">
+<span class="sig-name descname"><span class="pre">assignValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFMaskedVariable.assignValue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFMaskedVariable.assignValue" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>scalar</em>) – value to assign to scalar variable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFMaskedVariable.getValue">
+<span class="sig-name descname"><span class="pre">getValue</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFMaskedVariable.getValue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFMaskedVariable.getValue" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>out</strong> – value</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>scalar</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFMaskedVariable.ncattrs">
+<span class="sig-name descname"><span class="pre">ncattrs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFMaskedVariable.ncattrs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFMaskedVariable.ncattrs" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ncattrs</strong> – attributes that have been user defined</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple of strings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFMaskedVariable.swapaxes">
+<span class="sig-name descname"><span class="pre">swapaxes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFMaskedVariable.swapaxes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFMaskedVariable.swapaxes" title="Link to this definition"></a></dt>
+<dd><p>Return a view of the array with <cite>axis1</cite> and <cite>axis2</cite> interchanged.</p>
+<p>Refer to <cite>numpy.swapaxes</cite> for full documentation.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.swapaxes</span></code></dt><dd><p>equivalent function</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariable">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">PseudoNetCDFVariable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typecode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFVariable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariable" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></p>
+<p>PseudoNetCDFVariable presents the Scientific.IO.NetCDF.NetCDFVariable
+interface, but unlike that type, provides a contructor for variables
+that could be used without adding it to the parent file</p>
+<p>Creates a variable using the dimensions as defined in
+the parent object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> (<a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core.PseudoNetCDFFile"><em>PseudoNetCDFFile</em></a>) – an object with a dimensions variable</p></li>
+<li><p><strong>name</strong> (<em>string</em>) – name for variable</p></li>
+<li><p><strong>typecode</strong> (<em>string</em><em> or </em><em>numpy.dtype</em>) – numpy style typecode</p></li>
+<li><p><strong>dimensions</strong> (<em>tuple</em><em> of </em><em>strings</em>) – dimension names to be used from parent</p></li>
+<li><p><strong>**kwds</strong> (<em>keywords</em>) – Dictionary of keywords to be added as properties to the variable.
+The keyword ‘values’ is a special case that will be used as the
+starting values of the array</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariable.array">
+<span class="sig-name descname"><span class="pre">array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFVariable.array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariable.array" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>out</strong> – parent type view object</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariable.assignValue">
+<span class="sig-name descname"><span class="pre">assignValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFVariable.assignValue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariable.assignValue" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>scalar</em>) – assign value to scalar variable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariable.from_array">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">attrs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFVariable.from_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariable.from_array" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariable.getValue">
+<span class="sig-name descname"><span class="pre">getValue</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFVariable.getValue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariable.getValue" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>item</strong> – value</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>scalar</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariable.get_coord">
+<span class="sig-name descname"><span class="pre">get_coord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFVariable.get_coord"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariable.get_coord" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariable.get_coord_names">
+<span class="sig-name descname"><span class="pre">get_coord_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFVariable.get_coord_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariable.get_coord_names" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariable.get_coords">
+<span class="sig-name descname"><span class="pre">get_coords</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFVariable.get_coords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariable.get_coords" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariable.getncattr">
+<span class="sig-name descname"><span class="pre">getncattr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFVariable.getncattr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariable.getncattr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariable.getncatts">
+<span class="sig-name descname"><span class="pre">getncatts</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFVariable.getncatts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariable.getncatts" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariable.ncattrs">
+<span class="sig-name descname"><span class="pre">ncattrs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFVariable.ncattrs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariable.ncattrs" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ncattrs</strong> – attributes that have been user defined</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple of strings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariable.setncattr">
+<span class="sig-name descname"><span class="pre">setncattr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFVariable.setncattr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariable.setncattr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariable.setncatts">
+<span class="sig-name descname"><span class="pre">setncatts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attdict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFVariable.setncatts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariable.setncatts" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariable.swapaxes">
+<span class="sig-name descname"><span class="pre">swapaxes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFVariable.swapaxes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariable.swapaxes" title="Link to this definition"></a></dt>
+<dd><p>Return a view of the array with <cite>axis1</cite> and <cite>axis2</cite> interchanged.</p>
+<p>Refer to <cite>numpy.swapaxes</cite> for full documentation.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.swapaxes</span></code></dt><dd><p>equivalent function</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariable.xarray">
+<span class="sig-name descname"><span class="pre">xarray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iscoord</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_variables.html#PseudoNetCDFVariable.xarray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariable.xarray" title="Link to this definition"></a></dt>
+<dd><p>Experimental function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>out</strong> – object with dimensions and coordinates
+dims : string are set by self.get_coords()
+coords : are set by self.get_coords()</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>xarray.DataArray</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>When data is 2-d, the dimensions</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariables">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">PseudoNetCDFVariables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFVariables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariables" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">OrderedDefaultDict</span></code></p>
+<p>PseudoNetCDFVariables provides a special implementation
+of the default dictionary that provides efficient access
+to variables of a PseudoNetCDFFile.  PseudoNetCDFFiles may
+have large variables that should only be loaded if accessed.
+PseudoNetCDFVariables allows a user to specify a function
+that can create variables on demand.</p>
+<dl class="simple">
+<dt>func: function</dt><dd><p>must take a key and provides a PseudoNetCDFVariable</p>
+</dd>
+<dt>keys: iterable of strings</dt><dd><p>keys that the dictionary should act as if it has</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariables.addkey">
+<span class="sig-name descname"><span class="pre">addkey</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFVariables.addkey"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariables.addkey" title="Link to this definition"></a></dt>
+<dd><p>Allow the user to extend keys after the object
+has been created.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariables.items">
+<span class="sig-name descname"><span class="pre">items</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">a</span> <span class="pre">set-like</span> <span class="pre">object</span> <span class="pre">providing</span> <span class="pre">a</span> <span class="pre">view</span> <span class="pre">on</span> <span class="pre">D's</span> <span class="pre">items</span></span></span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFVariables.items"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariables.items" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.PseudoNetCDFVariables.keys">
+<span class="sig-name descname"><span class="pre">keys</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">a</span> <span class="pre">set-like</span> <span class="pre">object</span> <span class="pre">providing</span> <span class="pre">a</span> <span class="pre">view</span> <span class="pre">on</span> <span class="pre">D's</span> <span class="pre">keys</span></span></span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#PseudoNetCDFVariables.keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.PseudoNetCDFVariables.keys" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.add_attr">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">add_attr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr_def</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#add_attr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.add_attr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.convolve_dim">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">convolve_dim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convolve_def</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#convolve_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.convolve_dim" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.extract_from_file">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">extract_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lonlatfs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gridded</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passthrough</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#extract_from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.extract_from_file" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.extract_lonlat">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">extract_lonlat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lonlat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gridded</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passthrough</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#extract_lonlat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.extract_lonlat" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.getvarpnc">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">getvarpnc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varkeys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordkeys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#getvarpnc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.getvarpnc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.interpvars">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">interpvars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimension</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loginterp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#interpvars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.interpvars" title="Link to this definition"></a></dt>
+<dd><p>f - PseudoNetCDFFile
+weights - weights for new dimensions from old dimension dim(new, old)
+dimension - which dimensions will be reduced
+loginterp - iterable of keys to interp on log scale</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.manglenames">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">manglenames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">translator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'</span> <span class="pre">':</span> <span class="pre">'_',</span> <span class="pre">'$':</span> <span class="pre">'S',</span> <span class="pre">'(':</span> <span class="pre">'',</span> <span class="pre">')':</span> <span class="pre">'',</span> <span class="pre">'+':</span> <span class="pre">'_add_',</span> <span class="pre">'-':</span> <span class="pre">'_'}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#manglenames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.manglenames" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.mask_vals">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">mask_vals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskdef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metakeys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['time',</span> <span class="pre">'layer',</span> <span class="pre">'level',</span> <span class="pre">'latitude',</span> <span class="pre">'longitude',</span> <span class="pre">'time_bounds',</span> <span class="pre">'latitude_bounds',</span> <span class="pre">'longitude_bounds',</span> <span class="pre">'ROW',</span> <span class="pre">'COL',</span> <span class="pre">'LAY',</span> <span class="pre">'TFLAG',</span> <span class="pre">'ETFLAG']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#mask_vals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.mask_vals" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.merge">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#merge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.merge" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.mesh_dim">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">mesh_dim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_def</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#mesh_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.mesh_dim" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.netcdf">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">netcdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#netcdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.netcdf" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core._files.PseudoNetCDFFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">PseudoNetCDFFile</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.netcdf.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#netcdf.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.netcdf.close" title="Link to this definition"></a></dt>
+<dd><p>Does nothing.  Implemented for continuity with Scientific.IO.NetCDF</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.netcdf.createDimension">
+<span class="sig-name descname"><span class="pre">createDimension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#netcdf.createDimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.netcdf.createDimension" title="Link to this definition"></a></dt>
+<dd><p>Create a dimension</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – name for dimension</p></li>
+<li><p><strong>length</strong> (<em>integer</em>) – maximum length of dimension</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>dim</strong> – new dimension</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PseudoNetCDFDimensions</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.netcdf.createVariable">
+<span class="sig-name descname"><span class="pre">createVariable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#netcdf.createVariable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.netcdf.createVariable" title="Link to this definition"></a></dt>
+<dd><p>Create a variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – name for new variable</p></li>
+<li><p><strong>type</strong> (<em>string</em><em> or </em><em>numpy dtype</em>) – code (e.g., ‘f’, ‘i’, ‘d’)</p></li>
+<li><p><strong>dimensions</strong> (<em>tuple</em><em> of </em><em>strigns</em>) – dimension keys that can be found in objects’ dimensions dictionary</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>var</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>new variable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.netcdf.from_ncf">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_ncf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#netcdf.from_ncf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.netcdf.from_ncf" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>infile</strong> (<em>PseudoNetCDF-like file</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PseudoNetcdf-like file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.netcdf.get_dest">
+<span class="sig-name descname"><span class="pre">get_dest</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#netcdf.get_dest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.netcdf.get_dest" title="Link to this definition"></a></dt>
+<dd><p>Returns the path where a new file is created on some action</p>
+<p>If None, a file is created in memory.
+Else, a netcdf file is created on disk.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.netcdf.get_varopt">
+<span class="sig-name descname"><span class="pre">get_varopt</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#netcdf.get_varopt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.netcdf.get_varopt" title="Link to this definition"></a></dt>
+<dd><p>Get options</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>options</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dictionary of optiosn</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.netcdf.getncattr">
+<span class="sig-name descname"><span class="pre">getncattr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#netcdf.getncattr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.netcdf.getncattr" title="Link to this definition"></a></dt>
+<dd><p><strong>`getncattr(self,name)`</strong></p>
+<p>retrieve a netCDF dataset or group attribute.
+Use if you need to get a netCDF attribute with the same
+name as one of the reserved python attributes.</p>
+<p>option kwarg <cite>encoding</cite> can be used to specify the
+character encoding of a string attribute (default is <cite>utf-8</cite>).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.netcdf.isMine">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">isMine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#netcdf.isMine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.netcdf.isMine" title="Link to this definition"></a></dt>
+<dd><p>True if this file or object can be identified
+for use by this class. Useful to override for
+classes that can be initialized from disk.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.netcdf.ncattrs">
+<span class="sig-name descname"><span class="pre">ncattrs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#netcdf.ncattrs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.netcdf.ncattrs" title="Link to this definition"></a></dt>
+<dd><p><strong>`ncattrs(self)`</strong></p>
+<p>return netCDF global attribute names for this <cite>Dataset</cite> or <cite>Group</cite> in a list.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.netcdf.setCoords">
+<span class="sig-name descname"><span class="pre">setCoords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ignore'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#netcdf.setCoords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.netcdf.setCoords" title="Link to this definition"></a></dt>
+<dd><p>Set a variable as a coordinate variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>keys</strong> (<em>iterable</em><em> of </em><em>strings</em>) – keys for coord variables</p></li>
+<li><p><strong>missing</strong> (<em>string</em>) – action if missing ‘ignore’, ‘skip’ or ‘error’
+ignore - add in case used later
+skip   - do not add
+error  - raise an error</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Coordinate variables are excluded from math</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.netcdf.set_dest">
+<span class="sig-name descname"><span class="pre">set_dest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#netcdf.set_dest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.netcdf.set_dest" title="Link to this definition"></a></dt>
+<dd><p>Sets the path where a new file is created on some action</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>path for new file</em>)</p></li>
+<li><p><strong>options</strong> (<em>options for new file creation</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.netcdf.set_varopt">
+<span class="sig-name descname"><span class="pre">set_varopt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#netcdf.set_varopt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.netcdf.set_varopt" title="Link to this definition"></a></dt>
+<dd><p>Set options to be used when creating any Variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>options</strong> (<em>options for new Variable creation</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.netcdf.setncattr">
+<span class="sig-name descname"><span class="pre">setncattr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_files.html#netcdf.setncattr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.netcdf.setncattr" title="Link to this definition"></a></dt>
+<dd><p><strong>`setncattr(self,name,value)`</strong></p>
+<p>set a netCDF dataset or group attribute using name,value pair.
+Use if you need to set a netCDF attribute with the
+with the same name as one of the reserved python attributes.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.pncbfunc">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">pncbfunc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ifile1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ifile2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordkeys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#pncbfunc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.pncbfunc" title="Link to this definition"></a></dt>
+<dd><p>Perform binary function (func) on all variables in ifile1
+and ifile2.  The returned file (rfile) contains the result</p>
+<p>rfile = ifile1 &lt;op&gt; ifile2</p>
+<p>op can be any valid operator (e.g., +, -, /, <em>, *</em>, &amp;, ||)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.pncbo">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">pncbo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">op</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ifile1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ifile2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordkeys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#pncbo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.pncbo" title="Link to this definition"></a></dt>
+<dd><p>Perform binary operation (op) on all variables in ifile1
+and ifile2.  The returned file (rfile) contains the result</p>
+<p>rfile = ifile1 &lt;op&gt; ifile2</p>
+<p>op can be any valid operator (e.g., +, -, /, <em>, *</em>, &amp;, ||)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.pncexpr">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">pncexpr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ifile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#pncexpr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.pncexpr" title="Link to this definition"></a></dt>
+<dd><p>Evaluate an arbitrary expression in the context of ifile.variables
+and add the result to the file with appropriate units.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.pncfunc">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">pncfunc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ifile1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordkeys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#pncfunc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.pncfunc" title="Link to this definition"></a></dt>
+<dd><p>Perform function (func) on all variables in ifile1.  The returned file
+(rfile) contains the result</p>
+<p>rfile = ifile1 &lt;op&gt;</p>
+<p>func can be a function or string</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.pncrename">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">pncrename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ifile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_old_new</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#pncrename"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.pncrename" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.reduce_dim">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">reduce_dim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reducedef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fuzzydim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metakeys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['time',</span> <span class="pre">'layer',</span> <span class="pre">'level',</span> <span class="pre">'latitude',</span> <span class="pre">'longitude',</span> <span class="pre">'time_bounds',</span> <span class="pre">'latitude_bounds',</span> <span class="pre">'longitude_bounds',</span> <span class="pre">'ROW',</span> <span class="pre">'COL',</span> <span class="pre">'LAY',</span> <span class="pre">'TFLAG',</span> <span class="pre">'ETFLAG']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#reduce_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.reduce_dim" title="Link to this definition"></a></dt>
+<dd><p>variable dimensions can be reduced using</p>
+<p>reduce_dim(file ‘dim,function,weight’)</p>
+<p>e.g., reduce_dim(layer,mean,weight).</p>
+<p>Weighting is not fully functional.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.removesingleton">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">removesingleton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordkeys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#removesingleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.removesingleton" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.seqpncbo">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">seqpncbo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ops</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ifiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordkeys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#seqpncbo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.seqpncbo" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.slice_dim">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">slice_dim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slicedef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fuzzydim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#slice_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.slice_dim" title="Link to this definition"></a></dt>
+<dd><p>variables have dimensions (e.g., time, layer, lat, lon), which can be
+subset using:</p>
+<blockquote>
+<div><p>slice_dim(f, ‘dim,start,stop,stride’)</p>
+</div></blockquote>
+<p>e.g., slice_dim(f, ‘layer,0,47,5’) would sample every fifth layer
+starting at 0</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.splitdim">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">splitdim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">olddim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newdims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newshape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#splitdim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.splitdim" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.core.stack_files">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.core.</span></span><span class="sig-name descname"><span class="pre">stack_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stackdim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordkeys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/core/_functions.html#stack_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.core.stack_files" title="Link to this definition"></a></dt>
+<dd><p>Create files with dimensions extended by stacking.</p>
+<p>Currently, there is no sanity check…</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="PseudoNetCDF.conventions.ioapi.html" class="btn btn-neutral float-left" title="PseudoNetCDF.conventions.ioapi package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="PseudoNetCDF.derived.html" class="btn btn-neutral float-right" title="PseudoNetCDF.derived package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

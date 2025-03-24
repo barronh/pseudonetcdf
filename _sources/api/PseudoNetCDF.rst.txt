@@ -1,0 +1,184 @@
+PseudoNetCDF package
+====================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 1
+
+   PseudoNetCDF.aermodfiles
+   PseudoNetCDF.camxfiles
+   PseudoNetCDF.ceilometerfiles
+   PseudoNetCDF.cmaqfiles
+   PseudoNetCDF.conventions
+   PseudoNetCDF.core
+   PseudoNetCDF.derived
+   PseudoNetCDF.epafiles
+   PseudoNetCDF.geoschemfiles
+   PseudoNetCDF.icarttfiles
+   PseudoNetCDF.noaafiles
+   PseudoNetCDF.plotutil
+   PseudoNetCDF.racmfiles
+   PseudoNetCDF.raob
+   PseudoNetCDF.test
+   PseudoNetCDF.testcase
+   PseudoNetCDF.textfiles
+   PseudoNetCDF.toms
+   PseudoNetCDF.woudcfiles
+   PseudoNetCDF.wrffiles
+
+Submodules
+----------
+
+PseudoNetCDF.ArrayTransforms module
+-----------------------------------
+
+.. automodule:: PseudoNetCDF.ArrayTransforms
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.MetaNetCDF module
+------------------------------
+
+.. automodule:: PseudoNetCDF.MetaNetCDF
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.coordutil module
+-----------------------------
+
+.. automodule:: PseudoNetCDF.coordutil
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.net\_balance module
+--------------------------------
+
+.. automodule:: PseudoNetCDF.net_balance
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.netcdf module
+--------------------------
+
+.. automodule:: PseudoNetCDF.netcdf
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.pncdump module
+---------------------------
+
+.. automodule:: PseudoNetCDF.pncdump
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.pnceval module
+---------------------------
+
+.. automodule:: PseudoNetCDF.pnceval
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.pncgen module
+--------------------------
+
+.. automodule:: PseudoNetCDF.pncgen
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.pncload module
+---------------------------
+
+.. automodule:: PseudoNetCDF.pncload
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.pncparse module
+----------------------------
+
+.. automodule:: PseudoNetCDF.pncparse
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.pncview module
+---------------------------
+
+.. automodule:: PseudoNetCDF.pncview
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.pncwarn module
+---------------------------
+
+.. automodule:: PseudoNetCDF.pncwarn
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.register module
+----------------------------
+
+.. automodule:: PseudoNetCDF.register
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.sci\_var module
+----------------------------
+
+.. automodule:: PseudoNetCDF.sci_var
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.units module
+-------------------------
+
+.. automodule:: PseudoNetCDF.units
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.userfuncs module
+-----------------------------
+
+.. automodule:: PseudoNetCDF.userfuncs
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.version module
+---------------------------
+
+.. automodule:: PseudoNetCDF.version
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.xarray\_plugin module
+----------------------------------
+
+.. automodule:: PseudoNetCDF.xarray_plugin
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF
+   :members:
+   :show-inheritance:
+   :undoc-members:

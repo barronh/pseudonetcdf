@@ -1,0 +1,10 @@
+PseudoNetCDF.conventions.ioapi package
+======================================
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.conventions.ioapi
+   :members:
+   :show-inheritance:
+   :undoc-members:

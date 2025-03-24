@@ -1,0 +1,21 @@
+PseudoNetCDF.camxfiles.finst package
+====================================
+
+Submodules
+----------
+
+PseudoNetCDF.camxfiles.finst.Memmap module
+------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.finst.Memmap
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.camxfiles.finst
+   :members:
+   :show-inheritance:
+   :undoc-members:

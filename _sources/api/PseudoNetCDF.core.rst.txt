@@ -1,0 +1,10 @@
+PseudoNetCDF.core package
+=========================
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.core
+   :members:
+   :show-inheritance:
+   :undoc-members:

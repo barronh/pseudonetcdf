@@ -1,0 +1,510 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.MetaNetCDF &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.MetaNetCDF</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.MetaNetCDF</h1><div class="highlight"><pre>
+<span></span><span class="vm">__doc__</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">.. _MetaNetCDF</span>
+<span class="s2">:mod:`MetaNetCDF` -- PseudoNetCDF manipulation utilities</span>
+<span class="s2">========================================================</span>
+
+<span class="s2">.. module:: MetaNetCDF</span>
+<span class="s2">   :platform: Unix, Windows</span>
+<span class="s2">   :synopsis: Provides tools for manipulating NetCDF-like files</span>
+<span class="s2">              and variables.</span>
+<span class="s2">.. moduleauthor:: Barron Henderson &lt;barronh@unc.edu&gt;</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;add_derived&#39;</span><span class="p">,</span> <span class="s1">&#39;time_avg_new_unit&#39;</span><span class="p">,</span> <span class="s1">&#39;window&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;newresolution&#39;</span><span class="p">,</span> <span class="s1">&#39;MetaNetCDF&#39;</span><span class="p">,</span> <span class="s1">&#39;WindowFromFile&#39;</span><span class="p">,</span> <span class="s1">&#39;file_master&#39;</span><span class="p">]</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="n">logical_or</span><span class="p">,</span> <span class="n">repeat</span><span class="p">,</span> <span class="nb">sum</span>
+<span class="c1"># This Package modules</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span><span class="p">,</span> <span class="n">PseudoNetCDFVariable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFVariables</span><span class="p">,</span> <span class="n">PseudoNetCDFDimension</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFVariableConvertUnit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.ArrayTransforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">CenterTime</span>
+
+
+<div class="viewcode-block" id="add_derived">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.MetaNetCDF.add_derived">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">add_derived</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;add_derived provides a simple interface to add derived variables</span>
+<span class="sd">    to a PseudoNetCDFFile interface</span>
+
+<span class="sd">    create a new class with the following modifications:</span>
+<span class="sd">    overwrite __childclass__ with the base class</span>
+<span class="sd">    overwrite __addvars__ with a list of keys for variable names you</span>
+<span class="sd">                          intend to derive</span>
+<span class="sd">    for each key name, create a key interface funciton (e.g. key = DEPTH,</span>
+<span class="sd">    interface = __DEPTH__)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__childclass__</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">__addvars__</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span> <span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="bp">self</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__child</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__childclass__</span><span class="p">(</span><span class="o">*</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__child</span><span class="o">.</span><span class="n">dimensions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariables</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__variables__</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__child</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__addvars__</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__variables__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__addvars__</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;__&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;__&#39;</span><span class="p">)()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__child</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="time_avg_new_unit">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.MetaNetCDF.time_avg_new_unit">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">time_avg_new_unit</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This base class provides an interface for converting</span>
+<span class="sd">    instantaneous data to time averaged.  It also provides</span>
+<span class="sd">    an optional unit conversion.</span>
+
+<span class="sd">    ex:</span>
+<span class="sd">        &gt;&gt;&gt; windfile = wind(wind_path, 65, 83)</span>
+<span class="sd">        &gt;&gt;&gt; windfile.dimensions</span>
+<span class="sd">        {&#39;TSTEP&#39;: 25, &#39;LAY&#39;: 28, &#39;ROW&#39;: 65, &#39;COL&#39;: 83}</span>
+<span class="sd">        &gt;&gt;&gt; windfile.variables[&#39;U&#39;].units</span>
+<span class="sd">        &#39;m/s&#39;</span>
+<span class="sd">        &gt;&gt;&gt; windfile.variables[&#39;V&#39;].units</span>
+<span class="sd">        &#39;m/s&#39;</span>
+<span class="sd">        &gt;&gt;&gt; class windavgnewunit(time_avg_new_unit):</span>
+<span class="sd">        ...     __reader__ = wind</span>
+<span class="sd">        &gt;&gt;&gt; windavgfile = windavgnewunit(wind_path, rows, cols,\</span>
+<span class="sd">                          {&#39;U&#39;: &#39;km/h&#39;, &#39;V&#39;: &#39;mph&#39;})</span>
+<span class="sd">        &gt;&gt;&gt; windavgfile.dimensions</span>
+<span class="sd">        {&#39;TSTEP&#39;: 24, &#39;LAY&#39;: 28, &#39;ROW&#39;: 65, &#39;COL&#39;: 83}</span>
+<span class="sd">        &gt;&gt;&gt; windfile.variables[&#39;U&#39;].units</span>
+<span class="sd">        &#39;km/h&#39;</span>
+<span class="sd">        &gt;&gt;&gt; windfile.variables[&#39;V&#39;].units</span>
+<span class="sd">        &#39;mph&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__reader__</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rffile</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">outunit</span><span class="o">=</span><span class="p">{},</span> <span class="n">endhour</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reader__</span><span class="p">(</span><span class="n">rffile</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;LAY&#39;</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;ROW&#39;</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;COL&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;COL&#39;</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;VAR&#39;</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">has</span><span class="p">(</span><span class="s1">&#39;DATE-TIME&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span>
+                <span class="s1">&#39;DATE-TIME&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;DATE-TIME&#39;</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;DATE-TIME&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__outunit</span> <span class="o">=</span> <span class="n">outunit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariables</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__variables</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__timeslice</span> <span class="o">=</span> <span class="p">{</span><span class="kc">True</span><span class="p">:</span> <span class="nb">slice</span><span class="p">(</span>
+            <span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="kc">False</span><span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)}[</span><span class="n">endhour</span><span class="p">]</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+            <span class="s1">&#39;TFLAG&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="s1">&#39;DATE-TIME&#39;</span><span class="p">),</span> <span class="n">keep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">__timeslice</span><span class="p">]</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;Time flag&#39;</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;DATE-TIME&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="n">outunit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__outunit</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">outunit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">outunit</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">units</span>
+        <span class="n">tmpvar</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">typecode</span><span class="p">(),</span> <span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span>
+                                      <span class="n">values</span><span class="o">=</span><span class="n">CenterTime</span><span class="p">(</span><span class="n">var</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">PseudoNetCDFVariableConvertUnit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__decorator</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">tmpvar</span><span class="p">),</span>
+                                               <span class="n">outunit</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__decorator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ovar</span><span class="p">,</span> <span class="n">nvar</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ovar</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">nvar</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nvar</span></div>
+
+
+
+<div class="viewcode-block" id="window">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.MetaNetCDF.window">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">window</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Window takes a netcdf or PseudoNetCDF file and creates</span>
+<span class="sd">    a windowed version.</span>
+
+<span class="sd">    ex:</span>
+<span class="sd">        &gt;&gt;&gt; windfile = wind(wind_path, 65, 83)</span>
+<span class="sd">        &gt;&gt;&gt; subsetfile = window(windfile, tslice = slice(8, 18), \</span>
+<span class="sd">                                          kslice = slice(0, 1), \</span>
+<span class="sd">                                          jslice = slice(19, 37), \</span>
+<span class="sd">                                          islice = slice(19, 37))</span>
+<span class="sd">        &gt;&gt;&gt; windfile.dimensions</span>
+<span class="sd">        {&#39;TSTEP&#39;: 25, &#39;LAY&#39;: 28, &#39;ROW&#39;: 65, &#39;COL&#39;: 83}</span>
+<span class="sd">        &gt;&gt;&gt; windfile.variables[&#39;U&#39;].shape</span>
+<span class="sd">        (25, 28, 65, 83)</span>
+<span class="sd">        &gt;&gt;&gt; subsetfile.dimensions</span>
+<span class="sd">        {&#39;TSTEP&#39;: 10, &#39;LAY&#39;: 1, &#39;ROW&#39;: 18, &#39;COL&#39;: 18}</span>
+<span class="sd">        &gt;&gt;&gt; windfile.variables[&#39;U&#39;].shape</span>
+<span class="sd">        (10, 1, 18, 18)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ncffile</span><span class="p">,</span> <span class="n">tslice</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">kslice</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
+                 <span class="n">jslice</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">islice</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__file</span> <span class="o">=</span> <span class="n">ncffile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">tslice</span><span class="p">,</span> <span class="n">kslice</span><span class="p">,</span> <span class="n">jslice</span><span class="p">,</span> <span class="n">islice</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">any_non_time_key</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="s1">&#39;TFLAG&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">tmpvar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">any_non_time_key</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">__idx</span><span class="p">]</span>
+        <span class="n">ntimes</span><span class="p">,</span> <span class="n">nlays</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="n">tmpvar</span><span class="o">.</span><span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">PseudoNetCDFDimension</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ntimes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;LAY&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">PseudoNetCDFDimension</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">nlays</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;ROW&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">PseudoNetCDFDimension</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">nrows</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;COL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">PseudoNetCDFDimension</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariables</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__variables</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pseudo2NetCDF</span>
+        <span class="k">if</span> <span class="s1">&#39;TFLAG&#39;</span> <span class="ow">in</span> <span class="n">k</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+        <span class="n">ov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="n">nv</span> <span class="o">=</span> <span class="n">ov</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__idx</span><span class="p">]</span>
+        <span class="n">Pseudo2NetCDF</span><span class="p">()</span><span class="o">.</span><span class="n">addVariableProperties</span><span class="p">(</span><span class="n">nv</span><span class="p">,</span> <span class="n">ov</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nv</span></div>
+
+
+
+<div class="viewcode-block" id="newresolution">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.MetaNetCDF.newresolution">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">newresolution</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    newresolution converts a netcdf or PseudoNetCDF file</span>
+<span class="sd">    to a new resolution based on user input.  This class</span>
+<span class="sd">    updates dimensions and variables, but metadata is unaffected.</span>
+
+<span class="sd">    ex:</span>
+<span class="sd">        &gt;&gt;&gt; kvfile = kv(kv_path, 65, 83)</span>
+<span class="sd">        &gt;&gt;&gt; newresfile = newresolution(kvfile, (2, 3), 4000, 1000)</span>
+<span class="sd">        &gt;&gt;&gt; kvfile.dimensions</span>
+<span class="sd">        {&#39;TSTEP&#39;: 25, &#39;LAY&#39;: 28, &#39;ROW&#39;: 65, &#39;COL&#39;: 83}</span>
+<span class="sd">        &gt;&gt;&gt; kvfile.variables[&#39;KV&#39;].shape</span>
+<span class="sd">        (25, 28, 65, 83)</span>
+<span class="sd">        &gt;&gt;&gt; newresfile.dimensions</span>
+<span class="sd">        {&#39;TSTEP&#39;: 25, &#39;LAY&#39;: 28, &#39;ROW&#39;: 18, &#39;COL&#39;: 18}</span>
+<span class="sd">        &gt;&gt;&gt; newresfile.variables[&#39;KV&#39;].shape</span>
+<span class="sd">        (25, 28, 260, 332)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ncffile</span><span class="p">,</span> <span class="n">dimension</span><span class="p">,</span> <span class="n">oldres</span><span class="p">,</span> <span class="n">newres</span><span class="p">,</span>
+                 <span class="n">repeat_method</span><span class="o">=</span><span class="n">repeat</span><span class="p">,</span> <span class="n">condense_method</span><span class="o">=</span><span class="nb">sum</span><span class="p">,</span> <span class="n">nthick</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pseudo2NetCDF</span>
+        <span class="n">PseudoNetCDFFile</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dimension</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="n">dimension</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">oldres</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="n">oldres</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">newres</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="n">newres</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__mesh</span> <span class="o">=</span> <span class="n">newres</span> <span class="o">/</span> <span class="n">oldres</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;f&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__condense</span> <span class="o">=</span> <span class="n">condense_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__repeat</span> <span class="o">=</span> <span class="n">repeat_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__file</span> <span class="o">=</span> <span class="n">ncffile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__nthick</span> <span class="o">=</span> <span class="n">nthick</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">logical_or</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">__mesh</span> <span class="o">%</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
+                          <span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mesh</span><span class="p">)</span> <span class="o">%</span> <span class="mi">1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;One resolution must be a factor of the other.&quot;</span><span class="p">)</span>
+
+        <span class="n">Pseudo2NetCDF</span><span class="p">()</span><span class="o">.</span><span class="n">addDimensions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="n">any_non_time_key</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="s1">&#39;TFLAG&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">dk</span><span class="p">,</span> <span class="n">dfactor</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dimension</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mesh</span><span class="p">):</span>
+            <span class="n">dimo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">dk</span><span class="p">]</span>
+            <span class="n">ndimo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">dk</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">dimo</span><span class="p">)</span> <span class="o">*</span> <span class="n">dfactor</span><span class="p">)</span>
+            <span class="n">ndimo</span><span class="o">.</span><span class="n">setunlimited</span><span class="p">(</span><span class="n">dimo</span><span class="o">.</span><span class="n">isunlimited</span><span class="p">())</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">any_non_time_key</span><span class="p">]</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__method</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariables</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__variables</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+        <span class="n">dimensions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dimension</span>
+        <span class="n">meshs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mesh</span>
+        <span class="k">for</span> <span class="n">dimension</span><span class="p">,</span> <span class="n">mesh</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dimensions</span><span class="p">,</span> <span class="n">meshs</span><span class="p">):</span>
+            <span class="n">axisi</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">dimension</span><span class="p">)</span>
+            <span class="n">newshape</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mesh</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">method</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__repeat</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">mesh</span><span class="p">)),</span> <span class="n">axisi</span><span class="p">)</span>
+                <span class="n">newshape</span><span class="p">[</span><span class="n">axisi</span><span class="p">]</span> <span class="o">=</span> <span class="n">newshape</span><span class="p">[</span><span class="n">axisi</span><span class="p">]</span> <span class="o">*</span> <span class="n">mesh</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">newshape</span><span class="p">[</span><span class="n">axisi</span><span class="p">:</span><span class="n">axisi</span> <span class="o">+</span>
+                         <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">newshape</span><span class="p">[</span><span class="n">axisi</span><span class="p">]</span> <span class="o">//</span> <span class="n">mesh</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+
+                <span class="k">def</span><span class="w"> </span><span class="nf">method</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__condense</span><span class="p">(</span>
+                        <span class="n">a</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">newshape</span><span class="p">),</span> <span class="n">axisi</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">a</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pseudo2NetCDF</span>
+        <span class="k">if</span> <span class="s1">&#39;TFLAG&#39;</span> <span class="ow">in</span> <span class="n">k</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__axis</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Tflag is off limits&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__method</span><span class="p">(</span><span class="n">ov</span><span class="p">)</span>
+            <span class="n">Pseudo2NetCDF</span><span class="p">()</span><span class="o">.</span><span class="n">addVariableProperties</span><span class="p">(</span><span class="n">ov</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">v</span></div>
+
+
+
+<div class="viewcode-block" id="MetaNetCDF">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.MetaNetCDF.MetaNetCDF">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MetaNetCDF</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    MetaNetCDF provides a basic interface for combining files</span>
+<span class="sd">    and adding derived variables.</span>
+
+<span class="sd">    ex:</span>
+<span class="sd">        &gt;&gt;&gt; kvfile = kv(kv_path, 65, 83)</span>
+<span class="sd">        &gt;&gt;&gt; zpfile = height_pressure(zp_path, 65, 83)</span>
+<span class="sd">        &gt;&gt;&gt; windfile = wind(wind_path, 65, 83)</span>
+<span class="sd">        &gt;&gt;&gt; metfile = MetaNetCDF([kvfile, zpfile, windfile])</span>
+<span class="sd">        &gt;&gt;&gt; wind_speed_calc = lambda self: (self.variables[&#39;U&#39;][:]**2 + \</span>
+<span class="sd">                                            self.variables[&#39;V&#39;][:]**2)**.5</span>
+<span class="sd">        &gt;&gt;&gt; metfile.addMetaVariable(&#39;WS&#39;, wind_speed_calc)</span>
+<span class="sd">        &gt;&gt;&gt; metfile.variables[&#39;WS&#39;].shape</span>
+<span class="sd">        (25, 28, 65, 83)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__metavars__</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="MetaNetCDF.addMetaVariable">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.MetaNetCDF.MetaNetCDF.addMetaVariable">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">addMetaVariable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">addkey</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__metavars__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">files</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__files</span> <span class="o">=</span> <span class="n">files</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__files</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">k</span> <span class="o">==</span> <span class="s1">&#39;LAY&#39;</span><span class="p">:</span>
+                    <span class="n">k</span> <span class="o">=</span> <span class="s1">&#39;SURFLAY&#39;</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+            <span class="n">keys</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">keys</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__variables</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">PseudoNetCDFFile</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__files</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> not found&quot;</span> <span class="o">%</span> <span class="n">k</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MetaNetCDF.childvariables">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.MetaNetCDF.MetaNetCDF.childvariables">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">childvariables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s1">&#39;TFLAG&#39;</span><span class="p">:</span>
+                    <span class="n">nvars</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;VAR&#39;</span><span class="p">])</span>
+                    <span class="n">vals</span> <span class="o">=</span> <span class="n">v</span><span class="p">[:][:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">:]</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">nvars</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;TFLAG&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span>
+                                             <span class="n">values</span><span class="o">=</span><span class="n">vals</span><span class="p">)</span>
+                    <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;TFLAG&#39;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+                    <span class="n">v</span><span class="o">.</span><span class="n">var_desc</span> <span class="o">=</span> <span class="s1">&#39;TFLAG&#39;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+                    <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;DATE-TIME&#39;</span>
+
+                <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s1">&#39;LAY&#39;</span> <span class="ow">and</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">dims</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+                        <span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;SURFLAY&#39;</span>
+                        <span class="n">v</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">v</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__metavars__</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__metavars__</span><span class="p">[</span><span class="n">k</span><span class="p">](</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">childvariables</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> not in any files&#39;</span> <span class="o">%</span> <span class="n">k</span><span class="p">)</span></div>
+
+
+
+<span class="n">file_master</span> <span class="o">=</span> <span class="n">MetaNetCDF</span>
+
+
+<div class="viewcode-block" id="WindowFromFile">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.MetaNetCDF.WindowFromFile">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">WindowFromFile</span><span class="p">(</span><span class="n">WindowThis</span><span class="p">,</span> <span class="n">WindowFrom</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    WindowFromFile creates a bounding box to window one file</span>
+<span class="sd">    from the meta data of another file.</span>
+
+<span class="sd">    ex:</span>
+<span class="sd">        &gt;&gt;&gt; wind12k = wind(wind12k_path, 89, 89)</span>
+<span class="sd">        &gt;&gt;&gt; wind04k = wind(wind04k_path, 65, 83)</span>
+<span class="sd">        &gt;&gt;&gt; window4k_from_wind12k = WindowFromFile(wind12k, wind04k)</span>
+<span class="sd">        &gt;&gt;&gt; V12k = wind12k.variables[&#39;V&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; V04k = wind04k.variables[&#39;V&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; V04k_12k = window4k_from_wind12k.variables[&#39;V&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; V04k_12k.shape</span>
+<span class="sd">        (25, 28, 89, 89)</span>
+<span class="sd">        &gt;&gt;&gt; V04k_12k.shape</span>
+<span class="sd">        (25, 28, 65, 83)</span>
+<span class="sd">        &gt;&gt;&gt; V04k_12k.shape # Note the trimmed buffer cells</span>
+<span class="sd">        (25, 28, 21, 27)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">xoffset</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">WindowThis</span><span class="o">.</span><span class="n">XORIG</span> <span class="o">-</span> <span class="n">WindowFrom</span><span class="o">.</span><span class="n">XORIG</span><span class="p">)</span>
+    <span class="n">ioffset</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">xoffset</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">xoffset</span> <span class="o">%</span> <span class="n">WindowThis</span><span class="o">.</span><span class="n">XCELL</span><span class="p">:</span>
+        <span class="n">xoffset</span> <span class="o">+=</span> <span class="n">WindowFrom</span><span class="o">.</span><span class="n">XCELL</span>
+        <span class="n">ioffset</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">istart</span> <span class="o">=</span> <span class="n">xoffset</span> <span class="o">/</span> <span class="n">WindowThis</span><span class="o">.</span><span class="n">XCELL</span>
+
+    <span class="n">yoffset</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">WindowThis</span><span class="o">.</span><span class="n">YORIG</span> <span class="o">-</span> <span class="n">WindowFrom</span><span class="o">.</span><span class="n">YORIG</span><span class="p">)</span>
+    <span class="n">joffset</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">yoffset</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">yoffset</span> <span class="o">%</span> <span class="n">WindowThis</span><span class="o">.</span><span class="n">YCELL</span><span class="p">:</span>
+        <span class="n">yoffset</span> <span class="o">+=</span> <span class="n">WindowFrom</span><span class="o">.</span><span class="n">YCELL</span>
+        <span class="n">joffset</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">jstart</span> <span class="o">=</span> <span class="n">yoffset</span> <span class="o">/</span> <span class="n">WindowThis</span><span class="o">.</span><span class="n">YCELL</span>
+
+    <span class="n">iend</span> <span class="o">=</span> <span class="n">istart</span> <span class="o">+</span> <span class="nb">int</span><span class="p">((</span><span class="n">WindowFrom</span><span class="o">.</span><span class="n">NCOLS</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ioffset</span><span class="p">)</span> <span class="o">*</span>
+                        <span class="n">WindowFrom</span><span class="o">.</span><span class="n">XCELL</span> <span class="o">/</span> <span class="n">WindowThis</span><span class="o">.</span><span class="n">XCELL</span><span class="p">)</span>
+    <span class="n">jend</span> <span class="o">=</span> <span class="n">jstart</span> <span class="o">+</span> <span class="nb">int</span><span class="p">((</span><span class="n">WindowFrom</span><span class="o">.</span><span class="n">NROWS</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">joffset</span><span class="p">)</span> <span class="o">*</span>
+                        <span class="n">WindowFrom</span><span class="o">.</span><span class="n">YCELL</span> <span class="o">/</span> <span class="n">WindowThis</span><span class="o">.</span><span class="n">YCELL</span><span class="p">)</span>
+    <span class="n">islice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">istart</span><span class="p">,</span> <span class="n">iend</span><span class="p">)</span>
+    <span class="n">jslice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">jstart</span><span class="p">,</span> <span class="n">jend</span><span class="p">)</span>
+
+    <span class="n">outf</span> <span class="o">=</span> <span class="n">MetaNetCDF</span><span class="p">([</span><span class="n">WindowThis</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">AddMetaVar</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">jslice</span><span class="p">,</span> <span class="n">islice</span><span class="p">):</span>
+        <span class="n">outf</span><span class="o">.</span><span class="n">addMetaVariable</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">childvariables</span><span class="p">(</span><span class="n">k</span><span class="p">)[</span>
+                             <span class="p">:,</span> <span class="p">:,</span> <span class="n">jslice</span><span class="p">,</span> <span class="n">islice</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">WindowThis</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">AddMetaVar</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">jslice</span><span class="p">,</span> <span class="n">islice</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">outf</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

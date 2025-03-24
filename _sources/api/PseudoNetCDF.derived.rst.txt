@@ -1,0 +1,21 @@
+PseudoNetCDF.derived package
+============================
+
+Submodules
+----------
+
+PseudoNetCDF.derived.met module
+-------------------------------
+
+.. automodule:: PseudoNetCDF.derived.met
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.derived
+   :members:
+   :show-inheritance:
+   :undoc-members:

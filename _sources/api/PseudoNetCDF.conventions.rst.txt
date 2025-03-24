@@ -1,0 +1,20 @@
+PseudoNetCDF.conventions package
+================================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 1
+
+   PseudoNetCDF.conventions.cdo
+   PseudoNetCDF.conventions.cf
+   PseudoNetCDF.conventions.ioapi
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.conventions
+   :members:
+   :show-inheritance:
+   :undoc-members:

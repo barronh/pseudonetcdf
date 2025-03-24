@@ -1,0 +1,441 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.pncdump &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.pncdump</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.pncdump</h1><div class="highlight"><pre>
+<span></span><span class="vm">__doc__</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">.. _dumper</span>
+<span class="s2">:mod:`dumper` -- PseudoNetCDF dump module</span>
+<span class="s2">============================================</span>
+
+<span class="s2">.. module:: pncdump</span>
+<span class="s2">   :platform: Unix, Windows</span>
+<span class="s2">   :synopsis: Provides ncdump like functionaility for PseudoNetCDF</span>
+<span class="s2">.. moduleauthor:: Barron Henderson &lt;barronh@unc.edu&gt;</span>
+
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;pncdump&#39;</span><span class="p">,</span> <span class="p">]</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ndindex</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">savetxt</span><span class="p">,</span> <span class="n">isscalar</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">ma</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">set_printoptions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_printoptions</span><span class="p">,</span> <span class="n">array2string</span><span class="p">,</span> <span class="n">inf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFMaskedVariable</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">textwrap</span>
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">.</span><span class="n">major</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytesIO</span> <span class="k">as</span> <span class="n">StringIO</span>
+    <span class="n">commaspace</span> <span class="o">=</span> <span class="sa">u</span><span class="s1">&#39;, &#39;</span>
+    <span class="n">semicolon</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;;&#39;</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">StringIO</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+    <span class="n">commaspace</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span>
+    <span class="n">semicolon</span> <span class="o">=</span> <span class="s1">&#39;;&#39;</span>
+    <span class="ne">BrokenPipeError</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">exception_handler</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">outfile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exceptions are largely ignored</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">outfile</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">outfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="ne">KeyboardInterrupt</span><span class="p">)</span> <span class="ow">or</span>
+        <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="ne">BrokenPipeError</span><span class="p">)</span> <span class="ow">or</span>
+        <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="ne">IOError</span><span class="p">)</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">strerror</span> <span class="o">==</span> <span class="s1">&#39;Broken pipe&#39;</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="n">exit</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">warn</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;; Typically from CTRL+C or exiting less&quot;</span><span class="p">)</span>
+        <span class="n">exit</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="pncdump">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncdump.pncdump">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pncdump</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;unknown&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="p">[],</span> <span class="n">line_length</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+            <span class="n">full_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">float_precision</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">double_precision</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+            <span class="n">isgroup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timestring</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    pncdump is designed to implement basic functionality</span>
+<span class="sd">    of the NetCDF ncdump binary.</span>
+
+<span class="sd">    f         - a PseudoNetCDFFile object</span>
+<span class="sd">    name      - string name for the file</span>
+<span class="sd">                (equivalent to ncdump -n name)</span>
+<span class="sd">    header    - boolean value for display of header only</span>
+<span class="sd">                (equivalent to ncdump -h)</span>
+<span class="sd">    variables - iterable of variable names for subsetting</span>
+<span class="sd">                data display (equivalent to ncddump -v var[,...]</span>
+
+<span class="sd">    pncdump(</span>
+<span class="sd">        vertical_diffusivity(</span>
+<span class="sd">            &#39;camx_kv.20000825.hgbpa_04km.TCEQuh1_eta.v43.tke&#39;,rows=65,cols=83))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">file_type</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">f</span><span class="p">))</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">float_fmt</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%%</span><span class="s2">.</span><span class="si">%d</span><span class="s2">g&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">float_precision</span><span class="p">,)</span>
+    <span class="n">double_fmt</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%%</span><span class="s2">.</span><span class="si">%d</span><span class="s2">g&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">double_precision</span><span class="p">,)</span>
+    <span class="n">int_fmt</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%i</span><span class="s2">&quot;</span>
+    <span class="n">formats</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+                          <span class="nb">float</span><span class="o">=</span><span class="n">double_fmt</span><span class="p">,</span>
+                          <span class="n">float64</span><span class="o">=</span><span class="n">double_fmt</span><span class="p">,</span>
+                          <span class="n">float32</span><span class="o">=</span><span class="n">float_fmt</span><span class="p">,</span>
+                          <span class="n">int32</span><span class="o">=</span><span class="n">int_fmt</span><span class="p">,</span>
+                          <span class="n">uint32</span><span class="o">=</span><span class="n">int_fmt</span><span class="p">,</span>
+                          <span class="n">int64</span><span class="o">=</span><span class="n">int_fmt</span><span class="p">,</span>
+                          <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+                          <span class="nb">bool</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+                          <span class="n">string8</span><span class="o">=</span><span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># float = lambda x: double_fmt % x)</span>
+    <span class="c1"># initialize indentation as 8 characters</span>
+    <span class="n">funcs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="c1"># based on ncdump</span>
+    <span class="n">indent</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="s2">&quot; &quot;</span>
+    <span class="k">if</span> <span class="n">isgroup</span><span class="p">:</span>
+        <span class="n">startindent</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="s2">&quot; &quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">startindent</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="c1"># First line of CDL</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">isgroup</span><span class="p">:</span>
+        <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> {</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">file_type</span><span class="p">,</span> <span class="n">name</span><span class="p">,))</span>
+
+    <span class="c1">###########################</span>
+    <span class="c1"># CDL Section 1: dimensions</span>
+    <span class="c1">###########################</span>
+    <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">startindent</span> <span class="o">+</span> <span class="s2">&quot;dimensions:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">dim_name</span><span class="p">,</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">dim</span><span class="o">.</span><span class="n">isunlimited</span><span class="p">():</span>
+            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="n">startindent</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">indent</span> <span class="o">+</span>
+                <span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> = UNLIMITED // (</span><span class="si">%s</span><span class="s2"> currently) </span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dim_name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dim</span><span class="p">))))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">startindent</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">indent</span> <span class="o">+</span>
+                          <span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> = </span><span class="si">%s</span><span class="s2"> ;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dim_name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dim</span><span class="p">))))</span>
+
+    <span class="c1">###################################</span>
+    <span class="c1"># CDL Section 2: variables metadata</span>
+    <span class="c1">###################################</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">startindent</span> <span class="o">+</span> <span class="s2">&quot;variables:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">var_type</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">float32</span><span class="o">=</span><span class="s1">&#39;float&#39;</span><span class="p">,</span>
+                        <span class="n">float64</span><span class="o">=</span><span class="s1">&#39;double&#39;</span><span class="p">,</span>
+                        <span class="n">int32</span><span class="o">=</span><span class="s1">&#39;integer&#39;</span><span class="p">,</span>
+                        <span class="n">uint32</span><span class="o">=</span><span class="s1">&#39;integer&#39;</span><span class="p">,</span>
+                        <span class="n">int64</span><span class="o">=</span><span class="s1">&#39;long&#39;</span><span class="p">,</span>
+                        <span class="nb">bool</span><span class="o">=</span><span class="s1">&#39;bool&#39;</span><span class="p">,</span>
+                        <span class="n">string8</span><span class="o">=</span><span class="s1">&#39;char&#39;</span><span class="p">,</span>
+                        <span class="n">string80</span><span class="o">=</span><span class="s1">&#39;char&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="n">startindent</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">indent</span> <span class="o">+</span>
+            <span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s%s</span><span class="s2">;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">var_type</span><span class="p">,</span>
+                             <span class="n">var_name</span><span class="p">,</span>
+                             <span class="nb">str</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;u</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                             <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;,)&#39;</span><span class="p">,</span> <span class="s1">&#39;)&#39;</span><span class="p">))))</span>
+        <span class="k">for</span> <span class="n">prop_name</span> <span class="ow">in</span> <span class="n">var</span><span class="o">.</span><span class="n">ncattrs</span><span class="p">():</span>
+            <span class="n">prop</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">prop_name</span><span class="p">)</span>
+            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="n">startindent</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">indent</span> <span class="o">+</span>
+                <span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2"> = </span><span class="si">%s</span><span class="s2"> ;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">prop_name</span><span class="p">,</span>
+                                     <span class="nb">repr</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">))))</span>
+
+    <span class="c1">################################</span>
+    <span class="c1"># CDL Section 3: global metadata</span>
+    <span class="c1">################################</span>
+    <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">// global properties:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">prop_name</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">ncattrs</span><span class="p">():</span>
+        <span class="n">prop</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">prop_name</span><span class="p">)</span>
+        <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="n">startindent</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">indent</span> <span class="o">+</span>
+            <span class="p">(</span><span class="s2">&quot;:</span><span class="si">%s</span><span class="s2"> = </span><span class="si">%s</span><span class="s2"> ;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prop_name</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">))))</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;groups&#39;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">group_name</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">startindent</span> <span class="o">+</span> <span class="s1">&#39;group </span><span class="si">%s</span><span class="s1">:</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">group_name</span><span class="p">)</span>
+            <span class="n">pncdump</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="n">variables</span><span class="p">,</span>
+                    <span class="n">line_length</span><span class="o">=</span><span class="n">line_length</span><span class="p">,</span> <span class="n">full_indices</span><span class="o">=</span><span class="n">full_indices</span><span class="p">,</span>
+                    <span class="n">float_precision</span><span class="o">=</span><span class="n">float_precision</span><span class="p">,</span>
+                    <span class="n">double_precision</span><span class="o">=</span><span class="n">double_precision</span><span class="p">,</span> <span class="n">isgroup</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">header</span><span class="p">:</span>
+        <span class="c1"># Error trapping prevents the user from getting an error</span>
+        <span class="c1"># when they cancel a dump or when they break a redirected</span>
+        <span class="c1"># pipe</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1">#####################</span>
+            <span class="c1"># CDL Section 4: data</span>
+            <span class="c1">#####################</span>
+            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">startindent</span> <span class="o">+</span> <span class="s2">&quot;data:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># data indentation is only 1 space</span>
+            <span class="n">indent</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+
+            <span class="c1"># Subset variables for output</span>
+            <span class="n">display_variables</span> <span class="o">=</span> <span class="p">[</span><span class="n">var_name</span> <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">(</span>
+            <span class="p">)</span> <span class="k">if</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">variables</span> <span class="ow">or</span> <span class="n">variables</span> <span class="o">==</span> <span class="p">[]]</span>
+            <span class="k">if</span> <span class="n">variables</span> <span class="o">!=</span> <span class="p">[]:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">display_variables</span><span class="p">):</span>
+                    <span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Not all specified variables were available&quot;</span><span class="p">)</span>
+
+            <span class="c1"># For each variable output data</span>
+            <span class="c1"># currently assumes 3-D data</span>
+            <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">display_variables</span><span class="p">:</span>
+                <span class="n">var</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="nb">isinstance</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">PseudoNetCDFMaskedVariable</span><span class="p">)</span> <span class="ow">or</span>
+                    <span class="nb">hasattr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s1">&#39;_FillValue&#39;</span><span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="k">def</span><span class="w"> </span><span class="nf">writer</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">last</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">isscalar</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="ow">or</span> <span class="n">row</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                                <span class="n">startindent</span> <span class="o">+</span> <span class="s1">&#39;  &#39;</span> <span class="o">+</span>
+                                <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">filled</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">ndarray</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                            <span class="k">return</span>
+
+                        <span class="n">tmpstr</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="n">ma</span><span class="o">.</span><span class="n">getmaskarray</span><span class="p">(</span><span class="n">row</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                            <span class="n">tmpstr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">b</span><span class="s1">&#39;_&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">row</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">+</span> <span class="sa">b</span><span class="s1">&#39;, &#39;</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">savetxt</span><span class="p">(</span><span class="n">tmpstr</span><span class="p">,</span> <span class="n">ma</span><span class="o">.</span><span class="n">filled</span><span class="p">(</span><span class="n">row</span><span class="p">),</span> <span class="n">fmt</span><span class="p">,</span>
+                                    <span class="n">delimiter</span><span class="o">=</span><span class="n">commaspace</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="n">commaspace</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">last</span><span class="p">:</span>
+                            <span class="n">tmpstr</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                            <span class="n">tmpstr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">semicolon</span><span class="p">)</span>
+                        <span class="n">tmpstr</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                        <span class="n">tmpstr</span> <span class="o">=</span> <span class="n">tmpstr</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;ASCII&#39;</span><span class="p">)</span>
+                        <span class="n">tmpstr</span> <span class="o">=</span> <span class="n">tmpstr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">fmt</span> <span class="o">%</span> <span class="nb">getattr</span><span class="p">(</span>
+                            <span class="n">row</span><span class="p">,</span> <span class="s1">&#39;fill_value&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;_,&#39;</span><span class="p">)</span>
+                        <span class="n">tmpstr</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span>
+                            <span class="n">tmpstr</span><span class="p">,</span> <span class="n">line_length</span><span class="p">,</span>
+                            <span class="n">initial_indent</span><span class="o">=</span><span class="n">startindent</span> <span class="o">+</span> <span class="s1">&#39;  &#39;</span><span class="p">,</span>
+                            <span class="n">subsequent_indent</span><span class="o">=</span><span class="n">startindent</span> <span class="o">+</span> <span class="s1">&#39;    &#39;</span><span class="p">)</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tmpstr</span><span class="p">)</span>
+                            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                            <span class="n">exception_handler</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">def</span><span class="w"> </span><span class="nf">writer</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">last</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">isscalar</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="ow">or</span> <span class="n">row</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">startindent</span> <span class="o">+</span> <span class="s1">&#39;  &#39;</span> <span class="o">+</span>
+                                          <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">ndarray</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                            <span class="k">return</span>
+                        <span class="n">old</span> <span class="o">=</span> <span class="n">get_printoptions</span><span class="p">()</span>
+                        <span class="n">set_printoptions</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">inf</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">line_length</span><span class="p">)</span>
+                        <span class="n">tmpstr</span> <span class="o">=</span> <span class="n">startindent</span> <span class="o">+</span> <span class="s1">&#39;    &#39;</span> <span class="o">+</span> \
+                            <span class="n">array2string</span><span class="p">(</span>
+                                <span class="n">row</span><span class="p">,</span> <span class="n">separator</span><span class="o">=</span><span class="n">commaspace</span><span class="p">,</span> <span class="n">formatter</span><span class="o">=</span><span class="n">funcs</span>
+                            <span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">startindent</span> <span class="o">+</span> <span class="s1">&#39;    &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">last</span><span class="p">:</span>
+                            <span class="n">tmpstr</span> <span class="o">+=</span> <span class="s1">&#39;;&#39;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">tmpstr</span> <span class="o">+=</span> <span class="n">commaspace</span>
+                        <span class="n">set_printoptions</span><span class="p">(</span><span class="o">**</span><span class="n">old</span><span class="p">)</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tmpstr</span><span class="p">)</span>
+                            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                            <span class="n">exception_handler</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>
+
+                <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">startindent</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">indent</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> =</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">var_name</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;time_bounds&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">timestring</span><span class="p">:</span>
+                    <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.coordutil</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettimes</span><span class="p">,</span> <span class="n">gettimebnds</span>
+                    <span class="k">if</span> <span class="n">var_name</span> <span class="o">==</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span>
+                        <span class="n">times</span> <span class="o">=</span> <span class="n">gettimes</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">var_name</span> <span class="o">==</span> <span class="s1">&#39;time_bounds&#39;</span><span class="p">:</span>
+                        <span class="n">times</span> <span class="o">=</span> <span class="n">gettimebnds</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ndindex</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="n">var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">ma</span><span class="o">.</span><span class="n">is_masked</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+                            <span class="n">array_str</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">array_str</span> <span class="o">=</span> <span class="n">startindent</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">indent</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x_</span><span class="p">:</span> <span class="n">x_</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">)):</span>
+                            <span class="n">array_str</span> <span class="o">+=</span> <span class="s2">&quot;;&quot;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">array_str</span> <span class="o">+=</span> <span class="s2">&quot;,&quot;</span>
+
+                        <span class="n">array_str</span> <span class="o">+=</span> <span class="s2">&quot; // </span><span class="si">%s%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">var_name</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">array_str</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                            <span class="n">exception_handler</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">full_indices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">id_display</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;f&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span>
+                            <span class="nb">tuple</span><span class="p">([</span><span class="n">idx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                                   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)])),</span>
+                        <span class="s1">&#39;c&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)}[</span><span class="n">full_indices</span><span class="p">]</span>
+
+                    <span class="c1"># for i, val in ndenumerate(var):</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ndindex</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="n">var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">ma</span><span class="o">.</span><span class="n">is_masked</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+                            <span class="n">array_str</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">fmt</span> <span class="o">=</span> <span class="n">startindent</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">indent</span> <span class="o">+</span> \
+                                <span class="n">formats</span><span class="p">[</span><span class="n">var</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+                            <span class="n">array_str</span> <span class="o">=</span> <span class="n">fmt</span> <span class="o">%</span> <span class="n">val</span>
+
+                        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x_</span><span class="p">:</span> <span class="n">x_</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">)):</span>
+                            <span class="n">array_str</span> <span class="o">+=</span> <span class="s2">&quot;;&quot;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">array_str</span> <span class="o">+=</span> <span class="s2">&quot;,&quot;</span>
+
+                        <span class="n">array_str</span> <span class="o">+=</span> <span class="s2">&quot; // </span><span class="si">%s%s</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">id_display</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">array_str</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                            <span class="n">exception_handler</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">dimensions</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">d</span><span class="p">])</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">first_dim</span> <span class="o">=</span> <span class="n">prod</span><span class="p">(</span><span class="n">dimensions</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="n">second_dim</span> <span class="o">=</span> <span class="n">dimensions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="n">shape</span> <span class="o">=</span> <span class="p">[</span><span class="n">first_dim</span><span class="p">,</span> <span class="n">second_dim</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">shape</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">dimensions</span>
+                    <span class="n">var2d</span> <span class="o">=</span> <span class="n">var</span><span class="p">[</span><span class="o">...</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">shape</span><span class="p">)</span>
+                    <span class="n">fmt</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">[</span><span class="n">formats</span><span class="p">[</span><span class="n">var</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">name</span><span class="p">]])</span>
+                    <span class="n">fmt</span> <span class="o">=</span> <span class="n">formats</span><span class="p">[</span><span class="n">var</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+                    <span class="n">lastrow</span> <span class="o">=</span> <span class="n">var2d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+                    <span class="k">for</span> <span class="n">rowi</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">var2d</span><span class="p">):</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">writer</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">rowi</span> <span class="o">==</span> <span class="n">lastrow</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                            <span class="n">exception_handler</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">exception_handler</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>
+
+    <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">outfile</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.pncparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncparse</span>
+    <span class="n">ifiles</span><span class="p">,</span> <span class="n">options</span> <span class="o">=</span> <span class="n">pncparse</span><span class="p">(</span><span class="n">has_ofile</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ifile</span> <span class="ow">in</span> <span class="n">ifiles</span><span class="p">:</span>
+        <span class="n">pncdump</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">header</span><span class="p">,</span>
+                <span class="n">full_indices</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">full_indices</span><span class="p">,</span>
+                <span class="n">line_length</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">line_length</span><span class="p">,</span>
+                <span class="n">float_precision</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">float_precision</span><span class="p">,</span>
+                <span class="n">double_precision</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">double_precision</span><span class="p">,</span>
+                <span class="n">timestring</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">timestring</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">cdlname</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

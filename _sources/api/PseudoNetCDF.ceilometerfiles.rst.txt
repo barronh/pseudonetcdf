@@ -1,0 +1,10 @@
+PseudoNetCDF.ceilometerfiles package
+====================================
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.ceilometerfiles
+   :members:
+   :show-inheritance:
+   :undoc-members:

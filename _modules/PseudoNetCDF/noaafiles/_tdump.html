@@ -1,0 +1,306 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.noaafiles._tdump &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.noaafiles._tdump</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.noaafiles._tdump</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.arltime</span><span class="w"> </span><span class="kn">import</span> <span class="n">arl2timea</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">_units</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">trajid</span><span class="o">=</span><span class="s1">&#39;---&#39;</span><span class="p">,</span>
+              <span class="n">metgridid</span><span class="o">=</span><span class="s1">&#39;---&#39;</span><span class="p">,</span>
+              <span class="n">year</span><span class="o">=</span><span class="s1">&#39;year&#39;</span><span class="p">,</span>
+              <span class="n">month</span><span class="o">=</span><span class="s1">&#39;month of year&#39;</span><span class="p">,</span>
+              <span class="n">day</span><span class="o">=</span><span class="s1">&#39;day of month&#39;</span><span class="p">,</span>
+              <span class="n">hour</span><span class="o">=</span><span class="s1">&#39;hour of day&#39;</span><span class="p">,</span>
+              <span class="n">minute</span><span class="o">=</span><span class="s1">&#39;minute of hour&#39;</span><span class="p">,</span>
+              <span class="n">forecast_hour</span><span class="o">=</span><span class="s1">&#39;hour in forecast&#39;</span><span class="p">,</span>
+              <span class="n">age</span><span class="o">=</span><span class="s1">&#39;hours&#39;</span><span class="p">,</span>
+              <span class="n">pressure</span><span class="o">=</span><span class="s1">&#39;hPa&#39;</span><span class="p">,</span>
+              <span class="n">theta</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">,</span>
+              <span class="n">air_temp</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">,</span>
+              <span class="n">rainfall</span><span class="o">=</span><span class="s1">&#39;mm/h&#39;</span><span class="p">,</span>
+              <span class="n">mixdepth</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span>
+              <span class="n">relhumid</span><span class="o">=</span><span class="s1">&#39;%&#39;</span><span class="p">,</span>
+              <span class="n">terr_msl</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span>
+              <span class="n">sun_flux</span><span class="o">=</span><span class="s1">&#39;W/m**2&#39;</span><span class="p">,)</span>
+
+
+<div class="viewcode-block" id="arltrajdump">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.noaafiles.html#PseudoNetCDF.noaafiles.arltrajdump">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">arltrajdump</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+<div class="viewcode-block" id="arltrajdump.isMine">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.noaafiles.html#PseudoNetCDF.noaafiles.arltrajdump.isMine">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">isMine</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">arltrajdump</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Record #1</span>
+
+<span class="sd">        I6 - Number of meteorological grids used in calculation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nmgrid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">NMETGRIDS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()[:</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Records Loop #2 through the number of grids</span>
+
+<span class="sd">        A8 - Meteorological Model identification</span>
+<span class="sd">        5I6 - Data file starting Year, Month, Day, Hour, Forecast Hour</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">metgridlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nmgrid</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">METGRIDS</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">_l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">_l</span> <span class="ow">in</span> <span class="n">metgridlines</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;metgrid&#39;</span><span class="p">,</span> <span class="n">nmgrid</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;met_year&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;metgrid&#39;</span><span class="p">,))</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;year&#39;</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;year&#39;</span>
+        <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">_l</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">_l</span> <span class="ow">in</span> <span class="n">metgridlines</span><span class="p">]</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;met_month&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;metgrid&#39;</span><span class="p">,))</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;month&#39;</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;month of the year&#39;</span>
+        <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">_l</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="k">for</span> <span class="n">_l</span> <span class="ow">in</span> <span class="n">metgridlines</span><span class="p">]</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;met_day&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;metgrid&#39;</span><span class="p">,))</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;day&#39;</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;day of the month&#39;</span>
+        <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">_l</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="k">for</span> <span class="n">_l</span> <span class="ow">in</span> <span class="n">metgridlines</span><span class="p">]</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;met_hour&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;metgrid&#39;</span><span class="p">,))</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;hour&#39;</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;hour of the day (GMT)&#39;</span>
+        <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">_l</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span> <span class="k">for</span> <span class="n">_l</span> <span class="ow">in</span> <span class="n">metgridlines</span><span class="p">]</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;met_forecast_hour&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;metgrid&#39;</span><span class="p">,))</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;forecast_hour&#39;</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;hour of the forecast&#39;</span>
+        <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">_l</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span> <span class="k">for</span> <span class="n">_l</span> <span class="ow">in</span> <span class="n">metgridlines</span><span class="p">]</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Record #3</span>
+
+<span class="sd">        I6 - number of different trajectories in file</span>
+<span class="sd">        1X,A8 - direction of trajectory calculation (FORWARD, BACKWARD)</span>
+<span class="sd">        1X,A8 - vertical motion calculation method (OMEGA, THETA, ...)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ntrajstr</span><span class="p">,</span> <span class="n">tcalc</span><span class="p">,</span> <span class="n">vmot</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TRAJECTORY_CALCULATION</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">VERTMOTION</span> <span class="o">=</span> <span class="n">tcalc</span><span class="p">,</span> <span class="n">vmot</span>
+        <span class="n">ntrajs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">NTRAJECTORIES</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ntrajstr</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Record Loop #4 through the number of different trajectories in file</span>
+
+<span class="sd">        4I6 - starting year, month, day, hour</span>
+<span class="sd">        2F9.3 - starting latitude, longitude</span>
+<span class="sd">        F8.1 - starting level above ground (meters)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">trajmeta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ntrajs</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;f&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;trajectory&#39;</span><span class="p">,</span> <span class="n">ntrajs</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;traj_year&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;trajectory&#39;</span><span class="p">,))</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;year&#39;</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;year&#39;</span>
+        <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">trajmeta</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;i&#39;</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;traj_month&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;trajectory&#39;</span><span class="p">,))</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;month&#39;</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;month of the year&#39;</span>
+        <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">trajmeta</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;i&#39;</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;trajectory_day&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;trajectory&#39;</span><span class="p">,))</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;day&#39;</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;day of the month&#39;</span>
+        <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">trajmeta</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;i&#39;</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;trajectory_hour&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;trajectory&#39;</span><span class="p">,))</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;hour&#39;</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;hour of the day (GMT)&#39;</span>
+        <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">trajmeta</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;i&#39;</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+            <span class="s1">&#39;trajectory_init_latitude&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;trajectory&#39;</span><span class="p">,))</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;degrees_north&#39;</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;initial latitude&#39;</span>
+        <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">trajmeta</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">]</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+            <span class="s1">&#39;trajectory_init_longitude&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;trajectory&#39;</span><span class="p">,))</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;degrees_east&#39;</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;initial longitude&#39;</span>
+        <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">trajmeta</span><span class="p">[:,</span> <span class="mi">5</span><span class="p">]</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;trajectory_init_height&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;trajectory&#39;</span><span class="p">,))</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;meters agl&#39;</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;initial altitude&#39;</span>
+        <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">trajmeta</span><span class="p">[:,</span> <span class="mi">6</span><span class="p">]</span>
+        <span class="c1"># Starting time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_starttimes</span> <span class="o">=</span> <span class="n">arl2timea</span><span class="p">(</span><span class="n">trajmeta</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">trajmeta</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+                                     <span class="n">trajmeta</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">trajmeta</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">],</span>
+                                     <span class="n">trajmeta</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="mi">0</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Record #5</span>
+
+<span class="sd">        I6 - number (n) of diagnostic output variables</span>
+<span class="sd">        n(1X,A8) - label identification of each variable (PRESSURE, THETA, ...)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">diagnostics</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">ndiag</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">diagnostics</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="p">((</span><span class="n">ndiag</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">diagnostics</span><span class="p">))</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Record Loop #6 through the number of hours in the simulation</span>
+
+<span class="sd">        I6 - trajectory number</span>
+<span class="sd">        I6 - meteorological grid number or antecedent trajectory number</span>
+<span class="sd">        5I6 - year month day hour minute of the point</span>
+<span class="sd">        I6 - forecast hour at point</span>
+<span class="sd">        F8.1 - age of the trajectory in hours</span>
+<span class="sd">        2F9.3 - position latitude and longitude</span>
+<span class="sd">        1X,F8.1 - position height in meters above ground</span>
+<span class="sd">        n(1X,F8.1) - n diagnostic output variables (1st to be output</span>
+<span class="sd">                    is always pressure)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;arltrajdump requires pandas; &#39;</span> <span class="o">+</span>
+                              <span class="s1">&#39;install pandas (e.g., pip install pandas)&#39;</span><span class="p">)</span>
+        <span class="c1"># , parse_dates = [&#39;YEAR MONTH DAY HOUR MINUTE&#39;.split()])</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span>
+                           <span class="n">names</span><span class="o">=</span><span class="p">((</span><span class="s1">&#39;trajid metgridid year month day hour &#39;</span> <span class="o">+</span>
+                                   <span class="s1">&#39;minute forecast_hour age latitude &#39;</span> <span class="o">+</span>
+                                   <span class="s1">&#39;longitude altitude&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="o">+</span>
+                                  <span class="n">diagnostics</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+        <span class="n">mytimes</span> <span class="o">=</span> <span class="n">arl2timea</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;month&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;day&#39;</span><span class="p">],</span>
+                            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;minute&#39;</span><span class="p">])</span>
+        <span class="n">unique_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">mytimes</span><span class="p">))</span>
+        <span class="n">ntimes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_times</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">ntimes</span><span class="p">)</span>
+        <span class="n">utraj</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;trajid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+        <span class="n">mytraj</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;trajid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="c1"># myage = data[&#39;age&#39;].values</span>
+        <span class="n">trajidx</span> <span class="o">=</span> <span class="p">(</span><span class="n">utraj</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">==</span> <span class="n">mytraj</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">timeidx</span> <span class="o">=</span> <span class="p">(</span><span class="n">unique_times</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">==</span> <span class="n">mytimes</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">tmpv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_all</span><span class="p">((</span><span class="n">ntimes</span><span class="p">,</span> <span class="n">ntrajs</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;f&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+                <span class="n">k</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;trajectory&#39;</span><span class="p">),</span> <span class="n">fill_value</span><span class="o">=-</span><span class="mf">999.</span><span class="p">)</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="n">k</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span>
+            <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">tmpv</span>
+            <span class="n">v</span><span class="p">[</span><span class="n">timeidx</span><span class="p">,</span> <span class="n">trajidx</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+<div class="viewcode-block" id="arltrajdump.getTimes">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.noaafiles.html#PseudoNetCDF.noaafiles.arltrajdump.getTimes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">getTimes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">year</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">)</span>
+        <span class="n">month</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;month&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">)</span>
+        <span class="n">day</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;day&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">)</span>
+        <span class="n">hour</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">)</span>
+        <span class="n">minute</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;minute&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">arl2timea</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">hour</span><span class="p">,</span> <span class="n">minute</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">arltrajdump</span><span class="p">(</span><span class="s1">&#39;tdump_008&#39;</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

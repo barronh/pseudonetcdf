@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.geoschemfiles._gcnc &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.geoschemfiles._gcnc</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.geoschemfiles._gcnc</h1><div class="highlight"><pre>
+<span></span><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;gcnc_base&#39;</span><span class="p">,</span> <span class="s1">&#39;gcnc&#39;</span><span class="p">]</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.core._files</span><span class="w"> </span><span class="kn">import</span> <span class="n">netcdf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncwarn</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">gcnc_base</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_newlike</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+            <span class="n">outt</span> <span class="o">=</span> <span class="n">gcnc_base</span>
+            <span class="n">outf</span> <span class="o">=</span> <span class="n">outt</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">outt</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outf</span> <span class="o">=</span> <span class="n">PseudoNetCDFFile</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">outf</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">ll2xy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">ll2ij</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">clean</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Converts lon/lat to 0-based indicies (0,M), (0,N)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        lon : scalar or iterable of longitudes in decimal degrees</span>
+<span class="sd">        lat : scalar or iterable of latitudes in decimal degrees</span>
+<span class="sd">        bounds : ignore, error, warn if i,j are out of domain</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        i, j : indices (0-based) for variables</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
+        <span class="n">lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span>
+
+        <span class="n">lonc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">]</span>
+        <span class="n">latc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span>
+
+        <span class="n">dlon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">lonc</span><span class="p">))</span> <span class="o">/</span> <span class="mf">2.</span>
+        <span class="n">dlat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">latc</span><span class="p">))</span> <span class="o">/</span> <span class="mf">2.</span>
+
+        <span class="n">lonb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">lonc</span> <span class="o">-</span> <span class="n">dlon</span><span class="p">,</span> <span class="n">lonc</span> <span class="o">+</span> <span class="n">dlon</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">latb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">latc</span> <span class="o">-</span> <span class="n">dlat</span><span class="p">,</span> <span class="n">latc</span> <span class="o">+</span> <span class="n">dlat</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="n">spi</span> <span class="o">=</span> <span class="n">latb</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">90</span>
+        <span class="n">npi</span> <span class="o">=</span> <span class="n">latb</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">90</span>
+
+        <span class="n">latb</span><span class="p">[</span><span class="n">spi</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">latc</span><span class="p">[</span><span class="n">spi</span><span class="p">]</span> <span class="o">-</span> <span class="n">dlon</span> <span class="o">/</span> <span class="mf">2.</span>
+        <span class="n">latb</span><span class="p">[</span><span class="n">spi</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">latc</span><span class="p">[</span><span class="n">spi</span><span class="p">]</span> <span class="o">+</span> <span class="n">dlon</span> <span class="o">/</span> <span class="mf">2.</span>
+        <span class="n">latb</span><span class="p">[</span><span class="n">npi</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">latc</span><span class="p">[</span><span class="n">npi</span><span class="p">]</span> <span class="o">-</span> <span class="n">dlon</span> <span class="o">/</span> <span class="mf">2.</span>
+        <span class="n">latb</span><span class="p">[</span><span class="n">npi</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">latc</span><span class="p">[</span><span class="n">npi</span><span class="p">]</span> <span class="o">+</span> <span class="n">dlon</span> <span class="o">/</span> <span class="mf">2.</span>
+
+        <span class="n">easter</span> <span class="o">=</span> <span class="n">lon</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">lonb</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">wester</span> <span class="o">=</span> <span class="n">lon</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">lonb</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">loni</span><span class="p">,</span> <span class="n">gi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">easter</span> <span class="o">&amp;</span> <span class="n">wester</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_all</span><span class="p">(</span><span class="n">lon</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;i&#39;</span><span class="p">)</span>
+        <span class="n">i</span><span class="p">[</span><span class="n">loni</span><span class="p">]</span> <span class="o">=</span> <span class="n">gi</span>
+        <span class="n">norther</span> <span class="o">=</span> <span class="n">lat</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">latb</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">souther</span> <span class="o">=</span> <span class="n">lat</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">latb</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">latj</span><span class="p">,</span> <span class="n">gj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">norther</span> <span class="o">&amp;</span> <span class="n">souther</span><span class="p">)</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_all</span><span class="p">(</span><span class="n">lat</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;i&#39;</span><span class="p">)</span>
+        <span class="n">j</span><span class="p">[</span><span class="n">latj</span><span class="p">]</span> <span class="o">=</span> <span class="n">gj</span>
+
+        <span class="n">nx</span> <span class="o">=</span> <span class="n">lonb</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ny</span> <span class="o">=</span> <span class="n">latb</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">bounds</span> <span class="o">==</span> <span class="s1">&#39;ignore&#39;</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">missi</span><span class="p">,</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">mask</span><span class="p">)</span>
+            <span class="n">missj</span><span class="p">,</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">j</span><span class="o">.</span><span class="n">mask</span><span class="p">)</span>
+            <span class="n">outb</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">mask</span> <span class="o">|</span> <span class="n">j</span><span class="o">.</span><span class="n">mask</span>
+            <span class="n">nout</span> <span class="o">=</span> <span class="n">outb</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">nout</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> Points out of bounds </span><span class="si">{:.1%}</span><span class="s1">; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">nout</span><span class="p">,</span> <span class="n">nout</span> <span class="o">/</span> <span class="n">i</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">outb</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">bounds</span> <span class="o">==</span> <span class="s1">&#39;error&#39;</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">warn</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">clean</span> <span class="o">==</span> <span class="s1">&#39;clip&#39;</span><span class="p">:</span>
+            <span class="n">highi</span><span class="p">,</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">easter</span><span class="p">[:]</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">lowi</span><span class="p">,</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">wester</span><span class="p">[:]</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">highj</span><span class="p">,</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">norther</span><span class="p">[:]</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">lowj</span><span class="p">,</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">souther</span><span class="p">[:]</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">i</span><span class="p">[</span><span class="n">lowi</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">i</span><span class="p">[</span><span class="n">highi</span><span class="p">]</span> <span class="o">=</span> <span class="n">nx</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">j</span><span class="p">[</span><span class="n">lowj</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">j</span><span class="p">[</span><span class="n">highj</span><span class="p">]</span> <span class="o">=</span> <span class="n">ny</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Mask or nothing should both create symmetric masks</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">getmaskarray</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">|</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">getmaskarray</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">interpSigma</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vglvls</span><span class="p">,</span> <span class="n">vgtop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">interptype</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
+                    <span class="n">extrapolate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">,</span>
+                    <span class="n">layerdims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">approach</span><span class="o">=</span><span class="s1">&#39;eta&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        self : the file to interpolate from must have VGLVLS</span>
+<span class="sd">        vglvls : the new vglvls (edges)</span>
+<span class="sd">        vgtop : Converting to new vgtop (Pascals)</span>
+<span class="sd">        interptype : &#39;linear&#39; or &#39;conserve&#39;</span>
+<span class="sd">             linear : uses a linear interpolation</span>
+<span class="sd">             conserve : uses a mass conserving interpolation</span>
+<span class="sd">        extrapolate : allow extrapolation beyond bounds with linear,</span>
+<span class="sd">                      default False</span>
+<span class="sd">        fill_value : set fill value (e.g, nan) to prevent extrapolation or edge</span>
+<span class="sd">                     continuation</span>
+<span class="sd">        layerdims : specify layer dimension, None will apply to all dimensions</span>
+<span class="sd">                    named lev*</span>
+<span class="sd">        approach :</span>
+<span class="sd">             eta : use simple eta coordinates to calculate sigma and</span>
+<span class="sd">                   interpolate</span>
+<span class="sd">             pressure : requires surface pressure</span>
+<span class="sd">        verbose : 0-inf show more</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        outf - ioapi_base PseudoNetCDFFile with al variables interpolated</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        When extrapolate is false, the edge values are used for points beyond</span>
+<span class="sd">        the inputs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">etai</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;P0&#39;</span><span class="p">][</span><span class="o">...</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;hybi&#39;</span><span class="p">][</span><span class="o">...</span><span class="p">]</span> <span class="o">+</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;hyai&#39;</span><span class="p">][</span><span class="o">...</span><span class="p">]</span>
+        <span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span>
+        <span class="c1"># grab input sigma coordinates</span>
+        <span class="n">myvglvls</span> <span class="o">=</span> <span class="p">(</span><span class="n">etai</span> <span class="o">-</span> <span class="n">vgtop</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">etai</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">vgtop</span><span class="p">)</span>
+
+        <span class="c1"># Use midpoint for sigmas in inputs and outputs</span>
+        <span class="n">zs</span> <span class="o">=</span> <span class="p">(</span><span class="n">myvglvls</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">myvglvls</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="mf">2.</span>
+        <span class="n">nzs</span> <span class="o">=</span> <span class="p">(</span><span class="n">vglvls</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">vglvls</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="mf">2.</span>
+
+        <span class="k">if</span> <span class="n">interptype</span> <span class="o">==</span> <span class="s1">&#39;linear&#39;</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">..coordutil</span><span class="w"> </span><span class="kn">import</span> <span class="n">getinterpweights</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">getinterpweights</span><span class="p">(</span>
+                <span class="n">zs</span><span class="p">,</span> <span class="n">nzs</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">interptype</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">,</span>
+                <span class="n">extrapolate</span><span class="o">=</span><span class="n">extrapolate</span><span class="p">)</span>
+            <span class="c1"># Create a function for interpolation</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">interpsigma</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">newdata</span> <span class="o">=</span> <span class="p">(</span><span class="n">weights</span><span class="p">[:</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">*</span> <span class="n">data</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">newdata</span> <span class="o">=</span> <span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span>
+                               <span class="n">data</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">newdata</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;interptype only implemented for &quot;linear&quot;; got &#39;</span> <span class="o">+</span> <span class="n">interptype</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Apply function on LAY</span>
+        <span class="k">if</span> <span class="n">layerdims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">layerdims</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span>
+                <span class="n">dk</span> <span class="k">for</span> <span class="n">dk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">dk</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;lev&#39;</span><span class="p">)</span> <span class="ow">and</span>
+                    <span class="ow">not</span> <span class="n">dk</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_bounds&#39;</span><span class="p">)</span> <span class="ow">and</span>
+                    <span class="ow">not</span> <span class="n">dk</span> <span class="o">==</span> <span class="s1">&#39;lev1&#39;</span><span class="p">)</span>
+            <span class="p">])</span>
+            <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">layerdims</span><span class="p">)</span>
+        <span class="n">dimfunc</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">layerkey</span><span class="p">,</span> <span class="n">interpsigma</span><span class="p">)</span> <span class="k">for</span> <span class="n">layerkey</span> <span class="ow">in</span> <span class="n">layerdims</span><span class="p">])</span>
+        <span class="n">outf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">applyAlongDimensions</span><span class="p">(</span><span class="o">**</span><span class="n">dimfunc</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">outf</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">stack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">dimkey</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
+        <span class="n">outf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copywith</span><span class="p">(</span><span class="n">props</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+            <span class="n">pfiles</span> <span class="o">=</span> <span class="n">other</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pfiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">other</span><span class="p">]</span>
+
+        <span class="n">outf</span> <span class="o">=</span> <span class="n">PseudoNetCDFFile</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">dimkey</span><span class="p">)</span>
+        <span class="n">tvar</span> <span class="o">=</span> <span class="n">outf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span>
+        <span class="n">tunits</span> <span class="o">=</span> <span class="n">tvar</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">tres</span><span class="p">,</span> <span class="n">rdatestr</span> <span class="o">=</span> <span class="n">tunits</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; since &#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dimkey</span> <span class="o">==</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span>
+            <span class="n">times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getTimes</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">pfile</span> <span class="ow">in</span> <span class="n">pfiles</span><span class="p">:</span>
+                <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">times</span><span class="p">,</span> <span class="n">pfile</span><span class="o">.</span><span class="n">getTimes</span><span class="p">()],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">tformat</span> <span class="o">=</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S%z&#39;</span>
+        <span class="n">rdate</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">rdatestr</span> <span class="o">=</span> <span class="n">rdate</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">tformat</span><span class="p">)</span>
+        <span class="n">tvar</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;hours since &#39;</span> <span class="o">+</span> <span class="n">rdatestr</span>
+        <span class="n">rvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">rdate</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="mf">3600.</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span>
+        <span class="p">])</span>
+        <span class="n">tvar</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">rvals</span>
+        <span class="k">return</span> <span class="n">outf</span>
+
+
+<div class="viewcode-block" id="gcnc">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.geoschemfiles.html#PseudoNetCDF.geoschemfiles.gcnc">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">gcnc</span><span class="p">(</span><span class="n">gcnc_base</span><span class="p">,</span> <span class="n">netcdf</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="n">netcdf</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setCoords</span><span class="p">(</span><span class="s1">&#39;hyam hyai hybm hybi time lat lon lev ilev P0&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">())</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

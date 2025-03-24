@@ -1,0 +1,21 @@
+PseudoNetCDF.toms package
+=========================
+
+Submodules
+----------
+
+PseudoNetCDF.toms.level3 module
+-------------------------------
+
+.. automodule:: PseudoNetCDF.toms.level3
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.toms
+   :members:
+   :show-inheritance:
+   :undoc-members:

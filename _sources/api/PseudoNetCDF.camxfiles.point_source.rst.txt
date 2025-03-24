@@ -1,0 +1,37 @@
+PseudoNetCDF.camxfiles.point\_source package
+============================================
+
+Submodules
+----------
+
+PseudoNetCDF.camxfiles.point\_source.Memmap module
+--------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.point_source.Memmap
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.point\_source.Read module
+------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.point_source.Read
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.point\_source.Write module
+-------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.point_source.Write
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.camxfiles.point_source
+   :members:
+   :show-inheritance:
+   :undoc-members:

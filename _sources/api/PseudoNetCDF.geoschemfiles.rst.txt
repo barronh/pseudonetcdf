@@ -1,0 +1,10 @@
+PseudoNetCDF.geoschemfiles package
+==================================
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.geoschemfiles
+   :members:
+   :show-inheritance:
+   :undoc-members:

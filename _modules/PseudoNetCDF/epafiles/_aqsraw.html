@@ -1,0 +1,319 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.epafiles._aqsraw &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.epafiles._aqsraw</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.epafiles._aqsraw</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">getbdate</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">x</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">datetime</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">x</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="s1">&#39; 00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">getedate</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">x</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">datetime</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">x</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="s1">&#39; 23:59&#39;</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="aqsraw">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.epafiles.html#PseudoNetCDF.epafiles.aqsraw">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">aqsraw</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">yearpath</span><span class="p">,</span> <span class="n">timeresolution</span><span class="o">=</span><span class="s1">&#39;hourly&#39;</span><span class="p">,</span> <span class="n">bdate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">edate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rdate</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1900</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">wktpolygon</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">sampleval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        yearpath - path to csv file from AQS</span>
+<span class="sd">        timeresolution - choices = [&#39;daily&#39;, &#39;hourly&#39;] default = &#39;hourly&#39;,</span>
+<span class="sd">                         defaults to hourly&#39;</span>
+<span class="sd">        bdate - Limit output so that the date starts at YYYY-MM-DD</span>
+<span class="sd">        edate - Limit output so that the date end YYYY-MM-DD (inclusive)</span>
+<span class="sd">        rdate - datetime(1900, 1, 1), dest = &#39;rdate&#39;, type = getrdate,</span>
+<span class="sd">                help = &#39;Reference date YYYYMMDD HH:MM:SS&#39;)</span>
+<span class="sd">        wktpolygon - WKT Polygon (default: None) equivalent to</span>
+<span class="sd">                     &quot;POLYGON ((-180 -90, 180 -90, 180 90, -180 90, -180 -90))&quot;</span>
+<span class="sd">        sampleval - Defaults to &quot;Sample Measurement&quot; for hourly and &quot;Arithmetic</span>
+<span class="sd">                    Mean&quot; for daily</span>
+<span class="sd">        verbose - level of verbosity</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;aqsraw requires pandas; install pandas &#39;</span> <span class="o">+</span>
+                              <span class="s1">&#39;(e.g., pip install pandas)&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">wktpolygon</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">shapely.wkt</span><span class="w"> </span><span class="kn">import</span> <span class="n">loads</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">shapely.prepared</span><span class="w"> </span><span class="kn">import</span> <span class="n">prep</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="n">loads</span><span class="p">(</span><span class="n">wktpolygon</span><span class="p">)</span>
+            <span class="n">pbounds</span> <span class="o">=</span> <span class="n">prep</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">shapely.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">Point</span>
+        <span class="n">bdate</span> <span class="o">=</span> <span class="n">getbdate</span><span class="p">(</span><span class="n">bdate</span><span class="p">)</span>
+        <span class="n">edate</span> <span class="o">=</span> <span class="n">getedate</span><span class="p">(</span><span class="n">edate</span><span class="p">)</span>
+        <span class="n">nseconds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;hourly&#39;</span><span class="p">:</span> <span class="mi">3600</span><span class="p">,</span> <span class="s1">&#39;daily&#39;</span><span class="p">:</span> <span class="mi">3600</span> <span class="o">*</span> <span class="mi">24</span><span class="p">}[</span><span class="n">timeresolution</span><span class="p">]</span>
+        <span class="n">tunit</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;hourly&#39;</span><span class="p">:</span> <span class="s1">&#39;hours&#39;</span><span class="p">,</span> <span class="s1">&#39;daily&#39;</span><span class="p">:</span> <span class="s1">&#39;days&#39;</span><span class="p">}[</span><span class="n">timeresolution</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">sampleval</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">timeresolution</span> <span class="o">==</span> <span class="s1">&#39;hourly&#39;</span><span class="p">:</span>
+                <span class="n">sampleval</span> <span class="o">=</span> <span class="s2">&quot;Sample Measurement&quot;</span>
+            <span class="k">elif</span> <span class="n">timeresolution</span> <span class="o">==</span> <span class="s1">&#39;daily&#39;</span><span class="p">:</span>
+                <span class="n">sampleval</span> <span class="o">=</span> <span class="s2">&quot;Arithmetic Mean&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">sampleval</span> <span class="o">+</span> <span class="s1">&#39; not appropriate sampleval value&#39;</span><span class="p">)</span>
+        <span class="n">hourlys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">yearpath</span> <span class="ow">in</span> <span class="p">[</span><span class="n">yearpath</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Reading&#39;</span><span class="p">,</span> <span class="n">yearpath</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">timeresolution</span> <span class="o">==</span> <span class="s1">&#39;hourly&#39;</span><span class="p">:</span>
+                <span class="n">parse_dates</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">]]</span>
+                <span class="n">date_key</span> <span class="o">=</span> <span class="s1">&#39;Date GMT_Time GMT&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">parse_dates</span> <span class="o">=</span> <span class="p">[</span><span class="mi">11</span><span class="p">]</span>
+                <span class="n">date_key</span> <span class="o">=</span> <span class="s1">&#39;Date Local&#39;</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">yearpath</span><span class="p">,</span>
+                                   <span class="n">index_col</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                   <span class="n">converters</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;State Code&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                               <span class="s1">&#39;County Code&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                               <span class="s1">&#39;Site Num&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">},</span>
+                                   <span class="n">parse_dates</span><span class="o">=</span><span class="n">parse_dates</span><span class="p">)</span>
+            <span class="n">intimes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="kc">True</span><span class="p">])</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="c1"># intimes = intimes &amp; (data[&#39;Parameter Code&#39;] == param)</span>
+
+            <span class="k">if</span> <span class="n">bdate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">intimes</span> <span class="o">=</span> <span class="n">intimes</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">date_key</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">bdate</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">edate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">intimes</span> <span class="o">=</span> <span class="n">intimes</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">date_key</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">edate</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">wktpolygon</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">inspace_and_time</span> <span class="o">=</span> <span class="n">intimes</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">inspace_and_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="kc">False</span><span class="p">])</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">zll</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">intimes</span><span class="p">,</span>
+                          <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Longitude&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                          <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Latitude&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">intime</span><span class="p">,</span> <span class="n">plon</span><span class="p">,</span> <span class="n">plat</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">zll</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">intime</span><span class="p">:</span>
+                        <span class="n">inspace_and_time</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">pbounds</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span>
+                            <span class="n">Point</span><span class="p">(</span><span class="n">plon</span><span class="p">,</span> <span class="n">plat</span><span class="p">))</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">inspace_and_time</span>
+            <span class="n">groupkeys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Parameter Code&#39;</span><span class="p">,</span> <span class="s1">&#39;Parameter Name&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;Units of Measure&#39;</span><span class="p">,</span> <span class="n">date_key</span><span class="p">,</span>
+                         <span class="s1">&#39;State Code&#39;</span><span class="p">,</span> <span class="s1">&#39;County Code&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;Site Num&#39;</span><span class="p">]</span>
+
+            <span class="n">hourly</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">groupkeys</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>\
+                               <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>\
+                               <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="n">groupkeys</span><span class="p">)</span>
+
+            <span class="n">hourlys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hourly</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Concatenating files&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hourlys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">hourly</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">hourlys</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hourly</span> <span class="o">=</span> <span class="n">hourlys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">sites</span> <span class="o">=</span> <span class="n">hourly</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;State Code&#39;</span><span class="p">,</span> <span class="s1">&#39;County Code&#39;</span><span class="p">,</span> <span class="s1">&#39;Site Num&#39;</span><span class="p">],</span>
+                               <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
+        <span class="n">nsites</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span>
+
+        <span class="n">rawdates</span> <span class="o">=</span> <span class="n">hourly</span><span class="p">[</span><span class="n">date_key</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">bdate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bdate</span> <span class="o">=</span> <span class="n">rawdates</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">edate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">edate</span> <span class="o">=</span> <span class="n">rawdates</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">ntimes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">edate</span> <span class="o">-</span> <span class="n">bdate</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">//</span> <span class="n">nseconds</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">alltimes</span> <span class="o">=</span> <span class="p">[</span><span class="n">timedelta</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">tunit</span><span class="p">:</span> <span class="n">i</span><span class="p">})</span> <span class="o">+</span> <span class="n">bdate</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ntimes</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Creating output file&#39;</span><span class="p">)</span>
+        <span class="n">tdim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">ntimes</span><span class="p">)</span>
+        <span class="n">tdim</span><span class="o">.</span><span class="n">setunlimited</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">sitelist</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;State Code&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;County Code&#39;</span><span class="p">]</span> <span class="o">+</span>
+                    <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Site Num&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">sites</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SITENAMES</span> <span class="o">=</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sitelist</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;points&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sitelist</span><span class="p">))</span>
+        <span class="n">lonlatcoordstrs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1">,</span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Longitude&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Latitude&#39;</span><span class="p">])</span>
+                           <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">sites</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lonlatcoords</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lonlatcoordstrs</span><span class="p">)</span>
+        <span class="n">last_time</span> <span class="o">=</span> <span class="n">hourly</span><span class="p">[</span><span class="n">date_key</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="c1"># end_time = hourly[date_key].values.max()</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">lat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;latitude&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;points&#39;</span><span class="p">,))</span>
+        <span class="n">lat</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;degrees_north&#39;</span>
+        <span class="n">lat</span><span class="o">.</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s1">&#39;latitude&#39;</span>
+        <span class="n">lat</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">sites</span><span class="p">[</span><span class="s1">&#39;Latitude&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">lon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;longitude&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;points&#39;</span><span class="p">,))</span>
+        <span class="n">lon</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;degrees_east&#39;</span>
+        <span class="n">lon</span><span class="o">.</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s1">&#39;longitude&#39;</span>
+        <span class="n">lon</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">sites</span><span class="p">[</span><span class="s1">&#39;Longitude&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+        <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing data rows&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">hourly</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">this_time</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">date_key</span><span class="p">]</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">sampleval</span><span class="p">]</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Units of Measure&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">aqsid</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;State Code&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;County Code&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Site Num&#39;</span><span class="p">]</span>
+            <span class="n">sidx</span> <span class="o">=</span> <span class="n">sitelist</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">aqsid</span><span class="p">)</span>
+            <span class="n">var_name</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Parameter Name&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">var_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+                    <span class="n">var_name</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="s1">&#39;points&#39;</span><span class="p">),</span> <span class="n">fill_value</span><span class="o">=-</span><span class="mi">999</span><span class="p">)</span>
+                <span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">unit</span>
+                <span class="n">var</span><span class="o">.</span><span class="n">standard_name</span> <span class="o">=</span> <span class="n">var_name</span>
+                <span class="n">temp</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_all</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">ntimes</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nsites</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;f&#39;</span><span class="p">)</span>
+                <span class="n">temp</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span><span class="o">.</span><span class="n">set_fill_value</span><span class="p">(</span><span class="o">-</span><span class="mi">999</span><span class="p">)</span>
+            <span class="n">tmpvar</span> <span class="o">=</span> <span class="n">temp</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">==</span> <span class="n">unit</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">last_time</span> <span class="o">!=</span> <span class="n">this_time</span><span class="p">:</span>
+                <span class="n">last_time</span> <span class="o">=</span> <span class="n">this_time</span>
+                <span class="n">tidx</span> <span class="o">=</span> <span class="n">alltimes</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">this_time</span><span class="o">.</span><span class="n">to_pydatetime</span><span class="p">())</span>
+                <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\b\b\b\b\b\b</span><span class="s1"> </span><span class="si">%3d%%</span><span class="s1">&#39;</span> <span class="o">%</span>
+                          <span class="nb">int</span><span class="p">(</span><span class="n">tidx</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">ntimes</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tidx</span> <span class="o">&gt;</span> <span class="n">ntimes</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;Times (</span><span class="si">%d</span><span class="s1">) exceed expected (</span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tidx</span><span class="p">,</span> <span class="n">ntimes</span><span class="p">))</span>
+
+            <span class="n">tmpvar</span><span class="p">[</span><span class="n">tidx</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sidx</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Writing to file&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">varkey</span><span class="p">,</span> <span class="n">tempvals</span> <span class="ow">in</span> <span class="n">temp</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varkey</span><span class="p">][:]</span> <span class="o">=</span> <span class="n">tempvals</span>
+
+        <span class="n">outtimes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[(</span><span class="n">t</span> <span class="o">-</span> <span class="n">rdate</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="n">nseconds</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">alltimes</span><span class="p">])</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">outtimes</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,))</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">rdate</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">tunit</span> <span class="o">+</span> <span class="s1">&#39; since </span><span class="si">%F</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s1">&#39;time&#39;</span>
+        <span class="n">time</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">outtimes</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">aqsraw</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">bdate</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span>
+        <span class="mi">2015</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">edate</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2015</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

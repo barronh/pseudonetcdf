@@ -1,0 +1,45 @@
+PseudoNetCDF.camxfiles.height\_pressure package
+===============================================
+
+Submodules
+----------
+
+PseudoNetCDF.camxfiles.height\_pressure.Memmap module
+-----------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.height_pressure.Memmap
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.height\_pressure.Read module
+---------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.height_pressure.Read
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.height\_pressure.Transforms module
+---------------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.height_pressure.Transforms
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.height\_pressure.Write module
+----------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.height_pressure.Write
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.camxfiles.height_pressure
+   :members:
+   :show-inheritance:
+   :undoc-members:

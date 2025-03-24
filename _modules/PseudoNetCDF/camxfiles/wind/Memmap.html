@@ -1,0 +1,337 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.camxfiles.wind.Memmap &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.camxfiles.wind.Memmap</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.camxfiles.wind.Memmap</h1><div class="highlight"><pre>
+<span></span><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;wind&#39;</span><span class="p">]</span>
+<span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">.. _Memmap</span>
+<span class="s2">:mod:`Memmap` -- wind Memmap interface</span>
+<span class="s2">============================================</span>
+
+<span class="s2">.. module:: Memmap</span>
+<span class="s2">   :platform: Unix, Windows</span>
+<span class="s2">   :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx</span>
+<span class="s2">              wind files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile</span>
+<span class="s2">              for interface details</span>
+<span class="s2">.. moduleauthor:: Barron Henderson &lt;barronh@unc.edu&gt;</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="c1"># Distribution packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">unittest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
+
+<span class="c1"># Site-Packages</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">zeros</span><span class="p">,</span> <span class="n">array</span><span class="p">,</span> <span class="n">memmap</span><span class="p">,</span> <span class="n">nan</span>
+
+<span class="c1"># This Package modules</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.camxfiles.FortranFileUtil</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenRecordFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span><span class="p">,</span> <span class="n">PseudoNetCDFVariable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFVariables</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.ArrayTransforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvertCAMxTime</span>
+
+<span class="c1"># for use in identifying uncaught nan</span>
+<span class="n">listnan</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\xff\xc0\x00\x00</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">checkarray</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span>
+<span class="n">checkarray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">listnan</span>
+<span class="n">array_nan</span> <span class="o">=</span> <span class="n">checkarray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="wind">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.wind.html#PseudoNetCDF.camxfiles.Memmaps.wind">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">wind</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    wind provides a PseudoNetCDF interface for CAMx</span>
+<span class="sd">    wind files.  Where possible, the inteface follows</span>
+<span class="sd">    IOAPI conventions (see www.baronams.com).</span>
+
+<span class="sd">    ex:</span>
+<span class="sd">        &gt;&gt;&gt; wind_path = &#39;camx_wind.bin&#39;</span>
+<span class="sd">        &gt;&gt;&gt; rows,cols = 65,83</span>
+<span class="sd">        &gt;&gt;&gt; windfile = wind(wind_path,rows,cols)</span>
+<span class="sd">        &gt;&gt;&gt; windfile.variables.keys()</span>
+<span class="sd">        [&#39;TFLAG&#39;, &#39;U&#39;, &#39;V&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; v = windfile.variables[&#39;V&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; tflag = windfile.variables[&#39;TFLAG&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; tflag.dimensions</span>
+<span class="sd">        (&#39;TSTEP&#39;, &#39;VAR&#39;, &#39;DATE-TIME&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; tflag[0,0,:]</span>
+<span class="sd">        array([2005185,       0])</span>
+<span class="sd">        &gt;&gt;&gt; tflag[-1,0,:]</span>
+<span class="sd">        array([2005185,  240000])</span>
+<span class="sd">        &gt;&gt;&gt; v.dimensions</span>
+<span class="sd">        (&#39;TSTEP&#39;, &#39;LAY&#39;, &#39;ROW&#39;, &#39;COL&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; v.shape</span>
+<span class="sd">        (25, 28, 65, 83)</span>
+<span class="sd">        &gt;&gt;&gt; windfile.dimensions</span>
+<span class="sd">        {&#39;TSTEP&#39;: 25, &#39;LAY&#39;: 28, &#39;ROW&#39;: 65, &#39;COL&#39;: 83}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__units</span> <span class="o">=</span> <span class="s1">&#39;m/s&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rffile</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">):</span>
+        <span class="n">rf</span> <span class="o">=</span> <span class="n">OpenRecordFile</span><span class="p">(</span><span class="n">rffile</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__time_hdr_fmts</span> <span class="o">=</span> <span class="p">{</span><span class="mi">12</span><span class="p">:</span> <span class="s2">&quot;fii&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">:</span> <span class="s2">&quot;fi&quot;</span><span class="p">}[</span><span class="n">rf</span><span class="o">.</span><span class="n">record_size</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__time_hdr_fmts_size</span> <span class="o">=</span> <span class="n">rf</span><span class="o">.</span><span class="n">record_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">STIME</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">SDATE</span> <span class="o">=</span> <span class="n">rf</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;fi&quot;</span><span class="p">)</span>
+
+        <span class="n">rf</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+        <span class="n">lays</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">record_size</span> <span class="o">=</span> <span class="n">rf</span><span class="o">.</span><span class="n">record_size</span>
+        <span class="k">while</span> <span class="n">rf</span><span class="o">.</span><span class="n">record_size</span> <span class="o">==</span> <span class="n">record_size</span><span class="p">:</span>
+            <span class="n">lays</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">rf</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dummy_length</span> <span class="o">=</span> <span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">record_size</span> <span class="o">+</span> <span class="mi">8</span><span class="p">)</span> <span class="o">//</span> <span class="mi">4</span>
+        <span class="n">lays</span> <span class="o">//=</span> <span class="mi">2</span>
+        <span class="n">record</span> <span class="o">=</span> <span class="n">rows</span> <span class="o">*</span> <span class="n">cols</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">+</span> <span class="mi">8</span>
+        <span class="n">total_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dummy_length</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">total_size</span> <span class="o">&lt;</span> <span class="n">rf</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
+            <span class="n">times</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">total_size</span> <span class="o">+=</span> <span class="n">record</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">lays</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_hdr_fmts_size</span> <span class="o">+</span> <span class="mi">8</span>
+        <span class="n">times</span> <span class="o">-=</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">OrderedDict</span>
+        <span class="k">del</span> <span class="n">rf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="n">times</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;DATE-TIME&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="n">lays</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;COL&#39;</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">NVARS</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;VAR&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NLAYS</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;LAY&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NROWS</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;ROW&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NCOLS</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;COL&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FTYPE</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span> <span class="o">=</span> <span class="n">memmap</span><span class="p">(</span><span class="n">rffile</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_hdr_fmts_size</span> <span class="o">==</span> <span class="mi">12</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">LSTAGGER</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;i&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">LSTAGGER</span> <span class="o">=</span> <span class="n">nan</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariables</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__variables</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">,</span> <span class="s1">&#39;U&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__add_variables</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__decorator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">pncfv</span><span class="p">):</span>
+        <span class="n">decor</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;DATE-TIME&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;TFLAG&#39;</span><span class="p">,</span> <span class="s1">&#39;var_desc&#39;</span><span class="p">:</span> <span class="s1">&#39;Time flag&#39;</span><span class="p">}}</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">decor</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s&#39;</span><span class="p">,</span> <span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span>
+                                  <span class="s1">&#39;var_desc&#39;</span><span class="p">:</span> <span class="n">k</span><span class="p">})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">pncfv</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pncfv</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__add_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tsteps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">])</span>
+        <span class="n">lays</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;LAY&#39;</span><span class="p">])</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;ROW&#39;</span><span class="p">])</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;COL&#39;</span><span class="p">])</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_hdr_fmts</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span>
+        <span class="n">block</span> <span class="o">=</span> <span class="p">(</span><span class="n">rows</span> <span class="o">*</span> <span class="n">cols</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">lays</span>
+        <span class="n">out_idx</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tsteps</span><span class="p">):</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">t</span> <span class="o">*</span> <span class="n">block</span> <span class="o">+</span> <span class="n">t</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dummy_length</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">block</span>
+
+            <span class="n">nlay2</span> <span class="o">=</span> <span class="n">lays</span> <span class="o">*</span> <span class="mi">2</span>
+            <span class="n">nmatrix</span> <span class="o">=</span> <span class="n">rows</span> <span class="o">*</span> <span class="n">cols</span>
+            <span class="n">out_idx</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nlay2</span><span class="p">,</span> <span class="n">nmatrix</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">out_idx</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nlay2</span><span class="p">,</span> <span class="n">nmatrix</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="n">out_idx</span><span class="p">[</span><span class="n">start</span> <span class="o">-</span> <span class="n">offset</span><span class="p">:</span><span class="n">start</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+
+        <span class="n">buffer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="n">out_idx</span> <span class="o">==</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tsteps</span><span class="p">,</span> <span class="n">lays</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">buffer</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">buffer</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Fortran unformatted record start and end &#39;</span> <span class="o">+</span>
+                             <span class="s1">&#39;padding do not match.&#39;</span><span class="p">)</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="n">out_idx</span> <span class="o">==</span> <span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="n">tsteps</span><span class="p">,</span> <span class="p">(</span><span class="n">out_idx</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">//</span> <span class="n">tsteps</span><span class="p">)[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">)</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="n">out_idx</span> <span class="o">==</span> <span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="n">tsteps</span><span class="p">,</span> <span class="p">(</span><span class="n">out_idx</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">//</span> <span class="n">tsteps</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ConvertCAMxTime</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">uvals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="n">out_idx</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tsteps</span><span class="p">,</span> <span class="n">lays</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span>
+                                                    <span class="n">cols</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__decorator</span><span class="p">(</span><span class="s1">&#39;U&#39;</span><span class="p">,</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;U&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="s1">&#39;COL&#39;</span><span class="p">),</span>
+            <span class="n">values</span><span class="o">=</span><span class="n">uvals</span><span class="p">))</span>
+        <span class="n">vvals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="n">out_idx</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tsteps</span><span class="p">,</span> <span class="n">lays</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span>
+                                                    <span class="n">cols</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__decorator</span><span class="p">(</span><span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="s1">&#39;COL&#39;</span><span class="p">),</span> <span class="n">values</span><span class="o">=</span><span class="n">vvals</span><span class="p">))</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestMemmap</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">runTest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testWD</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF.testcase</span>
+        <span class="n">wdfile</span> <span class="o">=</span> <span class="n">wind</span><span class="p">(</span><span class="n">PseudoNetCDF</span><span class="o">.</span><span class="n">testcase</span><span class="o">.</span><span class="n">camxfiles_paths</span><span class="p">[</span><span class="s1">&#39;wind&#39;</span><span class="p">],</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">wdfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">]</span>
+        <span class="n">checkv</span> <span class="o">=</span> <span class="n">array</span><span class="p">([</span>
+            <span class="o">-</span><span class="mf">1.73236704e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.99612117e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.00912833e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.92667437e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">3.49521232e+00</span><span class="p">,</span> <span class="mf">2.04542422e+00</span><span class="p">,</span> <span class="mf">8.57666790e-01</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.71201074e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">4.24386787e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">5.37704515e+00</span><span class="p">,</span> <span class="mf">1.85697508e+00</span><span class="p">,</span> <span class="mf">6.34313405e-01</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">1.21529281e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.03180861e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">4.36278439e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.90753967e-01</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">1.08261776e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.73634803e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.10829663e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.28424144e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">1.88443780e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.02582169e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.09955978e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">4.14587784e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">3.72402787e+00</span><span class="p">,</span> <span class="mf">2.16277528e+00</span><span class="p">,</span> <span class="mf">8.94082963e-01</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.86343944e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">4.58147812e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">5.81837606e+00</span><span class="p">,</span> <span class="mf">1.97949493e+00</span><span class="p">,</span> <span class="mf">6.12511635e-01</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">1.35096896e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.25313163e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">4.67790413e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.89851984e-01</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">1.16381800e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.84269297e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.21348834e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.40952253e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">2.04972148e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.11795568e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.06094027e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">4.11207581e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">3.74964952e+00</span><span class="p">,</span> <span class="mf">2.09780049e+00</span><span class="p">,</span> <span class="mf">8.01259458e-01</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.90404522e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">4.59170580e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">5.83114100e+00</span><span class="p">,</span> <span class="mf">1.97475648e+00</span><span class="p">,</span> <span class="mf">5.54396451e-01</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">1.41695607e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.28227353e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">4.67724609e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.94723800e-01</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">1.18353117e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.86556363e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.22842574e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.42080784e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">1.65720737e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.58054411e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.25336742e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.06462526e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">2.47261453e+00</span><span class="p">,</span> <span class="mf">1.37642264e+00</span><span class="p">,</span> <span class="mf">1.16142654e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">6.82058990e-01</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">2.68112469e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.38680530e+00</span><span class="p">,</span> <span class="mf">1.80796599e+00</span><span class="p">,</span> <span class="mf">1.48641026e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">1.71508826e-02</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.68607295e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.89399385e+00</span><span class="p">,</span> <span class="mf">3.40398103e-01</span><span class="p">,</span>
+            <span class="mf">3.25049832e-02</span><span class="p">,</span> <span class="o">-</span><span class="mf">5.91206312e-01</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.19038010e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.52301860e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">1.83006203e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.74505961e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.50190806e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.29507184e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">2.65367699e+00</span><span class="p">,</span> <span class="mf">1.55719578e+00</span><span class="p">,</span> <span class="mf">1.25234461e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">9.14537191e-01</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">3.16307521e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">4.00584650e+00</span><span class="p">,</span> <span class="mf">2.07018161e+00</span><span class="p">,</span> <span class="mf">1.60957754e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">1.46312386e-01</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.04018188e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.40377665e+00</span><span class="p">,</span> <span class="mf">4.11731720e-01</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">2.29119677e-02</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.27373540e-01</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.35116744e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.70711970e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">1.72859466e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.73683071e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.65253377e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.43689489e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">2.75470304e+00</span><span class="p">,</span> <span class="mf">1.58366191e+00</span><span class="p">,</span> <span class="mf">1.19656324e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.09935236e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">3.38544369e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">4.26436615e+00</span><span class="p">,</span> <span class="mf">2.04826832e+00</span><span class="p">,</span> <span class="mf">1.53576791e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">2.60809243e-01</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.18679833e+00</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.59082842e+00</span><span class="p">,</span> <span class="mf">3.77060443e-01</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">1.05680525e-01</span><span class="p">,</span> <span class="o">-</span><span class="mf">8.10511589e-01</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.40993130e+00</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">1.76300752e+00</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;f&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">wdfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">][:]</span> <span class="o">==</span> <span class="n">checkv</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testNCF2WD</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF.testcase</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncgen</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncgen</span>
+
+        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+        <span class="n">inpath</span> <span class="o">=</span> <span class="n">PseudoNetCDF</span><span class="o">.</span><span class="n">testcase</span><span class="o">.</span><span class="n">camxfiles_paths</span><span class="p">[</span><span class="s1">&#39;wind&#39;</span><span class="p">]</span>
+        <span class="n">outpath</span> <span class="o">=</span> <span class="n">PseudoNetCDF</span><span class="o">.</span><span class="n">testcase</span><span class="o">.</span><span class="n">camxfiles_paths</span><span class="p">[</span><span class="s1">&#39;wind&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.check&#39;</span>
+        <span class="n">infile</span> <span class="o">=</span> <span class="n">wind</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">pncgen</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;camxfiles.wind&#39;</span><span class="p">)</span>
+        <span class="n">orig</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">outpath</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">orig</span> <span class="o">==</span> <span class="n">new</span><span class="p">)</span>
+
+
+<span class="c1"># TestSuite = unittest.makeSuite(TestMemmap, &#39;test&#39;)</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

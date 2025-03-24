@@ -1,0 +1,210 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.cmaqfiles.pa &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.cmaqfiles.pa</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.cmaqfiles.pa</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.netcdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">NetCDFFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.MetaNetCDF</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_master</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+
+
+<div class="viewcode-block" id="mrgidx">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.cmaqfiles.html#PseudoNetCDF.cmaqfiles.pa.mrgidx">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mrgidx</span><span class="p">(</span><span class="n">ipr_paths</span><span class="p">,</span> <span class="n">irr_paths</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">irr_paths</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">irrf</span> <span class="o">=</span> <span class="n">NetCDFFile</span><span class="p">(</span><span class="n">irr_paths</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">irrf</span> <span class="o">=</span> <span class="n">file_master</span><span class="p">([</span><span class="n">NetCDFFile</span><span class="p">(</span><span class="n">irr_path</span><span class="p">)</span> <span class="k">for</span> <span class="n">irr_path</span> <span class="ow">in</span> <span class="n">irr_paths</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ipr_paths</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">iprf</span> <span class="o">=</span> <span class="n">NetCDFFile</span><span class="p">(</span><span class="n">ipr_paths</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">iprf</span> <span class="o">=</span> <span class="n">file_master</span><span class="p">([</span><span class="n">NetCDFFile</span><span class="p">(</span><span class="n">ipr_path</span><span class="p">)</span> <span class="k">for</span> <span class="n">ipr_path</span> <span class="ow">in</span> <span class="n">ipr_paths</span><span class="p">])</span>
+
+    <span class="c1"># Process and Reaction keys should exclude TFLAG</span>
+    <span class="n">pr_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">pr</span> <span class="k">for</span> <span class="n">pr</span> <span class="ow">in</span> <span class="n">iprf</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">pr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">,)]</span>
+    <span class="n">rr_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">rr</span> <span class="k">for</span> <span class="n">rr</span> <span class="ow">in</span> <span class="n">irrf</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">rr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">,)]</span>
+
+    <span class="c1"># Attempt to order reactions by number</span>
+    <span class="c1"># this is not necessary, but is nice and clean</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">rr_keys</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">int</span><span class="p">(</span><span class="n">rr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">rr</span><span class="p">)</span> <span class="k">for</span> <span class="n">rr</span> <span class="ow">in</span> <span class="n">rr_keys</span><span class="p">]</span>
+        <span class="n">rr_keys</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">rr_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">rr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">rr</span> <span class="ow">in</span> <span class="n">rr_keys</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Cannot sort reaction keys&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Processes are predicated by a delimiter</span>
+    <span class="n">prcs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">pr</span> <span class="ow">in</span> <span class="n">pr_keys</span><span class="p">]))</span>
+    <span class="c1"># Species are preceded by a delimiter</span>
+    <span class="n">spcs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">:])</span> <span class="k">for</span> <span class="n">pr</span> <span class="ow">in</span> <span class="n">pr_keys</span><span class="p">]))</span>
+
+    <span class="c1"># Select a dummy variable for extracting properties</span>
+    <span class="n">pr_tmp</span> <span class="o">=</span> <span class="n">iprf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">pr_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+    <span class="c1"># Create an empty file and decorate</span>
+    <span class="c1"># it as necessary</span>
+    <span class="n">outf</span> <span class="o">=</span> <span class="n">PseudoNetCDFFile</span><span class="p">()</span>
+    <span class="n">outf</span><span class="o">.</span><span class="n">Species</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">spc</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span> <span class="k">for</span> <span class="n">spc</span> <span class="ow">in</span> <span class="n">spcs</span><span class="p">])</span>
+    <span class="n">outf</span><span class="o">.</span><span class="n">Process</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">prc</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span> <span class="k">for</span> <span class="n">prc</span> <span class="ow">in</span> <span class="n">prcs</span><span class="p">])</span>
+    <span class="n">outf</span><span class="o">.</span><span class="n">Reactions</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">rr_key</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span> <span class="k">for</span> <span class="n">rr_key</span> <span class="ow">in</span> <span class="n">rr_keys</span><span class="p">])</span>
+    <span class="n">outf</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;PROCESS&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">prcs</span><span class="p">))</span>
+    <span class="n">outf</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;SPECIES&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">spcs</span><span class="p">))</span>
+    <span class="n">outf</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;RXN&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rr_keys</span><span class="p">))</span>
+    <span class="n">outf</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;TSTEP&quot;</span><span class="p">,</span> <span class="n">pr_tmp</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">outf</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;TSTEP_STAG&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">outf</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;TSTEP&quot;</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">outf</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;ROW&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">outf</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;LAY&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">outf</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;COL&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">outf</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;VAR&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">outf</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;DATE-TIME&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">tflag</span> <span class="o">=</span> <span class="n">outf</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s2">&quot;TFLAG&quot;</span><span class="p">,</span> <span class="s2">&quot;i&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="s1">&#39;DATE-TIME&#39;</span><span class="p">))</span>
+    <span class="n">tflag</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;&lt;YYYYJJJ,HHDDMM&gt;&quot;</span><span class="p">,</span>
+                               <span class="n">var_desc</span><span class="o">=</span><span class="s1">&#39;TFLAG&#39;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span>
+                               <span class="n">long_name</span><span class="o">=</span><span class="s1">&#39;TFLAG&#39;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)))</span>
+    <span class="n">tflag</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">iprf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">][:][:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">:]</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">outf</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">,</span> <span class="s2">&quot;i&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;TSTEP&quot;</span><span class="p">,</span> <span class="s2">&quot;LAY&quot;</span><span class="p">,</span> <span class="s2">&quot;ROW&quot;</span><span class="p">,</span> <span class="s2">&quot;COL&quot;</span><span class="p">))</span>
+    <span class="n">shape</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;ON/OFF&quot;</span><span class="p">,</span> <span class="n">var_desc</span><span class="o">=</span><span class="s2">&quot;SHAPE&quot;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span>
+                               <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;SHAPE&quot;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)))</span>
+    <span class="n">shape</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">irr</span> <span class="o">=</span> <span class="n">outf</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s2">&quot;IRR&quot;</span><span class="p">,</span> <span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;TSTEP&quot;</span><span class="p">,</span> <span class="s2">&quot;RXN&quot;</span><span class="p">))</span>
+    <span class="n">irr</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">pr_tmp</span><span class="o">.</span><span class="n">units</span><span class="p">,</span> <span class="n">var_desc</span><span class="o">=</span><span class="s2">&quot;IRR&quot;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span>
+                             <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;IRR&quot;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)))</span>
+    <span class="n">ipr</span> <span class="o">=</span> <span class="n">outf</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s2">&quot;IPR&quot;</span><span class="p">,</span> <span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;TSTEP&quot;</span><span class="p">,</span> <span class="s2">&quot;SPECIES&quot;</span><span class="p">,</span> <span class="s2">&quot;PROCESS&quot;</span><span class="p">))</span>
+    <span class="n">irr</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">pr_tmp</span><span class="o">.</span><span class="n">units</span><span class="p">,</span> <span class="n">var_desc</span><span class="o">=</span><span class="s2">&quot;IPR&quot;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span>
+                             <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;IPR&quot;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)))</span>
+
+    <span class="k">for</span> <span class="n">rr</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rr_keys</span><span class="p">,</span> <span class="n">irr</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+        <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">irrf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">rr</span><span class="p">][:][</span><span class="n">idx</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">prc</span><span class="p">,</span> <span class="n">prcvar</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">prcs</span><span class="p">,</span> <span class="n">ipr</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">spc</span><span class="p">,</span> <span class="n">spcvar</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">spcs</span><span class="p">,</span> <span class="n">prcvar</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">spcvar</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">iprf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">prc</span><span class="p">,</span> <span class="n">spc</span><span class="p">])][:][</span><span class="n">idx</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">es</span><span class="p">:</span>
+                <span class="n">warn</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">es</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">outf</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncdump</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncdump</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">pncdump</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;mrgidx(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,)),</span> <span class="n">name</span><span class="o">=</span><span class="n">mrgidx</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Usage: python -m PseudoNetCDF.cmaqfiles.pa </span><span class="se">\&quot;</span><span class="s2">ipr_paths, &quot;</span> <span class="o">+</span>
+              <span class="s2">&quot;irr_paths, idx</span><span class="se">\&quot;\n</span><span class="s2">  ipr_paths - a single string or list of &quot;</span> <span class="o">+</span>
+              <span class="s2">&quot;strings</span><span class="se">\n</span><span class="s2">  irr_paths - a single string or list of strings</span><span class="se">\n</span><span class="s2"> &quot;</span> <span class="o">+</span>
+              <span class="s2">&quot; idx - 4D numpy slice indexes a time series</span><span class="se">\n\n\n</span><span class="s2">Example:</span><span class="se">\n</span><span class="s2"> &quot;</span> <span class="o">+</span>
+              <span class="s2">&quot; $ python -m PseudoNetCDF.cmaqfiles.pa </span><span class="se">\&quot;</span><span class="s2">[&#39;CMAQ_IPR1.nc&#39;,&quot;</span> <span class="o">+</span>
+              <span class="s2">&quot;&#39;CMAQ_IPR2.nc&#39;], &#39;CMAQ_IRR.nc&#39;, (slice(None),0,1,1)</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">,</span>
+              <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,235 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.camxfiles.vertical_diffusivity.Memmap &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.camxfiles.vertical_diffusivity.Memmap</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.camxfiles.vertical_diffusivity.Memmap</h1><div class="highlight"><pre>
+<span></span><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;vertical_diffusivity&#39;</span><span class="p">]</span>
+<span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">.. _Memmap</span>
+<span class="s2">:mod:`Memmap` -- vertical diffusivity Memmap interface</span>
+<span class="s2">=======================================================</span>
+
+<span class="s2">.. module:: Memmap</span>
+<span class="s2">   :platform: Unix, Windows</span>
+<span class="s2">   :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx</span>
+<span class="s2">              vertical diffusivity files.  See</span>
+<span class="s2">              PseudoNetCDF.sci_var.PseudoNetCDFFile for interface details</span>
+<span class="s2">.. moduleauthor:: Barron Henderson &lt;barronh@unc.edu&gt;</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># Distribution packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">unittest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
+
+<span class="c1"># Site-Packages</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">zeros</span><span class="p">,</span> <span class="n">array</span>
+
+<span class="c1"># This Package modules</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.camxfiles.one3d.Memmap</span><span class="w"> </span><span class="kn">import</span> <span class="n">one3d</span>
+
+<span class="c1"># for use in identifying uncaught nan</span>
+<span class="n">listnan</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\xff\xc0\x00\x00</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">checkarray</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span>
+<span class="n">checkarray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">listnan</span>
+<span class="n">array_nan</span> <span class="o">=</span> <span class="n">checkarray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="vertical_diffusivity">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.vertical_diffusivity.html#PseudoNetCDF.camxfiles.Memmaps.vertical_diffusivity">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">vertical_diffusivity</span><span class="p">(</span><span class="n">one3d</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    vertical_diffusivity provides a PseudoNetCDF interface for CAMx</span>
+<span class="sd">    vertical_diffusivity files.  Where possible, the inteface follows</span>
+<span class="sd">    IOAPI conventions (see www.baronams.com).</span>
+
+<span class="sd">    ex:</span>
+<span class="sd">        &gt;&gt;&gt; vd_path = &#39;camx_vd.bin&#39;</span>
+<span class="sd">        &gt;&gt;&gt; rows,cols = 65,83</span>
+<span class="sd">        &gt;&gt;&gt; vdfile = vertical_diffusivity(vd_path,rows,cols)</span>
+<span class="sd">        &gt;&gt;&gt; vdfile.variables.keys()</span>
+<span class="sd">        [&#39;TFLAG&#39;, &#39;KV&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; tflag = vdfile.variables[&#39;TFLAG&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; tflag.dimensions</span>
+<span class="sd">        (&#39;TSTEP&#39;, &#39;VAR&#39;, &#39;DATE-TIME&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; tflag[0,0,:]</span>
+<span class="sd">        array([2005185,       0])</span>
+<span class="sd">        &gt;&gt;&gt; tflag[-1,0,:]</span>
+<span class="sd">        array([2005185,  240000])</span>
+<span class="sd">        &gt;&gt;&gt; v = vdfile.variables[&#39;KV&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; v.dimensions</span>
+<span class="sd">        (&#39;TSTEP&#39;, &#39;LAY&#39;, &#39;ROW&#39;, &#39;COL&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; v.shape</span>
+<span class="sd">        (25, 28, 65, 83)</span>
+<span class="sd">        &gt;&gt;&gt; vdfile.dimensions</span>
+<span class="sd">        {&#39;TSTEP&#39;: 25, &#39;LAY&#39;: 28, &#39;ROW&#39;: 65, &#39;COL&#39;: 83}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">var_name</span> <span class="o">=</span> <span class="s1">&#39;KV&#39;</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;m**2/s&#39;</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestMemmap</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">runTest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testKV</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF.testcase</span>
+        <span class="n">inpath</span> <span class="o">=</span> <span class="n">PseudoNetCDF</span><span class="o">.</span><span class="n">testcase</span><span class="o">.</span><span class="n">camxfiles_paths</span><span class="p">[</span><span class="s1">&#39;vertical_diffusivity&#39;</span><span class="p">]</span>
+        <span class="n">vdfile</span> <span class="o">=</span> <span class="n">vertical_diffusivity</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">vdfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">]</span>
+        <span class="n">checkv</span> <span class="o">=</span> <span class="n">array</span><span class="p">([</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">4.76359320e+00</span><span class="p">,</span> <span class="mf">1.92715893e+01</span><span class="p">,</span> <span class="mf">1.52158489e+01</span><span class="p">,</span>
+            <span class="mf">7.20601225e+00</span><span class="p">,</span> <span class="mf">1.84097159e+00</span><span class="p">,</span> <span class="mf">2.63084507e+01</span><span class="p">,</span> <span class="mf">1.27621298e+01</span><span class="p">,</span>
+            <span class="mf">1.06348248e+01</span><span class="p">,</span> <span class="mf">2.22587357e+01</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.69009724e+01</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">2.23075104e+01</span><span class="p">,</span> <span class="mf">1.27485418e+01</span><span class="p">,</span> <span class="mf">1.45508013e+01</span><span class="p">,</span>
+            <span class="mf">1.45637455e+01</span><span class="p">,</span> <span class="mf">2.95294094e+01</span><span class="p">,</span> <span class="mf">3.02676849e+01</span><span class="p">,</span> <span class="mf">2.84974957e+01</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">6.93706131e+00</span><span class="p">,</span> <span class="mf">3.07418957e+01</span><span class="p">,</span> <span class="mf">3.41300621e+01</span><span class="p">,</span>
+            <span class="mf">1.66266994e+01</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">2.53920174e+01</span><span class="p">,</span> <span class="mf">1.92539787e+01</span><span class="p">,</span>
+            <span class="mf">2.32906532e+01</span><span class="p">,</span> <span class="mf">5.96702042e+01</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">2.24458847e+01</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">5.45038452e+01</span><span class="p">,</span> <span class="mf">3.45825729e+01</span><span class="p">,</span> <span class="mf">3.43578224e+01</span><span class="p">,</span>
+            <span class="mf">3.76071548e+01</span><span class="p">,</span> <span class="mf">6.76799850e+01</span><span class="p">,</span> <span class="mf">7.33648529e+01</span><span class="p">,</span> <span class="mf">7.35801239e+01</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">6.38178444e+00</span><span class="p">,</span> <span class="mf">4.39327278e+01</span><span class="p">,</span> <span class="mf">5.00754166e+01</span><span class="p">,</span>
+            <span class="mf">2.44474106e+01</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">3.51700935e+01</span><span class="p">,</span> <span class="mf">2.71137428e+01</span><span class="p">,</span>
+            <span class="mf">3.40312347e+01</span><span class="p">,</span> <span class="mf">8.85775909e+01</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">3.13994522e+01</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">8.07169266e+01</span><span class="p">,</span> <span class="mf">5.12892876e+01</span><span class="p">,</span> <span class="mf">5.05734329e+01</span><span class="p">,</span>
+            <span class="mf">5.56603966e+01</span><span class="p">,</span> <span class="mf">1.00394188e+02</span><span class="p">,</span> <span class="mf">1.08980370e+02</span><span class="p">,</span> <span class="mf">1.09251083e+02</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.64916098e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.22205174e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.05408611e+01</span><span class="p">,</span> <span class="mf">1.26687222e+01</span><span class="p">,</span> <span class="mf">1.21386652e+01</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.93040049e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.39350021e+00</span><span class="p">,</span> <span class="mf">1.02697349e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.82250175e+01</span><span class="p">,</span> <span class="mf">2.90407104e+01</span><span class="p">,</span> <span class="mf">2.83827496e+01</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">2.02609706e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.44422662e+00</span><span class="p">,</span> <span class="mf">1.02998519e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">2.60322971e+01</span><span class="p">,</span> <span class="mf">4.26534195e+01</span><span class="p">,</span>
+            <span class="mf">4.17046585e+01</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;f&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">vdfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;KV&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">checkv</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testNCF2KV</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF.testcase</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncgen</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncgen</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+        <span class="n">inpath</span> <span class="o">=</span> <span class="n">PseudoNetCDF</span><span class="o">.</span><span class="n">testcase</span><span class="o">.</span><span class="n">camxfiles_paths</span><span class="p">[</span><span class="s1">&#39;vertical_diffusivity&#39;</span><span class="p">]</span>
+        <span class="n">outpath</span> <span class="o">=</span> <span class="n">inpath</span> <span class="o">+</span> <span class="s1">&#39;.check&#39;</span>
+        <span class="n">infile</span> <span class="o">=</span> <span class="n">vertical_diffusivity</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">pncgen</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;camxfiles.vertical_diffusivity&#39;</span><span class="p">)</span>
+        <span class="n">orig</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">orig</span> <span class="o">==</span> <span class="n">new</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">outpath</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

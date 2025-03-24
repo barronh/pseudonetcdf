@@ -1,0 +1,10 @@
+PseudoNetCDF.conventions.cdo package
+====================================
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.conventions.cdo
+   :members:
+   :show-inheritance:
+   :undoc-members:

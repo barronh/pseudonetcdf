@@ -1,0 +1,317 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.textfiles package &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PseudoNetCDF.toms package" href="PseudoNetCDF.toms.html" />
+    <link rel="prev" title="PseudoNetCDF.testcase package" href="PseudoNetCDF.testcase.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core Objects</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="PseudoNetCDF.html">PseudoNetCDF package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PseudoNetCDF.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.aermodfiles.html">PseudoNetCDF.aermodfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.camxfiles.html">PseudoNetCDF.camxfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.ceilometerfiles.html">PseudoNetCDF.ceilometerfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.cmaqfiles.html">PseudoNetCDF.cmaqfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.conventions.html">PseudoNetCDF.conventions package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.core.html">PseudoNetCDF.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.derived.html">PseudoNetCDF.derived package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.epafiles.html">PseudoNetCDF.epafiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.geoschemfiles.html">PseudoNetCDF.geoschemfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.icarttfiles.html">PseudoNetCDF.icarttfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.noaafiles.html">PseudoNetCDF.noaafiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.plotutil.html">PseudoNetCDF.plotutil package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.racmfiles.html">PseudoNetCDF.racmfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.raob.html">PseudoNetCDF.raob package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.test.html">PseudoNetCDF.test package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.testcase.html">PseudoNetCDF.testcase package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">PseudoNetCDF.textfiles package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.textfiles.esrl_sonde">PseudoNetCDF.textfiles.esrl_sonde module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.textfiles.shadoz_sonde">PseudoNetCDF.textfiles.shadoz_sonde module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.textfiles">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.toms.html">PseudoNetCDF.toms package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.woudcfiles.html">PseudoNetCDF.woudcfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.wrffiles.html">PseudoNetCDF.wrffiles package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.ArrayTransforms">PseudoNetCDF.ArrayTransforms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.MetaNetCDF">PseudoNetCDF.MetaNetCDF module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.coordutil">PseudoNetCDF.coordutil module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.net_balance">PseudoNetCDF.net_balance module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.netcdf">PseudoNetCDF.netcdf module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncdump">PseudoNetCDF.pncdump module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pnceval">PseudoNetCDF.pnceval module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncgen">PseudoNetCDF.pncgen module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncload">PseudoNetCDF.pncload module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncparse">PseudoNetCDF.pncparse module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncview">PseudoNetCDF.pncview module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncwarn">PseudoNetCDF.pncwarn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.register">PseudoNetCDF.register module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.sci_var">PseudoNetCDF.sci_var module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.units">PseudoNetCDF.units module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.userfuncs">PseudoNetCDF.userfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.version">PseudoNetCDF.version module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.xarray_plugin">PseudoNetCDF.xarray_plugin module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="PseudoNetCDF.html">PseudoNetCDF package</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.textfiles package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/PseudoNetCDF.textfiles.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pseudonetcdf-textfiles-package">
+<h1>PseudoNetCDF.textfiles package<a class="headerlink" href="#pseudonetcdf-textfiles-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-PseudoNetCDF.textfiles.esrl_sonde">
+<span id="pseudonetcdf-textfiles-esrl-sonde-module"></span><h2>PseudoNetCDF.textfiles.esrl_sonde module<a class="headerlink" href="#module-PseudoNetCDF.textfiles.esrl_sonde" title="Link to this heading"></a></h2>
+<dl>
+<dt>NOAA/GMD sounding data file produced on 2015/02/02 22:04:08 GMT …</dt><dd><blockquote>
+<div><blockquote>
+<div><blockquote>
+<div><blockquote>
+<div><p>Header lines = 45
+Data columns = 21</p>
+</div></blockquote>
+<dl>
+<dt>Flight number = BL049</dt><dd><p>Date [GMT] = 03-01-1992
+Time [GMT] = 18:35:21</p>
+<blockquote>
+<div><blockquote>
+<div><p>Location = Boulder, CO</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Longitude = -105.25000</dt><dd><p>Latitude = 40.00000</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+</dl>
+</div></blockquote>
+<p>Launch altitude (km) = 1.743</p>
+</div></blockquote>
+<p>Surface pressure (mb) = 826.790</p>
+</div></blockquote>
+<dl>
+<dt>Surface temperature (deg) = 6.870</dt><dd><blockquote>
+<div><dl>
+<dt>Surface humidity (%) = 18.900</dt><dd><p>Turn altitude (km) = 30.699
+Turn pressure (mb) = 10.20</p>
+<blockquote>
+<div><p>Radiosonde number = 8815949</p>
+</div></blockquote>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="simple">
+<dt>Vaisala humicap sensor = A</dt><dd><p>Radiation correction = Yes</p>
+</dd>
+<dt>Pressure sensor offset = 0.000</dt><dd><p>A/D System = 12 bit Tmax</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+<dt>Radiosonde Total Col. Water = 2.322</dt><dd><blockquote>
+<div><p>Instrument Type = Ozone Sonde</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Original File Source = unknown</dt><dd><dl class="simple">
+<dt>Ozone sonde number = 5A8087</dt><dd><p>Solution = 1%</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+<dt>Oltmans solution correction = Yes</dt><dd><blockquote>
+<div><blockquote>
+<div><p>Oltmans term A = 1.0000
+Oltmans term B = 0.4000</p>
+</div></blockquote>
+<p>Total ozone column (CMR) = 283 (41)</p>
+</div></blockquote>
+<p>Total ozone column (SBUV) = 289 (47)
+Total ozone stop pressure = 10.28
+Time (sec) to pump 100 ml = 28.230</p>
+<blockquote>
+<div><blockquote>
+<div><p>Dry flowrate correction = 2.60
+Background current (uA) = 0.071</p>
+<blockquote>
+<div><blockquote>
+<div><p>Coefficients =</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Pump coefficient pc0 = 0.5955</dt><dd><p>pc1 = 0.5125
+pc2 = -0.2353
+pc3 = 0.0824</p>
+</dd>
+</dl>
+<p>Pressure data source = Radiosonde Pressure
+Altitude data source = Radiosonde Geopot Altitude</p>
+</div></blockquote>
+</div></blockquote>
+<p>Geo alt anchoring method = First/Launch Row Set to Launch Altitude</p>
+<blockquote>
+<div><p>Time,     Press,      Praw,       Alt,     Tcorr,      Temp,…</p>
+</div></blockquote>
+</div></blockquote>
+</dd>
+</dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.textfiles.esrl_sonde.skysonde1sec">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.textfiles.esrl_sonde.</span></span><span class="sig-name descname"><span class="pre">skysonde1sec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inpath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/textfiles/esrl_sonde.html#skysonde1sec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.textfiles.esrl_sonde.skysonde1sec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.textfiles.shadoz_sonde">
+<span id="pseudonetcdf-textfiles-shadoz-sonde-module"></span><h2>PseudoNetCDF.textfiles.shadoz_sonde module<a class="headerlink" href="#module-PseudoNetCDF.textfiles.shadoz_sonde" title="Link to this heading"></a></h2>
+<p>Written to read files from <a class="reference external" href="http://croc.gsfc.nasa.gov/shadoz/">http://croc.gsfc.nasa.gov/shadoz/</a></p>
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.textfiles.shadoz_sonde.shadoz">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.textfiles.shadoz_sonde.</span></span><span class="sig-name descname"><span class="pre">shadoz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inpath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/textfiles/shadoz_sonde.html#shadoz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.textfiles.shadoz_sonde.shadoz" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.textfiles">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-PseudoNetCDF.textfiles" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.textfiles.csv">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.textfiles.</span></span><span class="sig-name descname"><span class="pre">csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/textfiles/_delimited.html#csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.textfiles.csv" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="PseudoNetCDF.core.html#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core._files.PseudoNetCDFFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">PseudoNetCDFFile</span></code></a></p>
+<dl class="simple">
+<dt>path<span class="classifier">str</span></dt><dd><p>place to find csv file</p>
+</dd>
+<dt>coordkeys<span class="classifier">iterable of strings</span></dt><dd><p>use these keys as dimensions and coordinate variables</p>
+</dd>
+<dt>delimiter<span class="classifier">str</span></dt><dd><p>use this as delimiter (default = ‘,’) renamed as sep for pandas</p>
+</dd>
+<dt>names<span class="classifier">iterable of strings or True</span></dt><dd><p>with pandas backend and names==True: header=’infer’
+otherwise, passed directly as keyword</p>
+</dd>
+<dt>backend<span class="classifier">str or None</span></dt><dd><p>‘numpy’ numpy.genfromtxt or ‘pandas’ pandas.read_csv; defaults to
+pandas if available</p>
+</dd>
+<dt>defaultcoord<span class="classifier">str</span></dt><dd><p>if no coordkeys are found, use this str to create a arbitrary
+coordinate based on each record</p>
+</dd>
+<dt>kwds<span class="classifier">mappable</span></dt><dd><p>corresponds to numpy.genfromtxt or pandas.read_csv keywords</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p>Note: currently only works when all coordinate variables are 1-d</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.textfiles.ncf2csv">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.textfiles.</span></span><span class="sig-name descname"><span class="pre">ncf2csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ifile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">','</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordkeys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['Time',</span> <span class="pre">'time',</span> <span class="pre">'time_bounds',</span> <span class="pre">'TFLAG',</span> <span class="pre">'ETFLAG',</span> <span class="pre">'etam_pressure',</span> <span class="pre">'etai_pressure',</span> <span class="pre">'layer_bounds',</span> <span class="pre">'layer47',</span> <span class="pre">'layer',</span> <span class="pre">'latitude',</span> <span class="pre">'latitude_bounds',</span> <span class="pre">'lat',</span> <span class="pre">'lat_bnds',</span> <span class="pre">'longitude',</span> <span class="pre">'longitude_bounds',</span> <span class="pre">'lon',</span> <span class="pre">'lon_bnds']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/textfiles/_delimited.html#ncf2csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.textfiles.ncf2csv" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="PseudoNetCDF.testcase.html" class="btn btn-neutral float-left" title="PseudoNetCDF.testcase package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="PseudoNetCDF.toms.html" class="btn btn-neutral float-right" title="PseudoNetCDF.toms package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,1048 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.noaafiles._arl &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.noaafiles._arl</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.noaafiles._arl</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span><span class="p">,</span> <span class="n">PseudoNetCDFVariable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFVariables</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.coordutil</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettimes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF._getwriter</span><span class="w"> </span><span class="kn">import</span> <span class="n">registerwriter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+<span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_vord</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">vnew</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">vnew</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">vnew</span>
+
+
+<span class="n">_vordv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="n">_vord</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">timeit</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">timeit</span><span class="o">.</span><span class="n">starts</span><span class="p">:</span>
+        <span class="n">started</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">starts</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">started</span><span class="p">)</span> <span class="o">/</span> <span class="mf">60.</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">time</span><span class="p">(),</span> <span class="s1">&#39;seconds since epoch&#39;</span><span class="p">)</span>
+        <span class="n">timeit</span><span class="o">.</span><span class="n">starts</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+
+
+<span class="n">timeit</span><span class="o">.</span><span class="n">starts</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="n">thdtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">([(</span><span class="s1">&#39;YYMMDDHHFF&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;10S&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;LEVEL&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;2S&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;GRID&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;2S&#39;</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s1">&#39;INDX&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;4S&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;Z1&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;4S&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;MB1&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;14S&#39;</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s1">&#39;MB2&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;14S&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;SRCE&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S4&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;MGRID&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S3&#39;</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s1">&#39;VSYS&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S2&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;POLLAT&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S7&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;POLLON&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S7&#39;</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s1">&#39;REFLAT&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S7&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;REFLON&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S7&#39;</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s1">&#39;GRIDX&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S7&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;ORIENT&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S7&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;TANLAT&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S7&#39;</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s1">&#39;SYNCHX&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S7&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;SYNCHY&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S7&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;SYNCHLAT&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S7&#39;</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s1">&#39;SYNCHLON&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S7&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;RESERVED&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S7&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;NX&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S3&#39;</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s1">&#39;NY&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S3&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;NZ&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S3&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;VSYS2&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S2&#39;</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s1">&#39;LENH&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;S4&#39;</span><span class="p">)])</span>
+<span class="n">vhdtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">([(</span><span class="s1">&#39;YYMMDDHHFF&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;10S&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;LEVEL&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;2S&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;grid&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;2S&#39;</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s1">&#39;VKEY&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;4S&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;EXP&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;4S&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;PREC&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;14S&#39;</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s1">&#39;VAR1&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;14S&#39;</span><span class="p">)])</span>
+
+<span class="n">stdprops</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">),</span>
+    <span class="n">y</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">),</span>
+    <span class="n">longitude</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;longitude&#39;</span><span class="p">,</span> <span class="s1">&#39;degrees&#39;</span><span class="p">),</span>
+    <span class="n">latitude</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;latitude&#39;</span><span class="p">,</span> <span class="s1">&#39;degrees&#39;</span><span class="p">),</span>
+    <span class="n">longitude_bounds</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;longitude_bounds&#39;</span><span class="p">,</span> <span class="s1">&#39;degrees&#39;</span><span class="p">),</span>
+    <span class="n">latitude_bounds</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;latitude_bounds&#39;</span><span class="p">,</span> <span class="s1">&#39;degrees&#39;</span><span class="p">),</span>
+    <span class="n">ABSV</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;ABSOLUTE VORTICITY&#39;</span><span class="p">,</span> <span class="s1">&#39;100000.00 ? /s&#39;</span><span class="p">),</span>
+    <span class="n">CAPE</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;CONVECTIVE AVAILABLE POTENTIAL ENERGY&#39;</span><span class="p">,</span> <span class="s1">&#39;J/kg&#39;</span><span class="p">),</span>
+    <span class="n">CFZR</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;CATEGORIAL FREEZING RAIN (YES=1/NO=0)&#39;</span><span class="p">,</span> <span class="s1">&#39;0--1&#39;</span><span class="p">),</span>
+    <span class="n">CICE</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;CATEGORIAL ICE PELLETS (YES=1/NO=0)&#39;</span><span class="p">,</span> <span class="s1">&#39;0--1&#39;</span><span class="p">),</span>
+    <span class="n">CINH</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;CONVECTIVE INHIBITION&#39;</span><span class="p">,</span> <span class="s1">&#39;J/kg&#39;</span><span class="p">),</span>
+    <span class="n">CLDB</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;CLOUD BOTTOM HEIGHT&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">),</span>
+    <span class="n">CLDT</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;CLOUD TOP HEIGHT&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">),</span>
+    <span class="n">CONC</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;CONCENTRATION&#39;</span><span class="p">,</span> <span class="s1">&#39;/m3&#39;</span><span class="p">),</span>
+    <span class="n">CPP3</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;3-HOUR ACC. CONVECTIVE PRECIPITATION&#39;</span><span class="p">,</span> <span class="s1">&#39;mm&#39;</span><span class="p">),</span>
+    <span class="n">CPP6</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;6-HOUR ACC. CONVECTIVE PRECIPITATION&#39;</span><span class="p">,</span> <span class="s1">&#39;mm&#39;</span><span class="p">),</span>
+    <span class="n">CPPT</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;CONVECTIVE PRECIPITATION&#39;</span><span class="p">,</span> <span class="s1">&#39;mm&#39;</span><span class="p">),</span>
+    <span class="n">CRAI</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;CATEGORIAL RAIN (YES=1/NO=0)&#39;</span><span class="p">,</span> <span class="s1">&#39;0--1&#39;</span><span class="p">),</span>
+    <span class="n">CSNO</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;CATEGORIAL SNOW (YES=1/NO=0)&#39;</span><span class="p">,</span> <span class="s1">&#39;0--1&#39;</span><span class="p">),</span>
+    <span class="n">CWMR</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;CLOUD WATER MIXING RATIO&#39;</span><span class="p">,</span> <span class="s1">&#39;g/kg&#39;</span><span class="p">),</span>
+    <span class="n">DEPO</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;SURFACE DEPOSITION&#39;</span><span class="p">,</span> <span class="s1">&#39;/m2&#39;</span><span class="p">),</span>
+    <span class="n">DEPS</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;SURFACE DEPOSITION&#39;</span><span class="p">,</span> <span class="s1">&#39;/m2&#39;</span><span class="p">),</span>
+    <span class="n">DEPV</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;DEPOSITION VELOCITY&#39;</span><span class="p">,</span> <span class="s1">&#39;m/s&#39;</span><span class="p">),</span>
+    <span class="n">DLWF</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;DOWNWARD LONG WAVE RADIATION FLUX&#39;</span><span class="p">,</span> <span class="s1">&#39;W/m2&#39;</span><span class="p">),</span>
+    <span class="n">DP2M</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;2 M DEW POINT&#39;</span><span class="p">,</span> <span class="s1">&#39;degC&#39;</span><span class="p">),</span>
+    <span class="n">DSWF</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;DOWNWARD SHORT WAVE RADIATION FLUX&#39;</span><span class="p">,</span> <span class="s1">&#39;W/m2&#39;</span><span class="p">),</span>
+    <span class="n">EXCO</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;EXCHANGE COEFFICIENT&#39;</span><span class="p">,</span> <span class="s1">&#39;1000.00 ? GM2S&#39;</span><span class="p">),</span>
+    <span class="n">FLAG</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;WIND FLAGS&#39;</span><span class="p">,</span> <span class="s1">&#39;KNTS&#39;</span><span class="p">),</span>
+    <span class="n">HCLD</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;HIGH CLOUD COVER&#39;</span><span class="p">,</span> <span class="s1">&#39;PCT&#39;</span><span class="p">),</span>
+    <span class="n">HFLX</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;LATENT HEAT FLUX&#39;</span><span class="p">,</span> <span class="s1">&#39;W/m2&#39;</span><span class="p">),</span>
+    <span class="n">HGT1</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;1000 MB HEIGHT&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">),</span>
+    <span class="n">HGT5</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;500 MB HEIGHT&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">),</span>
+    <span class="n">HGTS</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Geopotential height&#39;</span><span class="p">,</span> <span class="s1">&#39;gpm*&#39;</span><span class="p">),</span>
+    <span class="n">ICWT</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;ICE-COVERED WATER&#39;</span><span class="p">,</span> <span class="s1">&#39;0--1&#39;</span><span class="p">),</span>
+    <span class="n">LCLD</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;LOW CLOUD COVER&#39;</span><span class="p">,</span> <span class="s1">&#39;PCT&#39;</span><span class="p">),</span>
+    <span class="n">LHTF</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;LATENT HEAT NET FLUX&#39;</span><span class="p">,</span> <span class="s1">&#39;W/m2&#39;</span><span class="p">),</span>
+    <span class="n">LIB4</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;BEST 4-LAYER LIFTED INDEX&#39;</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">),</span>
+    <span class="n">LISD</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;STANDARD LIFTED INDEX&#39;</span><span class="p">,</span> <span class="s1">&#39;degC&#39;</span><span class="p">),</span>
+    <span class="n">LTHF</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Latent heat flux&#39;</span><span class="p">,</span> <span class="s1">&#39;W/m2&#39;</span><span class="p">),</span>
+    <span class="n">LTNG</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;LIGHTNING STRIKES&#39;</span><span class="p">,</span> <span class="s1">&#39;#&#39;</span><span class="p">),</span>
+    <span class="n">MCLD</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;MEDIUM CLOUD COVER&#39;</span><span class="p">,</span> <span class="s1">&#39;PCT&#39;</span><span class="p">),</span>
+    <span class="n">MOMF</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;TOTAL MOMENTUM FLUX&#39;</span><span class="p">,</span> <span class="s1">&#39;N/m2&#39;</span><span class="p">),</span>
+    <span class="n">MSLP</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;MEAN SEA-LEVEL PRESSURE&#39;</span><span class="p">,</span> <span class="s1">&#39;hPa&#39;</span><span class="p">),</span>
+    <span class="n">MXHT</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;MIXED LAYER DEPTH&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">),</span>
+    <span class="n">MXLR</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;NUMBER OF MIXED SIGMA LAYERS&#39;</span><span class="p">,</span> <span class="s1">&#39;0--N&#39;</span><span class="p">),</span>
+    <span class="n">OPPT</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;OBSERVED PRECIPITATION&#39;</span><span class="p">,</span> <span class="s1">&#39;mm&#39;</span><span class="p">),</span>
+    <span class="n">P10M</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;POTENTIAL TEMPERATURE &#39;</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">),</span>
+    <span class="n">PBLH</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;PLANETARY BOUNDARY LAYER HEIGHT&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">),</span>
+    <span class="n">PRAT</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;PRECIPITATION RATE&#39;</span><span class="p">,</span> <span class="s1">&#39;KGM2&#39;</span><span class="p">),</span>
+    <span class="n">PRES</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;PRESSURE&#39;</span><span class="p">,</span> <span class="s1">&#39;hPa&#39;</span><span class="p">),</span>
+    <span class="n">PRSS</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;SURFACE PRESSURE&#39;</span><span class="p">,</span> <span class="s1">&#39;hPa&#39;</span><span class="p">),</span>
+    <span class="n">PTYP</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;PRECIPITATION TYPE (RA=1,TRW=2,ZR=3,ICE=4,SN=5)&#39;</span><span class="p">,</span> <span class="s1">&#39;1--5&#39;</span><span class="p">),</span>
+    <span class="n">QSTR</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;FLUX MIXING RATIO&#39;</span><span class="p">,</span> <span class="s1">&#39;1000.00 ? G/KG&#39;</span><span class="p">),</span>
+    <span class="n">REFC</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;COMPOSITE REFLECTIVITY&#39;</span><span class="p">,</span> <span class="s1">&#39;dBZ&#39;</span><span class="p">),</span>
+    <span class="n">RELH</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;RELATIVE HUMIDITY&#39;</span><span class="p">,</span> <span class="s1">&#39;PCT&#39;</span><span class="p">),</span>
+    <span class="n">RGHS</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;SURFACE ROUGHNESS&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">),</span>
+    <span class="n">RH2M</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;2 METER RELATIVE HUMIDITY&#39;</span><span class="p">,</span> <span class="s1">&#39;PCT&#39;</span><span class="p">),</span>
+    <span class="n">SFCC</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;SURFACE CONCENTRATION&#39;</span><span class="p">,</span> <span class="s1">&#39;/m3&#39;</span><span class="p">),</span>
+    <span class="n">SHGT</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;SURFACE HEIGHT&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">),</span>
+    <span class="n">SHTF</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;SENSIBLE HEAT NET FLUX&#39;</span><span class="p">,</span> <span class="s1">&#39;W/m2&#39;</span><span class="p">),</span>
+    <span class="n">SNOC</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;SNOW COVERAGE &#39;</span><span class="p">,</span> <span class="s1">&#39;PCT&#39;</span><span class="p">),</span>
+    <span class="n">SNOW</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;SNOW COVERAGE&#39;</span><span class="p">,</span> <span class="s1">&#39;0--1&#39;</span><span class="p">),</span>
+    <span class="n">SNWD</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;SNOW DEPTH&#39;</span><span class="p">,</span> <span class="s1">&#39;CM&#39;</span><span class="p">),</span>
+    <span class="n">SOLM</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;SOIL MOISTURE&#39;</span><span class="p">,</span> <span class="s1">&#39;kg/m2&#39;</span><span class="p">),</span>
+    <span class="n">SOLT</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;SOIL TEMPERATURE &#39;</span><span class="p">,</span> <span class="s1">&#39;degC&#39;</span><span class="p">),</span>
+    <span class="n">SOLW</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;0 TO 200 CM SOIL MOISTURE CONTENT&#39;</span><span class="p">,</span> <span class="s1">&#39;kg/m2&#39;</span><span class="p">),</span>
+    <span class="n">SPHU</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;SPECIFIC HUMIDITY&#39;</span><span class="p">,</span> <span class="s1">&#39;kg/kg&#39;</span><span class="p">),</span>
+    <span class="n">STRM</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;STREAMLINES &#39;</span><span class="p">,</span> <span class="s1">&#39;KNTS&#39;</span><span class="p">),</span>
+    <span class="n">T02M</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Temperature at 2 m&#39;</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">),</span>
+    <span class="n">TCLD</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;AVERAGE TOTAL CLOUD COVER&#39;</span><span class="p">,</span> <span class="s1">&#39;PCT&#39;</span><span class="p">),</span>
+    <span class="n">TEMP</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Temperature&#39;</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">),</span>
+    <span class="n">THKN</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;THICKNESS&#39;</span><span class="p">,</span> <span class="s1">&#39;0.10 ? dm&#39;</span><span class="p">),</span>
+    <span class="n">THTS</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;SURFACE POTENTIAL TEMPERATURE&#39;</span><span class="p">,</span> <span class="s1">&#39;DEFC&#39;</span><span class="p">),</span>
+    <span class="n">TKEN</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;TOTAL KINETIC ENERGY&#39;</span><span class="p">,</span> <span class="s1">&#39;J&#39;</span><span class="p">),</span>
+    <span class="n">TMPS</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Temperature at surface&#39;</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">),</span>
+    <span class="n">TOPO</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;TOPOGRAPHY&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">),</span>
+    <span class="n">TPP1</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;1 HOUR ACCUMULATED PRECIPITATION&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">),</span>
+    <span class="n">TPP3</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;3-HOUR ACCUMULATED PRECIPITATION&#39;</span><span class="p">,</span> <span class="s1">&#39;mm&#39;</span><span class="p">),</span>
+    <span class="n">TPP6</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Total precipitation (6-h)&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">),</span>
+    <span class="n">TPPA</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;TOTAL ACCUMULATED PRECIPITATION&#39;</span><span class="p">,</span> <span class="s1">&#39;mm&#39;</span><span class="p">),</span>
+    <span class="n">TPPT</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;12-HOUR ACCUMULATED PRECIPITATION&#39;</span><span class="p">,</span> <span class="s1">&#39;mm&#39;</span><span class="p">),</span>
+    <span class="n">TSTR</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;FLUX TEMPERATURE&#39;</span><span class="p">,</span> <span class="s1">&#39;degC&#39;</span><span class="p">),</span>
+    <span class="n">U10M</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;10 M U-WIND COMPONENT&#39;</span><span class="p">,</span> <span class="s1">&#39;m/s&#39;</span><span class="p">),</span>
+    <span class="n">ULWF</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;UPWARD LONG WAVE RADIATION FLUX&#39;</span><span class="p">,</span> <span class="s1">&#39;W/m2&#39;</span><span class="p">),</span>
+    <span class="n">UMOF</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;MOMENTUM FLUX, U-WIND COMPONENT&#39;</span><span class="p">,</span> <span class="s1">&#39;N/m2&#39;</span><span class="p">),</span>
+    <span class="n">USTR</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;FRICTION VELOCITY&#39;</span><span class="p">,</span> <span class="s1">&#39;100.00 ? m/s&#39;</span><span class="p">),</span>
+    <span class="n">UWND</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;U-WIND COMPONENT&#39;</span><span class="p">,</span> <span class="s1">&#39;m/s&#39;</span><span class="p">),</span>
+    <span class="n">V10M</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;10 M V-WIND COMPONENT&#39;</span><span class="p">,</span> <span class="s1">&#39;m/s&#39;</span><span class="p">),</span>
+    <span class="n">VGTP</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;VEGETATION TYPE&#39;</span><span class="p">,</span> <span class="s1">&#39;0--1&#39;</span><span class="p">),</span>
+    <span class="n">VMOF</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;MOMENTUM FLUX, V-WIND COMPONENT&#39;</span><span class="p">,</span> <span class="s1">&#39;N/m2&#39;</span><span class="p">),</span>
+    <span class="n">VSBY</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;VISIBILITY&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">),</span>
+    <span class="n">VWND</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;V-WIND COMPONENT&#39;</span><span class="p">,</span> <span class="s1">&#39;m/s&#39;</span><span class="p">),</span>
+    <span class="n">WESD</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;WATER EQUIV. OF ACCUM. SNOW DEPTH&#39;</span><span class="p">,</span> <span class="s1">&#39;kg/m2&#39;</span><span class="p">),</span>
+    <span class="n">WFLX</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;WATER VAPOR FLUX&#39;</span><span class="p">,</span> <span class="s1">&#39;kg m2 s&#39;</span><span class="p">),</span>
+    <span class="n">WSPD</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;WIND SPEED&#39;</span><span class="p">,</span> <span class="s1">&#39;KNTS&#39;</span><span class="p">),</span>
+    <span class="n">WTMP</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;WATER TEMPERATURE&#39;</span><span class="p">,</span> <span class="s1">&#39;degC&#39;</span><span class="p">),</span>
+    <span class="n">WVCT</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;WIND VECTORS&#39;</span><span class="p">,</span> <span class="s1">&#39;KNTS&#39;</span><span class="p">),</span>
+    <span class="n">WWND</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;W-WIND COMPONENT&#39;</span><span class="p">,</span> <span class="s1">&#39;hPa/s&#39;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="c1"># not used in favor of defn on S141.htm</span>
+<span class="c1">#    HGTS = (&#39;HEIGHT &#39;, &#39;0.10 ? DM&#39;),</span>
+<span class="c1">#    TMPS = (&#39;SURFACE TEMPERATURE&#39;, &#39;degC&#39;),</span>
+<span class="c1">#    T02M = (&#39;2 M TEMPERATURE&#39;, &#39;degC&#39;),</span>
+<span class="c1">#    TEMP = (&#39;TEMPERATURE&#39;, &#39;degC&#39;),</span>
+<span class="c1">#    TMPS = (&#39;SURFACE TEMPERATURE&#39;, &#39;degC&#39;),</span>
+<span class="c1">#    TPP6 = (&#39;6-HOUR ACCUMULATED PRECIPITATION&#39;, &#39;mm&#39;),</span>
+
+<span class="c1"># not used in favor of defn on https://www.ready.noaa.gov/READYflddesc.php</span>
+<span class="c1">#    SPHU = (&#39;Specific humidity&#39;, &#39;unknown&#39;),</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">readvardef</span><span class="p">(</span><span class="n">vheader</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;keys&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">keys</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;checksums&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">checksums</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;vglvls&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vglvls</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">char</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">vheader</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">vglvl</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">vheader</span><span class="p">[:</span><span class="mi">6</span><span class="p">])</span>
+        <span class="n">vgvars</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">vheader</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">8</span><span class="p">])</span>
+        <span class="n">vheader</span> <span class="o">=</span> <span class="n">vheader</span><span class="p">[</span><span class="mi">8</span><span class="p">:]</span>
+        <span class="n">vglvls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vglvl</span><span class="p">)</span>
+        <span class="n">keys</span><span class="p">[</span><span class="n">vglvl</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">vgvari</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">vgvars</span><span class="p">):</span>
+            <span class="n">vgkey</span> <span class="o">=</span> <span class="n">vheader</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span>
+            <span class="n">checksum</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">vheader</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">7</span><span class="p">])</span>
+            <span class="n">keys</span><span class="p">[</span><span class="n">vglvl</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vgkey</span><span class="p">)</span>
+            <span class="n">checksums</span><span class="p">[</span><span class="n">vglvl</span><span class="p">,</span> <span class="n">vgkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">checksum</span>
+            <span class="n">vheader</span> <span class="o">=</span> <span class="n">vheader</span><span class="p">[</span><span class="mi">8</span><span class="p">:]</span>
+    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;sfckeys&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="n">vglvls</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;laykeys&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[(</span><span class="n">vglvl</span><span class="p">,</span> <span class="n">keys</span><span class="p">[</span><span class="n">vglvl</span><span class="p">])</span> <span class="k">for</span> <span class="n">vglvl</span> <span class="ow">in</span> <span class="n">vglvls</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">writevardef</span><span class="p">(</span><span class="n">vglvls</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">checksums</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    vglvls - iterables of floats [1, .98, ...]</span>
+<span class="sd">    keys - dictionary of keys by level {vglvli: [vark, ....], ...}</span>
+<span class="sd">    checksums - integer checsums for each lvl, key --</span>
+<span class="sd">                {(vglvl, vark): checksum, ...}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vardef</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">vgtxts</span> <span class="o">=</span> <span class="n">getvgtxts</span><span class="p">(</span><span class="n">vglvls</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">vglvl</span><span class="p">,</span> <span class="n">vgtxt</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">vglvls</span><span class="p">,</span> <span class="n">vgtxts</span><span class="p">):</span>
+        <span class="n">vardef</span> <span class="o">+=</span> <span class="n">vgtxt</span><span class="p">[:</span><span class="mi">6</span><span class="p">]</span>
+        <span class="n">lvlvars</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="n">vglvl</span><span class="p">]</span>
+        <span class="n">vardef</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="si">%2d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">lvlvars</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">varkey</span> <span class="ow">in</span> <span class="n">lvlvars</span><span class="p">:</span>
+            <span class="n">checksum</span> <span class="o">=</span> <span class="n">checksums</span><span class="p">[</span><span class="n">vglvl</span><span class="p">,</span> <span class="n">varkey</span><span class="p">]</span>
+            <span class="n">vardef</span> <span class="o">+=</span> <span class="n">varkey</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">4</span><span class="p">)[:</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+            <span class="n">vardef</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="si">%3d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">checksum</span>
+            <span class="n">vardef</span> <span class="o">+=</span> <span class="s1">&#39; &#39;</span>
+
+    <span class="k">return</span> <span class="n">vardef</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vardef</span><span class="p">)</span> <span class="o">+</span> <span class="mi">108</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">inqarlpackedbit</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">fheader</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">thdtype</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;LENH&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hlen</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fheader</span><span class="p">[</span><span class="s1">&#39;LENH&#39;</span><span class="p">])</span>
+    <span class="n">gridx_off</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">fheader</span><span class="p">[</span><span class="s1">&#39;GRID&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">64</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
+    <span class="n">gridy_off</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">fheader</span><span class="p">[</span><span class="s1">&#39;GRID&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">64</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;NX&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fheader</span><span class="p">[</span><span class="s1">&#39;NX&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="n">gridx_off</span>
+    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;NY&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fheader</span><span class="p">[</span><span class="s1">&#39;NY&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="n">gridy_off</span>
+    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;NZ&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fheader</span><span class="p">[</span><span class="s1">&#39;NZ&#39;</span><span class="p">])</span>
+    <span class="n">vheader</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;</span><span class="si">%d</span><span class="s1">S&#39;</span> <span class="o">%</span> <span class="n">hlen</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">readvardef</span><span class="p">(</span><span class="n">vheader</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">getvgtxts</span><span class="p">(</span><span class="n">vglvls</span><span class="p">):</span>
+    <span class="n">vgtxts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">vglvl</span> <span class="ow">in</span> <span class="n">vglvls</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">vglvl</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">dp</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">vglvl</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">tmpl</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%%</span><span class="s1">6.</span><span class="si">%d</span><span class="s1">f&#39;</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="p">(</span><span class="mi">5</span> <span class="o">-</span> <span class="n">dp</span><span class="p">))</span>
+        <span class="n">vgtxt</span> <span class="o">=</span> <span class="p">(</span><span class="n">tmpl</span> <span class="o">%</span> <span class="n">vglvl</span><span class="p">)[</span><span class="o">-</span><span class="mi">6</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vgtxt</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">6</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unable to format vglvl:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">vglvl</span><span class="p">))</span>
+        <span class="n">vgtxts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vgtxt</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vgtxts</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">writearlpackedbit</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    path - path to existing arl packed bit file or location for new file</span>
+<span class="sd">    infile - NetCDF-like file with</span>
+<span class="sd">        - vertical 2-D (surface) and 3-D (layers) variables</span>
+<span class="sd">          with 4 character names</span>
+<span class="sd">        - a z variable with vertical coordinates</span>
+<span class="sd">        - all properties from the first index record</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">requiredkeys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">thdtype</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">requiredkeys</span><span class="p">:</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+
+    <span class="n">svars</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">lvars</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">props</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">sfckeys</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;sfckeys&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">laykeys</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;laykeys&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">vark</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">infile</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">svars</span><span class="p">[</span><span class="n">vark</span><span class="p">]</span> <span class="o">=</span> <span class="n">var</span>
+            <span class="n">sfckeys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vark</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">lvars</span><span class="p">[</span><span class="n">vark</span><span class="p">]</span> <span class="o">=</span> <span class="n">var</span>
+            <span class="n">lvar</span> <span class="o">=</span> <span class="n">var</span>
+            <span class="n">laykeys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vark</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="n">vglvls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">infile</span><span class="o">.</span><span class="n">SFCVGLVL</span><span class="p">),</span>
+                       <span class="n">infile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">][:]</span><span class="o">.</span><span class="n">array</span><span class="p">())</span>
+    <span class="c1"># vgtxts = getvgtxts(vglvls)</span>
+    <span class="c1"># plus one includes surface</span>
+    <span class="n">props</span><span class="p">[</span><span class="s1">&#39;NZ&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lvar</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">props</span><span class="p">[</span><span class="s1">&#39;NY&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lvar</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">props</span><span class="p">[</span><span class="s1">&#39;NX&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lvar</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">datamap</span> <span class="o">=</span> <span class="n">maparlpackedbit</span><span class="p">(</span>
+        <span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;write&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">lvar</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],),</span> <span class="n">props</span><span class="o">=</span><span class="n">props</span><span class="p">)</span>
+
+    <span class="n">theads</span> <span class="o">=</span> <span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;timehead&#39;</span><span class="p">]</span>
+    <span class="c1"># for key in thdtype.names:</span>
+    <span class="c1">#    theads[key] = getattr(infile, key)</span>
+
+    <span class="c1"># vardefs = datamap[&#39;vardef&#39;]</span>
+    <span class="c1"># for ti, vardef in enumerate(vardefs):</span>
+    <span class="c1">#     sfcvardeftxt = vgtxts[0] + &#39;%2d&#39; % len(svars) +</span>
+    <span class="c1">#                    &#39;&#39;.join([&#39;%-4s -1 &#39; % skey.decode()</span>
+    <span class="c1">#                             for skey in sfckeys])</span>
+    <span class="c1">#     layvardeftxt = &#39;&#39;</span>
+    <span class="c1">#     for vgtxt in vgtxts[1:]:</span>
+    <span class="c1">#         layvardeftxt += vgtxt + &#39;%2d&#39; % len(lvars) +</span>
+    <span class="c1">#                         &#39;&#39;.join([&#39;%-4s -1 &#39; % lkey.decode()</span>
+    <span class="c1">#                                  for lkey in laykeys])</span>
+    <span class="c1">#</span>
+    <span class="c1">#</span>
+    <span class="c1"># vardeftxt = sfcvardeftxt + layvardeftxt</span>
+    <span class="c1"># defsize = 8+8*len(svars)+(8+8*len(lvars))*len(vgtxts[1:])</span>
+    <span class="c1"># assert(len(vardeftxt) == defsize)</span>
+    <span class="c1"># vardefs[:] = vardeftxt</span>
+    <span class="n">YYMMDDHHFF</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="s1">&#39;YYMMDDHHFF&#39;</span><span class="p">,</span> <span class="s1">&#39;0000000000&#39;</span><span class="p">)</span>
+    <span class="n">FF</span> <span class="o">=</span> <span class="n">YYMMDDHHFF</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">gettimes</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span>
+
+    <span class="n">checksums</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">ti</span><span class="p">,</span> <span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">thead</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">theads</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">propk</span> <span class="ow">in</span> <span class="n">thead</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">propk</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;NX&#39;</span><span class="p">,</span> <span class="s1">&#39;NY&#39;</span><span class="p">,</span> <span class="s1">&#39;NZ&#39;</span><span class="p">):</span>
+                <span class="n">thead</span><span class="p">[</span><span class="n">propk</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%3d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">props</span><span class="p">[</span><span class="n">propk</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">propk</span> <span class="o">==</span> <span class="s1">&#39;LENH&#39;</span><span class="p">:</span>
+                <span class="n">thead</span><span class="p">[</span><span class="n">propk</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%4d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;vardef&#39;</span><span class="p">][</span><span class="n">ti</span><span class="p">]</span><span class="o">.</span><span class="n">itemsize</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">thead</span><span class="p">[</span><span class="n">propk</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">propk</span><span class="p">)</span>
+        <span class="n">timestr</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%y%m</span><span class="si">%d</span><span class="s1">%H&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">FF</span>
+        <span class="n">thead</span><span class="p">[</span><span class="s1">&#39;YYMMDDHHFF&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">timestr</span>
+        <span class="k">for</span> <span class="n">sfck</span> <span class="ow">in</span> <span class="n">sfckeys</span><span class="p">:</span>
+            <span class="n">invar</span> <span class="o">=</span> <span class="n">infile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">sfck</span><span class="o">.</span><span class="n">decode</span><span class="p">()]</span>
+            <span class="n">var_time</span> <span class="o">=</span> <span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;surface&#39;</span><span class="p">][</span><span class="n">sfck</span><span class="o">.</span><span class="n">decode</span><span class="p">()]</span>
+            <span class="n">varhead</span> <span class="o">=</span> <span class="n">var_time</span><span class="p">[</span><span class="s1">&#39;head&#39;</span><span class="p">]</span>
+
+            <span class="n">_skipprop</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;YYMMDDHHFF&#39;</span><span class="p">,</span> <span class="s1">&#39;LEVEL&#39;</span><span class="p">,</span> <span class="s1">&#39;EXP&#39;</span><span class="p">,</span> <span class="s1">&#39;PREC&#39;</span><span class="p">,</span> <span class="s1">&#39;VAR1&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">varpropk</span> <span class="ow">in</span> <span class="n">varhead</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">varpropk</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_skipprop</span><span class="p">:</span>
+                    <span class="n">varhead</span><span class="p">[</span><span class="n">varpropk</span><span class="p">][</span><span class="n">ti</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">invar</span><span class="p">,</span> <span class="n">varpropk</span><span class="p">)</span>
+
+            <span class="n">indata</span> <span class="o">=</span> <span class="n">invar</span><span class="p">[</span><span class="n">ti</span><span class="p">]</span>
+            <span class="n">CVAR</span><span class="p">,</span> <span class="n">PREC</span><span class="p">,</span> <span class="n">NEXP</span><span class="p">,</span> <span class="n">VAR1</span><span class="p">,</span> <span class="n">KSUM</span> <span class="o">=</span> <span class="n">pack2d</span><span class="p">(</span><span class="n">indata</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="n">varhead</span><span class="p">[</span><span class="s1">&#39;YYMMDDHHFF&#39;</span><span class="p">][</span><span class="n">ti</span><span class="p">]</span> <span class="o">=</span> <span class="n">timestr</span>
+            <span class="n">varhead</span><span class="p">[</span><span class="s1">&#39;LEVEL&#39;</span><span class="p">][</span><span class="n">ti</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%2d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="mi">0</span>
+            <span class="n">varhead</span><span class="p">[</span><span class="s1">&#39;PREC&#39;</span><span class="p">][</span><span class="n">ti</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%14.7E</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">PREC</span>
+            <span class="n">varhead</span><span class="p">[</span><span class="s1">&#39;EXP&#39;</span><span class="p">][</span><span class="n">ti</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%4d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">NEXP</span>
+            <span class="n">varhead</span><span class="p">[</span><span class="s1">&#39;VAR1&#39;</span><span class="p">][</span><span class="n">ti</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%14.7E</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">VAR1</span>
+            <span class="n">checksums</span><span class="p">[</span><span class="n">vglvls</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sfck</span><span class="p">]</span> <span class="o">=</span> <span class="n">KSUM</span>
+            <span class="n">var_time</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="n">ti</span><span class="p">]</span> <span class="o">=</span> <span class="n">CVAR</span>
+        <span class="k">for</span> <span class="n">layk</span> <span class="ow">in</span> <span class="n">laykeys</span><span class="p">:</span>
+            <span class="n">invar</span> <span class="o">=</span> <span class="n">infile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">layk</span><span class="o">.</span><span class="n">decode</span><span class="p">()]</span>
+            <span class="n">var_time</span> <span class="o">=</span> <span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;layers&#39;</span><span class="p">][</span><span class="n">layk</span><span class="o">.</span><span class="n">decode</span><span class="p">()][</span><span class="n">ti</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">li</span><span class="p">,</span> <span class="n">var_time_lay</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">var_time</span><span class="p">):</span>
+                <span class="n">varhead</span> <span class="o">=</span> <span class="n">var_time_lay</span><span class="p">[</span><span class="s1">&#39;head&#39;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">varpropk</span> <span class="ow">in</span> <span class="n">varhead</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">varpropk</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_skipprop</span><span class="p">:</span>
+                        <span class="n">varhead</span><span class="p">[</span><span class="n">varpropk</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">invar</span><span class="p">,</span> <span class="n">varpropk</span><span class="p">)</span>
+
+                <span class="n">indata</span> <span class="o">=</span> <span class="n">invar</span><span class="p">[</span><span class="n">ti</span><span class="p">,</span> <span class="n">li</span><span class="p">]</span>
+                <span class="n">CVAR</span><span class="p">,</span> <span class="n">PREC</span><span class="p">,</span> <span class="n">NEXP</span><span class="p">,</span> <span class="n">VAR1</span><span class="p">,</span> <span class="n">KSUM</span> <span class="o">=</span> <span class="n">pack2d</span><span class="p">(</span><span class="n">indata</span><span class="p">)</span>
+
+                <span class="n">varhead</span><span class="p">[</span><span class="s1">&#39;YYMMDDHHFF&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">timestr</span>
+                <span class="n">varhead</span><span class="p">[</span><span class="s1">&#39;LEVEL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%2d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">li</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">var_time_lay</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CVAR</span>
+                <span class="n">varhead</span><span class="p">[</span><span class="s1">&#39;PREC&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%14.7E</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">PREC</span>
+                <span class="n">varhead</span><span class="p">[</span><span class="s1">&#39;EXP&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%4d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">NEXP</span>
+                <span class="n">varhead</span><span class="p">[</span><span class="s1">&#39;VAR1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%14.7E</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">VAR1</span>
+                <span class="n">vglvl</span> <span class="o">=</span> <span class="n">vglvls</span><span class="p">[</span><span class="n">li</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="n">checksums</span><span class="p">[</span><span class="n">vglvl</span><span class="p">,</span> <span class="n">layk</span><span class="p">]</span> <span class="o">=</span> <span class="n">KSUM</span>
+
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="n">vglvls</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">sfckeys</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">vglvl</span> <span class="ow">in</span> <span class="n">vglvls</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">keys</span><span class="p">[</span><span class="n">vglvl</span><span class="p">]</span> <span class="o">=</span> <span class="n">laykeys</span>
+        <span class="n">vardef</span> <span class="o">=</span> <span class="n">writevardef</span><span class="p">(</span><span class="n">vglvls</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">checksums</span><span class="p">)</span>
+
+        <span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;vardef&#39;</span><span class="p">][</span><span class="n">ti</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;vardef&#39;</span><span class="p">][</span><span class="n">ti</span><span class="p">]</span><span class="o">.</span><span class="n">itemsize</span><span class="p">)</span>
+        <span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;hdr&#39;</span><span class="p">][</span><span class="n">ti</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;hdr&#39;</span><span class="p">][</span><span class="n">ti</span><span class="p">]</span><span class="o">.</span><span class="n">itemsize</span><span class="p">)</span>
+        <span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;vardef&#39;</span><span class="p">][</span><span class="n">ti</span><span class="p">]</span> <span class="o">=</span> <span class="n">vardef</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
+        <span class="n">thead</span><span class="p">[</span><span class="s1">&#39;LENH&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;vardef&#39;</span><span class="p">][</span><span class="n">ti</span><span class="p">]</span><span class="o">.</span><span class="n">itemsize</span>
+
+    <span class="n">datamap</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">maparlpackedbit</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">props</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    pg 4-9 of http://niwc.noaa.inel.gov/EOCFSV/hysplit/hysplituserguide.pdf</span>
+
+<span class="sd">    path - path to existing arl packed bit file or location for new file</span>
+<span class="sd">    props - if props is empty, the arl path must exist. Otherwise:</span>
+<span class="sd">        required:</span>
+<span class="sd">            - NZ integer number of layers including surface</span>
+<span class="sd">            - NY integer number of rows</span>
+<span class="sd">            - NX integer number of cols</span>
+<span class="sd">            - sfckeys variable names in the surface layer</span>
+<span class="sd">            - laykeys variable names in the layers above the surface</span>
+<span class="sd">        optional:</span>
+<span class="sd">            - vglvls list nz of vertical coordinates level</span>
+<span class="sd">            - checksums dictionary {(vglvl, varkey): integer checksum, ...}</span>
+
+<span class="sd">    FILE FORMAT:</span>
+<span class="sd">        recl = 50 + NX*NY</span>
+<span class="sd">        for time in times:</span>
+<span class="sd">            1 rec of length recl with meta-data</span>
+<span class="sd">                (thdtype + vardefdtype + hdrdtype)</span>
+<span class="sd">            for sfckey in sfckeys:</span>
+<span class="sd">                1 rec of length recl (vhdtype + nx*ny bytes)</span>
+<span class="sd">            for layer in layers:</span>
+<span class="sd">                for laykey in laykeys:</span>
+<span class="sd">                    1 rec of length recl (vhdtype + nx*ny bytes)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">props</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="n">props</span> <span class="o">==</span> <span class="p">{}:</span>
+        <span class="n">props</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">inqarlpackedbit</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">srflen</span> <span class="o">=</span> <span class="mi">6</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="mi">4</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">props</span><span class="p">[</span><span class="s1">&#39;sfckeys&#39;</span><span class="p">])</span>
+        <span class="n">laylen</span> <span class="o">=</span> <span class="p">(</span><span class="mi">6</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="mi">4</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span>
+                  <span class="nb">len</span><span class="p">(</span><span class="n">props</span><span class="p">[</span><span class="s1">&#39;laykeys&#39;</span><span class="p">]))</span> <span class="o">*</span> <span class="p">(</span><span class="n">props</span><span class="p">[</span><span class="s1">&#39;NZ&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="s1">&#39;LENH&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">108</span> <span class="o">+</span> <span class="n">srflen</span> <span class="o">+</span> <span class="n">laylen</span>
+
+    <span class="n">nx</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;NX&#39;</span><span class="p">]</span>
+    <span class="n">ny</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;NY&#39;</span><span class="p">]</span>
+    <span class="c1"># minus 1 excludes surface</span>
+    <span class="c1"># nz = props[&#39;NZ&#39;] - 1</span>
+    <span class="n">hlen</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;LENH&#39;</span><span class="p">]</span>
+    <span class="n">sfckeys</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;sfckeys&#39;</span><span class="p">]</span>
+    <span class="n">laykeys</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;laykeys&#39;</span><span class="p">]</span>
+    <span class="n">ncell</span> <span class="o">=</span> <span class="n">nx</span> <span class="o">*</span> <span class="n">ny</span>
+    <span class="n">vardefdtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="s1">&#39;&gt;S</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">hlen</span><span class="p">)</span>
+    <span class="n">hdrdtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="s1">&#39;&gt;S</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">50</span> <span class="o">+</span> <span class="n">ncell</span> <span class="o">-</span> <span class="n">hlen</span> <span class="o">-</span> <span class="n">thdtype</span><span class="o">.</span><span class="n">itemsize</span><span class="p">))</span>
+    <span class="n">lay1dtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span>
+        <span class="p">[(</span><span class="s1">&#39;head&#39;</span><span class="p">,</span> <span class="n">vhdtype</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="p">(</span><span class="s1">&#39;(</span><span class="si">%d</span><span class="s1">,</span><span class="si">%d</span><span class="s1">)&gt;1S&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">nx</span><span class="p">)))])</span>
+    <span class="n">sfcdtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">sfckeys</span><span class="p">],</span> <span class="n">formats</span><span class="o">=</span><span class="p">[</span>
+                     <span class="n">lay1dtype</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">sfckeys</span><span class="p">)))</span>
+    <span class="n">layersdtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">([(</span><span class="nb">str</span><span class="p">(</span><span class="n">laykey</span><span class="p">),</span>
+                          <span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+                                            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">layvarkeys</span><span class="p">],</span>
+                                     <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="n">lay1dtype</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">layvarkeys</span><span class="p">))))</span>
+                         <span class="k">for</span> <span class="n">laykey</span><span class="p">,</span> <span class="n">layvarkeys</span> <span class="ow">in</span> <span class="n">laykeys</span><span class="p">])</span>
+    <span class="n">timedtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">([(</span><span class="s1">&#39;timehead&#39;</span><span class="p">,</span> <span class="n">thdtype</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;vardef&#39;</span><span class="p">,</span> <span class="n">vardefdtype</span><span class="p">),</span>
+                       <span class="p">(</span><span class="s1">&#39;hdr&#39;</span><span class="p">,</span> <span class="n">hdrdtype</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;surface&#39;</span><span class="p">,</span> <span class="n">sfcdtype</span><span class="p">),</span>
+                       <span class="p">(</span><span class="s1">&#39;layers&#39;</span><span class="p">,</span> <span class="n">layersdtype</span><span class="p">)])</span>
+    <span class="n">datamap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">memmap</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">timedtype</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">datamap</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">unpack</span><span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">VAR1</span><span class="p">,</span> <span class="n">EXP</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    bytes - nx by ny bytes</span>
+<span class="sd">    VAR1 - as read directly from LABEL as BYTES with dimension time</span>
+<span class="sd">    EXP - EXP as read directly from LABEL as BYTES with dimension time</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vold</span> <span class="o">=</span> <span class="n">VAR1</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;f&#39;</span><span class="p">)</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span><span class="o">**</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mi">7</span> <span class="o">-</span> <span class="n">EXP</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;i&#39;</span><span class="p">))</span>
+    <span class="n">invscale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="nb">bytes</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;uint8&#39;</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">127.</span><span class="p">))</span> <span class="o">*</span> <span class="n">invscale</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vold</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">vdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vdata</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">CHAR</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">chr</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">pack2d</span><span class="p">(</span><span class="n">RVARA</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CHARACTER, INTENT(OUT) :: cvar(nxy) ! packed char*1 output array</span>
+<span class="sd">    REAL,      INTENT(OUT) :: prec      ! precision of packed data array</span>
+<span class="sd">    INTEGER,   INTENT(OUT) :: nexp      ! packing scaling exponent</span>
+<span class="sd">    REAL,      INTENT(OUT) :: var1      ! value of real array at position (1,1)</span>
+<span class="sd">    INTEGER,   INTENT(OUT) :: ksum      ! rotating checksum of packed data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># MAX = np.maximum</span>
+    <span class="n">FLOAT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+    <span class="n">INT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span>
+    <span class="c1"># ABS = np.abs</span>
+    <span class="n">LOG</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>
+    <span class="n">NY</span><span class="p">,</span> <span class="n">NX</span> <span class="o">=</span> <span class="n">RVARA</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">CVAR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">RVARA</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;uint8&#39;</span><span class="p">)</span>
+    <span class="n">RVAR</span> <span class="o">=</span> <span class="n">RVARA</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;f&#39;</span><span class="p">)</span>
+    <span class="n">VAR1</span> <span class="o">=</span> <span class="n">RVAR</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># find the maximum difference between adjacent elements</span>
+    <span class="c1"># START ORIGINAL SERIAL CODE</span>
+    <span class="c1"># ROLD= VAR1</span>
+    <span class="c1"># RMAX= 0.0</span>
+    <span class="c1"># for J in range(NY):</span>
+    <span class="c1">#    for I in range(NX):</span>
+    <span class="c1">#        # compute max difference between elements along row</span>
+    <span class="c1">#        RMAX=MAX( ABS(RVAR[J, I]-ROLD), RMAX)</span>
+    <span class="c1">#        ROLD=RVAR[J,I]</span>
+    <span class="c1">#</span>
+    <span class="c1">#    # row element 1 difference always from previous row</span>
+    <span class="c1">#    ROLD=RVAR[J, 0]</span>
+    <span class="c1">#</span>
+    <span class="c1"># END ORIGINAL SERIAL CODE</span>
+    <span class="c1"># START NUMPY VECTOR CODE</span>
+    <span class="n">colmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">RVAR</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">rowmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">VAR1</span><span class="p">,</span> <span class="n">RVAR</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">RMAX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">colmax</span><span class="p">,</span> <span class="n">rowmax</span><span class="p">)</span>
+    <span class="c1"># END NUMPY VECTOR CODE</span>
+
+    <span class="n">SEXP</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="c1"># compute the required scaling exponent</span>
+    <span class="k">if</span> <span class="n">RMAX</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">SEXP</span> <span class="o">=</span> <span class="n">LOG</span><span class="p">(</span><span class="n">RMAX</span><span class="p">)</span> <span class="o">/</span> <span class="n">LOG</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">2.</span><span class="p">))</span>
+
+    <span class="n">NEXP</span> <span class="o">=</span> <span class="n">INT</span><span class="p">(</span><span class="n">SEXP</span><span class="p">)</span>
+    <span class="c1"># positive or whole number scaling round up for lower precision</span>
+    <span class="k">if</span> <span class="n">SEXP</span> <span class="o">&gt;=</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">SEXP</span> <span class="o">%</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">NEXP</span> <span class="o">=</span> <span class="n">NEXP</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="c1"># precision range is -127 to 127 or 254</span>
+    <span class="n">PREC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">((</span><span class="mf">2.0</span><span class="o">**</span><span class="n">NEXP</span><span class="p">)</span> <span class="o">/</span> <span class="mf">254.0</span><span class="p">)</span>
+    <span class="n">SCEXP</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">2.0</span><span class="o">**</span><span class="p">(</span><span class="mi">7</span> <span class="o">-</span> <span class="n">NEXP</span><span class="p">))</span>
+
+    <span class="c1"># START ORIGINAL SERIAL CODE</span>
+    <span class="c1"># # initialize checksum</span>
+    <span class="c1"># KSUM=0</span>
+    <span class="c1">#</span>
+    <span class="c1"># K=0</span>
+    <span class="c1"># # set column1 value</span>
+    <span class="c1"># RCOL=VAR1</span>
+    <span class="c1"># RCOL = VAR1</span>
+    <span class="c1">#</span>
+    <span class="c1"># # pack the array from low to high</span>
+    <span class="c1"># for J in range(NY):</span>
+    <span class="c1">#     ROLD = RCOL</span>
+    <span class="c1">#     for I in range(NX):</span>
+    <span class="c1">#         K=K+1</span>
+    <span class="c1">#         # packed integer at element</span>
+    <span class="c1">#         ICVAL=INT((RVAR[J, I]-ROLD)*SCEXP+127.5)</span>
+    <span class="c1">#</span>
+    <span class="c1">#         # convert to character</span>
+    <span class="c1">#         #CVAR[J, I]=CHAR(ICVAL)</span>
+    <span class="c1">#         CVAR[J, I]=ICVAL</span>
+    <span class="c1">#         # previous element as it would appear unpacked</span>
+    <span class="c1">#         ROLD=FLOAT(ICVAL-127)/SCEXP+ROLD</span>
+    <span class="c1">#         # save the first column element for next row</span>
+    <span class="c1">#         if I == 0:</span>
+    <span class="c1">#             RCOL=ROLD.copy()</span>
+    <span class="c1">#         # maintain rotating checksum</span>
+    <span class="c1">#         KSUM=KSUM+ICVAL</span>
+    <span class="c1">#         # if sum carries over the eighth bit add one</span>
+    <span class="c1">#         if KSUM &gt;= 256:</span>
+    <span class="c1">#             KSUM=KSUM-255</span>
+    <span class="c1">#</span>
+    <span class="c1"># CVART = CVAR.copy()</span>
+    <span class="c1"># KSUMT = KSUM</span>
+    <span class="c1"># END ORIGINAL SERIAL CODE</span>
+
+    <span class="c1"># START NUMPY VECTOR CODE</span>
+    <span class="n">ROLDS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">RVAR</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="n">ROLD</span> <span class="o">=</span> <span class="n">VAR1</span>
+    <span class="k">for</span> <span class="n">myJ</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NY</span><span class="p">):</span>
+        <span class="n">ICVAL</span> <span class="o">=</span> <span class="n">INT</span><span class="p">((</span><span class="n">RVAR</span><span class="p">[</span><span class="n">myJ</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">ROLD</span><span class="p">)</span> <span class="o">*</span> <span class="n">SCEXP</span> <span class="o">+</span> <span class="mf">127.5</span><span class="p">)</span>
+        <span class="n">CVAR</span><span class="p">[</span><span class="n">myJ</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ICVAL</span>
+        <span class="n">ROLD</span> <span class="o">=</span> <span class="n">FLOAT</span><span class="p">(</span><span class="n">ICVAL</span> <span class="o">-</span> <span class="mi">127</span><span class="p">)</span> <span class="o">/</span> <span class="n">SCEXP</span> <span class="o">+</span> <span class="n">ROLD</span>
+        <span class="n">ROLDS</span><span class="p">[</span><span class="n">myJ</span><span class="p">]</span> <span class="o">=</span> <span class="n">ROLD</span>
+
+    <span class="n">ROLD</span> <span class="o">=</span> <span class="n">ROLDS</span>
+    <span class="k">for</span> <span class="n">myI</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">NX</span><span class="p">):</span>
+        <span class="n">ICVAL</span> <span class="o">=</span> <span class="n">INT</span><span class="p">((</span><span class="n">RVAR</span><span class="p">[:,</span> <span class="n">myI</span><span class="p">]</span> <span class="o">-</span> <span class="n">ROLD</span><span class="p">)</span> <span class="o">*</span> <span class="n">SCEXP</span> <span class="o">+</span> <span class="mf">127.5</span><span class="p">)</span>
+        <span class="n">CVAR</span><span class="p">[:,</span> <span class="n">myI</span><span class="p">]</span> <span class="o">=</span> <span class="n">ICVAL</span>
+        <span class="n">ROLD</span> <span class="o">=</span> <span class="n">FLOAT</span><span class="p">(</span><span class="n">ICVAL</span> <span class="o">-</span> <span class="mi">127</span><span class="p">)</span> <span class="o">/</span> <span class="n">SCEXP</span> <span class="o">+</span> <span class="n">ROLD</span>
+    <span class="n">KSUM</span> <span class="o">=</span> <span class="n">INT</span><span class="p">(</span><span class="n">CVAR</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="o">%</span> <span class="mi">255</span>
+    <span class="c1"># END NUMPY VECTOR CODE</span>
+
+    <span class="c1"># assert((CVART == CVAR).all())</span>
+    <span class="c1"># assert(KSUM == KSUMT)</span>
+    <span class="k">return</span> <span class="n">CVAR</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;&gt;S1&#39;</span><span class="p">),</span> <span class="n">PREC</span><span class="p">,</span> <span class="n">NEXP</span><span class="p">,</span> <span class="n">VAR1</span><span class="p">,</span> <span class="n">KSUM</span>
+
+
+<div class="viewcode-block" id="arlpackedbit">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.noaafiles.html#PseudoNetCDF.noaafiles.arlpackedbit">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">arlpackedbit</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    arlpackedbit reads files formatted according to NOAA&#39;s arl packed bit</span>
+<span class="sd">    format</span>
+
+<span class="sd">    Format as follows:</span>
+
+<span class="sd">    for t in times:</span>
+<span class="sd">        thdtype = dtype([(&#39;YYMMDDHHFF&#39;, &#39;&gt;10S&#39;), (&#39;LEVEL&#39;, &#39;&gt;2S&#39;),</span>
+<span class="sd">                         (&#39;GRID&#39;, &#39;&gt;2S&#39;) , (&#39;INDX&#39;, &#39;&gt;4S&#39;), (&#39;Z1&#39;, &#39;&gt;4S&#39;),</span>
+<span class="sd">                         (&#39;MB&#39;, &#39;2&gt;14S&#39;),  (&#39;SRCE&#39;, &#39;&gt;S4&#39;), (&#39;MGRID&#39;, &#39;&gt;S3&#39;),</span>
+<span class="sd">                         (&#39;VSYS&#39;, &#39;&gt;S2&#39;), (&#39;POLLAT&#39;, &#39;&gt;S7&#39;), (&#39;POLLON&#39;, &#39;&gt;S7&#39;),</span>
+<span class="sd">                         (&#39;REFLAT&#39;,&#39;&gt;S7&#39;), (&#39;REFLON&#39;,&#39;&gt;S7&#39;), (&#39;GRIDX&#39;,&#39;&gt;S7&#39;),</span>
+<span class="sd">                         (&#39;ORIENT&#39;,&#39;&gt;S7&#39;), (&#39;TANLAT&#39;,&#39;&gt;S7&#39;), (&#39;SYNCHX&#39;,&#39;&gt;S7&#39;),</span>
+<span class="sd">                         (&#39;SYNCHY&#39;,&#39;&gt;S7&#39;), (&#39;SYNCHLAT&#39;,&#39;&gt;S7&#39;),</span>
+<span class="sd">                         (&#39;SYNCHLON&#39;,&#39;&gt;S7&#39;), (&#39;RESERVED&#39;, &#39;&gt;S7&#39;),</span>
+<span class="sd">                         (&#39;NX&#39;, &#39;&gt;S3&#39;), (&#39;NY&#39;, &#39;&gt;S3&#39;), (&#39;NZ&#39;, &#39;&gt;S3&#39;),</span>
+<span class="sd">                         (&#39;VSYS2&#39;, &#39;&gt;S2&#39;), (&#39;LENH&#39;, &#39;&gt;S4&#39;)]) +</span>
+<span class="sd">                         ny * nx - 158 - 50</span>
+<span class="sd">        ny+nx-</span>
+<span class="sd">        for surfacekey in surfacekeys:</span>
+<span class="sd">            YYMMDDHHFFLLGGVVVVEEEEPPPPPPPPPPPPPPVVVVVVVVVVVVVV+</span>
+<span class="sd">            P(ny,nx)</span>
+<span class="sd">        for layerkey in layerkeys:</span>
+<span class="sd">            for layer in layers:</span>
+<span class="sd">                YYMMDDHHFFLLGGVVVVEEEEPPPPPPPPPPPPPPVVVVVVVVVVVVVV+</span>
+<span class="sd">                P(ny,nx)</span>
+
+
+<span class="sd">    YY = %y in strftime for GMT date</span>
+<span class="sd">    MM = %m in strftime</span>
+<span class="sd">    DD = %d in strftime</span>
+<span class="sd">    HH = %H of model hour</span>
+<span class="sd">    FF = %H of forecast hour</span>
+<span class="sd">    LL = 2-digit layer</span>
+<span class="sd">    GG = 2-digit grid</span>
+<span class="sd">    IIII = &#39;INDX&#39;</span>
+<span class="sd">    ZZZZ = 4-digit integer 0</span>
+<span class="sd">    XXXXXXXXXXXXX = %14.7e 0</span>
+<span class="sd">    YYYYYYYYYYYYY = %14.7e 0</span>
+<span class="sd">    EEEE = 4-digit integer exponent</span>
+<span class="sd">    PPPPPPPPPPPPP = %14.7e precision</span>
+<span class="sd">    VVVVVVVVVVVVV = %14.7e value R(1,1)</span>
+<span class="sd">    P(ny,nx) = ny by nx 1-byte values dervied from real values (R) according</span>
+<span class="sd">               to the formula below.</span>
+
+<span class="sd">    P(i,j) = (Ri,j  - Ri-1,j)* (2**(7-(ln dRmax / ln 2)))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="arlpackedbit.isMine">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.noaafiles.html#PseudoNetCDF.noaafiles.arlpackedbit.isMine">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">isMine</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="n">testchunk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">path</span><span class="p">,</span>
+                                <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">([(</span><span class="s1">&#39;YYMMDDHHFF&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;10S&#39;</span><span class="p">),</span>
+                                             <span class="p">(</span><span class="s1">&#39;LEVEL&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;2S&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;GRID&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;2S&#39;</span><span class="p">),</span>
+                                             <span class="p">(</span><span class="s1">&#39;INDX&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;4S&#39;</span><span class="p">)]),</span> <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">check</span> <span class="o">=</span> <span class="n">testchunk</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;INDX&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="sa">b</span><span class="s1">&#39;INDX&#39;</span>
+        <span class="k">return</span> <span class="n">check</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">earth_radius</span><span class="o">=</span><span class="mi">6370000</span><span class="p">,</span> <span class="n">synchlon</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">synchlat</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : string</span>
+<span class="sd">            path to arl packed bit formatted file</span>
+<span class="sd">        shape : tuple or None</span>
+<span class="sd">            shape of file to over ride derived shape</span>
+<span class="sd">        earth_radius : scalar</span>
+<span class="sd">            radius of the earth used in converting projected to lat/lon</span>
+<span class="sd">        synchlon: scalar</span>
+<span class="sd">            The SYNCHLON variable has 6 digits of precision in the file</span>
+<span class="sd">            this keyword allows you to provide more.</span>
+<span class="sd">        synchlat: scalar</span>
+<span class="sd">            The SYNCHLAT variable has 6 digits of precision in the file</span>
+<span class="sd">            this keyword allows you to provide more.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        arlf : arlpackedbit</span>
+<span class="sd">            PseudoNetCDF file with packed bit contents unpacked</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_f</span> <span class="o">=</span> <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="n">cache</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_earth_radius</span> <span class="o">=</span> <span class="n">earth_radius</span>
+        <span class="c1"># f.seek(0, 2)</span>
+        <span class="c1"># fsize = f.tell()</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># vord = np.vectorize(ord)</span>
+<span class="c1">#        timesfc = []</span>
+<span class="c1">#        times = []</span>
+<span class="c1">#        tflag = []</span>
+
+        <span class="n">f</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_datamap</span> <span class="o">=</span> <span class="n">maparlpackedbit</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span> <span class="n">props</span><span class="o">=</span><span class="n">props</span><span class="p">)</span>
+        <span class="n">datamap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datamap</span>
+        <span class="n">t0hdr</span> <span class="o">=</span> <span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;timehead&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">thdtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">t0hdr</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="n">readvardef</span><span class="p">(</span><span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;vardef&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">alllayvarkeys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">layk</span><span class="p">,</span> <span class="n">layvarkeys</span> <span class="ow">in</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;laykeys&#39;</span><span class="p">]:</span>
+            <span class="n">alllayvarkeys</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">layvarkeys</span>
+                 <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">alllayvarkeys</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layvarkeys</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">alllayvarkeys</span><span class="p">)</span>
+        <span class="n">tflag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">char</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;timehead&#39;</span><span class="p">][</span><span class="s1">&#39;YYMMDDHHFF&#39;</span><span class="p">],</span> <span class="sa">b</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;0&#39;</span><span class="p">)</span>
+        <span class="n">sfckeys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datamap</span><span class="p">[</span><span class="s1">&#39;surface&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span>
+        <span class="n">laykeys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layvarkeys</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariables</span><span class="p">(</span>
+            <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getvar</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">sfckeys</span> <span class="o">+</span> <span class="n">laykeys</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">datamap</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="c1"># minus 1 excludes surface</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NZ</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">synchlon</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_synchlon</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SYNCHLON</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_synchlon</span> <span class="o">=</span> <span class="n">synchlon</span>
+
+        <span class="k">if</span> <span class="n">synchlat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_synchlat</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SYNCHLAT</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_synchlat</span> <span class="o">=</span> <span class="n">synchlat</span>
+
+        <span class="n">gridx</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">t0hdr</span><span class="p">[</span><span class="s1">&#39;GRIDX&#39;</span><span class="p">])</span> <span class="o">*</span> <span class="mf">1000.</span>
+        <span class="n">nx</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;NX&#39;</span><span class="p">]</span>
+        <span class="n">ny</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;NY&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">gridx</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">XSIZE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">YSIZE</span> <span class="o">=</span> <span class="n">gridx</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">nx</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,))</span>
+            <span class="n">x</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">x</span><span class="p">[:]</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">*</span> <span class="n">gridx</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,))</span>
+            <span class="n">y</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">y</span><span class="p">[:]</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">*</span> <span class="n">gridx</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_addcrs</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">nx</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;nv&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,))</span>
+            <span class="n">x</span><span class="o">.</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s1">&#39;longitude&#39;</span>
+            <span class="n">x</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;degrees&#39;</span>
+            <span class="n">xe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;x_bounds&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;nv&#39;</span><span class="p">))</span>
+            <span class="n">xe</span><span class="o">.</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s1">&#39;longitude_bounds&#39;</span>
+            <span class="n">xe</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;degrees&#39;</span>
+            <span class="n">x</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nx</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">REFLON</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_synchlon</span>
+            <span class="n">xe</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">xe</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">xe</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">xe</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,))</span>
+            <span class="n">y</span><span class="o">.</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s1">&#39;latitude&#39;</span>
+            <span class="n">y</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;degrees&#39;</span>
+            <span class="n">ye</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;y_bounds&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;nv&#39;</span><span class="p">))</span>
+            <span class="n">ye</span><span class="o">.</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s1">&#39;latitude_bounds&#39;</span>
+            <span class="n">ye</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;degrees&#39;</span>
+            <span class="n">y</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">REFLAT</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_synchlat</span>
+            <span class="n">ye</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">ye</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">ye</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">y</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">ye</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">y</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
+
+        <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;S8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(),</span> <span class="s1">&#39;%y%m</span><span class="si">%d</span><span class="s1">%H&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tflag</span><span class="p">]</span>
+        <span class="n">rtime</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">hours_since</span> <span class="o">=</span> <span class="p">[(</span><span class="n">t</span> <span class="o">-</span> <span class="n">rtime</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">//</span> <span class="mi">3600</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">]</span>
+        <span class="n">timev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,))</span>
+        <span class="n">timev</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">hours_since</span>
+        <span class="n">timev</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">rtime</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;hours since </span><span class="si">%F</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">,))</span>
+        <span class="n">z</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;vglvls&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SFCVGLVL</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;vglvls&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;pressure sigma&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;pressure absolute&#39;</span><span class="p">,</span>
+                  <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;terrain sigma&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="s1">&#39;hybrid sigma&#39;</span><span class="p">}</span>
+        <span class="n">z</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VSYS2</span><span class="p">),</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setCoords</span><span class="p">([</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_addcrs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
+        <span class="n">gridx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">[:])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">gridy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">y</span><span class="p">[:])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">nx</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">ny</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">crs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;crs&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">())</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">tanlat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">TANLAT</span><span class="p">)</span>
+        <span class="n">reflon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">REFLON</span><span class="p">)</span>
+        <span class="n">reflat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">REFLAT</span><span class="p">)</span>
+        <span class="n">atanlat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">tanlat</span><span class="p">)</span>
+        <span class="n">pname</span> <span class="o">=</span> <span class="n">crs</span><span class="o">.</span><span class="n">grid_mapping_name</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;equatorial_mercator&#39;</span><span class="p">,</span>
+            <span class="mi">90</span><span class="p">:</span> <span class="s1">&#39;polar_stereographic&#39;</span><span class="p">,</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">atanlat</span><span class="p">,</span> <span class="s1">&#39;lambert_conformal_conic&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pname</span> <span class="o">==</span> <span class="s1">&#39;lambert_conformal_conic&#39;</span><span class="p">:</span>
+            <span class="n">crs</span><span class="o">.</span><span class="n">standard_parallel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">tanlat</span><span class="p">,</span> <span class="n">tanlat</span><span class="p">])</span>
+            <span class="n">crs</span><span class="o">.</span><span class="n">longitude_of_central_meridian</span> <span class="o">=</span> <span class="n">reflon</span>
+            <span class="n">crs</span><span class="o">.</span><span class="n">latitude_of_projection_origin</span> <span class="o">=</span> <span class="n">reflat</span>
+        <span class="k">elif</span> <span class="n">pname</span> <span class="o">==</span> <span class="s1">&#39;polar_stereographic&#39;</span><span class="p">:</span>
+            <span class="n">crs</span><span class="o">.</span><span class="n">straight_vertical_longitude_from_pole</span> <span class="o">=</span> <span class="n">reflon</span>
+            <span class="n">crs</span><span class="o">.</span><span class="n">standard_parallel</span> <span class="o">=</span> <span class="n">reflat</span>
+            <span class="n">crs</span><span class="o">.</span><span class="n">latitude_of_projection_origin</span> <span class="o">=</span> <span class="n">tanlat</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Not yet implemented equatorial mercator&#39;</span><span class="p">)</span>
+
+        <span class="n">crs</span><span class="o">.</span><span class="n">earth_radius</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_earth_radius</span>  <span class="c1"># WRF-based radius</span>
+        <span class="n">scellx</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SYNCHX</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">gridx</span>  <span class="c1"># 1-based I cell</span>
+        <span class="n">scelly</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SYNCHY</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">gridy</span>  <span class="c1"># 1-based J cell</span>
+        <span class="n">slon</span><span class="p">,</span> <span class="n">slat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_synchlon</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_synchlat</span>
+        <span class="k">if</span> <span class="n">slon</span> <span class="o">&gt;</span> <span class="mi">180</span><span class="p">:</span>
+            <span class="n">slon</span> <span class="o">=</span> <span class="n">slon</span> <span class="o">%</span> <span class="mi">180</span> <span class="o">-</span> <span class="mi">180</span>
+
+        <span class="n">halfwidth</span> <span class="o">=</span> <span class="n">gridx</span> <span class="o">*</span> <span class="p">(</span><span class="n">nx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">halfheight</span> <span class="o">=</span> <span class="n">gridy</span> <span class="o">*</span> <span class="p">(</span><span class="n">ny</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">crs</span><span class="o">.</span><span class="n">false_easting</span> <span class="o">=</span> <span class="n">halfwidth</span>
+        <span class="n">crs</span><span class="o">.</span><span class="n">false_northing</span> <span class="o">=</span> <span class="n">halfheight</span>
+        <span class="n">llcrnrlon</span><span class="p">,</span> <span class="n">llcrnrlat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xy2ll</span><span class="p">(</span><span class="n">scellx</span><span class="p">,</span> <span class="n">scelly</span><span class="p">)</span>
+
+        <span class="n">x_within_precision</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">slon</span> <span class="o">/</span> <span class="n">llcrnrlon</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="n">y_within_precision</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">slat</span> <span class="o">/</span> <span class="n">llcrnrlat</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">x_within_precision</span> <span class="ow">and</span> <span class="n">y_within_precision</span><span class="p">):</span>
+            <span class="n">warn</span><span class="p">(</span>
+                <span class="s1">&#39;Grid not centered; using SYNCHLAT/SYNCHLON &#39;</span> <span class="o">+</span>
+                <span class="s1">&#39;with limited to 6 significant digits &#39;</span> <span class="o">+</span>
+                <span class="s1">&#39;to calculate false easting/northing&#39;</span>
+            <span class="p">)</span>
+            <span class="n">crs</span><span class="o">.</span><span class="n">false_easting</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="n">crs</span><span class="o">.</span><span class="n">false_northing</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="n">llcrnrx</span><span class="p">,</span> <span class="n">llcrnry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ll2xy</span><span class="p">(</span><span class="n">slon</span><span class="p">,</span> <span class="n">slat</span><span class="p">)</span>
+            <span class="n">crs</span><span class="o">.</span><span class="n">false_easting</span> <span class="o">=</span> <span class="o">-</span><span class="n">llcrnrx</span> <span class="o">+</span> <span class="n">scellx</span>
+            <span class="n">crs</span><span class="o">.</span><span class="n">false_northing</span> <span class="o">=</span> <span class="o">-</span><span class="n">llcrnry</span> <span class="o">+</span> <span class="n">scelly</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Conventions</span> <span class="o">=</span> <span class="s1">&#39;CF-1.6&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_getvar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varkey</span><span class="p">):</span>
+        <span class="n">datamap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datamap</span>
+        <span class="n">stdname</span><span class="p">,</span> <span class="n">stdunit</span> <span class="o">=</span> <span class="n">stdprops</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">varkey</span><span class="p">,</span> <span class="p">(</span><span class="n">varkey</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">varkey</span> <span class="ow">in</span> <span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;surface&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+            <span class="n">vhead</span> <span class="o">=</span> <span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;surface&#39;</span><span class="p">][</span><span class="n">varkey</span><span class="p">][</span><span class="s1">&#39;head&#39;</span><span class="p">]</span>
+            <span class="n">v11</span> <span class="o">=</span> <span class="n">vhead</span><span class="p">[</span><span class="s1">&#39;VAR1&#39;</span><span class="p">]</span>
+            <span class="n">EXP</span> <span class="o">=</span> <span class="n">vhead</span><span class="p">[</span><span class="s1">&#39;EXP&#39;</span><span class="p">]</span>
+            <span class="n">props</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">pk</span><span class="p">,</span> <span class="n">vhead</span><span class="p">[</span><span class="n">pk</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">pk</span> <span class="ow">in</span> <span class="n">vhead</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span>
+                          <span class="k">if</span> <span class="n">pk</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;YYMMDDHHFF&#39;</span><span class="p">,</span> <span class="s1">&#39;LEVEL&#39;</span><span class="p">)])</span>
+            <span class="nb">bytes</span> <span class="o">=</span> <span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;surface&#39;</span><span class="p">][</span><span class="n">varkey</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+            <span class="n">vdata</span> <span class="o">=</span> <span class="n">unpack</span><span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">v11</span><span class="p">,</span> <span class="n">EXP</span><span class="p">)</span>
+            <span class="c1"># if varkey == &#39;MXLR&#39;:</span>
+            <span class="c1">#  CVAR, PREC, NEXP, VAR1, KSUM = pack2d(vdata[21], verbose = True)</span>
+
+            <span class="n">out</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="n">varkey</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">),</span>
+                <span class="n">values</span><span class="o">=</span><span class="n">vdata</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">stdunit</span><span class="p">,</span> <span class="n">standard_name</span><span class="o">=</span><span class="n">stdname</span><span class="p">,</span> <span class="o">**</span><span class="n">props</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">varkey</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layvarkeys</span><span class="p">:</span>
+            <span class="n">laykeys</span> <span class="o">=</span> <span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;layers&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span>
+            <span class="n">mylaykeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">laykey</span> <span class="k">for</span> <span class="n">laykey</span> <span class="ow">in</span> <span class="n">laykeys</span>
+                         <span class="k">if</span> <span class="n">varkey</span> <span class="ow">in</span> <span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;layers&#39;</span><span class="p">][</span><span class="n">laykey</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">]</span>
+            <span class="nb">bytes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;layers&#39;</span><span class="p">][</span><span class="n">lk</span><span class="p">][</span><span class="n">varkey</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+                              <span class="k">for</span> <span class="n">lk</span> <span class="ow">in</span> <span class="n">mylaykeys</span><span class="p">])</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">vhead</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">datamap</span><span class="p">[</span><span class="s1">&#39;layers&#39;</span><span class="p">][</span><span class="n">lk</span><span class="p">][</span><span class="n">varkey</span><span class="p">][</span><span class="s1">&#39;head&#39;</span><span class="p">]</span>
+                              <span class="k">for</span> <span class="n">lk</span> <span class="ow">in</span> <span class="n">mylaykeys</span><span class="p">])</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">v11</span> <span class="o">=</span> <span class="n">vhead</span><span class="p">[</span><span class="s1">&#39;VAR1&#39;</span><span class="p">]</span>
+            <span class="n">EXP</span> <span class="o">=</span> <span class="n">vhead</span><span class="p">[</span><span class="s1">&#39;EXP&#39;</span><span class="p">]</span>
+            <span class="n">props</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">pk</span><span class="p">,</span> <span class="n">vhead</span><span class="p">[</span><span class="n">pk</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">pk</span> <span class="ow">in</span> <span class="n">vhead</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span>
+                          <span class="k">if</span> <span class="n">pk</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;YYMMDDHHFF&#39;</span><span class="p">,</span> <span class="s1">&#39;LEVEL&#39;</span><span class="p">)])</span>
+            <span class="n">props</span><span class="p">[</span><span class="s1">&#39;LEVEL_START&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vhead</span><span class="p">[</span><span class="s1">&#39;LEVEL&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">props</span><span class="p">[</span><span class="s1">&#39;LEVEL_END&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vhead</span><span class="p">[</span><span class="s1">&#39;LEVEL&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">vdata</span> <span class="o">=</span> <span class="n">unpack</span><span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">v11</span><span class="p">,</span> <span class="n">EXP</span><span class="p">)</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="n">varkey</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">),</span>
+                <span class="n">values</span><span class="o">=</span><span class="n">vdata</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">stdunit</span><span class="p">,</span>
+                <span class="n">standard_name</span><span class="o">=</span><span class="n">stdname</span><span class="p">,</span> <span class="o">**</span><span class="n">props</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">out</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+<div class="viewcode-block" id="arlpackedbit.getMap">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.noaafiles.html#PseudoNetCDF.noaafiles.arlpackedbit.getMap">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">getMap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maptype</span><span class="o">=</span><span class="s1">&#39;basemap_auto&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;latitude_bounds&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">PseudoNetCDFFile</span><span class="o">.</span><span class="n">getMap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maptype</span><span class="o">=</span><span class="n">maptype</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.coordutil</span><span class="w"> </span><span class="kn">import</span> <span class="n">basemap_from_proj4</span>
+        <span class="n">kwds</span> <span class="o">=</span> <span class="n">kwds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">myproj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getproj</span><span class="p">(</span><span class="n">withgrid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">projformat</span><span class="o">=</span><span class="s1">&#39;pyproj&#39;</span><span class="p">)</span>
+        <span class="n">myprojstr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getproj</span><span class="p">(</span><span class="n">withgrid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">projformat</span><span class="o">=</span><span class="s1">&#39;proj4&#39;</span><span class="p">)</span>
+        <span class="n">llcrnrlon</span><span class="p">,</span> <span class="n">llcrnrlat</span> <span class="o">=</span> <span class="n">myproj</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">inverse</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">urcrnrlon</span><span class="p">,</span> <span class="n">urcrnrlat</span> <span class="o">=</span> <span class="n">myproj</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">inverse</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">kwds</span><span class="p">[</span><span class="s1">&#39;llcrnrlon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">llcrnrlon</span>
+        <span class="n">kwds</span><span class="p">[</span><span class="s1">&#39;llcrnrlat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">llcrnrlat</span>
+        <span class="n">kwds</span><span class="p">[</span><span class="s1">&#39;urcrnrlon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">urcrnrlon</span>
+        <span class="n">kwds</span><span class="p">[</span><span class="s1">&#39;urcrnrlat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">urcrnrlat</span>
+        <span class="k">return</span> <span class="n">basemap_from_proj4</span><span class="p">(</span><span class="n">myprojstr</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="arlpackedbit.plot">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.noaafiles.html#PseudoNetCDF.noaafiles.arlpackedbit.plot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        See PseudoNetCDF.PseudoNetCDFFile.plot. For this file,</span>
+<span class="sd">        the default plottype is &#39;x-y&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kwds</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;plottype&#39;</span><span class="p">,</span> <span class="s1">&#39;x-y&#39;</span><span class="p">)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">PseudoNetCDFFile</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kwds</span><span class="p">[</span><span class="s1">&#39;plottype&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;x-y&#39;</span><span class="p">:</span>
+            <span class="n">map_kw</span> <span class="o">=</span> <span class="n">kwds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;map_kw&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">map_kw</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">ax</span>
+            <span class="k">elif</span> <span class="n">map_kw</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">map_kw</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">map_kw</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">map_kw</span> <span class="o">=</span> <span class="n">map_kw</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">coastlines</span> <span class="o">=</span> <span class="n">map_kw</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;coastlines&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="n">countries</span> <span class="o">=</span> <span class="n">map_kw</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;countries&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="n">states</span> <span class="o">=</span> <span class="n">map_kw</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;states&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="n">counties</span> <span class="o">=</span> <span class="n">map_kw</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;counties&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="n">bmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMap</span><span class="p">(</span><span class="o">**</span><span class="n">map_kw</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">coastlines</span><span class="p">:</span>
+                    <span class="n">bmap</span><span class="o">.</span><span class="n">drawcoastlines</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">countries</span><span class="p">:</span>
+                    <span class="n">bmap</span><span class="o">.</span><span class="n">drawcountries</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">states</span><span class="p">:</span>
+                    <span class="n">bmap</span><span class="o">.</span><span class="n">drawstates</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">counties</span><span class="p">:</span>
+                    <span class="n">bmap</span><span class="o">.</span><span class="n">drawcounties</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">ax</span></div>
+
+
+<div class="viewcode-block" id="arlpackedbit.getproj">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.noaafiles.html#PseudoNetCDF.noaafiles.arlpackedbit.getproj">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">getproj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">withgrid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">projformat</span><span class="o">=</span><span class="s1">&#39;pyproj&#39;</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.coordutil</span><span class="w"> </span><span class="kn">import</span> <span class="n">getproj4_from_cf_var</span>
+        <span class="n">gridmapping</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;crs&#39;</span><span class="p">]</span>
+        <span class="n">proj4str</span> <span class="o">=</span> <span class="n">getproj4_from_cf_var</span><span class="p">(</span><span class="n">gridmapping</span><span class="p">,</span> <span class="n">withgrid</span><span class="o">=</span><span class="n">withgrid</span><span class="p">)</span>
+        <span class="n">preserve_units</span> <span class="o">=</span> <span class="n">withgrid</span>
+        <span class="k">if</span> <span class="n">projformat</span> <span class="o">==</span> <span class="s1">&#39;proj4&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">proj4str</span>
+        <span class="k">elif</span> <span class="n">projformat</span> <span class="o">==</span> <span class="s1">&#39;pyproj&#39;</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">pyproj</span>
+            <span class="c1"># pyproj adds +units=m, which is not right for latlon/lonlat</span>
+            <span class="k">if</span> <span class="s1">&#39;+proj=lonlat&#39;</span> <span class="ow">in</span> <span class="n">proj4str</span> <span class="ow">or</span> <span class="s1">&#39;+proj=latlon&#39;</span> <span class="ow">in</span> <span class="n">proj4str</span><span class="p">:</span>
+                <span class="n">preserve_units</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Proj</span><span class="p">(</span><span class="n">proj4str</span><span class="p">,</span> <span class="n">preserve_units</span><span class="o">=</span><span class="n">preserve_units</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">projformat</span> <span class="o">==</span> <span class="s1">&#39;wkt&#39;</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">osr</span>
+            <span class="n">srs</span> <span class="o">=</span> <span class="n">osr</span><span class="o">.</span><span class="n">SpatialReference</span><span class="p">()</span>
+            <span class="c1"># Imports WKT to Spatial Reference Object</span>
+            <span class="n">srs</span><span class="o">.</span><span class="n">ImportFromProj4</span><span class="p">(</span><span class="n">proj4str</span><span class="p">)</span>
+            <span class="n">srs</span><span class="o">.</span><span class="n">ExportToWkt</span><span class="p">()</span>  <span class="c1"># converts the WKT to an ESRI-compatible format</span>
+            <span class="k">return</span> <span class="n">srs</span><span class="o">.</span><span class="n">ExportToWkt</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;projformat must be pyproj, proj4 or wkt&#39;</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="n">registerwriter</span><span class="p">(</span><span class="s1">&#39;noaafiles.arlpackedbit&#39;</span><span class="p">,</span> <span class="n">writearlpackedbit</span><span class="p">)</span>
+<span class="n">registerwriter</span><span class="p">(</span><span class="s1">&#39;arlpackedbit&#39;</span><span class="p">,</span> <span class="n">writearlpackedbit</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">arlpackedbit</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

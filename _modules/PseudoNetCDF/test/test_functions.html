@@ -1,0 +1,405 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.test.test_functions &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../test.html">PseudoNetCDF.test</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.test.test_functions</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.test.test_functions</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">unittest</span>
+
+
+<div class="viewcode-block" id="TestFunc">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TestFunc</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="TestFunc.runTest">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.runTest">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">runTest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.setUp">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.setUp">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pnc</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">pnc</span><span class="o">.</span><span class="n">PseudoNetCDFFile</span><span class="p">()</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">))</span>
+        <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span> <span class="o">=</span> <span class="n">f</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testPncrename">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testPncrename">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testPncrename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncrename</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">pncrename</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;d,t,time&#39;</span><span class="p">))</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">])</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nf</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">chkval</span> <span class="o">==</span> <span class="n">outval</span><span class="p">)</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">pncrename</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;v,test,hooray&#39;</span><span class="p">))</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;hooray&#39;</span><span class="p">]</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nf</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">chkval</span> <span class="o">==</span> <span class="n">outval</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testManglenames">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testManglenames">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testManglenames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">manglenames</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">subset</span><span class="p">([])</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;arg1$-+&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;t&#39;</span><span class="p">))</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">manglenames</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nf</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;arg1S__add_&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testRemovesingleton">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testRemovesingleton">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testRemovesingleton</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">removesingleton</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">nf</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">tmpval</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nf</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+        <span class="n">nf2</span> <span class="o">=</span> <span class="n">removesingleton</span><span class="p">(</span><span class="n">nf</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">)</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nf2</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">tmpval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testSlicedim">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testSlicedim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testSlicedim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">slice_dim</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">slice_dim</span><span class="p">(</span>
+            <span class="n">slice_dim</span><span class="p">(</span>
+                <span class="n">slice_dim</span><span class="p">(</span>
+                    <span class="n">slice_dim</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;x,0,1&#39;</span><span class="p">),</span>
+                    <span class="s1">&#39;y,0,1&#39;</span>
+                <span class="p">),</span>
+                <span class="s1">&#39;z,0,1&#39;</span>
+            <span class="p">),</span>
+            <span class="s1">&#39;t,0,1&#39;</span>
+        <span class="p">)</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">nf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">][:]</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[[[</span><span class="mi">0</span><span class="p">]]]])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testReducedim">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testReducedim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testReducedim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">reduce_dim</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">][:])</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">reduce_dim</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;t,mean&#39;</span><span class="p">)</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">nf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">][:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testPncbo">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testPncbo">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testPncbo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncbo</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">pncbo</span><span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">nf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testSeqpncbo">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testSeqpncbo">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testSeqpncbo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">seqpncbo</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">seqpncbo</span><span class="p">([</span><span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">])</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">nf</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testAddattr">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testAddattr">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testAddattr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_attr</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">add_attr</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;test,global,o,i,1&#39;</span><span class="p">)</span>
+        <span class="n">add_attr</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;test,test,o,i,1&#39;</span><span class="p">)</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">test</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">test</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="s1">&#39;a&#39;</span>
+        <span class="n">add_attr</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;test,global,o,c,a&#39;</span><span class="p">)</span>
+        <span class="n">add_attr</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;test,test,o,c,a&#39;</span><span class="p">)</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">test</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">test</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span>
+        <span class="n">add_attr</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;test,global,d,c,a&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testSplitdim">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testSplitdim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testSplitdim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">splitdim</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">tv</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="n">tv</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">tv</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">splitdim</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;day&#39;</span><span class="p">,</span> <span class="s1">&#39;hour&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">nf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testStackfiles">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testStackfiles">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testStackfiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">stack_files</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">tv</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">stack_files</span><span class="p">([</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">],</span> <span class="s1">&#39;t&#39;</span><span class="p">)</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">tv</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">nf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testMerge">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testMerge">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testMerge</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">merge</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">f1</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">renameVariable</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;test1&#39;</span><span class="p">)</span>
+        <span class="n">f2</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">renameVariable</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;test2&#39;</span><span class="p">)</span>
+        <span class="n">f3</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">renameVariable</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;test3&#39;</span><span class="p">)</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">merge</span><span class="p">([</span><span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">f3</span><span class="p">])</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;test1&#39;</span><span class="p">,</span> <span class="s1">&#39;test2&#39;</span><span class="p">,</span> <span class="s1">&#39;test3&#39;</span><span class="p">]</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">nf</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testConvolvedim">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testConvolvedim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testConvolvedim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">convolve_dim</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">convolve_dim</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;t,valid,0.5,0.5&#39;</span><span class="p">)</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">nf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testPncexpr">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testPncexpr">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testPncexpr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncexpr</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">][:]</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">3</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">pncexpr</span><span class="p">(</span><span class="s1">&#39;test2 = test * 2 + 3&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">nf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test2&#39;</span><span class="p">][:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testMaksvals">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testMaksvals">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testMaksvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">mask_vals</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_greater</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">],</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">mask_vals</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;greater,5&#39;</span><span class="p">)</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">nf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testInterpvars">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testInterpvars">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testInterpvars</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">interpvars</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
+        <span class="p">])</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">][:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+            <span class="o">*</span> <span class="n">w</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">interpvars</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">)</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">nf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testGetvarpnc">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testGetvarpnc">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testGetvarpnc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">getvarpnc</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">copyVariable</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;test2&#39;</span><span class="p">)</span>
+        <span class="n">tmpval</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">getvarpnc</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">])</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">nf</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">tmpval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testMeshdim">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testMeshdim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testMeshdim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">mesh_dim</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">][:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">mesh_dim</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;y,2,mean&#39;</span><span class="p">)</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">nf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testPncfunc">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testPncfunc">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testPncfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.core._functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncfunc</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">7</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">pncfunc</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">7</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">nf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="TestFunc.testPncbfunc">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_functions.TestFunc.testPncbfunc">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testPncbfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.core._functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncbfunc</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplefile</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">chkval</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">pncbfunc</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">nf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">outval</span> <span class="o">==</span> <span class="n">chkval</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></div>
+</div>
+
+
+
+<span class="c1"># warnings.warn(str(outval))</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">def extract_from_file(f, lonlatfs, unique=False, gridded=None, method=&#39;nn&#39;,</span>
+<span class="sd">def extract_lonlat(f, lonlat, unique=False, gridded=None, method=&#39;nn&#39;,</span>
+<span class="sd">def pncfunc(func, ifile1, coordkeys=None, verbose=0):</span>
+<span class="sd">def pncbfunc(func, ifile1, ifile2, coordkeys=None, verbose=0):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

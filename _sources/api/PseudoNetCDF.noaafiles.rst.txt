@@ -1,0 +1,21 @@
+PseudoNetCDF.noaafiles package
+==============================
+
+Submodules
+----------
+
+PseudoNetCDF.noaafiles.arltime module
+-------------------------------------
+
+.. automodule:: PseudoNetCDF.noaafiles.arltime
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.noaafiles
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,620 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.camxfiles.FortranFileUtil &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.camxfiles.FortranFileUtil</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.camxfiles.FortranFileUtil</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;platform_is_bigendian&#39;</span><span class="p">,</span> <span class="s1">&#39;freadnumpy&#39;</span><span class="p">,</span> <span class="s1">&#39;freadstruct&#39;</span><span class="p">,</span> <span class="s1">&#39;fread&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;needs_byteswap&#39;</span><span class="p">,</span> <span class="s1">&#39;check_read&#39;</span><span class="p">,</span> <span class="s1">&#39;RecordFile&#39;</span><span class="p">,</span> <span class="s1">&#39;unpack_from_file&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;seek_to_record&#39;</span><span class="p">,</span> <span class="s1">&#39;read_into&#39;</span><span class="p">,</span> <span class="s1">&#39;writeline&#39;</span><span class="p">,</span> <span class="s1">&#39;OpenRecordFile&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;Int2Asc&#39;</span><span class="p">,</span> <span class="s1">&#39;Asc2Int&#39;</span><span class="p">]</span>
+
+<span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">.. _FortranFileUtil</span>
+<span class="s2">:mod:`FortranFileUtil` -- Fortran File interaction functions</span>
+<span class="s2">============================================================</span>
+
+<span class="s2">.. module:: FortranFileUtil</span>
+<span class="s2">   :platform: Unix, Windows</span>
+<span class="s2">   :synopsis: Provides utilities for interacting with Fortran</span>
+<span class="s2">              &quot;unformatted&quot; binary files.  These files often</span>
+<span class="s2">              have records with integer buffers and formatted data.</span>
+<span class="s2">              Often the data has a byte order different than the</span>
+<span class="s2">              machine doing the reading. These utilities provide ways</span>
+<span class="s2">              for the user to get data and ignore the byte order and</span>
+<span class="s2">              data buffers.</span>
+<span class="s2">.. moduleauthor:: Adam Hupp</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="c1"># Distribution Packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">unittest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">mul</span>
+<span class="c1"># Site-Packages</span>
+<span class="c1"># use numpy if available</span>
+<span class="c1"># otherwise use numeric</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="n">fromfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<span class="n">platform_is_bigendian</span> <span class="o">=</span> <span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">!=</span> <span class="s1">&#39;little&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="freadnumpy">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.freadnumpy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">freadnumpy</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">read_type</span><span class="p">,</span> <span class="n">return_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">byteswap</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">return_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">return_type</span> <span class="o">=</span> <span class="n">read_type</span>
+
+    <span class="k">if</span> <span class="n">byteswap</span> <span class="o">^</span> <span class="n">platform_is_bigendian</span><span class="p">:</span>
+        <span class="n">endian</span> <span class="o">=</span> <span class="s1">&#39;&gt;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">endian</span> <span class="o">=</span> <span class="s1">&#39;&lt;&#39;</span>
+    <span class="c1"># rfmt = &quot;%s%s&quot; % (endian, return_type)</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">endian</span><span class="p">,</span> <span class="n">read_type</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">array</span><span class="p">(</span><span class="n">fromfile</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="n">count</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">return_type</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="freadstruct">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.freadstruct">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">freadstruct</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">read_type</span><span class="p">,</span> <span class="n">return_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">byteswap</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">return_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">return_type</span> <span class="o">=</span> <span class="n">read_type</span>
+
+    <span class="k">if</span> <span class="n">byteswap</span> <span class="o">^</span> <span class="n">platform_is_bigendian</span><span class="p">:</span>
+        <span class="n">endian</span> <span class="o">=</span> <span class="s1">&#39;&gt;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">endian</span> <span class="o">=</span> <span class="s1">&#39;&lt;&#39;</span>
+
+    <span class="n">fmt</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s%d%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">endian</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">read_type</span><span class="p">)</span>
+
+    <span class="n">elem</span> <span class="o">=</span> <span class="n">unpack_from_file</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">ifile</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">array</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">return_type</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># numpy style fread is more than 2 x as fast as struct</span>
+<span class="c1"># preserving freadstruct (previously fread) until further notice</span>
+<span class="n">fread</span> <span class="o">=</span> <span class="n">freadnumpy</span>
+
+
+<div class="viewcode-block" id="needs_byteswap">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.needs_byteswap">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">needs_byteswap</span><span class="p">(</span><span class="n">bigendian</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Determines if byteswapping is necessary for the given endianness</span>
+<span class="sd">    For example, if we are reading bigendian data, call</span>
+
+<span class="sd">    need_byteswap(True)</span>
+
+<span class="sd">    to see if that data needs to be swapped on the current platform</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">bigendian</span> <span class="o">!=</span> <span class="n">platform_is_bigendian</span></div>
+
+
+
+<div class="viewcode-block" id="check_read">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.check_read">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_read</span><span class="p">(</span><span class="n">requested</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Checks that the result of a read from a file was of the expected size</span>
+<span class="sd">    Raises EOFError if nothing was read, or IOError if the read was incomplete</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">!=</span> <span class="n">requested</span> <span class="ow">and</span> <span class="n">requested</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">EOFError</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Incomplete read, requested </span><span class="si">%d</span><span class="s2"> recieved </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span>
+                          <span class="p">(</span><span class="n">requested</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)))</span></div>
+
+
+
+<div class="viewcode-block" id="RecordFile">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.RecordFile">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RecordFile</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class provides an easy interface to treat unformated</span>
+<span class="sd">    Fortran files like like record files.</span>
+
+<span class="sd">    TODO: count=-1 does not work in aread, off by one element?!?</span>
+<span class="sd">    TODO: error checking in aread, prevent reading past end of record</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="RecordFile.tell">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.RecordFile.tell">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        use file object tell</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">infile</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">infile</span><span class="p">,</span> <span class="n">bigendian</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">        infile --  an open file-like object.  Must be random access.  Must</span>
+<span class="sd">          be a real file if the RecordFile.aread method is going to be used.</span>
+<span class="sd">        bigendian --  boolean, True if file is bigendian</span>
+
+<span class="sd">        ***Assumes single 4 byte integer pad on either end</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="s1">&#39;seek&#39;</span><span class="p">)</span> <span class="ow">and</span> \
+           <span class="nb">hasattr</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="s1">&#39;tell&#39;</span><span class="p">)</span> <span class="ow">and</span> \
+           <span class="nb">hasattr</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="s1">&#39;read&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">infile</span> <span class="o">=</span> <span class="n">infile</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">infile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;infile is of &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">infile</span><span class="p">))</span> <span class="o">+</span>
+                                <span class="s2">&quot;: and can only be string or file; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+        <span class="c1"># Is this platform a different byteorder than the file?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">byteswap</span> <span class="o">=</span> <span class="n">needs_byteswap</span><span class="p">(</span><span class="n">bigendian</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">bigendian</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">format_prefix</span> <span class="o">=</span> <span class="s1">&#39;&gt;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">format_prefix</span> <span class="o">=</span> <span class="s1">&#39;&lt;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">infile</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infile</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_newrecord</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RecordFile.seek">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.RecordFile.seek">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">seek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">offset</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
+            <span class="n">posnow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infile</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+            <span class="n">relmov</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">-</span> <span class="n">posnow</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">infile</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">relmov</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">((</span><span class="s2">&quot;File length = </span><span class="si">%i</span><span class="s2">; record start &quot;</span> <span class="o">+</span>
+                              <span class="s2">&quot;requested </span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="n">offset</span><span class="p">))</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_newrecord</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Move to a new record starting at the given offset</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">record_start</span> <span class="o">=</span> <span class="n">offset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">record_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;i&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<div class="viewcode-block" id="RecordFile.unpack">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.RecordFile.unpack">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">unpack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Unpack a set of values, like the struct module</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">unpack_from_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">format_prefix</span> <span class="o">+</span> <span class="n">fmt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">infile</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)</span> <span class="k">else</span> <span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="RecordFile.read">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.RecordFile.read">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Unpack a set of values, like the struct module</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">unpack_from_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">format_prefix</span> <span class="o">+</span> <span class="n">fmt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">infile</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="RecordFile.next">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.RecordFile.next">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">next</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Move to the next record.</span>
+<span class="sd">        Returns True if sucessful, False if no more records available.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># 4 bytes for record size, start and end</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">record_start</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">record_size</span> <span class="o">+</span> <span class="mi">8</span>
+        <span class="k">if</span> <span class="n">offset</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_newrecord</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">infile</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># EOF</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="RecordFile.previous">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.RecordFile.previous">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">previous</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Move to the previous record.</span>
+<span class="sd">        Returns True if sucessful, False if no more records available.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># 4 bytes for record size of this record</span>
+        <span class="c1"># 4 bytes for record size of previous record</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">8</span><span class="p">,</span> <span class="o">-</span><span class="mi">4</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">eof</span><span class="p">()]</span>
+
+        <span class="c1"># move to size byte of previous record</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">infile</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Read size of previous record</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;i&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># actual offset = this  record start - size -</span>
+        <span class="c1">#                 previous record length + header</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">-</span> <span class="n">offset</span> <span class="o">-</span> <span class="mi">8</span>
+        <span class="k">if</span> <span class="n">offset</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_newrecord</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">infile</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># EOF</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="RecordFile.aread">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.RecordFile.aread">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">aread</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">count</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read a Numeric array</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">        type -- a type code, one of those used by the struct or Numeric modules</span>
+<span class="sd">        count -- number of elements to read.  If not specified,</span>
+<span class="sd">                  defaults to all remaining bytes in current record</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># NOTE: This does not work right!</span>
+            <span class="n">remain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">record_size</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infile</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">-</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">record_start</span><span class="p">)</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="n">remain</span> <span class="o">/</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="nb">type</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">fread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infile</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span>
+                     <span class="nb">type</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">byteswap</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span>
+            <span class="n">d</span><span class="p">,</span> <span class="s1">&#39;decode&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="RecordFile.eof">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.RecordFile.eof">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">eof</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns true if this RecordFile is at the end of the file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">infile</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span></div>
+
+
+<div class="viewcode-block" id="RecordFile.restart_record">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.RecordFile.restart_record">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">restart_record</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Move to beginning of record</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_newrecord</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">record_start</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="unpack_from_file">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.unpack_from_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unpack_from_file</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">filein</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Like struct.unpack, but reads from a file instead of a string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fmtsize</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">filein</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fmtsize</span><span class="p">)</span>
+    <span class="n">check_read</span><span class="p">(</span><span class="n">fmtsize</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s1">&#39;decode&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+
+<div class="viewcode-block" id="seek_to_record">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.seek_to_record">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">seek_to_record</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="n">rid</span><span class="p">,</span> <span class="n">fmt</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Searches for a record beginning with rid by unpacking</span>
+<span class="sd">    the first struct.calcsize(fmt) bytes and comparing the</span>
+<span class="sd">    results</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">cid</span> <span class="o">=</span> <span class="n">rf</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rid</span> <span class="o">==</span> <span class="n">cid</span><span class="p">:</span>
+            <span class="n">rf</span><span class="o">.</span><span class="n">restart_record</span><span class="p">()</span>
+            <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">rf</span><span class="o">.</span><span class="n">next</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Time </span><span class="si">%s</span><span class="s2"> not found&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">rid</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="read_into">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.read_into">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_into</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="n">dest</span><span class="p">,</span> <span class="n">id_fmt</span><span class="p">,</span> <span class="n">data_fmt</span><span class="o">=</span><span class="s1">&#39;f&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read an array from a RecordFile into a Numeric array.</span>
+<span class="sd">    I don&#39;t know how this will work if dest is anything but 2D.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">    rf -- a RecordFile instance</span>
+<span class="sd">    dest -- a Numeric array, possibly a slice.</span>
+
+<span class="sd">    There must be at least product(shape(dest)) elements</span>
+<span class="sd">    left in the current record</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">reduce</span>
+    <span class="k">if</span> <span class="n">rf</span><span class="o">.</span><span class="n">eof</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">EOFError</span><span class="p">()</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">rf</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">id_fmt</span><span class="p">)</span>
+    <span class="n">rd</span> <span class="o">=</span> <span class="n">rf</span><span class="o">.</span><span class="n">aread</span><span class="p">(</span><span class="n">data_fmt</span><span class="p">,</span> <span class="n">reduce</span><span class="p">(</span><span class="n">mul</span><span class="p">,</span> <span class="n">dest</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    <span class="n">dest</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">rd</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dest</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">id</span></div>
+
+
+
+<div class="viewcode-block" id="writeline">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.writeline">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">writeline</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">fmt</span><span class="p">,</span> <span class="n">ForceBig</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;writeline appends length integers</span>
+<span class="sd">    and determines if byteswap is necessary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rlen</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
+    <span class="n">rfmt</span> <span class="o">=</span> <span class="s2">&quot;i&quot;</span> <span class="o">+</span> <span class="n">fmt</span> <span class="o">+</span> <span class="s2">&quot;i&quot;</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">==</span> <span class="s1">&#39;little&#39;</span> <span class="ow">or</span> <span class="n">ForceBig</span><span class="p">:</span>
+        <span class="n">rfmt</span> <span class="o">=</span> <span class="s1">&#39;&gt;&#39;</span> <span class="o">+</span> <span class="n">rfmt</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">d</span><span class="p">]</span>
+    <span class="n">d</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rlen</span><span class="p">)</span>
+    <span class="n">d</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rlen</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">rfmt</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="k">raise</span></div>
+
+
+
+<div class="viewcode-block" id="OpenRecordFile">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.OpenRecordFile">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">OpenRecordFile</span><span class="p">(</span><span class="n">rf</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;All CAMx files use FortranFileUtil.RecordFiles</span>
+<span class="sd">    as inputs.  This function decides if the input was</span>
+<span class="sd">    of the right type.  If not, it tries to make a RecordFile</span>
+<span class="sd">    from the input.</span>
+
+<span class="sd">    rf - str, unicode, file, RecordFile</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="n">RecordFile</span><span class="p">):</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rf</span> <span class="o">=</span> <span class="n">RecordFile</span><span class="p">(</span><span class="n">rf</span><span class="p">)</span>
+    <span class="n">rf</span><span class="o">.</span><span class="n">_newrecord</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rf</span></div>
+
+
+
+<div class="viewcode-block" id="Int2Asc">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.Int2Asc">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">Int2Asc</span><span class="p">(</span><span class="n">mspec</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Some CAMx input files have text stored as</span>
+<span class="sd">    integers.  This function helps to undo that</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">spcname</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">mspec</span><span class="p">:</span>
+        <span class="n">spcname</span> <span class="o">+=</span> <span class="nb">chr</span><span class="p">((((</span><span class="n">c</span> <span class="o">-</span> <span class="mi">32</span><span class="p">)</span> <span class="o">//</span> <span class="mi">256</span> <span class="o">-</span> <span class="mi">32</span><span class="p">)</span> <span class="o">//</span> <span class="mi">256</span> <span class="o">-</span> <span class="mi">32</span><span class="p">)</span> <span class="o">//</span> <span class="mi">256</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">spcname</span></div>
+
+
+
+<div class="viewcode-block" id="Asc2Int">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.FortranFileUtil.Asc2Int">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">Asc2Int</span><span class="p">(</span><span class="n">spcname</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Some CAMx output files need the text stored</span>
+<span class="sd">    as integers.  This function helps to do that</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mspec</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">spcname</span><span class="p">:</span>
+        <span class="n">mspec</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">((((((</span><span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">*</span> <span class="mi">256</span><span class="p">)</span> <span class="o">+</span> <span class="mi">32</span><span class="p">)</span> <span class="o">*</span> <span class="mi">256</span><span class="p">)</span> <span class="o">+</span> <span class="mi">32</span><span class="p">)</span> <span class="o">*</span> <span class="mi">256</span><span class="p">)</span> <span class="o">+</span> <span class="mi">32</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">mspec</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestFileUtils</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">tempfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemporaryFile</span> <span class="k">as</span> <span class="n">tf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmpfile</span> <span class="o">=</span> <span class="n">tf</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w+b&#39;</span><span class="p">)</span>
+
+        <span class="c1"># writing tempfile with Fortran unformatted binary format</span>
+        <span class="c1"># 1st line is 0-19 as floats</span>
+        <span class="c1"># 2nd line is 0-19 as ints</span>
+        <span class="c1"># 3rd line is 0-19 as strings</span>
+        <span class="n">write</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmpfile</span><span class="o">.</span><span class="n">write</span>
+        <span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00</span><span class="s1">P&#39;</span> <span class="o">+</span>
+              <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00\x00</span><span class="s1">?</span><span class="se">\x80\x00\x00</span><span class="s1">@</span><span class="se">\x00</span><span class="s1">&#39;</span> <span class="o">+</span>
+              <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00</span><span class="s1">@@</span><span class="se">\x00\x00</span><span class="s1">@</span><span class="se">\x80\x00\x00</span><span class="s1">@</span><span class="se">\xa0</span><span class="s1">&#39;</span> <span class="o">+</span>
+              <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00</span><span class="s1">@</span><span class="se">\xc0\x00\x00</span><span class="s1">@</span><span class="se">\xe0\x00\x00</span><span class="s1">A&#39;</span> <span class="o">+</span>
+              <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00</span><span class="s1">A</span><span class="se">\x10\x00\x00</span><span class="s1">A </span><span class="se">\x00\x00</span><span class="s1">A0&#39;</span> <span class="o">+</span>
+              <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00</span><span class="s1">A@</span><span class="se">\x00\x00</span><span class="s1">AP</span><span class="se">\x00\x00</span><span class="s1">A`</span><span class="se">\x00\x00</span><span class="s1">Ap&#39;</span> <span class="o">+</span>
+              <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00</span><span class="s1">A</span><span class="se">\x80\x00\x00</span><span class="s1">A</span><span class="se">\x88\x00\x00</span><span class="s1">A&#39;</span> <span class="o">+</span>
+              <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x90\x00\x00</span><span class="s1">A</span><span class="se">\x98\x00\x00</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00</span><span class="s1">P&#39;</span><span class="p">)</span>
+        <span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00</span><span class="s1">P&#39;</span> <span class="o">+</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00\x00\x00\x00\x00\x01</span><span class="s1">&#39;</span> <span class="o">+</span>
+              <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00\x02\x00\x00\x00\x03</span><span class="s1">&#39;</span> <span class="o">+</span>
+              <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00\x04\x00\x00\x00\x05</span><span class="s1">&#39;</span> <span class="o">+</span>
+              <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00\x06\x00\x00\x00\x07</span><span class="s1">&#39;</span> <span class="o">+</span>
+              <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00\x08\x00\x00\x00\t</span><span class="s1">&#39;</span> <span class="o">+</span>
+              <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00\n\x00\x00\x00\x0b\x00\x00\x00\x0c</span><span class="s1">&#39;</span> <span class="o">+</span>
+              <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00\r\x00\x00\x00\x0e\x00\x00\x00\x0f</span><span class="s1">&#39;</span> <span class="o">+</span>
+              <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00\x10\x00\x00\x00\x11</span><span class="s1">&#39;</span> <span class="o">+</span>
+              <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00\x12\x00\x00\x00\x13</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00</span><span class="s1">P&#39;</span><span class="p">)</span>
+        <span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00\x14</span><span class="s1">&#39;</span> <span class="o">+</span>
+              <span class="sa">b</span><span class="s1">&#39;The quick brown fox &#39;</span> <span class="o">+</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00\x00\x00\x14</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span> <span class="o">=</span> <span class="n">RecordFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmpfile</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testAdvance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">_newrecord</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">tell</span><span class="p">(),</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">tell</span><span class="p">(),</span> <span class="mi">92</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">tell</span><span class="p">(),</span> <span class="mi">180</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">failIf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">next</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">tell</span><span class="p">(),</span> <span class="mi">204</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">failIf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">next</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">previous</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">tell</span><span class="p">(),</span> <span class="mi">180</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">previous</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">tell</span><span class="p">(),</span> <span class="mi">92</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">previous</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">tell</span><span class="p">(),</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">failIf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">previous</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">tell</span><span class="p">(),</span> <span class="mi">4</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testFloat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">arange</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">_newrecord</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">arange</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;f&#39;</span><span class="p">)</span> <span class="o">==</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">aread</span><span class="p">(</span><span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testReadInto</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">arange</span><span class="p">,</span> <span class="n">zeros</span>
+        <span class="n">dest</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">_newrecord</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Necessary because written to anticipate fortran swapping of axes</span>
+        <span class="n">read_into</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="p">,</span> <span class="n">dest</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">arange</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;f&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span> <span class="o">==</span> <span class="n">dest</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testInt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">arange</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">_newrecord</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">arange</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;i&#39;</span><span class="p">)</span> <span class="o">==</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">aread</span><span class="p">(</span><span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testSeek</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">_newrecord</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">seek_to_record</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">),</span> <span class="s2">&quot;fff&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">tell</span><span class="p">(),</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="n">seek_to_record</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="s2">&quot;iii&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">tell</span><span class="p">(),</span> <span class="mi">92</span><span class="p">)</span>
+        <span class="n">seek_to_record</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;The&#39;</span><span class="p">,),</span> <span class="s1">&#39;3s&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">tell</span><span class="p">(),</span> <span class="mi">180</span><span class="p">)</span>
+        <span class="n">seek_to_record</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">,),</span> <span class="s1">&#39;3c&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">tell</span><span class="p">(),</span> <span class="mi">180</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testStr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">array</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">_newrecord</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+        <span class="n">checkv</span> <span class="o">=</span> <span class="n">array</span><span class="p">([</span><span class="s2">&quot;The quick brown fox &quot;</span><span class="p">])</span>
+        <span class="n">testv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmprf</span><span class="o">.</span><span class="n">aread</span><span class="p">(</span><span class="s1">&#39;S20&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">checkv</span> <span class="o">==</span> <span class="n">testv</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">runTest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,379 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.camxfiles.cloud_rain.Memmap &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.camxfiles.cloud_rain.Memmap</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.camxfiles.cloud_rain.Memmap</h1><div class="highlight"><pre>
+<span></span><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;cloud_rain&#39;</span><span class="p">]</span>
+<span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">.. _Memmap</span>
+<span class="s2">:mod:`Memmap` -- cloud_rain Memmap interface</span>
+<span class="s2">============================================</span>
+
+<span class="s2">.. module:: Memmap</span>
+<span class="s2">   :platform: Unix, Windows</span>
+<span class="s2">   :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx</span>
+<span class="s2">              cloud/rain files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile</span>
+<span class="s2">              for interface details</span>
+<span class="s2">.. moduleauthor:: Barron Henderson &lt;barronh@unc.edu&gt;</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="c1"># Distribution packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">unittest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+
+<span class="c1"># Site-Packages</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">zeros</span><span class="p">,</span> <span class="n">array</span><span class="p">,</span> <span class="n">memmap</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># This Package modules</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span><span class="p">,</span> <span class="n">PseudoNetCDFVariable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFVariables</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.ArrayTransforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvertCAMxTime</span>
+
+<span class="c1"># for use in identifying uncaught nan</span>
+<span class="n">listnan</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\xff\xc0\x00\x00</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">checkarray</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="p">),</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span>
+<span class="n">checkarray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">listnan</span>
+<span class="n">array_nan</span> <span class="o">=</span> <span class="n">checkarray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="cloud_rain">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.cloud_rain.html#PseudoNetCDF.camxfiles.Memmaps.cloud_rain">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">cloud_rain</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    cloud_rain provides a PseudoNetCDF interface for CAMx</span>
+<span class="sd">    cloud_rain files.  Where possible, the inteface follows</span>
+<span class="sd">    IOAPI conventions (see www.baronams.com).</span>
+
+<span class="sd">    ex:</span>
+<span class="sd">        &gt;&gt;&gt; cloud_rain_path = &#39;cloud_rain.bin&#39;</span>
+<span class="sd">        &gt;&gt;&gt; rows, cols = 65, 83</span>
+<span class="sd">        &gt;&gt;&gt; cloud_rainfile = cloud_rain(cloud_rain_path, rows, cols)</span>
+<span class="sd">        &gt;&gt;&gt; cloud_rainfile.variables.keys()</span>
+<span class="sd">        [&#39;CLOUD&#39;, &#39;RAIN&#39;, &#39;SNOW&#39;, &#39;GRAUPEL&#39;, &#39;COD&#39;, &#39;TFLAG&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; v = cloud_rainfile.variables[&#39;CLOUD&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; tflag = cloud_rainfile.variables[&#39;TFLAG&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; tflag.dimensions</span>
+<span class="sd">        (&#39;TSTEP&#39;, &#39;VAR&#39;, &#39;DATE-TIME&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; tflag[0, 0, :]</span>
+<span class="sd">        array([2005185,       0])</span>
+<span class="sd">        &gt;&gt;&gt; tflag[-1, 0, :]</span>
+<span class="sd">        array([2005185,  240000])</span>
+<span class="sd">        &gt;&gt;&gt; v.dimensions</span>
+<span class="sd">        (&#39;TSTEP&#39;, &#39;LAY&#39;, &#39;ROW&#39;, &#39;COL&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; v.shape</span>
+<span class="sd">        (25, 28, 65, 83)</span>
+<span class="sd">        &gt;&gt;&gt; cloud_rainfile.dimensions</span>
+<span class="sd">        {&#39;TSTEP&#39;: 25, &#39;LAY&#39;: 28, &#39;ROW&#39;: 65, &#39;COL&#39;: 83}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rf</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">flen</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">4</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span> <span class="o">=</span> <span class="n">memmap</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">)</span>
+        <span class="n">cldhdrlen</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">-</span> <span class="mi">20</span>
+        <span class="n">line1fmt</span> <span class="o">=</span> <span class="s1">&#39;&gt;i</span><span class="si">%d</span><span class="s1">ciiii&#39;</span> <span class="o">%</span> <span class="n">cldhdrlen</span>
+        <span class="n">ncols</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">nlays</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">line1fmt</span><span class="p">,</span>
+                                            <span class="nb">open</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">offset</span><span class="p">))[</span><span class="o">-</span><span class="mi">4</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;COL&#39;</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="n">nrows</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="n">nlays</span><span class="p">)</span>
+        <span class="n">mydt</span> <span class="o">=</span> <span class="s1">&#39;&gt;i4,S</span><span class="si">%d</span><span class="s1">,&gt;i4,&gt;i4,&gt;i4,&gt;i4,&gt;i4,&gt;f4,&gt;i4&#39;</span> <span class="o">%</span> <span class="n">cldhdrlen</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">mydt</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FILEDESC</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">header</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">STIME</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">SDATE</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">SDATE</span> <span class="o">&lt;</span> <span class="mi">10000</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SDATE</span> <span class="o">+=</span> <span class="mi">2000000</span>
+        <span class="k">if</span> <span class="p">(((</span><span class="n">ncols</span> <span class="o">!=</span> <span class="n">cols</span> <span class="ow">and</span> <span class="n">cols</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span>
+             <span class="p">(</span><span class="n">rows</span> <span class="o">!=</span> <span class="n">rows</span> <span class="ow">and</span> <span class="n">rows</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">))):</span>
+            <span class="n">warn</span><span class="p">((</span><span class="s1">&#39;Files says cols = </span><span class="si">%d</span><span class="s1">, rows = </span><span class="si">%d</span><span class="s1">, and lays = </span><span class="si">%d</span><span class="s1">; &#39;</span> <span class="o">+</span>
+                  <span class="s1">&#39;you said cols = </span><span class="si">%d</span><span class="s1"> and rows = </span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">ncols</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">nlays</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">rows</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;DATE-TIME&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">datasize</span> <span class="o">=</span> <span class="p">(</span><span class="n">flen</span> <span class="o">-</span> <span class="n">offset</span><span class="p">)</span>
+        <span class="c1"># Try 5 first (contemporary)</span>
+        <span class="c1"># Try 3 second (old)</span>
+        <span class="c1"># end on 5 as a failsafe</span>
+        <span class="k">for</span> <span class="n">nvars</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">]:</span>
+            <span class="n">timesize</span> <span class="o">=</span> <span class="p">(</span><span class="n">nvars</span> <span class="o">*</span> <span class="n">nlays</span> <span class="o">*</span> <span class="p">(</span><span class="n">nrows</span> <span class="o">*</span> <span class="n">ncols</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">+</span> <span class="mi">16</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">datasize</span> <span class="o">%</span> <span class="n">timesize</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span>
+                <span class="s1">&#39;File appears incomplete using 3 (v4.2) or 5 &#39;</span> <span class="o">+</span>
+                <span class="s1">&#39;variables (&gt;=v4.3); expected to fail&#39;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">nvars</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">VERSION</span> <span class="o">=</span> <span class="s1">&#39;&lt;4.3&#39;</span>
+            <span class="n">varkeys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CLOUD&#39;</span><span class="p">,</span> <span class="s1">&#39;PRECIP&#39;</span><span class="p">,</span> <span class="s1">&#39;COD&#39;</span><span class="p">,</span> <span class="s1">&#39;TFLAG&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">VERSION</span> <span class="o">=</span> <span class="s1">&#39;&gt;=4.3&#39;</span>
+            <span class="n">varkeys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CLOUD&#39;</span><span class="p">,</span> <span class="s1">&#39;RAIN&#39;</span><span class="p">,</span> <span class="s1">&#39;SNOW&#39;</span><span class="p">,</span> <span class="s1">&#39;GRAUPEL&#39;</span><span class="p">,</span> <span class="s1">&#39;COD&#39;</span><span class="p">,</span> <span class="s1">&#39;TFLAG&#39;</span><span class="p">]</span>
+
+        <span class="n">ntimes</span> <span class="o">=</span> <span class="n">datasize</span> <span class="o">//</span> <span class="n">timesize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="n">ntimes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">varkeys</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">NVARS</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;VAR&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NLAYS</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;LAY&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NROWS</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;ROW&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NCOLS</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;COL&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FTYPE</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__var_get</span><span class="p">,</span> <span class="n">varkeys</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SDATE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">STIME</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__set_var</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">vals_idx</span><span class="p">):</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">])</span>
+        <span class="n">lays</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;LAY&#39;</span><span class="p">])</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;ROW&#39;</span><span class="p">])</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;COL&#39;</span><span class="p">])</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="n">vals_idx</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">lays</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span>
+                                 <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="s1">&#39;COL&#39;</span><span class="p">),</span>
+                                 <span class="n">values</span><span class="o">=</span><span class="n">vals</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;COD&#39;</span><span class="p">:</span> <span class="s1">&#39;None&#39;</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;g/m**3&#39;</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">var_desc</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__var_get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">])</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;ROW&#39;</span><span class="p">])</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;COL&#39;</span><span class="p">])</span>
+        <span class="n">lays</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;LAY&#39;</span><span class="p">])</span>
+        <span class="nb">vars</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">hour</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">cloud</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">rain</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">snow</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="n">graupel</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="n">cod</span> <span class="o">=</span> <span class="mi">7</span>
+        <span class="c1"># stagger = 8</span>
+        <span class="n">out_idx</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+        <span class="n">out_idx</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">lays</span> <span class="o">*</span> <span class="nb">vars</span> <span class="o">*</span>
+                        <span class="p">(</span><span class="n">rows</span> <span class="o">*</span> <span class="n">cols</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mi">4</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">hour</span>
+        <span class="n">out_idx</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">lays</span> <span class="o">*</span> <span class="nb">vars</span> <span class="o">*</span>
+                        <span class="p">(</span><span class="n">rows</span> <span class="o">*</span> <span class="n">cols</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mi">4</span><span class="p">)[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">date</span>
+
+        <span class="n">dateblock</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="n">out_idx</span> <span class="o">==</span> <span class="n">date</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">)</span>
+        <span class="n">hourblock</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="n">out_idx</span> <span class="o">==</span> <span class="n">hour</span><span class="p">]</span>
+        <span class="n">nvars</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;VAR&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ConvertCAMxTime</span><span class="p">(</span><span class="n">dateblock</span><span class="p">,</span> <span class="n">hourblock</span><span class="p">,</span> <span class="n">nvars</span><span class="p">)</span>
+
+        <span class="n">newshape1</span> <span class="o">=</span> <span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">lays</span> <span class="o">*</span> <span class="nb">vars</span> <span class="o">*</span> <span class="p">(</span><span class="n">rows</span> <span class="o">*</span> <span class="n">cols</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="n">newshape2</span> <span class="o">=</span> <span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">lays</span><span class="p">,</span> <span class="nb">vars</span><span class="p">,</span> <span class="n">rows</span> <span class="o">*</span> <span class="n">cols</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">newshape3</span> <span class="o">=</span> <span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">lays</span><span class="p">,</span> <span class="nb">vars</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
+        <span class="n">val_shape</span> <span class="o">=</span> <span class="n">out_idx</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">newshape1</span><span class="p">)[:,</span> <span class="mi">4</span><span class="p">:]</span>
+        <span class="n">val_shape</span> <span class="o">=</span> <span class="n">val_shape</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">newshape2</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">val_shape</span> <span class="o">=</span> <span class="n">val_shape</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">newshape3</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">VERSION</span> <span class="o">==</span> <span class="s1">&#39;&lt;4.3&#39;</span><span class="p">:</span>
+            <span class="n">val_shape</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">cloud</span>
+            <span class="n">val_shape</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">rain</span>
+            <span class="n">val_shape</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">cod</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__set_var</span><span class="p">(</span><span class="s1">&#39;CLOUD&#39;</span><span class="p">,</span> <span class="n">out_idx</span> <span class="o">==</span> <span class="n">cloud</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__set_var</span><span class="p">(</span><span class="s1">&#39;PRECIP&#39;</span><span class="p">,</span> <span class="n">out_idx</span> <span class="o">==</span> <span class="n">rain</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__set_var</span><span class="p">(</span><span class="s1">&#39;COD&#39;</span><span class="p">,</span> <span class="n">out_idx</span> <span class="o">==</span> <span class="n">cod</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">val_shape</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">cloud</span>
+            <span class="n">val_shape</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">rain</span>
+            <span class="n">val_shape</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">snow</span>
+            <span class="n">val_shape</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">graupel</span>
+            <span class="n">val_shape</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">4</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">cod</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__set_var</span><span class="p">(</span><span class="s1">&#39;CLOUD&#39;</span><span class="p">,</span> <span class="n">out_idx</span> <span class="o">==</span> <span class="n">cloud</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__set_var</span><span class="p">(</span><span class="s1">&#39;RAIN&#39;</span><span class="p">,</span> <span class="n">out_idx</span> <span class="o">==</span> <span class="n">rain</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__set_var</span><span class="p">(</span><span class="s1">&#39;SNOW&#39;</span><span class="p">,</span> <span class="n">out_idx</span> <span class="o">==</span> <span class="n">snow</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__set_var</span><span class="p">(</span><span class="s1">&#39;GRAUPEL&#39;</span><span class="p">,</span> <span class="n">out_idx</span> <span class="o">==</span> <span class="n">graupel</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__set_var</span><span class="p">(</span><span class="s1">&#39;COD&#39;</span><span class="p">,</span> <span class="n">out_idx</span> <span class="o">==</span> <span class="n">cod</span><span class="p">)</span>
+
+        <span class="n">buf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="n">out_idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="nb">vars</span> <span class="o">*</span> <span class="n">times</span> <span class="o">*</span> <span class="n">lays</span> <span class="o">+</span> <span class="n">times</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">buf</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">buf</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Buffer&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestMemmap</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">runTest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testCR</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF.testcase</span>
+        <span class="n">crfile</span> <span class="o">=</span> <span class="n">cloud_rain</span><span class="p">(</span>
+            <span class="n">PseudoNetCDF</span><span class="o">.</span><span class="n">testcase</span><span class="o">.</span><span class="n">camxfiles_paths</span><span class="p">[</span><span class="s1">&#39;cloud_rain&#39;</span><span class="p">],</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">crfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">]</span>
+        <span class="n">checkv</span> <span class="o">=</span> <span class="n">array</span><span class="p">([</span><span class="mf">1.25412483e+01</span><span class="p">,</span> <span class="mf">1.77024829e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">1.38041372e+01</span><span class="p">,</span>
+                        <span class="mf">1.94885385e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">1.41415815e+01</span><span class="p">,</span> <span class="mf">1.67501605e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.34467077e+01</span><span class="p">,</span> <span class="mf">1.99459922e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">1.25412483e+01</span><span class="p">,</span>
+                        <span class="mf">1.77024829e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">1.38041372e+01</span><span class="p">,</span> <span class="mf">1.94885385e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.41415815e+01</span><span class="p">,</span> <span class="mf">1.67501605e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">1.34467077e+01</span><span class="p">,</span>
+                        <span class="mf">1.99459922e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">1.25412483e+01</span><span class="p">,</span> <span class="mf">1.77024829e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.38041372e+01</span><span class="p">,</span> <span class="mf">1.94885385e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">1.41415815e+01</span><span class="p">,</span>
+                        <span class="mf">1.67501605e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">1.34467077e+01</span><span class="p">,</span> <span class="mf">1.99459922e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">1.96655331e+01</span><span class="p">,</span> <span class="mf">2.05677104e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">2.14273071e+01</span><span class="p">,</span>
+                        <span class="mf">2.09934115e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">2.21391239e+01</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">2.26519203e+01</span><span class="p">,</span> <span class="mf">4.96763992e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">1.96655331e+01</span><span class="p">,</span>
+                        <span class="mf">2.05677104e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">2.14273071e+01</span><span class="p">,</span> <span class="mf">2.09934115e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">2.21391239e+01</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">2.26519203e+01</span><span class="p">,</span>
+                        <span class="mf">4.96763992e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">1.96655331e+01</span><span class="p">,</span> <span class="mf">2.05677104e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">2.14273071e+01</span><span class="p">,</span> <span class="mf">2.09934115e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">2.21391239e+01</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">2.26519203e+01</span><span class="p">,</span> <span class="mf">4.96763992e+00</span><span class="p">,</span>
+                        <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">],</span>
+                       <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;f&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">crfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;COD&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">checkv</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testNCF2CR</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF.testcase</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncgen</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncgen</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+        <span class="n">inpath</span> <span class="o">=</span> <span class="n">PseudoNetCDF</span><span class="o">.</span><span class="n">testcase</span><span class="o">.</span><span class="n">camxfiles_paths</span><span class="p">[</span><span class="s1">&#39;cloud_rain&#39;</span><span class="p">]</span>
+        <span class="n">outpath</span> <span class="o">=</span> <span class="n">inpath</span> <span class="o">+</span> <span class="s1">&#39;.check&#39;</span>
+        <span class="n">infile</span> <span class="o">=</span> <span class="n">cloud_rain</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">pncgen</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;camxfiles.cloud_rain&#39;</span><span class="p">)</span>
+        <span class="n">orig</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">orig</span> <span class="o">==</span> <span class="n">new</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">outpath</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

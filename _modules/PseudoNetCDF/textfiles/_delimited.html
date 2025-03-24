@@ -1,0 +1,431 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.textfiles._delimited &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.textfiles._delimited</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.textfiles._delimited</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_function</span>  <span class="c1"># , unicode_literals</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF._getwriter</span><span class="w"> </span><span class="kn">import</span> <span class="n">registerwriter</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">unittest</span>
+
+<span class="n">_coordkeys</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;Time time time_bounds TFLAG ETFLAG&quot;</span>  <span class="c1"># Times</span>
+    <span class="o">+</span> <span class="s2">&quot; etam_pressure etai_pressure layer_bounds layer47 layer&quot;</span>  <span class="c1"># Layers</span>
+    <span class="o">+</span> <span class="s2">&quot; latitude latitude_bounds lat lat_bnds&quot;</span>    <span class="c1"># Latitudes</span>
+    <span class="o">+</span> <span class="s2">&quot; longitude longitude_bounds lon lon_bnds&quot;</span>  <span class="c1"># Longitudes</span>
+<span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="csv">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.textfiles.html#PseudoNetCDF.textfiles.csv">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">csv</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">coordkeys</span><span class="o">=</span><span class="n">_coordkeys</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
+                 <span class="n">names</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">defaultcoord</span><span class="o">=</span><span class="s1">&#39;record&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        path : str</span>
+<span class="sd">            place to find csv file</span>
+<span class="sd">        coordkeys : iterable of strings</span>
+<span class="sd">            use these keys as dimensions and coordinate variables</span>
+<span class="sd">        delimiter : str</span>
+<span class="sd">            use this as delimiter (default = &#39;,&#39;) renamed as sep for pandas</span>
+<span class="sd">        names : iterable of strings or True</span>
+<span class="sd">            with pandas backend and names==True: header=&#39;infer&#39;</span>
+<span class="sd">            otherwise, passed directly as keyword</span>
+<span class="sd">        backend : str or None</span>
+<span class="sd">            &#39;numpy&#39; numpy.genfromtxt or &#39;pandas&#39; pandas.read_csv; defaults to</span>
+<span class="sd">            pandas if available</span>
+<span class="sd">        defaultcoord : str</span>
+<span class="sd">            if no coordkeys are found, use this str to create a arbitrary</span>
+<span class="sd">            coordinate based on each record</span>
+<span class="sd">        kwds : mappable</span>
+<span class="sd">            corresponds to numpy.genfromtxt or pandas.read_csv keywords</span>
+
+<span class="sd">        * Note: currently only works when all coordinate variables are 1-d</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">backend</span> <span class="o">!=</span> <span class="s1">&#39;numpy&#39;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span>
+                <span class="k">if</span> <span class="n">backend</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">backend</span> <span class="o">=</span> <span class="s1">&#39;pandas&#39;</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">&#39;pandas&#39;</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s1">&#39;pandas library not available, try another backend&#39;</span>
+                    <span class="p">)</span>
+                <span class="k">elif</span> <span class="n">backend</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">backend</span> <span class="o">=</span> <span class="s1">&#39;numpy&#39;</span>
+
+        <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">&#39;numpy&#39;</span><span class="p">:</span>
+            <span class="n">npkwds</span> <span class="o">=</span> <span class="n">kwds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">npkwds</span><span class="p">[</span><span class="s1">&#39;names&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">names</span>
+            <span class="n">npkwds</span><span class="p">[</span><span class="s1">&#39;delimiter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">delimiter</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">npkwds</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">&#39;pandas&#39;</span><span class="p">:</span>
+            <span class="n">pdkwds</span> <span class="o">=</span> <span class="n">kwds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">names</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">pdkwds</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;header&#39;</span><span class="p">,</span> <span class="s1">&#39;infer&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pdkwds</span><span class="p">[</span><span class="s1">&#39;names&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">names</span>
+            <span class="n">pdkwds</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;sep&#39;</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">)</span>
+            <span class="n">odata</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">pdkwds</span><span class="p">)</span>
+            <span class="c1"># pandas leaves whitespace in names, which is not good for</span>
+            <span class="c1"># netcdf-like names and probably not intended.</span>
+            <span class="c1"># odata.rename(columns=lambda x: x.strip(), inplace=True)</span>
+            <span class="c1"># relying on user to supply skipinitialspace=True</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">odata</span><span class="o">.</span><span class="n">to_records</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;backend options are &#39;numpy&#39; or &#39;pandas&#39;: got &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">backend</span>
+            <span class="p">)</span>
+
+        <span class="n">varkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">vk</span> <span class="k">for</span> <span class="n">vk</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span> <span class="k">if</span> <span class="n">vk</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coordkeys</span><span class="p">]</span>
+        <span class="n">dimkeys</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">dk</span> <span class="k">for</span> <span class="n">dk</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span> <span class="k">if</span> <span class="n">dk</span> <span class="ow">in</span> <span class="n">coordkeys</span><span class="p">])</span>
+        <span class="n">dimvars</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dimkeys</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">dimkeys</span> <span class="o">=</span> <span class="p">(</span><span class="n">defaultcoord</span><span class="p">,)</span>
+            <span class="n">dv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="n">defaultcoord</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">dvar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">defaultcoord</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">defaultcoord</span><span class="p">,))</span>
+            <span class="n">dvar</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">dimvars</span><span class="p">[</span><span class="n">defaultcoord</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dv</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">dk</span> <span class="ow">in</span> <span class="n">dimkeys</span><span class="p">:</span>
+                <span class="n">dimvars</span><span class="p">[</span><span class="n">dk</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">dk</span><span class="p">]</span>
+                <span class="n">dv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">dk</span><span class="p">])</span>
+                <span class="n">dv</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="n">dk</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dv</span><span class="p">))</span>
+                <span class="n">mydtype</span> <span class="o">=</span> <span class="n">dv</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span>
+                <span class="k">if</span> <span class="n">mydtype</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span><span class="p">:</span>
+                    <span class="n">mydtype</span> <span class="o">=</span> <span class="n">dv</span><span class="o">.</span><span class="n">dtype</span>
+                <span class="n">dvar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">dk</span><span class="p">,</span> <span class="n">mydtype</span><span class="p">,</span> <span class="p">(</span><span class="n">dk</span><span class="p">,))</span>
+                <span class="n">dvar</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">dv</span>
+
+        <span class="k">for</span> <span class="n">vk</span> <span class="ow">in</span> <span class="n">varkeys</span><span class="p">:</span>
+            <span class="n">vv</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">vk</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">vv</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span> <span class="o">!=</span> <span class="s1">&#39;S&#39;</span><span class="p">:</span>
+                <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+                    <span class="n">vk</span><span class="p">,</span> <span class="n">vv</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">,</span> <span class="n">dimkeys</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=-</span><span class="mi">999</span><span class="p">)</span>
+                <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">999</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">vk</span><span class="p">,</span> <span class="n">vv</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">,</span> <span class="n">dimkeys</span><span class="p">)</span>
+
+        <span class="n">bigidx</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">bigidx</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">dk</span><span class="p">,</span> <span class="p">(</span><span class="n">dimvars</span><span class="p">[</span><span class="n">dk</span><span class="p">][:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">dk</span><span class="p">]</span>
+                             <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">dk</span> <span class="ow">in</span> <span class="n">dimkeys</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">vk</span> <span class="ow">in</span> <span class="n">varkeys</span><span class="p">:</span>
+            <span class="n">vv</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">vk</span><span class="p">]</span>
+            <span class="n">ov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">vk</span><span class="p">]</span>
+            <span class="n">myidx</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">bigidx</span><span class="p">[</span><span class="n">dk</span><span class="p">]</span> <span class="k">for</span> <span class="n">dk</span> <span class="ow">in</span> <span class="n">ov</span><span class="o">.</span><span class="n">dimensions</span><span class="p">])</span>
+            <span class="n">ov</span><span class="p">[</span><span class="n">myidx</span><span class="p">]</span> <span class="o">=</span> <span class="n">vv</span></div>
+
+
+
+<div class="viewcode-block" id="ncf2csv">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.textfiles.html#PseudoNetCDF.textfiles.ncf2csv">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ncf2csv</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">coordkeys</span><span class="o">=</span><span class="n">_coordkeys</span><span class="p">):</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">(</span>
+    <span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coordkeys</span> <span class="ow">and</span> <span class="n">v</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ifile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">]</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">dimensions</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">header</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s1">&#39;write&#39;</span><span class="p">):</span>
+            <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Multiple csv outputs will be separated by ### because &#39;</span> <span class="o">+</span>
+                 <span class="s1">&#39;not all output variables have the same dimensions&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Making multiple csv outputs because not all output &#39;</span> <span class="o">+</span>
+                 <span class="s1">&#39;variables have the same dimensions&#39;</span><span class="p">)</span>
+    <span class="n">dimsets</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">di</span><span class="p">,</span> <span class="n">dim</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dims</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s1">&#39;write&#39;</span><span class="p">):</span>
+                <span class="n">outfile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">di</span><span class="p">),</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;###&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">outfile</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s1">&#39;write&#39;</span><span class="p">):</span>
+                <span class="n">outfile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;wt&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">outfile</span> <span class="o">=</span> <span class="n">outpath</span>
+
+        <span class="n">dimheader</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">dim</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">]</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">dimsets</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">==</span> <span class="n">dim</span><span class="p">]</span>
+        <span class="n">dimvars</span> <span class="o">=</span> <span class="p">[</span><span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">dimheader</span><span class="p">]</span>
+        <span class="nb">vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">header</span><span class="p">]</span>
+        <span class="n">outtext</span> <span class="o">=</span> <span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dimheader</span> <span class="o">+</span> <span class="n">header</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">outtext</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">outfile</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">header</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+            <span class="n">outvals</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">dk</span><span class="p">,</span> <span class="n">dv</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dimheader</span><span class="p">,</span> <span class="n">dimvars</span><span class="p">):</span>
+                <span class="n">dv</span> <span class="o">=</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">dk</span><span class="p">]</span>
+                <span class="n">didx</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">iidx</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">iidx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+                    <span class="n">idx</span><span class="p">)</span> <span class="k">if</span> <span class="n">dim</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="n">dv</span><span class="o">.</span><span class="n">dimensions</span><span class="p">])</span>
+                <span class="n">outvals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dv</span><span class="p">[</span><span class="n">didx</span><span class="p">]))</span>
+            <span class="k">for</span> <span class="n">vk</span><span class="p">,</span> <span class="n">vv</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="nb">vars</span><span class="p">):</span>
+                <span class="n">outvals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">vv</span><span class="p">[</span><span class="n">idx</span><span class="p">]))</span>
+            <span class="n">outtext</span> <span class="o">=</span> <span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outvals</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">outtext</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">outfile</span><span class="p">)</span></div>
+
+
+
+<span class="n">registerwriter</span><span class="p">(</span><span class="s1">&#39;csv&#39;</span><span class="p">,</span> <span class="n">ncf2csv</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestCsv</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkval</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;time,layer,latitude,longitude,test</span>
+<span class="s2">0.0,0.0,0.0,0.0,0.0</span>
+<span class="s2">0.0,0.0,0.0,1.0,1.0</span>
+<span class="s2">0.0,0.0,0.0,2.0,2.0</span>
+<span class="s2">0.0,0.0,0.0,3.0,3.0</span>
+<span class="s2">0.0,0.0,0.0,4.0,4.0</span>
+<span class="s2">0.0,0.0,1.0,0.0,5.0</span>
+<span class="s2">0.0,0.0,1.0,1.0,6.0</span>
+<span class="s2">0.0,0.0,1.0,2.0,7.0</span>
+<span class="s2">0.0,0.0,1.0,3.0,8.0</span>
+<span class="s2">0.0,0.0,1.0,4.0,9.0</span>
+<span class="s2">0.0,0.0,2.0,0.0,10.0</span>
+<span class="s2">0.0,0.0,2.0,1.0,11.0</span>
+<span class="s2">0.0,0.0,2.0,2.0,12.0</span>
+<span class="s2">0.0,0.0,2.0,3.0,13.0</span>
+<span class="s2">0.0,0.0,2.0,4.0,14.0</span>
+<span class="s2">0.0,0.0,3.0,0.0,15.0</span>
+<span class="s2">0.0,0.0,3.0,1.0,16.0</span>
+<span class="s2">0.0,0.0,3.0,2.0,17.0</span>
+<span class="s2">0.0,0.0,3.0,3.0,18.0</span>
+<span class="s2">0.0,0.0,3.0,4.0,19.0</span>
+<span class="s2">0.0,1.0,0.0,0.0,20.0</span>
+<span class="s2">0.0,1.0,0.0,1.0,21.0</span>
+<span class="s2">0.0,1.0,0.0,2.0,22.0</span>
+<span class="s2">0.0,1.0,0.0,3.0,23.0</span>
+<span class="s2">0.0,1.0,0.0,4.0,24.0</span>
+<span class="s2">0.0,1.0,1.0,0.0,25.0</span>
+<span class="s2">0.0,1.0,1.0,1.0,26.0</span>
+<span class="s2">0.0,1.0,1.0,2.0,27.0</span>
+<span class="s2">0.0,1.0,1.0,3.0,28.0</span>
+<span class="s2">0.0,1.0,1.0,4.0,29.0</span>
+<span class="s2">0.0,1.0,2.0,0.0,30.0</span>
+<span class="s2">0.0,1.0,2.0,1.0,31.0</span>
+<span class="s2">0.0,1.0,2.0,2.0,32.0</span>
+<span class="s2">0.0,1.0,2.0,3.0,33.0</span>
+<span class="s2">0.0,1.0,2.0,4.0,34.0</span>
+<span class="s2">0.0,1.0,3.0,0.0,35.0</span>
+<span class="s2">0.0,1.0,3.0,1.0,36.0</span>
+<span class="s2">0.0,1.0,3.0,2.0,37.0</span>
+<span class="s2">0.0,1.0,3.0,3.0,38.0</span>
+<span class="s2">0.0,1.0,3.0,4.0,39.0</span>
+<span class="s2">0.0,2.0,0.0,0.0,40.0</span>
+<span class="s2">0.0,2.0,0.0,1.0,41.0</span>
+<span class="s2">0.0,2.0,0.0,2.0,42.0</span>
+<span class="s2">0.0,2.0,0.0,3.0,43.0</span>
+<span class="s2">0.0,2.0,0.0,4.0,44.0</span>
+<span class="s2">0.0,2.0,1.0,0.0,45.0</span>
+<span class="s2">0.0,2.0,1.0,1.0,46.0</span>
+<span class="s2">0.0,2.0,1.0,2.0,47.0</span>
+<span class="s2">0.0,2.0,1.0,3.0,48.0</span>
+<span class="s2">0.0,2.0,1.0,4.0,49.0</span>
+<span class="s2">0.0,2.0,2.0,0.0,50.0</span>
+<span class="s2">0.0,2.0,2.0,1.0,51.0</span>
+<span class="s2">0.0,2.0,2.0,2.0,52.0</span>
+<span class="s2">0.0,2.0,2.0,3.0,53.0</span>
+<span class="s2">0.0,2.0,2.0,4.0,54.0</span>
+<span class="s2">0.0,2.0,3.0,0.0,55.0</span>
+<span class="s2">0.0,2.0,3.0,1.0,56.0</span>
+<span class="s2">0.0,2.0,3.0,2.0,57.0</span>
+<span class="s2">0.0,2.0,3.0,3.0,58.0</span>
+<span class="s2">0.0,2.0,3.0,4.0,59.0</span>
+<span class="s2">1.0,0.0,0.0,0.0,60.0</span>
+<span class="s2">1.0,0.0,0.0,1.0,61.0</span>
+<span class="s2">1.0,0.0,0.0,2.0,62.0</span>
+<span class="s2">1.0,0.0,0.0,3.0,63.0</span>
+<span class="s2">1.0,0.0,0.0,4.0,64.0</span>
+<span class="s2">1.0,0.0,1.0,0.0,65.0</span>
+<span class="s2">1.0,0.0,1.0,1.0,66.0</span>
+<span class="s2">1.0,0.0,1.0,2.0,67.0</span>
+<span class="s2">1.0,0.0,1.0,3.0,68.0</span>
+<span class="s2">1.0,0.0,1.0,4.0,69.0</span>
+<span class="s2">1.0,0.0,2.0,0.0,70.0</span>
+<span class="s2">1.0,0.0,2.0,1.0,71.0</span>
+<span class="s2">1.0,0.0,2.0,2.0,72.0</span>
+<span class="s2">1.0,0.0,2.0,3.0,73.0</span>
+<span class="s2">1.0,0.0,2.0,4.0,74.0</span>
+<span class="s2">1.0,0.0,3.0,0.0,75.0</span>
+<span class="s2">1.0,0.0,3.0,1.0,76.0</span>
+<span class="s2">1.0,0.0,3.0,2.0,77.0</span>
+<span class="s2">1.0,0.0,3.0,3.0,78.0</span>
+<span class="s2">1.0,0.0,3.0,4.0,79.0</span>
+<span class="s2">1.0,1.0,0.0,0.0,80.0</span>
+<span class="s2">1.0,1.0,0.0,1.0,81.0</span>
+<span class="s2">1.0,1.0,0.0,2.0,82.0</span>
+<span class="s2">1.0,1.0,0.0,3.0,83.0</span>
+<span class="s2">1.0,1.0,0.0,4.0,84.0</span>
+<span class="s2">1.0,1.0,1.0,0.0,85.0</span>
+<span class="s2">1.0,1.0,1.0,1.0,86.0</span>
+<span class="s2">1.0,1.0,1.0,2.0,87.0</span>
+<span class="s2">1.0,1.0,1.0,3.0,88.0</span>
+<span class="s2">1.0,1.0,1.0,4.0,89.0</span>
+<span class="s2">1.0,1.0,2.0,0.0,90.0</span>
+<span class="s2">1.0,1.0,2.0,1.0,91.0</span>
+<span class="s2">1.0,1.0,2.0,2.0,92.0</span>
+<span class="s2">1.0,1.0,2.0,3.0,93.0</span>
+<span class="s2">1.0,1.0,2.0,4.0,94.0</span>
+<span class="s2">1.0,1.0,3.0,0.0,95.0</span>
+<span class="s2">1.0,1.0,3.0,1.0,96.0</span>
+<span class="s2">1.0,1.0,3.0,2.0,97.0</span>
+<span class="s2">1.0,1.0,3.0,3.0,98.0</span>
+<span class="s2">1.0,1.0,3.0,4.0,99.0</span>
+<span class="s2">1.0,2.0,0.0,0.0,100.0</span>
+<span class="s2">1.0,2.0,0.0,1.0,101.0</span>
+<span class="s2">1.0,2.0,0.0,2.0,102.0</span>
+<span class="s2">1.0,2.0,0.0,3.0,103.0</span>
+<span class="s2">1.0,2.0,0.0,4.0,104.0</span>
+<span class="s2">1.0,2.0,1.0,0.0,105.0</span>
+<span class="s2">1.0,2.0,1.0,1.0,106.0</span>
+<span class="s2">1.0,2.0,1.0,2.0,107.0</span>
+<span class="s2">1.0,2.0,1.0,3.0,108.0</span>
+<span class="s2">1.0,2.0,1.0,4.0,109.0</span>
+<span class="s2">1.0,2.0,2.0,0.0,110.0</span>
+<span class="s2">1.0,2.0,2.0,1.0,111.0</span>
+<span class="s2">1.0,2.0,2.0,2.0,112.0</span>
+<span class="s2">1.0,2.0,2.0,3.0,113.0</span>
+<span class="s2">1.0,2.0,2.0,4.0,114.0</span>
+<span class="s2">1.0,2.0,3.0,0.0,115.0</span>
+<span class="s2">1.0,2.0,3.0,1.0,116.0</span>
+<span class="s2">1.0,2.0,3.0,2.0,117.0</span>
+<span class="s2">1.0,2.0,3.0,3.0,118.0</span>
+<span class="s2">1.0,2.0,3.0,4.0,119.0</span>
+<span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">testfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">testfile</span> <span class="o">=</span> <span class="n">PseudoNetCDFFile</span><span class="p">()</span>
+        <span class="n">testfile</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">testfile</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;layer&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">testfile</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;latitude&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="n">testfile</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;longitude&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">dk</span><span class="p">,</span> <span class="n">dv</span> <span class="ow">in</span> <span class="n">testfile</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">testfile</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">dk</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">dk</span><span class="p">,))</span>
+            <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dv</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;f&#39;</span><span class="p">)</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">testfile</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+            <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;layer&#39;</span><span class="p">,</span> <span class="s1">&#39;latitude&#39;</span><span class="p">,</span> <span class="s1">&#39;longitude&#39;</span><span class="p">))</span>
+        <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testNCF2CSV</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncgen</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncgen</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytesIO</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryFile</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w+t&#39;</span><span class="p">)</span>
+        <span class="n">pncgen</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">testfile</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">inmode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span>
+               <span class="n">outmode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;csv&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">outval</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">outval</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkval</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testCSV</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+        <span class="k">for</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;pandas&#39;</span><span class="p">,</span> <span class="s1">&#39;numpy&#39;</span><span class="p">]:</span>
+            <span class="n">chkf</span> <span class="o">=</span> <span class="n">csv</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">checkval</span><span class="p">),</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">refv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">testfile</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">chkv</span> <span class="o">=</span> <span class="n">chkf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">chkv</span><span class="p">,</span> <span class="n">refv</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

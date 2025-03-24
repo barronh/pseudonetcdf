@@ -1,0 +1,546 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.test.test_cmaqfiles &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../test.html">PseudoNetCDF.test</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.test.test_cmaqfiles</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.test.test_cmaqfiles</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">unittest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<span class="n">np_all_close</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span>
+
+
+<div class="viewcode-block" id="griddesc">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.griddesc">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">griddesc</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="griddesc.testNamed">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.griddesc.testNamed">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testNamed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..cmaqfiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">griddesc</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..testcase</span><span class="w"> </span><span class="kn">import</span> <span class="n">cmaqfiles_paths</span>
+        <span class="n">griddesc</span><span class="p">(</span><span class="n">cmaqfiles_paths</span><span class="p">[</span><span class="s1">&#39;griddesc&#39;</span><span class="p">],</span> <span class="n">GDNAM</span><span class="o">=</span><span class="s1">&#39;12US1&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="griddesc.testWrongGDTYP">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.griddesc.testWrongGDTYP">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testWrongGDTYP</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..cmaqfiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">griddesc</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">):</span>
+            <span class="n">griddesc</span><span class="p">(</span>
+                <span class="kc">None</span><span class="p">,</span> <span class="n">GDNAM</span><span class="o">=</span><span class="s1">&#39;12US1&#39;</span><span class="p">,</span> <span class="n">GDTYP</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">P_ALP</span><span class="o">=</span><span class="mf">33.</span><span class="p">,</span> <span class="n">P_BET</span><span class="o">=</span><span class="mf">45.</span><span class="p">,</span> <span class="n">P_GAM</span><span class="o">=-</span><span class="mf">97.</span><span class="p">,</span>
+                <span class="n">XCENT</span><span class="o">=-</span><span class="mf">97.</span><span class="p">,</span> <span class="n">YCENT</span><span class="o">=</span><span class="mf">40.</span><span class="p">,</span> <span class="n">XORIG</span><span class="o">=-</span><span class="mf">2556000.</span><span class="p">,</span> <span class="n">YORIG</span><span class="o">=-</span><span class="mf">1728000.0</span><span class="p">,</span>
+                <span class="n">XCELL</span><span class="o">=</span><span class="mf">12000.0</span><span class="p">,</span> <span class="n">YCELL</span><span class="o">=</span><span class="mf">12000.0</span><span class="p">,</span> <span class="n">NCOLS</span><span class="o">=</span><span class="mi">459</span><span class="p">,</span> <span class="n">NROWS</span><span class="o">=</span><span class="mi">299</span><span class="p">,</span> <span class="n">NTHIK</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">FTYPE</span><span class="o">=</span><span class="mi">1</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="griddesc.testWrongFYPE">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.griddesc.testWrongFYPE">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testWrongFYPE</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..cmaqfiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">griddesc</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..testcase</span><span class="w"> </span><span class="kn">import</span> <span class="n">cmaqfiles_paths</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+            <span class="n">griddesc</span><span class="p">(</span><span class="n">cmaqfiles_paths</span><span class="p">[</span><span class="s1">&#39;griddesc&#39;</span><span class="p">],</span> <span class="n">FTYPE</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="griddesc.testDefaultGDNAM">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.griddesc.testDefaultGDNAM">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testDefaultGDNAM</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..cmaqfiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">griddesc</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..testcase</span><span class="w"> </span><span class="kn">import</span> <span class="n">cmaqfiles_paths</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">griddesc</span><span class="p">(</span><span class="n">cmaqfiles_paths</span><span class="p">[</span><span class="s1">&#39;griddesc&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">GDNAM</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="s1">&#39;12US1&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="griddesc.testSpecificGDNAM">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.griddesc.testSpecificGDNAM">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testSpecificGDNAM</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..cmaqfiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">griddesc</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..testcase</span><span class="w"> </span><span class="kn">import</span> <span class="n">cmaqfiles_paths</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">griddesc</span><span class="p">(</span><span class="n">cmaqfiles_paths</span><span class="p">[</span><span class="s1">&#39;griddesc&#39;</span><span class="p">],</span> <span class="n">GDNAM</span><span class="o">=</span><span class="s1">&#39;12US1&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">GDNAM</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="s1">&#39;12US1&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">NCOLS</span><span class="p">,</span> <span class="mi">459</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">griddesc</span><span class="p">(</span><span class="n">cmaqfiles_paths</span><span class="p">[</span><span class="s1">&#39;griddesc&#39;</span><span class="p">],</span> <span class="n">GDNAM</span><span class="o">=</span><span class="s1">&#39;36US3&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">GDNAM</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="s1">&#39;36US3&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">NCOLS</span><span class="p">,</span> <span class="mi">172</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="griddesc.testGridParams">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.griddesc.testGridParams">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testGridParams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..cmaqfiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">griddesc</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..testcase</span><span class="w"> </span><span class="kn">import</span> <span class="n">cmaqfiles_paths</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">compare_files</span>
+        <span class="n">gf</span> <span class="o">=</span> <span class="n">griddesc</span><span class="p">(</span>
+            <span class="kc">None</span><span class="p">,</span> <span class="n">GDNAM</span><span class="o">=</span><span class="s1">&#39;12US1&#39;</span><span class="p">,</span> <span class="n">GDTYP</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">P_ALP</span><span class="o">=</span><span class="mf">33.</span><span class="p">,</span> <span class="n">P_BET</span><span class="o">=</span><span class="mf">45.</span><span class="p">,</span> <span class="n">P_GAM</span><span class="o">=-</span><span class="mf">97.</span><span class="p">,</span>
+            <span class="n">XCENT</span><span class="o">=-</span><span class="mf">97.</span><span class="p">,</span> <span class="n">YCENT</span><span class="o">=</span><span class="mf">40.</span><span class="p">,</span> <span class="n">XORIG</span><span class="o">=-</span><span class="mf">2556000.</span><span class="p">,</span> <span class="n">YORIG</span><span class="o">=-</span><span class="mf">1728000.0</span><span class="p">,</span>
+            <span class="n">XCELL</span><span class="o">=</span><span class="mf">12000.0</span><span class="p">,</span> <span class="n">YCELL</span><span class="o">=</span><span class="mf">12000.0</span><span class="p">,</span> <span class="n">NCOLS</span><span class="o">=</span><span class="mi">459</span><span class="p">,</span> <span class="n">NROWS</span><span class="o">=</span><span class="mi">299</span><span class="p">,</span> <span class="n">NTHIK</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">FTYPE</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">)</span>
+        <span class="n">gfref</span> <span class="o">=</span> <span class="n">griddesc</span><span class="p">(</span><span class="n">cmaqfiles_paths</span><span class="p">[</span><span class="s1">&#39;griddesc&#39;</span><span class="p">],</span> <span class="n">GDNAM</span><span class="o">=</span><span class="s1">&#39;12US1&#39;</span><span class="p">,</span> <span class="n">FTYPE</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Set properties that are expected to vary to the same values</span>
+        <span class="n">gfref</span><span class="o">.</span><span class="n">HISTORY</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">gfref</span><span class="o">.</span><span class="n">FILEDESC</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">gf</span><span class="o">.</span><span class="n">HISTORY</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">gf</span><span class="o">.</span><span class="n">FILEDESC</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">gf</span><span class="o">.</span><span class="n">PRJNAME</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">gfref</span><span class="o">.</span><span class="n">PRJNAME</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">gf</span><span class="o">.</span><span class="n">WTIME</span> <span class="o">=</span> <span class="n">gf</span><span class="o">.</span><span class="n">CTIME</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">gfref</span><span class="o">.</span><span class="n">WTIME</span> <span class="o">=</span> <span class="n">gfref</span><span class="o">.</span><span class="n">CTIME</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">compare_files</span><span class="p">(</span><span class="n">gf</span><span class="p">,</span> <span class="n">gfref</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="griddesc.testPerimParams">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.griddesc.testPerimParams">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testPerimParams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..cmaqfiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">griddesc</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..testcase</span><span class="w"> </span><span class="kn">import</span> <span class="n">cmaqfiles_paths</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">compare_files</span>
+        <span class="n">gf</span> <span class="o">=</span> <span class="n">griddesc</span><span class="p">(</span>
+            <span class="kc">None</span><span class="p">,</span> <span class="n">GDNAM</span><span class="o">=</span><span class="s1">&#39;12US1&#39;</span><span class="p">,</span> <span class="n">GDTYP</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">P_ALP</span><span class="o">=</span><span class="mf">33.</span><span class="p">,</span> <span class="n">P_BET</span><span class="o">=</span><span class="mf">45.</span><span class="p">,</span> <span class="n">P_GAM</span><span class="o">=-</span><span class="mf">97.</span><span class="p">,</span>
+            <span class="n">XCENT</span><span class="o">=-</span><span class="mf">97.</span><span class="p">,</span> <span class="n">YCENT</span><span class="o">=</span><span class="mf">40.</span><span class="p">,</span> <span class="n">XORIG</span><span class="o">=-</span><span class="mf">2556000.</span><span class="p">,</span> <span class="n">YORIG</span><span class="o">=-</span><span class="mf">1728000.0</span><span class="p">,</span>
+            <span class="n">XCELL</span><span class="o">=</span><span class="mf">12000.0</span><span class="p">,</span> <span class="n">YCELL</span><span class="o">=</span><span class="mf">12000.0</span><span class="p">,</span> <span class="n">NCOLS</span><span class="o">=</span><span class="mi">459</span><span class="p">,</span> <span class="n">NROWS</span><span class="o">=</span><span class="mi">299</span><span class="p">,</span> <span class="n">NTHIK</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">FTYPE</span><span class="o">=</span><span class="mi">2</span>
+        <span class="p">)</span>
+        <span class="n">gfref</span> <span class="o">=</span> <span class="n">griddesc</span><span class="p">(</span><span class="n">cmaqfiles_paths</span><span class="p">[</span><span class="s1">&#39;griddesc&#39;</span><span class="p">],</span> <span class="n">GDNAM</span><span class="o">=</span><span class="s1">&#39;12US1&#39;</span><span class="p">,</span> <span class="n">FTYPE</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="c1"># Set properties that are expected to vary to the same values</span>
+        <span class="n">gfref</span><span class="o">.</span><span class="n">HISTORY</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">gfref</span><span class="o">.</span><span class="n">FILEDESC</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">gf</span><span class="o">.</span><span class="n">HISTORY</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">gf</span><span class="o">.</span><span class="n">FILEDESC</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">gf</span><span class="o">.</span><span class="n">PRJNAME</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">gfref</span><span class="o">.</span><span class="n">PRJNAME</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">gf</span><span class="o">.</span><span class="n">WTIME</span> <span class="o">=</span> <span class="n">gf</span><span class="o">.</span><span class="n">CTIME</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">gfref</span><span class="o">.</span><span class="n">WTIME</span> <span class="o">=</span> <span class="n">gfref</span><span class="o">.</span><span class="n">CTIME</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">compare_files</span><span class="p">(</span><span class="n">gf</span><span class="p">,</span> <span class="n">gfref</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="griddesc.testSave">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.griddesc.testSave">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testSave</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..cmaqfiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">griddesc</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..testcase</span><span class="w"> </span><span class="kn">import</span> <span class="n">cmaqfiles_paths</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncopen</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">compare_files</span>
+        <span class="n">gf</span> <span class="o">=</span> <span class="n">griddesc</span><span class="p">(</span><span class="n">cmaqfiles_paths</span><span class="p">[</span><span class="s1">&#39;griddesc&#39;</span><span class="p">],</span> <span class="n">GDNAM</span><span class="o">=</span><span class="s1">&#39;12US1&#39;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmpdirname</span><span class="p">:</span>
+            <span class="n">tmppath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdirname</span><span class="p">,</span> <span class="s1">&#39;test.nc&#39;</span><span class="p">)</span>
+            <span class="n">gf</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">tmppath</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">gfref</span> <span class="o">=</span> <span class="n">pncopen</span><span class="p">(</span><span class="n">tmppath</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;ioapi&#39;</span><span class="p">)</span>
+            <span class="n">compare_files</span><span class="p">(</span><span class="n">gf</span><span class="p">,</span> <span class="n">gfref</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmppath</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="IOAPITest">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.IOAPITest">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IOAPITest</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="IOAPITest.setUp">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.setUp">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">testncf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_makencf</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mymeta</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span>
+            <span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;time_bounds&#39;</span><span class="p">,</span> <span class="s1">&#39;latitude&#39;</span><span class="p">,</span> <span class="s1">&#39;longitude&#39;</span><span class="p">,</span> <span class="s1">&#39;latitude_bounds&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;longitude_bounds&#39;</span><span class="p">,</span> <span class="s1">&#39;lambert_conformal_conic&#39;</span>
+        <span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">myvars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mymeta</span><span class="o">.</span><span class="n">union</span><span class="p">([</span><span class="s1">&#39;O3&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mydims</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;TIME&#39;</span><span class="p">,</span> <span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="s1">&#39;COL&#39;</span><span class="p">,</span> <span class="s1">&#39;nv&#39;</span><span class="p">,</span> <span class="s1">&#39;tnv&#39;</span><span class="p">]</span>
+        <span class="n">rtime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span>
+            <span class="s1">&#39;1970-01-01 00:00:00+0000&#39;</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S%z&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mytimes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rtime</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+                                 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">testf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_makencf</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_makencf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.cmaqfiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">ioapi_base</span>
+        <span class="n">minef</span> <span class="o">=</span> <span class="n">ioapi_base</span><span class="p">()</span>
+
+        <span class="n">minef</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;DATE-TIME&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;COL&#39;</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+
+        <span class="n">minef</span><span class="o">.</span><span class="n">EXEC_ID</span> <span class="o">=</span> <span class="s2">&quot;mcip &quot;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">80</span><span class="p">)</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">FTYPE</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">CDATE</span> <span class="o">=</span> <span class="mi">2017069</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">CTIME</span> <span class="o">=</span> <span class="mi">144432</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">WDATE</span> <span class="o">=</span> <span class="mi">2017069</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">WTIME</span> <span class="o">=</span> <span class="mi">144432</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">SDATE</span> <span class="o">=</span> <span class="mi">2011001</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">STIME</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">TSTEP</span> <span class="o">=</span> <span class="mi">10000</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">NTHIK</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">NCOLS</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">NROWS</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">NLAYS</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">NVARS</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">GDTYP</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">P_ALP</span> <span class="o">=</span> <span class="mf">33.</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">P_BET</span> <span class="o">=</span> <span class="mf">45.</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">P_GAM</span> <span class="o">=</span> <span class="o">-</span><span class="mf">97.</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">XCENT</span> <span class="o">=</span> <span class="o">-</span><span class="mf">97.</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">YCENT</span> <span class="o">=</span> <span class="mf">40.</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">XORIG</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2736000.</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">YORIG</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2088000.</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">XCELL</span> <span class="o">=</span> <span class="mf">36000.</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">YCELL</span> <span class="o">=</span> <span class="mf">36000.</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">VGTYP</span> <span class="o">=</span> <span class="mi">7</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">VGTOP</span> <span class="o">=</span> <span class="mf">5000.</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">VGLVLS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.9975</span><span class="p">,</span> <span class="mf">0.995</span><span class="p">,</span> <span class="mf">0.9925</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;f&#39;</span><span class="p">)</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">GDNAM</span> <span class="o">=</span> <span class="s2">&quot;METCRO_36US1_CRO&quot;</span>
+        <span class="n">minef</span><span class="o">.</span><span class="n">UPNAM</span> <span class="o">=</span> <span class="s2">&quot;METCRO          &quot;</span>
+
+        <span class="n">o3</span> <span class="o">=</span> <span class="n">minef</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+            <span class="s1">&#39;O3&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="s1">&#39;COL&#39;</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;ppbV&#39;</span>
+        <span class="p">)</span>
+        <span class="n">no2</span> <span class="o">=</span> <span class="n">minef</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+            <span class="s1">&#39;NO2&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="s1">&#39;COL&#39;</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;ppbV&#39;</span>
+        <span class="p">)</span>
+
+        <span class="n">o3</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">24</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">5</span> <span class="o">*</span> <span class="mi">6</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+        <span class="n">no2</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">24</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">5</span> <span class="o">*</span> <span class="mi">6</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="o">*</span> <span class="mf">.05</span>
+        <span class="k">return</span> <span class="n">minef</span>
+
+<div class="viewcode-block" id="IOAPITest.testTFLAG">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testTFLAG">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testTFLAG</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">testf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">testf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">testf</span><span class="o">.</span><span class="n">updatetflag</span><span class="p">()</span>
+        <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span>
+        <span class="n">test</span><span class="p">(</span><span class="mi">2011001</span><span class="p">,</span> <span class="n">testf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">test</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">testf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">test</span><span class="p">(</span><span class="n">testf</span><span class="o">.</span><span class="n">SDATE</span><span class="p">,</span> <span class="n">testf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">test</span><span class="p">(</span><span class="n">testf</span><span class="o">.</span><span class="n">STIME</span><span class="p">,</span> <span class="n">testf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">test</span><span class="p">(</span><span class="n">testf</span><span class="o">.</span><span class="n">NVARS</span><span class="p">,</span> <span class="n">testf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="IOAPITest.testSubsetVariables">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testSubsetVariables">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testSubsetVariables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">testf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">testf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">testf</span><span class="o">.</span><span class="n">updatetflag</span><span class="p">()</span>
+        <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span>
+        <span class="n">outf</span> <span class="o">=</span> <span class="n">testf</span><span class="o">.</span><span class="n">subsetVariables</span><span class="p">([</span><span class="s1">&#39;O3&#39;</span><span class="p">])</span>
+        <span class="n">test</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">outf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">test</span><span class="p">(</span><span class="n">outf</span><span class="o">.</span><span class="n">NVARS</span><span class="p">,</span> <span class="n">outf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">test</span><span class="p">(</span><span class="s1">&#39;O3&#39;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">outf</span><span class="p">,</span> <span class="s1">&#39;VAR-LIST&#39;</span><span class="p">))</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_trimdim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
+        <span class="n">reff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">testf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">reff</span><span class="o">.</span><span class="n">updatetflag</span><span class="p">()</span>
+        <span class="n">newf</span> <span class="o">=</span> <span class="n">reff</span><span class="o">.</span><span class="n">sliceDimensions</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">dim</span><span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)})</span>
+        <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span>
+        <span class="n">attrkey</span> <span class="o">=</span> <span class="s1">&#39;N</span><span class="si">{}</span><span class="s1">S&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+        <span class="n">test</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">reff</span><span class="p">,</span> <span class="n">attrkey</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">newf</span><span class="p">,</span> <span class="n">attrkey</span><span class="p">))</span>
+        <span class="n">test</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">newf</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">dim</span><span class="p">]),</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">newf</span><span class="p">,</span> <span class="n">attrkey</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">reff</span><span class="p">,</span> <span class="n">newf</span>
+
+<div class="viewcode-block" id="IOAPITest.testSliceRow">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testSliceRow">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testSliceRow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">reff</span><span class="p">,</span> <span class="n">newf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trimdim</span><span class="p">(</span><span class="s1">&#39;ROW&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">newf</span><span class="o">.</span><span class="n">YORIG</span><span class="p">,</span> <span class="n">reff</span><span class="o">.</span><span class="n">YORIG</span> <span class="o">+</span> <span class="n">reff</span><span class="o">.</span><span class="n">YCELL</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IOAPITest.testSliceCol">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testSliceCol">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testSliceCol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">reff</span><span class="p">,</span> <span class="n">newf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trimdim</span><span class="p">(</span><span class="s1">&#39;COL&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">newf</span><span class="o">.</span><span class="n">XORIG</span><span class="p">,</span> <span class="n">reff</span><span class="o">.</span><span class="n">XORIG</span> <span class="o">+</span> <span class="n">reff</span><span class="o">.</span><span class="n">XCELL</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IOAPITest.testSliceLay">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testSliceLay">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testSliceLay</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">reff</span><span class="p">,</span> <span class="n">newf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trimdim</span><span class="p">(</span><span class="s1">&#39;LAY&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">newf</span><span class="o">.</span><span class="n">VGLVLS</span><span class="p">,</span> <span class="n">reff</span><span class="o">.</span><span class="n">VGLVLS</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_meandim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
+        <span class="n">reff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">testf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">reff</span><span class="o">.</span><span class="n">updatetflag</span><span class="p">()</span>
+        <span class="n">newf</span> <span class="o">=</span> <span class="n">reff</span><span class="o">.</span><span class="n">applyAlongDimensions</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">dim</span><span class="p">:</span> <span class="s1">&#39;mean&#39;</span><span class="p">})</span>
+        <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span>
+        <span class="n">attrkey</span> <span class="o">=</span> <span class="s1">&#39;N</span><span class="si">{}</span><span class="s1">S&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+        <span class="n">test</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">newf</span><span class="p">,</span> <span class="n">attrkey</span><span class="p">))</span>
+        <span class="n">test</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">newf</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">dim</span><span class="p">]),</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">newf</span><span class="p">,</span> <span class="n">attrkey</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">reff</span><span class="p">,</span> <span class="n">newf</span>
+
+<div class="viewcode-block" id="IOAPITest.testMeanRow">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testMeanRow">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testMeanRow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">reff</span><span class="p">,</span> <span class="n">newf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meandim</span><span class="p">(</span><span class="s1">&#39;ROW&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IOAPITest.testMeanCol">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testMeanCol">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testMeanCol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">reff</span><span class="p">,</span> <span class="n">newf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meandim</span><span class="p">(</span><span class="s1">&#39;COL&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IOAPITest.testMeanLay">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testMeanLay">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testMeanLay</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">reff</span><span class="p">,</span> <span class="n">newf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meandim</span><span class="p">(</span><span class="s1">&#39;LAY&#39;</span><span class="p">)</span>
+        <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span>
+        <span class="n">newl</span> <span class="o">=</span> <span class="n">reff</span><span class="o">.</span><span class="n">VGLVLS</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">newu</span> <span class="o">=</span> <span class="n">reff</span><span class="o">.</span><span class="n">VGLVLS</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">test</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">([</span><span class="n">newl</span><span class="p">,</span> <span class="n">newu</span><span class="p">],</span> <span class="n">newf</span><span class="o">.</span><span class="n">VGLVLS</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="IOAPITest.testInterpSigma">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testInterpSigma">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testInterpSigma</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">reff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">testf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">reff</span><span class="o">.</span><span class="n">updatetflag</span><span class="p">()</span>
+        <span class="c1"># Simple resample</span>
+        <span class="n">newf</span> <span class="o">=</span> <span class="n">reff</span><span class="o">.</span><span class="n">interpSigma</span><span class="p">(</span>
+            <span class="n">reff</span><span class="o">.</span><span class="n">VGLVLS</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">vgtop</span><span class="o">=</span><span class="n">reff</span><span class="o">.</span><span class="n">VGTOP</span><span class="p">,</span> <span class="n">interptype</span><span class="o">=</span><span class="s1">&#39;conserve&#39;</span>
+        <span class="p">)</span>
+        <span class="n">test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span>
+            <span class="n">reff</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;O3&#39;</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">newf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;O3&#39;</span><span class="p">][:]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="p">)</span>
+        <span class="n">newf</span> <span class="o">=</span> <span class="n">reff</span><span class="o">.</span><span class="n">interpSigma</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">([</span><span class="mf">.5</span><span class="p">,</span> <span class="mf">.5</span><span class="p">],</span> <span class="n">reff</span><span class="o">.</span><span class="n">VGLVLS</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;valid&#39;</span><span class="p">),</span>
+            <span class="n">vgtop</span><span class="o">=</span><span class="n">reff</span><span class="o">.</span><span class="n">VGTOP</span><span class="p">,</span> <span class="n">interptype</span><span class="o">=</span><span class="s1">&#39;conserve&#39;</span>
+        <span class="p">)</span>
+        <span class="n">test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span>
+            <span class="mf">0.5</span> <span class="o">*</span> <span class="n">reff</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;O3&#39;</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">+</span>
+            <span class="mf">0.5</span> <span class="o">*</span> <span class="n">reff</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;O3&#39;</span><span class="p">][:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">newf</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;O3&#39;</span><span class="p">][:]</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IOAPITest.testVarlist">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testVarlist">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testVarlist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">reff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">testf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">refv</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">k</span><span class="si">:</span><span class="s1">16s</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;O3&#39;</span><span class="p">,</span> <span class="s1">&#39;NO2&#39;</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">reff</span><span class="p">,</span> <span class="s1">&#39;VAR-LIST&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">refv</span><span class="p">)</span>
+        <span class="nb">delattr</span><span class="p">(</span><span class="n">reff</span><span class="p">,</span> <span class="s1">&#39;VAR-LIST&#39;</span><span class="p">)</span>
+        <span class="n">reff</span><span class="o">.</span><span class="n">updatemeta</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">reff</span><span class="p">,</span> <span class="s1">&#39;VAR-LIST&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">refv</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">reff</span><span class="p">,</span> <span class="s1">&#39;VAR-LIST&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">reff</span><span class="o">.</span><span class="n">updatemeta</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">reff</span><span class="p">,</span> <span class="s1">&#39;VAR-LIST&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">refv</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IOAPITest.testFromArrays">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testFromArrays">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testFromArrays</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.cmaqfiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">ioapi_base</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">120</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">test</span> <span class="o">=</span> <span class="n">ioapi_base</span><span class="o">.</span><span class="n">from_arrays</span><span class="p">(</span>
+            <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;ppm&#39;</span><span class="p">},</span>
+            <span class="o">**</span><span class="p">{</span><span class="s1">&#39;test&#39;</span><span class="p">:</span> <span class="n">vals</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;LAY&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;ROW&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;COL&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">checkvar</span> <span class="o">=</span> <span class="n">test</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="n">np_all_close</span><span class="p">(</span><span class="n">checkvar</span><span class="p">[:]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">120</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">checkvar</span><span class="o">.</span><span class="n">getncatts</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span>
+                <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;ppm&#39;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span>
+                <span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;test&#39;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span>
+                <span class="s1">&#39;var_desc&#39;</span><span class="p">:</span> <span class="s1">&#39;test&#39;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">80</span><span class="p">),</span>
+            <span class="p">}</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ProfileTest">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.ProfileTest">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProfileTest</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="ProfileTest.setUp">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.ProfileTest.setUp">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ProfileTest.testIcon">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.ProfileTest.testIcon">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testIcon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..cmaqfiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">icon_profile</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..testcase</span><span class="w"> </span><span class="kn">import</span> <span class="n">cmaqfiles_paths</span>
+        <span class="n">icon_file</span> <span class="o">=</span> <span class="n">icon_profile</span><span class="p">(</span><span class="n">cmaqfiles_paths</span><span class="p">[</span><span class="s1">&#39;icon_profile&#39;</span><span class="p">])</span>
+        <span class="n">itestvals</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;O3&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="mf">3.5E-02</span><span class="p">,</span> <span class="mf">3.5E-02</span><span class="p">,</span> <span class="mf">4.E-02</span><span class="p">,</span> <span class="mf">5.E-02</span><span class="p">,</span> <span class="mf">6.E-02</span><span class="p">,</span> <span class="mf">7.E-02</span><span class="p">],</span>
+            <span class="s2">&quot;ASO4I&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="mf">4.810E-03</span><span class="p">,</span> <span class="mf">4.810E-03</span><span class="p">,</span> <span class="mf">3.207E-03</span><span class="p">,</span> <span class="mf">3.207E-03</span><span class="p">,</span> <span class="mf">6.413E-04</span><span class="p">,</span>
+                <span class="mf">3.207E-04</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;NUMATKN&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="mf">1.478E+09</span><span class="p">,</span> <span class="mf">1.470E+09</span><span class="p">,</span> <span class="mf">9.774E+08</span><span class="p">,</span> <span class="mf">9.655E+08</span><span class="p">,</span> <span class="mf">1.920E+08</span><span class="p">,</span>
+                <span class="mf">9.584E+07</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;SRFACC&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="mf">1.491E-05</span><span class="p">,</span> <span class="mf">1.373E-05</span><span class="p">,</span> <span class="mf">8.694E-06</span><span class="p">,</span> <span class="mf">6.815E-06</span><span class="p">,</span> <span class="mf">1.190E-06</span><span class="p">,</span>
+                <span class="mf">5.697E-07</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+        <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span>
+        <span class="k">for</span> <span class="n">testk</span><span class="p">,</span> <span class="n">testvals</span> <span class="ow">in</span> <span class="n">itestvals</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">icon_file</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">testk</span><span class="p">]</span>
+            <span class="n">test</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">testvals</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ProfileTest.testBcon">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.test.test_cmaqfiles.ProfileTest.testBcon">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testBcon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..cmaqfiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">bcon_profile</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..testcase</span><span class="w"> </span><span class="kn">import</span> <span class="n">cmaqfiles_paths</span>
+        <span class="n">btestvals</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;O3&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="mf">3.000E-02</span><span class="p">,</span> <span class="mf">3.500E-02</span><span class="p">,</span> <span class="mf">4.000E-02</span><span class="p">,</span> <span class="mf">5.000E-02</span><span class="p">,</span> <span class="mf">6.000E-02</span><span class="p">,</span>
+                <span class="mf">7.000E-02</span><span class="p">,</span> <span class="mf">3.000E-02</span><span class="p">,</span> <span class="mf">3.500E-02</span><span class="p">,</span> <span class="mf">4.000E-02</span><span class="p">,</span> <span class="mf">5.000E-02</span><span class="p">,</span>
+                <span class="mf">6.000E-02</span><span class="p">,</span> <span class="mf">7.000E-02</span><span class="p">,</span> <span class="mf">3.500E-02</span><span class="p">,</span> <span class="mf">3.500E-02</span><span class="p">,</span> <span class="mf">4.000E-02</span><span class="p">,</span>
+                <span class="mf">5.000E-02</span><span class="p">,</span> <span class="mf">6.000E-02</span><span class="p">,</span> <span class="mf">7.000E-02</span><span class="p">,</span> <span class="mf">3.500E-02</span><span class="p">,</span> <span class="mf">4.000E-02</span><span class="p">,</span>
+                <span class="mf">4.500E-02</span><span class="p">,</span> <span class="mf">5.000E-02</span><span class="p">,</span> <span class="mf">6.000E-02</span><span class="p">,</span> <span class="mf">7.000E-02</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;ASO4I&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="mf">6.413E-03</span><span class="p">,</span> <span class="mf">6.413E-03</span><span class="p">,</span> <span class="mf">6.413E-03</span><span class="p">,</span> <span class="mf">3.207E-03</span><span class="p">,</span> <span class="mf">6.413E-04</span><span class="p">,</span>
+                <span class="mf">3.207E-04</span><span class="p">,</span> <span class="mf">6.413E-03</span><span class="p">,</span> <span class="mf">6.413E-03</span><span class="p">,</span> <span class="mf">6.413E-03</span><span class="p">,</span> <span class="mf">6.413E-03</span><span class="p">,</span>
+                <span class="mf">6.413E-04</span><span class="p">,</span> <span class="mf">3.207E-04</span><span class="p">,</span> <span class="mf">4.810E-03</span><span class="p">,</span> <span class="mf">4.810E-03</span><span class="p">,</span> <span class="mf">3.207E-03</span><span class="p">,</span>
+                <span class="mf">3.207E-03</span><span class="p">,</span> <span class="mf">6.413E-04</span><span class="p">,</span> <span class="mf">3.207E-04</span><span class="p">,</span> <span class="mf">9.620E-03</span><span class="p">,</span> <span class="mf">6.413E-03</span><span class="p">,</span>
+                <span class="mf">6.413E-03</span><span class="p">,</span> <span class="mf">3.207E-03</span><span class="p">,</span> <span class="mf">6.413E-04</span><span class="p">,</span> <span class="mf">3.207E-04</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;NUMATKN&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="mf">1.957E+09</span><span class="p">,</span> <span class="mf">1.949E+09</span><span class="p">,</span> <span class="mf">1.936E+09</span><span class="p">,</span> <span class="mf">9.655E+08</span><span class="p">,</span> <span class="mf">1.920E+08</span><span class="p">,</span>
+                <span class="mf">9.584E+07</span><span class="p">,</span> <span class="mf">1.957E+09</span><span class="p">,</span> <span class="mf">1.949E+09</span><span class="p">,</span> <span class="mf">1.936E+09</span><span class="p">,</span> <span class="mf">1.924E+09</span><span class="p">,</span>
+                <span class="mf">1.920E+08</span><span class="p">,</span> <span class="mf">9.584E+07</span><span class="p">,</span> <span class="mf">1.478E+09</span><span class="p">,</span> <span class="mf">1.470E+09</span><span class="p">,</span> <span class="mf">9.774E+08</span><span class="p">,</span>
+                <span class="mf">9.655E+08</span><span class="p">,</span> <span class="mf">1.920E+08</span><span class="p">,</span> <span class="mf">9.584E+07</span><span class="p">,</span> <span class="mf">2.915E+09</span><span class="p">,</span> <span class="mf">1.949E+09</span><span class="p">,</span>
+                <span class="mf">1.936E+09</span><span class="p">,</span> <span class="mf">9.655E+08</span><span class="p">,</span> <span class="mf">1.920E+08</span><span class="p">,</span> <span class="mf">9.584E+07</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;SRFACC&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="mf">1.776E-05</span><span class="p">,</span> <span class="mf">1.658E-05</span><span class="p">,</span> <span class="mf">1.439E-05</span><span class="p">,</span> <span class="mf">6.815E-06</span><span class="p">,</span> <span class="mf">1.190E-06</span><span class="p">,</span>
+                <span class="mf">5.697E-07</span><span class="p">,</span> <span class="mf">1.776E-05</span><span class="p">,</span> <span class="mf">1.658E-05</span><span class="p">,</span> <span class="mf">1.439E-05</span><span class="p">,</span> <span class="mf">1.251E-05</span><span class="p">,</span>
+                <span class="mf">1.190E-06</span><span class="p">,</span> <span class="mf">5.697E-07</span><span class="p">,</span> <span class="mf">1.491E-05</span><span class="p">,</span> <span class="mf">1.373E-05</span><span class="p">,</span> <span class="mf">8.694E-06</span><span class="p">,</span>
+                <span class="mf">6.815E-06</span><span class="p">,</span> <span class="mf">1.190E-06</span><span class="p">,</span> <span class="mf">5.697E-07</span><span class="p">,</span> <span class="mf">2.346E-05</span><span class="p">,</span> <span class="mf">1.658E-05</span><span class="p">,</span>
+                <span class="mf">1.439E-05</span><span class="p">,</span> <span class="mf">6.815E-06</span><span class="p">,</span> <span class="mf">1.190E-06</span><span class="p">,</span> <span class="mf">5.697E-07</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+        <span class="n">bcon_file</span> <span class="o">=</span> <span class="n">bcon_profile</span><span class="p">(</span><span class="n">cmaqfiles_paths</span><span class="p">[</span><span class="s1">&#39;bcon_profile&#39;</span><span class="p">])</span>
+        <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span>
+        <span class="k">for</span> <span class="n">testk</span><span class="p">,</span> <span class="n">testvals</span> <span class="ow">in</span> <span class="n">btestvals</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">bcon_file</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">testk</span><span class="p">]</span>
+            <span class="n">test</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">vals</span><span class="p">[:]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">testvals</span><span class="p">))</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

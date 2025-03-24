@@ -1,0 +1,197 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.textfiles.esrl_sonde &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.textfiles.esrl_sonde</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.textfiles.esrl_sonde</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">NOAA/GMD sounding data file produced on 2015/02/02 22:04:08 GMT ...</span>
+<span class="sd">               Header lines = 45</span>
+<span class="sd">               Data columns = 21</span>
+<span class="sd">              Flight number = BL049</span>
+<span class="sd">                 Date [GMT] = 03-01-1992</span>
+<span class="sd">                 Time [GMT] = 18:35:21</span>
+<span class="sd">                   Location = Boulder, CO</span>
+<span class="sd">                  Longitude = -105.25000</span>
+<span class="sd">                   Latitude = 40.00000</span>
+<span class="sd">       Launch altitude (km) = 1.743</span>
+<span class="sd">      Surface pressure (mb) = 826.790</span>
+<span class="sd">  Surface temperature (deg) = 6.870</span>
+<span class="sd">       Surface humidity (%) = 18.900</span>
+<span class="sd">         Turn altitude (km) = 30.699</span>
+<span class="sd">         Turn pressure (mb) = 10.20</span>
+<span class="sd">          Radiosonde number = 8815949</span>
+<span class="sd">     Vaisala humicap sensor = A</span>
+<span class="sd">       Radiation correction = Yes</span>
+<span class="sd">     Pressure sensor offset = 0.000</span>
+<span class="sd">                 A/D System = 12 bit Tmax</span>
+<span class="sd">Radiosonde Total Col. Water = 2.322</span>
+<span class="sd">            Instrument Type = Ozone Sonde</span>
+<span class="sd">       Original File Source = unknown</span>
+<span class="sd">         Ozone sonde number = 5A8087</span>
+<span class="sd">                   Solution = 1%</span>
+<span class="sd">Oltmans solution correction = Yes</span>
+<span class="sd">             Oltmans term A = 1.0000</span>
+<span class="sd">             Oltmans term B = 0.4000</span>
+<span class="sd">   Total ozone column (CMR) = 283 (41)</span>
+<span class="sd">  Total ozone column (SBUV) = 289 (47)</span>
+<span class="sd">  Total ozone stop pressure = 10.28</span>
+<span class="sd">  Time (sec) to pump 100 ml = 28.230</span>
+<span class="sd">    Dry flowrate correction = 2.60</span>
+<span class="sd">    Background current (uA) = 0.071</span>
+<span class="sd">               Coefficients =</span>
+<span class="sd">       Pump coefficient pc0 = 0.5955</span>
+<span class="sd">                        pc1 = 0.5125</span>
+<span class="sd">                        pc2 = -0.2353</span>
+<span class="sd">                        pc3 = 0.0824</span>
+<span class="sd">       Pressure data source = Radiosonde Pressure</span>
+<span class="sd">       Altitude data source = Radiosonde Geopot Altitude</span>
+<span class="sd">   Geo alt anchoring method = First/Launch Row Set to Launch Altitude</span>
+
+<span class="sd">      Time,     Press,      Praw,       Alt,     Tcorr,      Temp,...&quot;&quot;&quot;</span>
+
+<span class="c1"># Time, Press, Praw, Alt, Tcorr, Temp, Traw, Theta, RH, RHraw, TFp V,</span>
+<span class="c1"># IPW V, TVaisI, O3 Cell I, O3 P, O3 Mr, T Pump, O3Bat, I Pump,</span>
+<span class="c1"># Total Column O3, Total w/ Extrap O3</span>
+
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="n">spaces</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;,\s{0,1000}&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="skysonde1sec">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.textfiles.html#PseudoNetCDF.textfiles.esrl_sonde.skysonde1sec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">skysonde1sec</span><span class="p">(</span><span class="n">inpath</span><span class="p">):</span>
+    <span class="n">datafile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">datalines</span> <span class="o">=</span> <span class="n">datafile</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">nmeta</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">datalines</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; = &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">meta</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([[</span><span class="n">w</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; = &#39;</span><span class="p">)]</span>
+                 <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">datalines</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">nmeta</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="n">line</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">])</span>
+
+    <span class="n">varline</span><span class="p">,</span> <span class="n">unitline</span> <span class="o">=</span> <span class="n">datalines</span><span class="p">[</span><span class="n">nmeta</span> <span class="o">-</span> <span class="mi">2</span><span class="p">:</span><span class="n">nmeta</span><span class="p">]</span>
+    <span class="n">varnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">vn</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">vn</span> <span class="ow">in</span> <span class="n">spaces</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">varline</span><span class="p">)]</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">spaces</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">unitline</span><span class="p">)]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span>
+        <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datalines</span><span class="p">[</span><span class="n">nmeta</span><span class="p">:]),</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">varnames</span><span class="p">))</span>
+    <span class="n">outf</span> <span class="o">=</span> <span class="n">PseudoNetCDFFile</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">pk</span><span class="p">,</span> <span class="n">pv</span> <span class="ow">in</span> <span class="n">meta</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">outf</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">pv</span><span class="p">)</span>
+
+    <span class="n">outf</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">varname</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">vals</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">varnames</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">T</span><span class="p">):</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">outf</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">varname</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">),</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,))</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">unit</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">standard_name</span> <span class="o">=</span> <span class="n">varname</span>
+        <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_values</span><span class="p">(</span><span class="n">vals</span><span class="p">[:],</span> <span class="mi">99999</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">outf</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">skysonde1sec</span><span class="p">(</span><span class="s1">&#39;/Users/barronh/Downloads/skysonde1sec.txt&#39;</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

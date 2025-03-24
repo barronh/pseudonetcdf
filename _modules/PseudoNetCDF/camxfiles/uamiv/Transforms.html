@@ -1,0 +1,231 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.camxfiles.uamiv.Transforms &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.camxfiles.uamiv.Transforms</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.camxfiles.uamiv.Transforms</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_function</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;osat&#39;</span><span class="p">]</span>
+<span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">.. _Write</span>
+<span class="s2">:mod:`Write` -- CAMx uamiv variable transformations</span>
+<span class="s2">==================================================</span>
+
+<span class="s2">.. module:: Write</span>
+<span class="s2">   :platform: Unix, Windows</span>
+<span class="s2">   :synopsis: Provides :ref:`PseudoNetCDF` variable transformations</span>
+<span class="s2">              for CAMx uamiv files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile</span>
+<span class="s2">              for interface details</span>
+<span class="s2">.. moduleauthor:: Barron Henderson &lt;barronh@unc.edu&gt;</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">zeros</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span><span class="p">,</span> <span class="n">PseudoNetCDFVariables</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoIOAPIVariable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.Memmap</span><span class="w"> </span><span class="kn">import</span> <span class="n">uamiv</span>
+
+
+<div class="viewcode-block" id="osat">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.uamiv.html#PseudoNetCDF.camxfiles.uamiv.Transforms.osat">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">osat</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    OSAT provides a way of slicing and summing tagged species.</span>
+
+<span class="sd">    sources - dictionary of name and id for CAMx source codes</span>
+<span class="sd">              (i.e. {&#39;SOURCES1-5&#39;: &#39;001&#39;,&#39;002&#39;,&#39;003&#39;,&#39;004&#39;,&#39;005&#39;})</span>
+<span class="sd">    regions - dictionary of name and id for CAMx region codes</span>
+<span class="sd">              (i.e. {&#39;REGIONS1-5&#39;: &#39;001&#39;,&#39;002&#39;,&#39;003&#39;,&#39;004&#39;,&#39;005&#39;})</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        # Source and regions definitions</span>
+<span class="sd">        sources={&#39;SOURCES1-5&#39;: (&#39;001&#39;,&#39;002&#39;,&#39;003&#39;,&#39;004&#39;,&#39;005&#39;)}</span>
+<span class="sd">        regions={&#39;REGIONS1-5&#39;: (&#39;001&#39;,&#39;002&#39;,&#39;003&#39;,&#39;004&#39;,&#39;005&#39;)}</span>
+<span class="sd">        # File initiation</span>
+<span class="sd">        osatfile=osat(&#39;path&#39;,sources,regions)</span>
+<span class="sd">        # Variable (v) would return the sum of all O3V for all five</span>
+<span class="sd">        # sources and all five regions</span>
+<span class="sd">        v=osatfile.variables[&#39;O3V_SOURCES1-5_REGIONS1-5&#39;]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__delim</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rffile</span><span class="p">,</span> <span class="n">sources</span><span class="o">=</span><span class="p">{},</span> <span class="n">regions</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__child</span> <span class="o">=</span> <span class="n">uamiv</span><span class="p">(</span><span class="n">rffile</span><span class="p">)</span>
+
+        <span class="c1"># Use Use all species based keys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sourcesbyNm</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="p">[(</span><span class="n">k</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">],</span> <span class="n">k</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">])</span>
+             <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__child</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+             <span class="k">if</span> <span class="n">k</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;NOX&#39;</span><span class="p">,</span> <span class="s1">&#39;VOC&#39;</span><span class="p">,</span> <span class="s1">&#39;O3V&#39;</span><span class="p">,</span> <span class="s1">&#39;O3N&#39;</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__regionsbyNm</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="p">[(</span><span class="n">k</span><span class="p">[</span><span class="mi">6</span><span class="p">:],</span> <span class="n">k</span><span class="p">[</span><span class="mi">6</span><span class="p">:])</span>
+             <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__child</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+             <span class="k">if</span> <span class="n">k</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;NOX&#39;</span><span class="p">,</span> <span class="s1">&#39;VOC&#39;</span><span class="p">,</span> <span class="s1">&#39;O3V&#39;</span><span class="p">,</span> <span class="s1">&#39;O3N&#39;</span><span class="p">)])</span>
+
+        <span class="c1"># Create global keys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sourcesbyNm</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sourcesbyNm</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__regionsbyNm</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__regionsbyNm</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">sources</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">sources</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">v</span><span class="p">,)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">regions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">regions</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">v</span><span class="p">,)</span>
+
+        <span class="c1"># Update with user supplied keys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sourcesbyNm</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__regionsbyNm</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">regions</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__child</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="n">spc_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;NOX&#39;</span><span class="p">,</span> <span class="s1">&#39;VOC&#39;</span><span class="p">,</span> <span class="s1">&#39;O3N&#39;</span><span class="p">,</span> <span class="s1">&#39;O3V&#39;</span><span class="p">]</span>
+        <span class="n">allkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__child</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+        <span class="k">for</span> <span class="n">skey</span> <span class="ow">in</span> <span class="n">spc_keys</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">sources</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">reg</span> <span class="ow">in</span> <span class="n">regions</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]:</span>
+                    <span class="n">allkeys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__delim</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">skey</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">reg</span><span class="p">]))</span>
+        <span class="n">allkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">allkeys</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__variables</span><span class="p">,</span> <span class="n">allkeys</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__child</span><span class="o">.</span><span class="n">__var_names__</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__var_id_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+        <span class="n">components</span> <span class="o">=</span> <span class="n">var_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__delim</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="n">components</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">spc</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">region</span> <span class="o">=</span> <span class="n">components</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">sources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sourcesbyNm</span><span class="p">[</span><span class="n">source</span><span class="p">]</span>
+            <span class="n">regions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__regionsbyNm</span><span class="p">[</span><span class="n">region</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">regions</span><span class="p">:</span>
+                    <span class="n">key</span> <span class="o">=</span> <span class="n">spc</span> <span class="o">+</span> <span class="n">source</span> <span class="o">+</span> <span class="n">region</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__child</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">keys</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="n">var_id_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__var_id_names</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="c1"># var_nm_names=self.__var_nm_names(key)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">var_id_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">outvals</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">dk</span><span class="p">])</span>
+                             <span class="k">for</span> <span class="n">dk</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="s1">&#39;COL&#39;</span><span class="p">]],</span>
+                            <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">var_id_names</span><span class="p">:</span>
+                <span class="n">outvals</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__child</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outvals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__child</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">var_id_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+        <span class="n">dimensions</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="s1">&#39;COL&#39;</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">PseudoIOAPIVariable</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">outvals</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;ppm&#39;</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">VAR_NAMES</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">nm</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span> <span class="k">for</span> <span class="n">nm</span> <span class="ow">in</span> <span class="n">var_id_names</span><span class="p">])</span>
+        <span class="c1"># v.VAR_NAME_DESCS=&#39;&#39;.join([nm.ljust(16) for nm in var_nm_names])</span>
+        <span class="k">return</span> <span class="n">v</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

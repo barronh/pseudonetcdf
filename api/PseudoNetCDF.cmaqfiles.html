@@ -1,0 +1,840 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.cmaqfiles package &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PseudoNetCDF.conventions package" href="PseudoNetCDF.conventions.html" />
+    <link rel="prev" title="PseudoNetCDF.ceilometerfiles package" href="PseudoNetCDF.ceilometerfiles.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core Objects</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="PseudoNetCDF.html">PseudoNetCDF package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PseudoNetCDF.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.aermodfiles.html">PseudoNetCDF.aermodfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.camxfiles.html">PseudoNetCDF.camxfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.ceilometerfiles.html">PseudoNetCDF.ceilometerfiles package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">PseudoNetCDF.cmaqfiles package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.cmaqfiles.boxmodel">PseudoNetCDF.cmaqfiles.boxmodel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.cmaqfiles.pa">PseudoNetCDF.cmaqfiles.pa module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.cmaqfiles.profile">PseudoNetCDF.cmaqfiles.profile module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.cmaqfiles">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.conventions.html">PseudoNetCDF.conventions package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.core.html">PseudoNetCDF.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.derived.html">PseudoNetCDF.derived package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.epafiles.html">PseudoNetCDF.epafiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.geoschemfiles.html">PseudoNetCDF.geoschemfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.icarttfiles.html">PseudoNetCDF.icarttfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.noaafiles.html">PseudoNetCDF.noaafiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.plotutil.html">PseudoNetCDF.plotutil package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.racmfiles.html">PseudoNetCDF.racmfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.raob.html">PseudoNetCDF.raob package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.test.html">PseudoNetCDF.test package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.testcase.html">PseudoNetCDF.testcase package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.textfiles.html">PseudoNetCDF.textfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.toms.html">PseudoNetCDF.toms package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.woudcfiles.html">PseudoNetCDF.woudcfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.wrffiles.html">PseudoNetCDF.wrffiles package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.ArrayTransforms">PseudoNetCDF.ArrayTransforms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.MetaNetCDF">PseudoNetCDF.MetaNetCDF module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.coordutil">PseudoNetCDF.coordutil module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.net_balance">PseudoNetCDF.net_balance module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.netcdf">PseudoNetCDF.netcdf module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncdump">PseudoNetCDF.pncdump module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pnceval">PseudoNetCDF.pnceval module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncgen">PseudoNetCDF.pncgen module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncload">PseudoNetCDF.pncload module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncparse">PseudoNetCDF.pncparse module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncview">PseudoNetCDF.pncview module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncwarn">PseudoNetCDF.pncwarn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.register">PseudoNetCDF.register module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.sci_var">PseudoNetCDF.sci_var module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.units">PseudoNetCDF.units module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.userfuncs">PseudoNetCDF.userfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.version">PseudoNetCDF.version module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.xarray_plugin">PseudoNetCDF.xarray_plugin module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="PseudoNetCDF.html">PseudoNetCDF package</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.cmaqfiles package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/PseudoNetCDF.cmaqfiles.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pseudonetcdf-cmaqfiles-package">
+<h1>PseudoNetCDF.cmaqfiles package<a class="headerlink" href="#pseudonetcdf-cmaqfiles-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-PseudoNetCDF.cmaqfiles.boxmodel">
+<span id="pseudonetcdf-cmaqfiles-boxmodel-module"></span><h2>PseudoNetCDF.cmaqfiles.boxmodel module<a class="headerlink" href="#module-PseudoNetCDF.cmaqfiles.boxmodel" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.boxmodel.box_model_conc">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.cmaqfiles.boxmodel.</span></span><span class="sig-name descname"><span class="pre">box_model_conc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conc_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_datetime</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/boxmodel.html#box_model_conc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.boxmodel.box_model_conc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.boxmodel.box_model_mrg">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.cmaqfiles.boxmodel.</span></span><span class="sig-name descname"><span class="pre">box_model_mrg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conc_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">irr_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_datetime</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/boxmodel.html#box_model_mrg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.boxmodel.box_model_mrg" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.cmaqfiles.pa">
+<span id="pseudonetcdf-cmaqfiles-pa-module"></span><h2>PseudoNetCDF.cmaqfiles.pa module<a class="headerlink" href="#module-PseudoNetCDF.cmaqfiles.pa" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.pa.mrgidx">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.cmaqfiles.pa.</span></span><span class="sig-name descname"><span class="pre">mrgidx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ipr_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">irr_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/pa.html#mrgidx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.pa.mrgidx" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.cmaqfiles.profile">
+<span id="pseudonetcdf-cmaqfiles-profile-module"></span><h2>PseudoNetCDF.cmaqfiles.profile module<a class="headerlink" href="#module-PseudoNetCDF.cmaqfiles.profile" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.profile.bcon_profile">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.cmaqfiles.profile.</span></span><span class="sig-name descname"><span class="pre">bcon_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/profile.html#bcon_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.profile.bcon_profile" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PseudoNetCDF.cmaqfiles.ioapi_base" title="PseudoNetCDF.cmaqfiles._ioapi.ioapi_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">ioapi_base</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.profile.bcon_profile.toPerim">
+<span class="sig-name descname"><span class="pre">toPerim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ncols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsteps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/profile.html#bcon_profile.toPerim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.profile.bcon_profile.toPerim" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.profile.bcon_profile.toPerimFile">
+<span class="sig-name descname"><span class="pre">toPerimFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ioapifile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/profile.html#bcon_profile.toPerimFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.profile.bcon_profile.toPerimFile" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ioapifile</strong> (<em>file with IOAPI metadata</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.profile.icon_profile">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.cmaqfiles.profile.</span></span><span class="sig-name descname"><span class="pre">icon_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/profile.html#icon_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.profile.icon_profile" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PseudoNetCDF.cmaqfiles.ioapi_base" title="PseudoNetCDF.cmaqfiles._ioapi.ioapi_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">ioapi_base</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.profile.icon_profile.toGrid">
+<span class="sig-name descname"><span class="pre">toGrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ncols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsteps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/profile.html#icon_profile.toGrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.profile.icon_profile.toGrid" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ncols</strong> (<em>number</em><em> of </em><em>ncols for output file</em>)</p></li>
+<li><p><strong>nrows</strong> (<em>number</em><em> of </em><em>rows for output file</em>)</p></li>
+<li><p><strong>nsteps</strong> (<em>number</em><em> of </em><em>output time steps</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.profile.icon_profile.toGriddedFile">
+<span class="sig-name descname"><span class="pre">toGriddedFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ioapifile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/profile.html#icon_profile.toGriddedFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.profile.icon_profile.toGriddedFile" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ioapifile</strong> (<em>file with IOAPI metadata</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.cmaqfiles">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-PseudoNetCDF.cmaqfiles" title="Link to this heading"></a></h2>
+<section id="cmaqfile-cmaq-file-interfaces">
+<h3><code class="xref py py-mod docutils literal notranslate"><span class="pre">cmaqfile</span></code> – CMAQ File Interfaces<a class="headerlink" href="#cmaqfile-cmaq-file-interfaces" title="Link to this heading"></a></h3>
+<span class="target" id="module-CMAQ"></span></section>
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.bcon_profile">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.cmaqfiles.</span></span><span class="sig-name descname"><span class="pre">bcon_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/profile.html#bcon_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.bcon_profile" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PseudoNetCDF.cmaqfiles.ioapi_base" title="PseudoNetCDF.cmaqfiles._ioapi.ioapi_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">ioapi_base</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.bcon_profile.toPerim">
+<span class="sig-name descname"><span class="pre">toPerim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ncols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsteps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/profile.html#bcon_profile.toPerim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.bcon_profile.toPerim" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.bcon_profile.toPerimFile">
+<span class="sig-name descname"><span class="pre">toPerimFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ioapifile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/profile.html#bcon_profile.toPerimFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.bcon_profile.toPerimFile" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ioapifile</strong> (<em>file with IOAPI metadata</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.box_model_conc">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.cmaqfiles.</span></span><span class="sig-name descname"><span class="pre">box_model_conc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conc_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_datetime</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/boxmodel.html#box_model_conc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.box_model_conc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.box_model_mrg">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.cmaqfiles.</span></span><span class="sig-name descname"><span class="pre">box_model_mrg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conc_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">irr_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_datetime</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/boxmodel.html#box_model_mrg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.box_model_mrg" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.cmaqomidat">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.cmaqfiles.</span></span><span class="sig-name descname"><span class="pre">cmaqomidat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_cmaqomidat.html#cmaqomidat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.cmaqomidat" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="PseudoNetCDF.core.html#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core._files.PseudoNetCDFFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">PseudoNetCDFFile</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – path to CMAQ-ready OMI file. This is the output of create_omi
+preprocessor. See notes for general form.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>File has the genearl form</p>
+<p>nlat 17
+nlon 17
+yeardate latitude 180Z 157.5W …
+1990.203       80  426    415 …
+…
+1990.203      -80  260    253 …</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.griddesc">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.cmaqfiles.</span></span><span class="sig-name descname"><span class="pre">griddesc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_griddesc.html#griddesc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.griddesc" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PseudoNetCDF.cmaqfiles.ioapi_base" title="PseudoNetCDF.cmaqfiles._ioapi.ioapi_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">ioapi_base</span></code></a></p>
+<blockquote>
+<div><p>griddesc is designed to read IOAPI griddesc files and create
+a file with basic CF metadata. An example format of GRIDDESC
+is show below with two grids on one projection.</p>
+</div></blockquote>
+<p>‘ ‘
+‘LCC’</p>
+<blockquote>
+<div><p>2        33.000        45.000       -97.000       -97.000        40.000</p>
+</div></blockquote>
+<p>‘ ‘
+‘SE52BENCH’
+‘LCC’    792000.000  -1080000.000     12000.000     12000.000 100  80   1
+‘36US3’
+‘LCC’  -2952000.000  -2772000.000     36000.000     36000.000 172  148   1
+‘ ‘</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em><em> or </em><em>file-like</em>) – If path is has a read method, it will be used directly.
+If path is a path to a file on disk, it will be read.
+If none of these, treat the path as text content.
+If path is None, load a griddesc using properties provided.</p></li>
+<li><p><strong>GDNAM</strong> (<em>str</em>) – Name the grid to be used. If not provided, the first will be used</p></li>
+<li><p><strong>VGLVLS</strong> (<em>tuple</em>) – Iterable of layer edge (k+1) values for the vertical grid.</p></li>
+<li><p><strong>VGTOP</strong> (<em>float</em>) – Top of vertical grid.</p></li>
+<li><p><strong>VGTYP</strong> (<em>int</em>) – Determines the units of VGLVLS and VGTOP. (7: WRF sigma-p,
+6: meters asl, for more details see IOAPI documentation)</p></li>
+<li><p><strong>SDATE</strong> (<em>int</em>) – Starting julian date (YYYYJJJ) or -635</p></li>
+<li><p><strong>STIME</strong> (<em>int</em>) – Starting time as HHMMSS</p></li>
+<li><p><strong>TSTEP</strong> (<em>int</em>) – IOAPI time step in HHMMSS</p></li>
+<li><p><strong>FTYPE</strong> (<em>int</em>) – 1 for gridded; 2 for boundary</p></li>
+<li><p><strong>var_kwds</strong> (<em>tuple</em><em>, </em><em>list</em><em>, or </em><em>dict</em>) – See setdefvars; Defaults to {‘DUMMY’: {‘units’: ‘unknown’}}</p></li>
+<li><p><strong>nsteps</strong> (<em>int</em>) – Number of time steps to use. Should be coupled with SDATE, STIME,
+and TSTEP. nsteps &gt; 1 is not compatible with time independent
+(TSTEP=0) or SDATE=-635</p></li>
+<li><p><strong>withcf</strong> (<em>bool</em>) – If true, then CF compatible variables that describe dimensions
+and time are added.</p></li>
+<li><p><strong>prop_kw</strong> (<em>mappable</em>) – Can provide additional IOAPI (or other) properties for the file.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.griddesc.adddims">
+<span class="sig-name descname"><span class="pre">adddims</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">withcf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_griddesc.html#griddesc.adddims"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.griddesc.adddims" title="Link to this definition"></a></dt>
+<dd><p>Add spatial dimensions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>withcf</strong> (<em>bool</em>) – If true, add Climate and Forecasting convention variables</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.griddesc.addtime">
+<span class="sig-name descname"><span class="pre">addtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsteps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_griddesc.html#griddesc.addtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.griddesc.addtime" title="Link to this definition"></a></dt>
+<dd><p>Adds TFLAG variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>nsteps</strong> (<em>int</em>) – Number of time steps to add</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.griddesc.setdefvars">
+<span class="sig-name descname"><span class="pre">setdefvars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var_kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_griddesc.html#griddesc.setdefvars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.griddesc.setdefvars" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>var_kwds</strong> (<em>list</em><em>, </em><em>tuple</em><em>, or </em><em>dictionary</em>) – Variables with units or just a list of variables</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.griddesc.setgrid">
+<span class="sig-name descname"><span class="pre">setgrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">withcf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_griddesc.html#griddesc.setgrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.griddesc.setgrid" title="Link to this definition"></a></dt>
+<dd><p>Remakes the file to use the grid specified by key</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – GDNAM to set the grid of the file</p></li>
+<li><p><strong>withcf</strong> (<em>bool</em>) – Passed to adddims</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.icon_profile">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.cmaqfiles.</span></span><span class="sig-name descname"><span class="pre">icon_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/profile.html#icon_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.icon_profile" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PseudoNetCDF.cmaqfiles.ioapi_base" title="PseudoNetCDF.cmaqfiles._ioapi.ioapi_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">ioapi_base</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.icon_profile.toGrid">
+<span class="sig-name descname"><span class="pre">toGrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ncols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsteps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/profile.html#icon_profile.toGrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.icon_profile.toGrid" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ncols</strong> (<em>number</em><em> of </em><em>ncols for output file</em>)</p></li>
+<li><p><strong>nrows</strong> (<em>number</em><em> of </em><em>rows for output file</em>)</p></li>
+<li><p><strong>nsteps</strong> (<em>number</em><em> of </em><em>output time steps</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.icon_profile.toGriddedFile">
+<span class="sig-name descname"><span class="pre">toGriddedFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ioapifile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/profile.html#icon_profile.toGriddedFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.icon_profile.toGriddedFile" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ioapifile</strong> (<em>file with IOAPI metadata</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.cmaqfiles.</span></span><span class="sig-name descname"><span class="pre">ioapi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PseudoNetCDF.cmaqfiles.ioapi_base" title="PseudoNetCDF.cmaqfiles._ioapi.ioapi_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">ioapi_base</span></code></a>, <a class="reference internal" href="PseudoNetCDF.core.html#PseudoNetCDF.core.netcdf" title="PseudoNetCDF.core._files.netcdf"><code class="xref py py-class docutils literal notranslate"><span class="pre">netcdf</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi.createDimension">
+<span class="sig-name descname"><span class="pre">createDimension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi.createDimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi.createDimension" title="Link to this definition"></a></dt>
+<dd><p>Create a dimension</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – name for dimension</p></li>
+<li><p><strong>length</strong> (<em>integer</em>) – maximum length of dimension</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>dim</strong> – new dimension</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PseudoNetCDFDimensions</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi.createVariable">
+<span class="sig-name descname"><span class="pre">createVariable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi.createVariable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi.createVariable" title="Link to this definition"></a></dt>
+<dd><p>Wrapper on PseudoNetCDF.createVariable that updates VAR-LIST,
+NVARS, VAR, and TFLAG. Also adds long_name, var_desc, and units
+if not already in properties. long_name and var_desc default to
+name, while units defaults to unknown. These properties will
+also be adjusted to expected lengths (16, 80, 16).</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">see</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi.from_arrays">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi.from_arrays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi.from_arrays" title="Link to this definition"></a></dt>
+<dd><p>Thin wrapper around ioapi_base.from_arrays</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi.from_ncf">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_ncf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi.from_ncf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi.from_ncf" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>infile</strong> (<em>PseudoNetCDF-like file</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PseudoNetcdf-like file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi.isMine">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">isMine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi.isMine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi.isMine" title="Link to this definition"></a></dt>
+<dd><p>True if this file or object can be identified
+for use by this class. Useful to override for
+classes that can be initialized from disk.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.cmaqfiles.</span></span><span class="sig-name descname"><span class="pre">ioapi_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="PseudoNetCDF.core.html#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core._files.PseudoNetCDFFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">PseudoNetCDFFile</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.apply" title="Link to this definition"></a></dt>
+<dd><p>Wrapper PseudoNetCDFFile.applyAlongDimensions that corrects ROW, COL,
+LAY and TIME meta-data according to the ioapi format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>PseudoNetCDFFile.applyAlongDimensions</strong> (<em>see</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.applyAlongDimensions">
+<span class="sig-name descname"><span class="pre">applyAlongDimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.applyAlongDimensions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.applyAlongDimensions" title="Link to this definition"></a></dt>
+<dd><p>Wrapper PseudoNetCDFFile.applyAlongDimensions that corrects ROW, COL,
+LAY and TIME meta-data according to the ioapi format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>PseudoNetCDFFile.applyAlongDimensions</strong> (<em>see</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.audit_meta">
+<span class="sig-name descname"><span class="pre">audit_meta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fail</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'warn'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.audit_meta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.audit_meta" title="Link to this definition"></a></dt>
+<dd><p>Audit the IOAPI metadata. Checks existence of properties, dimensions
+internal consistency of properties and dimensions, and character
+lengths</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fail</strong> (<em>bool</em>) – If fail, ‘warn’ or ‘error’ or ‘ignore’</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>audit stats and audit checklist dictionaries</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>passing, audit, var_audit</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">props</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.copy" title="Link to this definition"></a></dt>
+<dd><p>Function for making copies of the same type</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>props</strong> (<em>boolean</em>) – include properties (default: True)</p></li>
+<li><p><strong>dimensions</strong> (<em>boolean</em>) – include dimensions (default: True)</p></li>
+<li><p><strong>variables</strong> (<em>boolean</em>) – include variable structures (default: True)</p></li>
+<li><p><strong>data</strong> (<em>boolean</em>) – include variable data (default: True)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PseudoNetCDFFile instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.copyVariable">
+<span class="sig-name descname"><span class="pre">copyVariable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">withdata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.copyVariable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.copyVariable" title="Link to this definition"></a></dt>
+<dd><p>Wrapper on PseudoNetCDF.copyVariable that updates VAR-LIST,
+NVARS, VAR, and TFLAG</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">see</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.createVariable">
+<span class="sig-name descname"><span class="pre">createVariable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'f'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">properties</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.createVariable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.createVariable" title="Link to this definition"></a></dt>
+<dd><p>Wrapper on PseudoNetCDF.createVariable that updates VAR-LIST,
+NVARS, VAR, and TFLAG. Also adds long_name, var_desc, and units
+if not already in properties. long_name and var_desc default to
+name, while units defaults to unknown. These properties will
+also be adjusted to expected lengths (16, 80, 16).</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">see</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.eval">
+<span class="sig-name descname"><span class="pre">eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.eval" title="Link to this definition"></a></dt>
+<dd><p>Wrapper PseudoNetCDFFile.eval that corrects VAR-LIST
+and TFLAG meta-data according to the ioapi format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>PseudoNetCDFFile.eval</strong> (<em>see</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.from_arrays">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nameattr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'long_name'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileattrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inarrkw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.from_arrays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.from_arrays" title="Link to this definition"></a></dt>
+<dd><p>Create a new ioapi file from arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dims</strong> (<em>iterable</em>) – Explicit dimensions. If not provided, they will be diagnosed:
+TFLAG: (‘TSTEP’, ‘VAR’, ‘DATE-TIME’)
+Other 4D: (‘TSTEP’, ‘LAY’, ‘ROW’, ‘COL’)
+Other 3D: (‘TSTEP’, ‘LAY’, ‘PERIM’)
+Other 2D: (‘ROW’, ‘COL’)</p></li>
+<li><p><strong>attrs</strong> (<em>mappable</em>) – Attributes for all variables (e.g., units). long_name and
+var_desc will be set based on key if not provided.</p></li>
+<li><p><strong>nameattr</strong> (<em>str</em>)</p></li>
+<li><p><strong>fileattrs</strong> (<em>mappable</em>) – Attributes for the file to be created.</p></li>
+<li><p><strong>inarrkw</strong> (<em>mappable</em>) – Keys are the names of variables to be created and the value should
+be an array of values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PseudoNetcdf-like file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.getMap">
+<span class="sig-name descname"><span class="pre">getMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maptype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'basemap_auto'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.getMap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.getMap" title="Link to this definition"></a></dt>
+<dd><p>Wrapper PseudoNetCDFFile.getMap that uses NCOLS, XCELL
+NROWS, and YCELL to calculate map bounds if basemap_auto</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>PseudoNetCDFFile.getMap</strong> (<em>see</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.getVarlist">
+<span class="sig-name descname"><span class="pre">getVarlist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">update</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prune</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'list'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.getVarlist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.getVarlist" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>update</strong> (<em>boolean</em>) – update files attributes to be consistent</p></li>
+<li><p><strong>prune</strong> (<em>bool</em>) – If True, remove variables that are missing or have
+names longer than 16 characters</p></li>
+<li><p><strong>retval</strong> (<em>str</em>) – Return formatted string ‘str’ or list otherwise</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>If VAR-LIST does not exist, it is added assuming all variables
+with dimensions (‘TSTEP’, ‘LAY’, …) are variables</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.interpSigma">
+<span class="sig-name descname"><span class="pre">interpSigma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vglvls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vgtop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interptype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extrapolate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'extrapolate'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.interpSigma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.interpSigma" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vglvls</strong> (<em>iterable</em>) – the new vglvls (edges)</p></li>
+<li><p><strong>vgtop</strong> (<em>scalar</em>) – Converting to new vgtop</p></li>
+<li><p><strong>interptype</strong> (<em>string</em>) – ‘linear’ uses a linear interpolation
+‘conserve’ uses a mass conserving interpolation</p></li>
+<li><p><strong>extrapolate</strong> (<em>boolean</em>) – allow extrapolation beyond bounds with linear, default False</p></li>
+<li><p><strong>fill_value</strong> (<em>boolean</em>) – set fill value (e.g, nan) to prevent extrapolation or edge
+continuation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong> – PseudoNetCDFFile with all variables interpolated</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PseudoNetCDF.cmaqfiles.ioapi_base" title="PseudoNetCDF.cmaqfiles.ioapi_base">ioapi_base</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>When extrapolate is false, the edge values are used for points beyond
+the inputs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.isMine">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">isMine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.isMine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.isMine" title="Link to this definition"></a></dt>
+<dd><p>True if this file or object can be identified
+for use by this class. Useful to override for
+classes that can be initialized from disk.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.mask">
+<span class="sig-name descname"><span class="pre">mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.mask" title="Link to this definition"></a></dt>
+<dd><p>Wrapper on PseudoNetCDFFile.subsetVariables that updates VAR-LIST,
+NVARS, VAR, and TFLAG</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">see</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">varkey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plottype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax_kw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_kw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_kw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_kw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimreduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.plot" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>varkey</strong> (<em>string</em>) – the variable to plot</p></li>
+<li><p><strong>plottype</strong> (<em>string</em>) – longitude-latitude, latitude-pressure, longitude-pressure,
+vertical-profile, time-longitude, time-latitude,
+time-pressure, default, last two dimensions in reverse order</p></li>
+<li><p><strong>ax_kw</strong> (<em>dictionary</em>) – keywords for the axes to be created</p></li>
+<li><p><strong>plot_kw</strong> (<em>dictionary</em>) – keywords for the plot (plot, scatter, or pcolormesh) to be
+created</p></li>
+<li><p><strong>cbar_kw</strong> (<em>dictionary</em><em> or </em><em>bool</em><em> or </em><em>None</em>) – keywords for the colorbar; if True or None, use defaults.
+If False, do not create a colorbar</p></li>
+<li><p><strong>map_kw</strong> (<em>dictionary</em><em> or </em><em>bool</em><em> or </em><em>None</em>) – keywords for the getMap routine, which is only used with
+map capable dimensions (ie, plottype=’longitude-latitude’)
+If True or None, use default configuration dict(countries=True,
+coastlines=True, states=False, counties=False). If False,
+do not draw a map.</p></li>
+<li><p><strong>dimreduction</strong> (<em>string</em><em> or </em><em>function</em>) – dimensions not being used in the plot are removed
+using applyAlongDimensions(dimkey=dimreduction) where
+each dimenions.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.setncatts">
+<span class="sig-name descname"><span class="pre">setncatts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attdict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.setncatts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.setncatts" title="Link to this definition"></a></dt>
+<dd><p>Wrapper on PseudoNetCDF.setncatts that updates WDATE, and WTIME</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">see</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.slice">
+<span class="sig-name descname"><span class="pre">slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.slice" title="Link to this definition"></a></dt>
+<dd><p>Wrapper PseudoNetCDFFile.sliceDimensions that corrects ROW, COL,
+LAY and TIME meta-data according to the ioapi format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>PseudoNetCDFFile.sliceDimensions</strong> (<em>see</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.sliceDimensions">
+<span class="sig-name descname"><span class="pre">sliceDimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.sliceDimensions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.sliceDimensions" title="Link to this definition"></a></dt>
+<dd><p>Wrapper PseudoNetCDFFile.sliceDimensions that corrects ROW, COL,
+LAY and TIME meta-data according to the ioapi format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>PseudoNetCDFFile.sliceDimensions</strong> (<em>see</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.subset">
+<span class="sig-name descname"><span class="pre">subset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">varkeys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepcoords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.subset" title="Link to this definition"></a></dt>
+<dd><p>Wrapper on PseudoNetCDFFile.subsetVariables that updates VAR-LIST,
+NVARS, VAR, and TFLAG</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">see</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.subsetVariables">
+<span class="sig-name descname"><span class="pre">subsetVariables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">varkeys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepcoords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.subsetVariables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.subsetVariables" title="Link to this definition"></a></dt>
+<dd><p>Wrapper on PseudoNetCDFFile.subsetVariables that updates VAR-LIST,
+NVARS, VAR, and TFLAG</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">see</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.updatemeta">
+<span class="sig-name descname"><span class="pre">updatemeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attdict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sortmeta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.updatemeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.updatemeta" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>attdict</strong> (<em>dictionary</em>) – key value pairs to update meta data</p></li>
+<li><p><strong>sortmeta</strong> (<em>boolean</em>) – sort meta data after update</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Meta data not provided or present will be inferred or made up.
+(See _ioapi_defaults)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.ioapi_base.updatetflag">
+<span class="sig-name descname"><span class="pre">updatetflag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tstep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_ioapi.html#ioapi_base.updatetflag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.ioapi_base.updatetflag" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.jtable">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.cmaqfiles.</span></span><span class="sig-name descname"><span class="pre">jtable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_jtable.html#jtable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.jtable" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="PseudoNetCDF.core.html#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core._files.PseudoNetCDFFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">PseudoNetCDFFile</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.cmaqfiles.jtable.interpj">
+<span class="sig-name descname"><span class="pre">interpj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key_or_var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/cmaqfiles/_jtable.html#jtable.interpj"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.cmaqfiles.jtable.interpj" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="PseudoNetCDF.ceilometerfiles.html" class="btn btn-neutral float-left" title="PseudoNetCDF.ceilometerfiles package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="PseudoNetCDF.conventions.html" class="btn btn-neutral float-right" title="PseudoNetCDF.conventions package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

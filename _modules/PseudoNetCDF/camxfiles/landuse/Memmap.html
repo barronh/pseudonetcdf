@@ -1,0 +1,345 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.camxfiles.landuse.Memmap &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.camxfiles.landuse.Memmap</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.camxfiles.landuse.Memmap</h1><div class="highlight"><pre>
+<span></span><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;landuse&#39;</span><span class="p">]</span>
+<span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">.. _Memmap</span>
+<span class="s2">:mod:`Memmap` -- landuse Memmap interface</span>
+<span class="s2"> ============================================</span>
+
+<span class="s2">.. module:: Memmap</span>
+<span class="s2">   :platform: Unix, Windows</span>
+<span class="s2">   :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx</span>
+<span class="s2">              landuse files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile</span>
+<span class="s2">              for interface details</span>
+<span class="s2">.. moduleauthor:: Barron Henderson &lt;barronh@unc.edu&gt;</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># Distribution packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">unittest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
+
+<span class="c1"># Site-Packages</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">zeros</span><span class="p">,</span> <span class="n">array</span><span class="p">,</span> <span class="n">memmap</span><span class="p">,</span> <span class="n">dtype</span>
+
+<span class="c1"># This Package modules</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.camxfiles.FortranFileUtil</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenRecordFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span>
+
+<span class="c1"># for use in identifying uncaught nan</span>
+<span class="n">listnan</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\xff\xc0\x00\x00</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">checkarray</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="p">),</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span>
+<span class="n">checkarray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">listnan</span>
+<span class="n">array_nan</span> <span class="o">=</span> <span class="n">checkarray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="landuse">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.landuse.html#PseudoNetCDF.camxfiles.Memmaps.landuse">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">landuse</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    landuse provides a PseudoNetCDF interface for CAMx</span>
+<span class="sd">    landuse files.  Where possible, the inteface follows</span>
+<span class="sd">    IOAPI conventions (see www.baronams.com).</span>
+
+<span class="sd">    ex:</span>
+<span class="sd">        &gt;&gt;&gt; landuse_path =  &#39;camx_landuse.bin&#39;</span>
+<span class="sd">        &gt;&gt;&gt; rows, cols =  65, 83</span>
+<span class="sd">        &gt;&gt;&gt; landusefile =  landuse(landuse_path, rows, cols)</span>
+<span class="sd">        &gt;&gt;&gt; landusefile.variables.keys()</span>
+<span class="sd">        [&#39;TFLAG&#39;, &#39;FLAND&#39;, &#39;TOPO&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; tflag =  landusefile.variables[&#39;TFLAG&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; tflag.dimensions</span>
+<span class="sd">        (&#39;TSTEP&#39;, &#39;VAR&#39;, &#39;DATE-TIME&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; tflag[0, 0, :]</span>
+<span class="sd">        array([2005185,      0])</span>
+<span class="sd">        &gt;&gt;&gt; tflag[-1, 0, :]</span>
+<span class="sd">        array([2005185, 240000])</span>
+<span class="sd">        &gt;&gt;&gt; v =  landusefile.variables[&#39;FLAND&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; v.dimensions</span>
+<span class="sd">        (&#39;LANDUSE&#39;, &#39;ROW&#39;, &#39;COL&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; v.shape</span>
+<span class="sd">        (25, 28, 65, 83)</span>
+<span class="sd">        &gt;&gt;&gt; landusefile.dimensions</span>
+<span class="sd">        {&#39;LANDUSE&#39;: 11, &#39;ROW&#39;: 65, &#39;COL&#39;: 83, &#39;VAR&#39;: 2}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rf</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__mode</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rffile</span> <span class="o">=</span> <span class="n">OpenRecordFile</span><span class="p">(</span><span class="n">rf</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rffile</span><span class="o">.</span><span class="n">infile</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__rf</span> <span class="o">=</span> <span class="n">rf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rffile</span><span class="o">.</span><span class="n">_newrecord</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;COL&#39;</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
+        <span class="n">first_line</span><span class="p">,</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_rffile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;8s&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">first_line</span> <span class="o">==</span> <span class="s1">&#39;LUCAT11 &#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;LANDUSE&#39;</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_newstyle</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">first_line</span> <span class="o">==</span> <span class="s1">&#39;LUCAT26 &#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;LANDUSE&#39;</span><span class="p">,</span> <span class="mi">26</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_newstyle</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;LANDUSE&#39;</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_newstyle</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">nland</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;LANDUSE&#39;</span><span class="p">])</span>
+        <span class="n">nrows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;ROW&#39;</span><span class="p">])</span>
+        <span class="n">ncols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;COL&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_newstyle</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__fland_dtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SPAD1&#39;</span><span class="p">,</span> <span class="s1">&#39;KEY&#39;</span><span class="p">,</span> <span class="s1">&#39;EPAD1&#39;</span><span class="p">,</span> <span class="s1">&#39;SPAD2&#39;</span><span class="p">,</span> <span class="s1">&#39;DATA&#39;</span><span class="p">,</span> <span class="s1">&#39;EPAD2&#39;</span><span class="p">],</span>
+                <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;8&gt;S&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;(</span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">)&gt;f&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nland</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">),</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">]))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__other_dtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SPAD1&#39;</span><span class="p">,</span> <span class="s1">&#39;KEY&#39;</span><span class="p">,</span> <span class="s1">&#39;EPAD1&#39;</span><span class="p">,</span> <span class="s1">&#39;SPAD2&#39;</span><span class="p">,</span> <span class="s1">&#39;DATA&#39;</span><span class="p">,</span> <span class="s1">&#39;EPAD2&#39;</span><span class="p">],</span>
+                <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;8&gt;S&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;(</span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">)&gt;f&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">),</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__fland_dtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SPAD2&#39;</span><span class="p">,</span> <span class="s1">&#39;DATA&#39;</span><span class="p">,</span> <span class="s1">&#39;EPAD2&#39;</span><span class="p">],</span>
+                <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;(</span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">)&gt;f&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nland</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">),</span>
+                         <span class="s1">&#39;&gt;i&#39;</span><span class="p">]))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__other_dtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SPAD2&#39;</span><span class="p">,</span> <span class="s1">&#39;DATA&#39;</span><span class="p">,</span> <span class="s1">&#39;EPAD2&#39;</span><span class="p">],</span>
+                <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;(</span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">)&gt;f&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">),</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">]))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__addvars</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_newstyle</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">first_line</span><span class="p">]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LUCAT11&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__addvars</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rffile</span><span class="o">.</span><span class="n">infile</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">rflen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rffile</span><span class="o">.</span><span class="n">infile</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+        <span class="n">fland_dtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fland_dtype</span>
+        <span class="n">other_dtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__other_dtype</span>
+        <span class="n">nfland</span> <span class="o">=</span> <span class="n">fland_dtype</span><span class="o">.</span><span class="n">itemsize</span>
+        <span class="n">nfland1opt</span> <span class="o">=</span> <span class="n">nfland</span> <span class="o">+</span> <span class="n">other_dtype</span><span class="o">.</span><span class="n">itemsize</span>
+        <span class="n">nfland2opt</span> <span class="o">=</span> <span class="n">nfland</span> <span class="o">+</span> <span class="n">other_dtype</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">*</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">rflen</span> <span class="o">==</span> <span class="n">nfland</span><span class="p">:</span>
+            <span class="n">file_dtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;FLAND&#39;</span><span class="p">],</span> <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="n">fland_dtype</span><span class="p">]))</span>
+        <span class="k">elif</span> <span class="n">rflen</span> <span class="o">==</span> <span class="n">nfland1opt</span><span class="p">:</span>
+            <span class="n">file_dtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;FLAND&#39;</span><span class="p">,</span> <span class="s1">&#39;VAR1&#39;</span><span class="p">],</span>
+                <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="n">fland_dtype</span><span class="p">,</span> <span class="n">other_dtype</span><span class="p">]))</span>
+        <span class="k">elif</span> <span class="n">rflen</span> <span class="o">==</span> <span class="n">nfland2opt</span><span class="p">:</span>
+            <span class="n">file_dtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;FLAND&#39;</span><span class="p">,</span> <span class="s1">&#39;LAI&#39;</span><span class="p">,</span> <span class="s1">&#39;TOPO&#39;</span><span class="p">],</span>
+                <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="n">fland_dtype</span><span class="p">,</span> <span class="n">other_dtype</span><span class="p">,</span> <span class="n">other_dtype</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;File size is expected to be &#39;</span> <span class="o">+</span>
+                          <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">, or </span><span class="si">%d</span><span class="s1">; was </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span>
+                          <span class="p">(</span><span class="n">nfland</span><span class="p">,</span> <span class="n">nfland1opt</span><span class="p">,</span> <span class="n">nfland2opt</span><span class="p">,</span> <span class="n">rflen</span><span class="p">))</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">memmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__rf</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__mode</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">file_dtype</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_newstyle</span><span class="p">:</span>
+            <span class="n">varkeys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;FLAND&#39;</span><span class="p">,</span> <span class="s1">&#39;TOPO&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">varkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s1">&#39;KEY&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">file_dtype</span><span class="o">.</span><span class="n">names</span><span class="p">]</span>
+            <span class="n">varkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="s1">&#39;decode&#39;</span><span class="p">)</span>
+                       <span class="k">else</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">varkeys</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">varkey</span><span class="p">,</span> <span class="n">dkey</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">varkeys</span><span class="p">,</span> <span class="n">file_dtype</span><span class="o">.</span><span class="n">names</span><span class="p">):</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">varkey</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;FLAND&#39;</span><span class="p">:</span> <span class="p">(</span>
+                <span class="s1">&#39;LANDUSE&#39;</span><span class="p">,</span> <span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="s1">&#39;COL&#39;</span><span class="p">)}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dkey</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="s1">&#39;COL&#39;</span><span class="p">)))</span>
+            <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">dkey</span><span class="p">][</span><span class="s1">&#39;DATA&#39;</span><span class="p">]</span>
+            <span class="n">var</span><span class="o">.</span><span class="n">var_desc</span> <span class="o">=</span> <span class="n">varkey</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+            <span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;FLAND&#39;</span><span class="p">:</span> <span class="s1">&#39;Fraction&#39;</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dkey</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">var</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="n">varkey</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestMemmap</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">runTest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testLU</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">testing</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF.testcase</span>
+        <span class="n">aassert</span> <span class="o">=</span> <span class="n">testing</span><span class="o">.</span><span class="n">assert_array_almost_equal</span>
+        <span class="n">lufile</span> <span class="o">=</span> <span class="n">landuse</span><span class="p">(</span>
+            <span class="n">PseudoNetCDF</span><span class="o">.</span><span class="n">testcase</span><span class="o">.</span><span class="n">camxfiles_paths</span><span class="p">[</span><span class="s1">&#39;landuse&#39;</span><span class="p">],</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">checkv</span> <span class="o">=</span> <span class="n">array</span><span class="p">([</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">6.25000000e-02</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">6.25000000e-02</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">6.25000000e-02</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">9.37500000e-01</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">9.37500000e-01</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">9.37500000e-01</span><span class="p">,</span> <span class="mf">6.87500000e-01</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+            <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span> <span class="mf">1.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">6.25000000e-02</span><span class="p">,</span> <span class="mf">2.50000000e-01</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+            <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;f&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">aassert</span><span class="p">(</span><span class="n">lufile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;LUCAT11&#39;</span><span class="p">],</span> <span class="n">checkv</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testNCF2LU</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF.testcase</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncgen</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncgen</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+        <span class="n">inpath</span> <span class="o">=</span> <span class="n">PseudoNetCDF</span><span class="o">.</span><span class="n">testcase</span><span class="o">.</span><span class="n">camxfiles_paths</span><span class="p">[</span><span class="s1">&#39;landuse&#39;</span><span class="p">]</span>
+        <span class="n">outpath</span> <span class="o">=</span> <span class="n">PseudoNetCDF</span><span class="o">.</span><span class="n">testcase</span><span class="o">.</span><span class="n">camxfiles_paths</span><span class="p">[</span><span class="s1">&#39;landuse&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.check&#39;</span>
+        <span class="n">infile</span> <span class="o">=</span> <span class="n">landuse</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">pncgen</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;camxfiles.landuse&#39;</span><span class="p">)</span>
+        <span class="n">orig</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">orig</span> <span class="o">==</span> <span class="n">new</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">outpath</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

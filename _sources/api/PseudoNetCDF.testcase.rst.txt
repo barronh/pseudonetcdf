@@ -1,0 +1,10 @@
+PseudoNetCDF.testcase package
+=============================
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.testcase
+   :members:
+   :show-inheritance:
+   :undoc-members:

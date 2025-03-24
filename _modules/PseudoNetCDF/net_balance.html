@@ -1,0 +1,515 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.net_balance &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.net_balance</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.net_balance</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">unittest</span>
+
+<span class="c1"># site-packages</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="n">zeros</span><span class="p">,</span> <span class="n">newaxis</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span> <span class="k">as</span> <span class="n">pncf</span>
+
+<span class="n">net_num_re</span> <span class="o">=</span> <span class="s1">&#39;(?&lt;=\s)[-]?\d+[.]?\d+&#39;</span>
+<span class="n">net_output_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;^\w+(\s+&#39;</span> <span class="o">+</span> <span class="n">net_num_re</span> <span class="o">+</span> <span class="s1">&#39;)</span><span class="si">{24}</span><span class="s1">$&#39;</span><span class="p">)</span>
+<span class="n">net_name_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="s1">&#39;[+]|source|termination|production|Source|Termination|Production|&#39;</span> <span class="o">+</span>
+    <span class="s1">&#39;Oxidation|oxidation|Radical|radical&#39;</span><span class="p">)</span>
+<span class="n">net_time_dim_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;^Ending Hour&#39;</span><span class="p">)</span>
+<span class="n">net_spc_name_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;^\w+&#39;</span><span class="p">)</span>
+<span class="n">net_time_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">net_num_re</span> <span class="o">+</span> <span class="s1">&#39;|daily|Daily&#39;</span><span class="p">)</span>
+<span class="n">net_num_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">net_num_re</span><span class="p">)</span>
+
+<span class="n">sum_num_pattern</span> <span class="o">=</span> <span class="s1">&#39;([-]?\d+[.]\d+)&#39;</span>
+<span class="n">sum_num_sep</span> <span class="o">=</span> <span class="s1">&#39;\s+&#39;</span>
+
+
+<div class="viewcode-block" id="print_net_rxns">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.print_net_rxns">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_net_rxns</span><span class="p">(</span><span class="n">net_rxns</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="s1">&#39;Daily&#39;</span><span class="p">):</span>
+    <span class="n">nrxns</span> <span class="o">=</span> <span class="n">net_rxns</span><span class="o">.</span><span class="n">NET_RXN</span>
+    <span class="k">for</span> <span class="n">nrxn</span> <span class="ow">in</span> <span class="n">nrxns</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nrxn</span><span class="p">,</span> <span class="n">net_reaction</span><span class="p">(</span><span class="n">net_rxns</span><span class="p">,</span> <span class="n">nrxn</span><span class="p">,</span> <span class="n">time</span><span class="p">)))</span></div>
+
+
+
+<div class="viewcode-block" id="sum_reader">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.sum_reader">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">sum_reader</span><span class="p">(</span><span class="n">pncf</span><span class="p">):</span>
+<div class="viewcode-block" id="sum_reader.isMine">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.sum_reader.isMine">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">isMine</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sumfile</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sumfile</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sumfile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">sumfile</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sumfile</span> <span class="o">=</span> <span class="n">sumfile</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;Sum&#39;</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sumfile</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;Not a sum file&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sumfile</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">time</span><span class="p">,</span> <span class="n">var_names</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">time</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">vn</span><span class="p">,</span> <span class="n">vv</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">var_names</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+            <span class="n">tv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">vn</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,))</span>
+            <span class="n">tv</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">vv</span>
+
+        <span class="n">tv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">,</span> <span class="s1">&#39;S10&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,))</span>
+        <span class="n">tv</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">time</span>
+
+<div class="viewcode-block" id="sum_reader.parse">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.sum_reader.parse">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">var_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sumfile</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">net_time_dim_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">time</span> <span class="o">==</span> <span class="p">[]:</span>
+                <span class="n">time</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]))[</span><span class="mi">1</span><span class="p">:]</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            <span class="n">sum_num_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+                <span class="s1">&#39;(.*)\s+&#39;</span> <span class="o">+</span> <span class="n">sum_num_sep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">sum_num_pattern</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">time</span><span class="p">)))</span>
+
+            <span class="k">if</span> <span class="n">time</span> <span class="o">!=</span> <span class="p">[]</span> <span class="ow">and</span> <span class="n">sum_num_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">line</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">category</span> <span class="o">=</span> <span class="n">line</span>
+
+            <span class="k">if</span> <span class="n">time</span> <span class="o">!=</span> <span class="p">[]</span> <span class="ow">and</span> <span class="n">sum_num_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">grps</span> <span class="o">=</span> <span class="n">sum_num_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+                <span class="n">var_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">category</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="n">grps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">grps</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+
+        <span class="k">return</span> <span class="n">time</span><span class="p">,</span> <span class="n">var_names</span><span class="p">,</span> <span class="n">values</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="net_reaction">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.net_reaction">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">net_reaction</span><span class="p">(</span><span class="n">net_rxns</span><span class="p">,</span> <span class="n">net_rxn</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="s1">&#39;Daily&#39;</span><span class="p">):</span>
+    <span class="n">spcs</span> <span class="o">=</span> <span class="n">net_rxns</span><span class="o">.</span><span class="n">SPECIES</span>
+    <span class="n">reactants</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">products</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%f</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span>
+    <span class="k">for</span> <span class="n">spc</span> <span class="ow">in</span> <span class="n">spcs</span><span class="p">:</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">net_rxns</span><span class="p">(</span><span class="n">NET_RXN</span><span class="o">=</span><span class="n">net_rxn</span><span class="p">,</span> <span class="n">TIME</span><span class="o">=</span><span class="n">time</span><span class="p">,</span> <span class="n">SPECIES</span><span class="o">=</span><span class="n">spc</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">products</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">v</span><span class="p">,</span> <span class="n">spc</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">reactants</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">v</span><span class="p">,</span> <span class="n">spc</span><span class="p">))</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot; + &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">tmp</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">reactants</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">str</span><span class="p">)])</span> <span class="o">+</span> <span class="s2">&quot; &lt;-&gt; &quot;</span>
+        <span class="o">+</span> <span class="s2">&quot; + &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">tmp</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">products</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">str</span><span class="p">)])</span>
+    <span class="p">)</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">reactants</span> <span class="o">+</span> <span class="n">products</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="ctb_reader">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.ctb_reader">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ctb_reader</span><span class="p">(</span><span class="n">pncf</span><span class="p">):</span>
+<div class="viewcode-block" id="ctb_reader.isMine">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.ctb_reader.isMine">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">isMine</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">parameters</span><span class="p">,</span> <span class="n">daily</span><span class="p">,</span> <span class="n">peak</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;PARAMETERS&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;PEAK_DAILY&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;CTB&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;PARAMETERS&#39;</span><span class="p">,</span> <span class="s1">&#39;PEAK_DAILY&#39;</span><span class="p">))</span>
+        <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">array</span><span class="p">([</span><span class="n">daily</span><span class="p">,</span> <span class="n">peak</span><span class="p">])</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;ppbV&#39;</span>
+
+<div class="viewcode-block" id="ctb_reader.parse">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.ctb_reader.parse">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lines</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">16</span><span class="p">:]</span>
+        <span class="n">parameters</span><span class="p">,</span> <span class="n">daily</span><span class="p">,</span> <span class="n">hourly</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">myl</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">p</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">myl</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">parameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                <span class="n">daily</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+                <span class="n">hourly</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">h</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">daily</span><span class="p">,</span> <span class="n">hourly</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="net_reader">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.net_reader">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">net_reader</span><span class="p">(</span><span class="n">pncf</span><span class="p">):</span>
+<div class="viewcode-block" id="net_reader.isMine">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.net_reader.isMine">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">isMine</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">infile</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spc</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nrxns</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">infile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">infile</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;NET_RXN&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nrxns</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;SPECIES&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spc</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;NET&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;NET_RXN&#39;</span><span class="p">,</span> <span class="s1">&#39;SPECIES&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="net_reader.parse">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.net_reader.parse">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">myl</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">net_time_dim_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">myl</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">==</span> <span class="p">[]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">net_time_re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">myl</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">net_name_re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">myl</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">netrxn</span> <span class="o">=</span> <span class="n">myl</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">netrxn</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrxns</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">nrxns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">netrxn</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">net_output_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">myl</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">spcn</span> <span class="o">=</span> <span class="n">net_spc_name_re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">myl</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">spcn</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spc</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">spc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spcn</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">fill</span><span class="p">:</span>
+                    <span class="n">slc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;NET&#39;</span><span class="p">][:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrxns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span>
+                        <span class="n">netrxn</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">spc</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">spcn</span><span class="p">)]</span>
+                    <span class="n">slc</span><span class="p">[:]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">net_num_re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">myl</span><span class="p">)))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="mrgaloft">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.mrgaloft">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">mrgaloft</span><span class="p">(</span><span class="n">pncf</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+    <span class="c1"># create regular expressions to read the input file..</span>
+    <span class="n">sci_not</span> <span class="o">=</span> <span class="s1">&#39;-?\d+.\d+[E,e][+,-]\d+&#39;</span>
+    <span class="n">time_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;Time =([0-9][0-9]0000)&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+    <span class="n">irr_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;\{\s*(\d+)\}\s+(&#39;</span> <span class="o">+</span> <span class="n">sci_not</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+    <span class="n">ipr_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;&quot;\w+\s*&quot;\s*(&#39;</span> <span class="o">+</span> <span class="n">sci_not</span> <span class="o">+</span> <span class="s1">&#39;\s+)+&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+    <span class="n">split_on_blanks_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;[ ]+&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="mrgaloft.isMine">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.mrgaloft.isMine">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">isMine</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mrgfile</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">mrgfile</span><span class="p">,</span> <span class="s1">&#39;seek&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">mrgfile</span><span class="p">,</span> <span class="s1">&#39;readline&#39;</span><span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">mrgfile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">mrgfile</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;mrgfile must be a path or a file; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mrgfile</span> <span class="o">=</span> <span class="n">mrgfile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__initfile</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__get_spc_prc</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__internalize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__initfile</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_spc_prc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Read and discard time and irr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_irr</span><span class="p">()</span>
+
+        <span class="c1"># Read ipr with species set to true</span>
+        <span class="c1"># discard process information and internalize spc names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_ipr</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Species</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spc</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Process</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">prc</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__initfile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Move to start of file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mrgfile</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># Internalize ipr and irr file names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iprfilename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">readline</span><span class="p">()[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">irrfilename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">readline</span><span class="p">()[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__internalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">times</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">irr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ipr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># Internalize all arrays</span>
+        <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">irr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ipr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;RXNS&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">irr</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;DATE-TIME&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;SPECIES&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ipr</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;PROCESS&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ipr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;IRR&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;RXNS&#39;</span><span class="p">))</span>
+        <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">irr</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;ppb&#39;</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;IPR&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;SPECIES&#39;</span><span class="p">,</span> <span class="s1">&#39;PROCESS&#39;</span><span class="p">))</span>
+        <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ipr</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;ppb&#39;</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="s1">&#39;DATE-TIME&#39;</span><span class="p">))</span>
+        <span class="n">v</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">),</span> <span class="s1">&#39;i&#39;</span><span class="p">),</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">),</span> <span class="s1">&#39;i&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[:,</span> <span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">v</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span>
+
+<div class="viewcode-block" id="mrgaloft.readline">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.mrgaloft.readline">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">readline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mrgfile</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="mrgaloft.read_time">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.mrgaloft.read_time">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mrgfile</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;|&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">EOFError</span><span class="p">(</span><span class="s1">&#39;EOF File: found |&#39;</span><span class="p">)</span>
+
+        <span class="c1"># next line is first Time =</span>
+        <span class="n">ir_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ir_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ERROR:: in get_data read, did not find a time.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">ir_time</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="mrgaloft.read_irr">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.mrgaloft.read_irr">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_irr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mrgfile</span>
+        <span class="c1"># initialize ir and ip storage...</span>
+        <span class="n">ir_rates</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># account for 1-origin of rates</span>
+
+        <span class="c1"># read in the !&quot;Rxn No&quot;    &quot;Int Rate&quot; header</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+
+        <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+
+        <span class="c1"># read the irr values</span>
+        <span class="k">while</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;;&#39;</span><span class="p">:</span>
+            <span class="n">ir_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">irr_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">ir_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>    <span class="c1"># if this is a { n} n.nnnn line ...</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Expecting irr formatted line (i.e. { n} n.nnnn line ...)&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ir_rates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">ir_value</span><span class="p">))</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">ir_rates</span></div>
+
+
+<div class="viewcode-block" id="mrgaloft.read_ipr">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.mrgaloft.read_ipr">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_ipr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">prc</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mrgfile</span>
+        <span class="c1"># read in the ! Species      Initial conc. ... header</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()[</span><span class="mi">15</span><span class="p">:]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">//</span> <span class="mi">17</span><span class="p">)</span>
+        <span class="n">ip_prc</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">17</span><span class="p">:</span><span class="n">i</span> <span class="o">*</span> <span class="mi">17</span> <span class="o">+</span> <span class="mi">17</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># ip_rates = [ [ip_values], [ip_values], [ip_values], ... ]</span>
+        <span class="c1">#   order of sub-lists &#39;ip_values&#39; is order of iProcess id Number</span>
+        <span class="c1">#   for this hour.</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="n">ip_rates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ip_spc</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;;&#39;</span><span class="p">:</span>
+            <span class="n">ir_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ipr_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ir_set</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ip_spc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                <span class="n">ip_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_on_blanks_re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">11</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                <span class="n">ip_values</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ip_set</span><span class="p">]</span>
+                <span class="n">ip_rates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ip_values</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">spc</span> <span class="ow">and</span> <span class="n">prc</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ip_rates</span><span class="p">,</span> <span class="n">ip_spc</span><span class="p">,</span> <span class="n">ip_prc</span>
+        <span class="k">elif</span> <span class="n">spc</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ip_rates</span><span class="p">,</span> <span class="n">ip_spc</span>
+        <span class="k">elif</span> <span class="n">prc</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ip_rates</span><span class="p">,</span> <span class="n">ip_prc</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ip_rates</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__initfile</span><span class="p">()</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_time</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_irr</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_ipr</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">EOFError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">StopIteration</span></div>
+
+
+
+<div class="viewcode-block" id="TestReaders">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.TestReaders">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TestReaders</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="TestReaders.setUp">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.TestReaders.setUp">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.testcase</span><span class="w"> </span><span class="kn">import</span> <span class="n">net_balance_paths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">netfile</span> <span class="o">=</span> <span class="n">net_balance_paths</span><span class="p">[</span><span class="s1">&#39;net_file&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mrgfile</span> <span class="o">=</span> <span class="n">net_balance_paths</span><span class="p">[</span><span class="s1">&#39;mrg_file&#39;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="TestReaders.testNet">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.TestReaders.testNet">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testNet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">net_reader</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">netfile</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="TestReaders.testMrg">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.TestReaders.testMrg">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testMrg</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">mrgfile</span> <span class="o">=</span> <span class="n">mrgaloft</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mrgfile</span><span class="p">))</span>
+        <span class="n">irr</span> <span class="o">=</span> <span class="n">mrgfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;IRR&#39;</span><span class="p">]</span>
+        <span class="n">ipr</span> <span class="o">=</span> <span class="n">mrgfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;IPR&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">irr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">60</span><span class="p">],</span> <span class="n">array</span><span class="p">(</span><span class="mf">2.34061E-02</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">)[</span><span class="o">...</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">irr</span><span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">60</span><span class="p">],</span> <span class="n">array</span><span class="p">(</span><span class="mf">5.21899E-04</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">)[</span><span class="o">...</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">ipr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">array</span><span class="p">(</span><span class="mf">1.290572E+01</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">)[</span><span class="o">...</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">ipr</span><span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">array</span><span class="p">(</span><span class="mf">1.497632E-01</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">)[</span><span class="o">...</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="TestReaders.runTest">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.net_balance.TestReaders.runTest">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">runTest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+</div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

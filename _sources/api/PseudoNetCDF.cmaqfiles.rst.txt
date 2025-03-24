@@ -1,0 +1,37 @@
+PseudoNetCDF.cmaqfiles package
+==============================
+
+Submodules
+----------
+
+PseudoNetCDF.cmaqfiles.boxmodel module
+--------------------------------------
+
+.. automodule:: PseudoNetCDF.cmaqfiles.boxmodel
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.cmaqfiles.pa module
+--------------------------------
+
+.. automodule:: PseudoNetCDF.cmaqfiles.pa
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.cmaqfiles.profile module
+-------------------------------------
+
+.. automodule:: PseudoNetCDF.cmaqfiles.profile
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.cmaqfiles
+   :members:
+   :show-inheritance:
+   :undoc-members:

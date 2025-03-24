@@ -1,0 +1,45 @@
+PseudoNetCDF.camxfiles.uamiv package
+====================================
+
+Submodules
+----------
+
+PseudoNetCDF.camxfiles.uamiv.Memmap module
+------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.uamiv.Memmap
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.uamiv.Read module
+----------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.uamiv.Read
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.uamiv.Transforms module
+----------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.uamiv.Transforms
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.uamiv.Write module
+-----------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.uamiv.Write
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.camxfiles.uamiv
+   :members:
+   :show-inheritance:
+   :undoc-members:

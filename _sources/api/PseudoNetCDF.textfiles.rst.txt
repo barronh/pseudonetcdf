@@ -1,0 +1,29 @@
+PseudoNetCDF.textfiles package
+==============================
+
+Submodules
+----------
+
+PseudoNetCDF.textfiles.esrl\_sonde module
+-----------------------------------------
+
+.. automodule:: PseudoNetCDF.textfiles.esrl_sonde
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.textfiles.shadoz\_sonde module
+-------------------------------------------
+
+.. automodule:: PseudoNetCDF.textfiles.shadoz_sonde
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.textfiles
+   :members:
+   :show-inheritance:
+   :undoc-members:

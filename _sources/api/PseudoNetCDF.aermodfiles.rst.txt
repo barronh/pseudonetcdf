@@ -1,0 +1,10 @@
+PseudoNetCDF.aermodfiles package
+================================
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.aermodfiles
+   :members:
+   :show-inheritance:
+   :undoc-members:

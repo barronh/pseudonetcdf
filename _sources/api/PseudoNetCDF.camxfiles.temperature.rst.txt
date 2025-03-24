@@ -1,0 +1,45 @@
+PseudoNetCDF.camxfiles.temperature package
+==========================================
+
+Submodules
+----------
+
+PseudoNetCDF.camxfiles.temperature.Memmap module
+------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.temperature.Memmap
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.temperature.Read module
+----------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.temperature.Read
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.temperature.Transforms module
+----------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.temperature.Transforms
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.temperature.Write module
+-----------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.temperature.Write
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.camxfiles.temperature
+   :members:
+   :show-inheritance:
+   :undoc-members:

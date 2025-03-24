@@ -1,0 +1,10 @@
+PseudoNetCDF.raob package
+=========================
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.raob
+   :members:
+   :show-inheritance:
+   :undoc-members:

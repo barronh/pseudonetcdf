@@ -1,0 +1,45 @@
+PseudoNetCDF.camxfiles.wind package
+===================================
+
+Submodules
+----------
+
+PseudoNetCDF.camxfiles.wind.Memmap module
+-----------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.wind.Memmap
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.wind.Read module
+---------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.wind.Read
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.wind.Transforms module
+---------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.wind.Transforms
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.wind.Write module
+----------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.wind.Write
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.camxfiles.wind
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,289 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.ceilometerfiles._vaisala &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.ceilometerfiles._vaisala</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.ceilometerfiles._vaisala</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">unittest</span>
+
+
+<div class="viewcode-block" id="ceilometerl2">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.ceilometerfiles.html#PseudoNetCDF.ceilometerfiles.ceilometerl2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ceilometerl2</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ceilometerhis is designed to read the &quot;*.his&quot;&#39; files from</span>
+<span class="sd">    the Vaisala ceilometers (CL31 and CL51), which is a level</span>
+<span class="sd">    2 raw output</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">dz</span><span class="o">=</span><span class="mf">10.</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : path to output file</span>
+<span class="sd">        dz : int or float</span>
+<span class="sd">            level depth in meters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;ceilometerl2 requires pandas; &#39;</span> <span class="o">+</span>
+                              <span class="s1">&#39;install pandas (e.g., pip install pandas)&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+            <span class="n">path</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">parse_dates</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;CREATEDATE&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s1">&#39;BS_PROFILE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s1">&#39;BS_PROFILE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">nchar</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s1">&#39;BS_PROFILE&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">nlays</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nchar</span> <span class="o">//</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">top</span> <span class="o">=</span> <span class="n">nlays</span> <span class="o">*</span> <span class="n">dz</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s1">&#39;BS_PROFILE&#39;</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;c&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">nlays</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">BS_PROFILE</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="nb">int</span><span class="p">)(</span><span class="n">data</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span> <span class="o">*</span>
+                      <span class="mi">16</span><span class="o">**</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">5</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">setunlimited</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;altitude_tops&#39;</span><span class="p">,</span> <span class="n">nlays</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;altitude_edges&#39;</span><span class="p">,</span> <span class="n">nlays</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,))</span>
+        <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s1">&#39;UNIXTIME&#39;</span><span class="p">]</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s1">&#39;time&#39;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;seconds since 1970-01-01 00:00:00+0000&#39;</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;PERIOD&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,))</span>
+        <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s1">&#39;PERIOD&#39;</span><span class="p">]</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;seconds&#39;</span>
+        <span class="n">altitude_tops</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+            <span class="s1">&#39;altitude_tops&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;altitude_tops&#39;</span><span class="p">,))</span>
+        <span class="n">altitude_tops</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Profile bin altitude, meters above &quot;</span> <span class="o">+</span>
+                                     <span class="s2">&quot;ground level&quot;</span><span class="p">)</span>
+        <span class="n">altitude_tops</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;meters&quot;</span>
+        <span class="n">altitude_tops</span><span class="o">.</span><span class="n">valid_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="n">top</span><span class="p">])</span>
+        <span class="n">altitude_tops</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">dz</span><span class="p">,</span> <span class="n">top</span> <span class="o">+</span> <span class="n">dz</span><span class="p">,</span> <span class="n">dz</span><span class="p">)</span>
+        <span class="n">altitude_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+            <span class="s1">&#39;altitude_edges&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;altitude_edges&#39;</span><span class="p">,))</span>
+        <span class="n">altitude_edges</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;meters&quot;</span>
+        <span class="n">altitude_edges</span><span class="o">.</span><span class="n">valid_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span><span class="p">])</span>
+        <span class="n">altitude_edges</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Profile bin altitude, meters above &quot;</span> <span class="o">+</span>
+                                      <span class="s2">&quot;ground level&quot;</span><span class="p">)</span>
+        <span class="n">altitude_edges</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span> <span class="o">+</span> <span class="n">dz</span><span class="p">,</span> <span class="n">dz</span><span class="p">)</span>
+        <span class="n">bscatprof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;blview_backscatter_profile&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                                        <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;altitude_tops&#39;</span><span class="p">),</span>
+                                        <span class="n">fill_value</span><span class="o">=-</span><span class="mi">999</span><span class="p">)</span>
+        <span class="n">bscatprof</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Backscatter profile at 910 nm not more &quot;</span> <span class="o">+</span>
+                                 <span class="s2">&quot;than 4,500 m above ground level&quot;</span><span class="p">)</span>
+        <span class="n">bscatprof</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;10^-9/m/sr&quot;</span>
+        <span class="n">bscatprof</span><span class="o">.</span><span class="n">valid_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">10</span><span class="p">,</span> <span class="mi">540000</span><span class="p">])</span>
+        <span class="n">bscatprof</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_greater</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_less</span><span class="p">(</span><span class="n">BS_PROFILE</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+                                            <span class="mi">540000</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ceilometerl2.plot">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.ceilometerfiles.html#PseudoNetCDF.ceilometerfiles.ceilometerl2.plot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fig_kw</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;figsize&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">)},</span> <span class="n">ax_kw</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cax_kw</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">plot_kw</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fig_kw : keywords for figure creation, default {&#39;figsize&#39;: (12, 6)}</span>
+<span class="sd">        ax_kw  : keywords for axes creation of the primary axis, default {}</span>
+<span class="sd">        cax_kw  : keywords for axes creation of the colorbar axis, default {}</span>
+<span class="sd">        plot_kw : keywords for axes creation of pseudo-color, default {}.</span>
+<span class="sd">                    the default value for norm is added as</span>
+<span class="sd">                    matplotlib.colors.LogNorm() if not provided</span>
+
+<span class="sd">        Retruns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fig : figure object produced</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        - fig_kw : see matplotlilb.pyplot.figure for options</span>
+<span class="sd">        - ax_kw : and cax_kw see matptlotlib.pyplot.axes for options</span>
+<span class="sd">                  except that ax_kw and cax_kw both can take an optional rect</span>
+<span class="sd">                  keyword the rect will be used as the positional argument to</span>
+<span class="sd">                  figure.add_axes</span>
+<span class="sd">          - the default primary axis rect is [.075, .15, .8, .8]</span>
+<span class="sd">          - the default colorbar axis rect starts 1% figure width to the</span>
+<span class="sd">            right of the primary axis and takes 1/3 of the remaining space</span>
+<span class="sd">        - plot_kw : see matplotlib.pyplot.pcolormesh for options</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">ax_kw</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ax_kw</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">cax_kw</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cax_kw</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">plot_kw</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plot_kw</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">timedelta</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">dates</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="o">**</span><span class="n">fig_kw</span><span class="p">)</span>
+        <span class="n">axrect</span> <span class="o">=</span> <span class="n">ax_kw</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;rect&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">.075</span><span class="p">,</span> <span class="mf">.15</span><span class="p">,</span> <span class="mf">.8</span><span class="p">,</span> <span class="mf">.8</span><span class="p">])</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">axrect</span><span class="p">,</span> <span class="o">**</span><span class="n">ax_kw</span><span class="p">)</span>
+        <span class="c1"># The default color bar axis</span>
+        <span class="n">caxrect</span> <span class="o">=</span> <span class="n">axrect</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">lax</span> <span class="o">=</span> <span class="n">axrect</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">wax</span> <span class="o">=</span> <span class="n">axrect</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">margin</span> <span class="o">=</span> <span class="n">wax</span> <span class="o">*</span> <span class="mf">.01</span>
+        <span class="n">clax</span> <span class="o">=</span> <span class="n">lax</span> <span class="o">+</span> <span class="n">wax</span> <span class="o">+</span> <span class="n">margin</span>
+        <span class="n">cwax</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">clax</span><span class="p">)</span> <span class="o">*</span> <span class="mf">.3</span>
+        <span class="n">caxrect</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">clax</span>
+        <span class="n">caxrect</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">cwax</span>
+        <span class="n">caxrect</span> <span class="o">=</span> <span class="n">cax_kw</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;rect&#39;</span><span class="p">,</span> <span class="n">caxrect</span><span class="p">)</span>
+        <span class="n">cax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">caxrect</span><span class="p">,</span> <span class="o">**</span><span class="n">cax_kw</span><span class="p">)</span>
+        <span class="c1"># Get times as date/time object</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getTimes</span><span class="p">()</span>
+        <span class="c1"># Get duration of sample</span>
+        <span class="n">periods</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;PERIOD&#39;</span><span class="p">]</span>
+
+        <span class="c1"># add ending bound</span>
+        <span class="n">time_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">times</span><span class="p">,</span> <span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">periods</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])))</span>
+
+        <span class="c1"># Get altitude edges</span>
+        <span class="n">altedges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;altitude_edges&#39;</span><span class="p">]</span>
+        <span class="n">pr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;blview_backscatter_profile&#39;</span><span class="p">]</span>
+        <span class="n">plot_kw</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;norm&#39;</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LogNorm</span><span class="p">())</span>
+        <span class="n">patches</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span>
+            <span class="n">time_edges</span><span class="p">[:],</span> <span class="n">altedges</span><span class="p">[:],</span> <span class="n">pr</span><span class="p">[:]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_kw</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">patches</span><span class="p">,</span> <span class="n">cax</span><span class="o">=</span><span class="n">cax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">pr</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">fig</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="test_vaisala">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.ceilometerfiles.test_vaisala">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">test_vaisala</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="test_vaisala.setUp">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.ceilometerfiles.test_vaisala.setUp">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.testcase</span><span class="w"> </span><span class="kn">import</span> <span class="n">ceilometerfiles_paths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vaisalapath</span> <span class="o">=</span> <span class="n">ceilometerfiles_paths</span><span class="p">[</span><span class="s1">&#39;vaisala&#39;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="test_vaisala.testVAISALA2NCF">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.test.html#PseudoNetCDF.ceilometerfiles.test_vaisala.testVAISALA2NCF">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testVAISALA2NCF</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+        <span class="n">vfile</span> <span class="o">=</span> <span class="n">ceilometerl2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vaisalapath</span><span class="p">)</span>
+        <span class="n">outpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vaisalapath</span> <span class="o">+</span> <span class="s1">&#39;.nc&#39;</span>
+        <span class="n">ncfile</span> <span class="o">=</span> <span class="n">vfile</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">outpath</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">ncv</span> <span class="ow">in</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">vpv</span> <span class="o">=</span> <span class="n">vfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="n">ncv</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">vpv</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">outpath</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncopen</span>
+    <span class="n">testdir</span> <span class="o">=</span> <span class="s1">&#39;/work/ROMO/users/kpc/flintfx/convceilometer/&#39;</span>
+    <span class="n">testpath</span> <span class="o">=</span> <span class="n">testdir</span> <span class="o">+</span> <span class="s1">&#39;CEILOMETER_1_LEVEL_2_20.his&#39;</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">pncopen</span><span class="p">(</span><span class="n">testpath</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;ceilometerl2&#39;</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

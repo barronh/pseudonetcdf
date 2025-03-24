@@ -1,0 +1,207 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.camxfiles.timetuple &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.camxfiles.timetuple</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.camxfiles.timetuple</h1><div class="highlight"><pre>
+<span></span><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;timerange&#39;</span><span class="p">,</span> <span class="s1">&#39;timediff&#39;</span><span class="p">,</span> <span class="s1">&#39;timeadd&#39;</span><span class="p">,</span> <span class="s1">&#39;cmp_time&#39;</span><span class="p">]</span>
+
+<span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">.. _timetuple</span>
+<span class="s2">:mod:`timetuple` -- CAMx simple time functions</span>
+<span class="s2">==============================================</span>
+
+<span class="s2">.. module:: timetuple</span>
+<span class="s2">   :platform: Unix, Windows</span>
+<span class="s2">   :synopsis: Time tuple provided a simple interface for handling</span>
+<span class="s2">              CAMx time representations.  It has been deprecated</span>
+<span class="s2">              and all reliance should be removed</span>
+<span class="s2">.. moduleauthor:: Adam Hupp and Barron Henderson &lt;barronh@unc.edu&gt;</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">unittest</span>
+
+
+<div class="viewcode-block" id="timerange">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.timetuple.timerange">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">timerange</span><span class="p">(</span><span class="n">datetime1</span><span class="p">,</span> <span class="n">datetime2</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">eod</span><span class="o">=</span><span class="mf">2400.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Iterater of time tuples between start and end (not end inclusive)</span>
+
+<span class="sd">    Should probably remove the != and use &lt; if step + and &gt; if step -</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="p">(</span><span class="n">date1</span><span class="p">,</span> <span class="n">time1</span><span class="p">)</span> <span class="o">=</span> <span class="n">datetime1</span>
+    <span class="p">(</span><span class="n">date2</span><span class="p">,</span> <span class="n">time2</span><span class="p">)</span> <span class="o">=</span> <span class="n">datetime2</span>
+    <span class="n">date1</span><span class="p">,</span> <span class="n">time1</span> <span class="o">=</span> <span class="n">timeadd</span><span class="p">((</span><span class="n">date1</span><span class="p">,</span> <span class="n">time1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">eod</span><span class="p">)</span>
+    <span class="n">date2</span><span class="p">,</span> <span class="n">time2</span> <span class="o">=</span> <span class="n">timeadd</span><span class="p">((</span><span class="n">date2</span><span class="p">,</span> <span class="n">time2</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">eod</span><span class="p">)</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">date1</span><span class="p">,</span> <span class="n">time1</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">date2</span><span class="p">,</span> <span class="n">time2</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">date1</span><span class="p">,</span> <span class="n">time1</span>
+        <span class="n">date1</span><span class="p">,</span> <span class="n">time1</span> <span class="o">=</span> <span class="n">timeadd</span><span class="p">((</span><span class="n">date1</span><span class="p">,</span> <span class="n">time1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">step</span><span class="p">),</span> <span class="n">eod</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="timediff">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.timetuple.timediff">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">timediff</span><span class="p">(</span><span class="n">datetime1</span><span class="p">,</span> <span class="n">datetime2</span><span class="p">,</span> <span class="n">eod</span><span class="o">=</span><span class="mf">2400.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compares date tuples and returns difference in</span>
+<span class="sd">    a time tuple</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="p">(</span><span class="n">date1</span><span class="p">,</span> <span class="n">time1</span><span class="p">)</span> <span class="o">=</span> <span class="n">datetime1</span>
+    <span class="p">(</span><span class="n">date2</span><span class="p">,</span> <span class="n">time2</span><span class="p">)</span> <span class="o">=</span> <span class="n">datetime2</span>
+    <span class="n">date3</span> <span class="o">=</span> <span class="n">date2</span> <span class="o">-</span> <span class="n">date1</span>
+    <span class="n">time3</span> <span class="o">=</span> <span class="n">time2</span> <span class="o">-</span> <span class="n">time1</span>
+    <span class="k">return</span> <span class="n">date3</span> <span class="o">*</span> <span class="n">eod</span> <span class="o">+</span> <span class="n">time3</span></div>
+
+
+
+<div class="viewcode-block" id="timeadd">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.timetuple.timeadd">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">timeadd</span><span class="p">(</span><span class="n">datetime1</span><span class="p">,</span> <span class="n">datetime2</span><span class="p">,</span> <span class="n">eod</span><span class="o">=</span><span class="mf">2400.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds time tuple 1 to time tuple 2.</span>
+<span class="sd">    Time values greater than eod (dflt 2400)</span>
+<span class="sd">    are converted to days</span>
+
+<span class="sd">    Big question is hr 24 day 1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="p">(</span><span class="n">date1</span><span class="p">,</span> <span class="n">time1</span><span class="p">)</span> <span class="o">=</span> <span class="n">datetime1</span>
+    <span class="p">(</span><span class="n">date2</span><span class="p">,</span> <span class="n">time2</span><span class="p">)</span> <span class="o">=</span> <span class="n">datetime2</span>
+
+    <span class="n">time1</span> <span class="o">=</span> <span class="n">time1</span> <span class="o">+</span> <span class="n">time2</span>
+    <span class="n">date1</span> <span class="o">=</span> <span class="n">date1</span> <span class="o">+</span> <span class="n">date2</span>
+    <span class="k">if</span> <span class="n">time1</span> <span class="o">&gt;=</span> <span class="n">eod</span><span class="p">:</span>
+        <span class="n">time1</span> <span class="o">%=</span> <span class="n">eod</span>
+        <span class="n">date1</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">time1</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">time1</span> <span class="o">%=</span> <span class="n">eod</span>
+        <span class="n">date1</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">date1</span><span class="p">,</span> <span class="n">time1</span></div>
+
+
+
+<div class="viewcode-block" id="cmp_time">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.timetuple.cmp_time">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cmp_time</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compare two time tuples.</span>
+<span class="sd">    Each arg is a 2-tuple, the first element being the hour of the day * 100,</span>
+<span class="sd">    the second being the date</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ltime</span><span class="p">,</span> <span class="n">ldate</span> <span class="o">=</span> <span class="n">lhs</span>
+    <span class="n">rtime</span><span class="p">,</span> <span class="n">rdate</span> <span class="o">=</span> <span class="n">rhs</span>
+    <span class="k">if</span> <span class="n">ldate</span> <span class="o">==</span> <span class="n">rdate</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ltime</span> <span class="o">-</span> <span class="n">rtime</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ldate</span> <span class="o">-</span> <span class="n">rdate</span></div>
+
+
+
+<span class="c1">#</span>
+<span class="c1"># Test cases</span>
+<span class="c1">#</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CompareTime</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">testCompare</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">cmp_time</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="n">cmp_time</span><span class="p">((</span><span class="mf">2.0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="n">cmp_time</span><span class="p">((</span><span class="mf">3.0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="n">cmp_time</span><span class="p">((</span><span class="mf">3.0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

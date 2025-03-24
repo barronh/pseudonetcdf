@@ -1,0 +1,398 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.geoschemfiles package &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PseudoNetCDF.icarttfiles package" href="PseudoNetCDF.icarttfiles.html" />
+    <link rel="prev" title="PseudoNetCDF.epafiles package" href="PseudoNetCDF.epafiles.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core Objects</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="PseudoNetCDF.html">PseudoNetCDF package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PseudoNetCDF.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.aermodfiles.html">PseudoNetCDF.aermodfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.camxfiles.html">PseudoNetCDF.camxfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.ceilometerfiles.html">PseudoNetCDF.ceilometerfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.cmaqfiles.html">PseudoNetCDF.cmaqfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.conventions.html">PseudoNetCDF.conventions package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.core.html">PseudoNetCDF.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.derived.html">PseudoNetCDF.derived package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.epafiles.html">PseudoNetCDF.epafiles package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">PseudoNetCDF.geoschemfiles package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.geoschemfiles">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.icarttfiles.html">PseudoNetCDF.icarttfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.noaafiles.html">PseudoNetCDF.noaafiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.plotutil.html">PseudoNetCDF.plotutil package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.racmfiles.html">PseudoNetCDF.racmfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.raob.html">PseudoNetCDF.raob package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.test.html">PseudoNetCDF.test package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.testcase.html">PseudoNetCDF.testcase package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.textfiles.html">PseudoNetCDF.textfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.toms.html">PseudoNetCDF.toms package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.woudcfiles.html">PseudoNetCDF.woudcfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.wrffiles.html">PseudoNetCDF.wrffiles package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.ArrayTransforms">PseudoNetCDF.ArrayTransforms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.MetaNetCDF">PseudoNetCDF.MetaNetCDF module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.coordutil">PseudoNetCDF.coordutil module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.net_balance">PseudoNetCDF.net_balance module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.netcdf">PseudoNetCDF.netcdf module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncdump">PseudoNetCDF.pncdump module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pnceval">PseudoNetCDF.pnceval module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncgen">PseudoNetCDF.pncgen module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncload">PseudoNetCDF.pncload module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncparse">PseudoNetCDF.pncparse module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncview">PseudoNetCDF.pncview module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncwarn">PseudoNetCDF.pncwarn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.register">PseudoNetCDF.register module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.sci_var">PseudoNetCDF.sci_var module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.units">PseudoNetCDF.units module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.userfuncs">PseudoNetCDF.userfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.version">PseudoNetCDF.version module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.xarray_plugin">PseudoNetCDF.xarray_plugin module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="PseudoNetCDF.html">PseudoNetCDF package</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.geoschemfiles package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/PseudoNetCDF.geoschemfiles.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pseudonetcdf-geoschemfiles-package">
+<h1>PseudoNetCDF.geoschemfiles package<a class="headerlink" href="#pseudonetcdf-geoschemfiles-package" title="Link to this heading"></a></h1>
+<section id="module-PseudoNetCDF.geoschemfiles">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-PseudoNetCDF.geoschemfiles" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.geoschemfiles.bpch">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.geoschemfiles.</span></span><span class="sig-name descname"><span class="pre">bpch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/geoschemfiles/_bpchmaster.html#bpch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.geoschemfiles.bpch" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PseudoNetCDF.geoschemfiles.bpch1" title="PseudoNetCDF.geoschemfiles._bpch.bpch1"><code class="xref py py-class docutils literal notranslate"><span class="pre">bpch1</span></code></a>, <a class="reference internal" href="#PseudoNetCDF.geoschemfiles.bpch2" title="PseudoNetCDF.geoschemfiles._newbpch.bpch2"><code class="xref py py-class docutils literal notranslate"><span class="pre">bpch2</span></code></a></p>
+<p>bpch_path: path to binary punch file
+tracerinfo: path to ascii file with tracer definitions
+diaginfo: path to ascii file with diagnostic group definitions
+mode : {‘r+’, ‘r’, ‘w+’, ‘c’}, optional</p>
+<blockquote>
+<div><div class="line-block">
+<div class="line-block">
+<div class="line">The file is opened in this mode:</div>
+<div class="line"><br /></div>
+</div>
+<div class="line">+——+———————————————————–+</div>
+<div class="line">| ‘r’  | Open existing file for reading only.                      |</div>
+<div class="line">+——+———————————————————–+</div>
+<div class="line">| ‘r+’ | Open existing file for reading and writing.               |</div>
+<div class="line">+——+———————————————————–+</div>
+<div class="line">| ‘w+’ | Create or overwrite existing file for reading and writing.|</div>
+<div class="line">+——+———————————————————–+</div>
+<div class="line">| ‘c’  | Copy-on-write: assignments affect data in memory, but     |</div>
+<div class="line">|      | changes are not saved to disk.  The file on disk is       |</div>
+<div class="line">|      | read-only.                                                |</div>
+<div class="line">+——+———————————————————–+</div>
+</div>
+<dl>
+<dt>timeslice: If the file is larger than 2GB, timeslice provides a way</dt><dd><p>to subset results. The subset requested depends on the
+data type of timeslice:</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>int: return the a part of the file if it was broken</dt><dd><p>into 2GB chunks (0..N-1)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>slice: return the times that correspond to that slice</dt><dd><p>(i.e., range(ntimes)[timeslice])</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>list/tuple/set: return specified times where each</dt><dd><p>time is in the set (0..N-1)</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</dd>
+</dl>
+<p>noscale: Do not apply scaling factors
+vertgrid: vertical coordinate system (options: ‘GEOS-5-REDUCED’,</p>
+<blockquote>
+<div><p>‘GEOS-5-NATIVE’, ‘MERRA-REDUCED’, ‘MERRA-NATIVE’,
+‘GEOS-4-REDUCED’, ‘GEOS-4-NATIVE’, default ‘GEOS-5-REDUCED’)</p>
+</div></blockquote>
+<dl class="simple">
+<dt>nogroup: False - use all groups, True - use no groups, list of groups</dt><dd><p>to ignore</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.geoschemfiles.bpch.isMine">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">isMine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/geoschemfiles/_bpchmaster.html#bpch.isMine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.geoschemfiles.bpch.isMine" title="Link to this definition"></a></dt>
+<dd><p>True if this file or object can be identified
+for use by this class. Useful to override for
+classes that can be initialized from disk.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.geoschemfiles.bpch1">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.geoschemfiles.</span></span><span class="sig-name descname"><span class="pre">bpch1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/geoschemfiles/_bpch.html#bpch1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.geoschemfiles.bpch1" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">bpch_base</span></code></p>
+<p>NetCDF-like class to interface with GEOS-Chem binary punch files</p>
+<p>f = bpch(path_to_binary_file)
+dim = f.dimensions[dkey] # e.g., dkey = ‘longitude’</p>
+<p># There are two ways to get variables.  Directly from
+# the file using the long name
+var = f.variables[vkey] # e.g., vkey = ‘IJ-AVG-$_NOx’</p>
+<p># Or through a group using the short name
+g = f.groups[gkey] # e.g., gkey = ‘IJ-AVG-$’
+var = g.variables[vkey] # e.g., vkey = ‘NOx’</p>
+<p># The variable returned is the same either way
+print(f.dimensions)
+print(var.unit)
+print(var.dimensions)
+print(var.shape)</p>
+<p>bpch_path: path to binary punch file
+tracerinfo: path to ascii file with tracer definitions
+diaginfo: path to ascii file with diagnostic group definitions
+mode : {‘r+’, ‘r’, ‘w+’, ‘c’}, optional</p>
+<blockquote>
+<div><div class="line-block">
+<div class="line-block">
+<div class="line">The file is opened in this mode:</div>
+<div class="line"><br /></div>
+</div>
+<div class="line">+——+———————————————————–+</div>
+<div class="line">| ‘r’  | Open existing file for reading only.                      |</div>
+<div class="line">+——+———————————————————–+</div>
+<div class="line">| ‘r+’ | Open existing file for reading and writing.               |</div>
+<div class="line">+——+———————————————————–+</div>
+<div class="line">| ‘w+’ | Create or overwrite existing file for reading and writing.|</div>
+<div class="line">+——+———————————————————–+</div>
+<div class="line">| ‘c’  | Copy-on-write: assignments affect data in memory, but     |</div>
+<div class="line">|      | changes are not saved to disk.  The file on disk is       |</div>
+<div class="line">|      | read-only.                                                |</div>
+<div class="line">+——+———————————————————–+</div>
+</div>
+<dl>
+<dt>timeslice: If the file is larger than 2GB, timeslice provides a way</dt><dd><p>to subset results. The subset requested depends on the
+data type of timeslice:</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>int: return the a part of the file if it was broken</dt><dd><p>into 2GB chunks (0..N-1)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>slice: return the times that correspond to that slice</dt><dd><p>(i.e., range(ntimes)[timeslice])</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>list/tuple/set: return specified times where each</dt><dd><p>time is in the set (0..N-1)</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</dd>
+</dl>
+<p>noscale: Do not apply scaling factors
+vertgrid: vertical coordinate system (options: ‘GEOS-5-REDUCED’,</p>
+<blockquote>
+<div><p>‘GEOS-5-NATIVE’, ‘MERRA-REDUCED’, ‘MERRA-NATIVE’,
+‘GEOS-4-REDUCED’, ‘GEOS-4-NATIVE’, default ‘GEOS-5-REDUCED’)</p>
+</div></blockquote>
+<dl class="simple">
+<dt>nogroup: False - use all groups, True - use no groups, list of groups</dt><dd><p>to ignore</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.geoschemfiles.bpch1.from_ncf">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_ncf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/geoschemfiles/_bpch.html#bpch1.from_ncf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.geoschemfiles.bpch1.from_ncf" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>infile</strong> (<em>PseudoNetCDF-like file</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PseudoNetcdf-like file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.geoschemfiles.bpch1.isMine">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">isMine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/geoschemfiles/_bpch.html#bpch1.isMine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.geoschemfiles.bpch1.isMine" title="Link to this definition"></a></dt>
+<dd><p>True if this file or object can be identified
+for use by this class. Useful to override for
+classes that can be initialized from disk.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.geoschemfiles.bpch2">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.geoschemfiles.</span></span><span class="sig-name descname"><span class="pre">bpch2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/geoschemfiles/_newbpch.html#bpch2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.geoschemfiles.bpch2" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">bpch_base</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.geoschemfiles.bpch2.from_ncf">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_ncf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/geoschemfiles/_newbpch.html#bpch2.from_ncf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.geoschemfiles.bpch2.from_ncf" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>infile</strong> (<em>PseudoNetCDF-like file</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>outf</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PseudoNetcdf-like file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.geoschemfiles.bpch2.isMine">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">isMine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/geoschemfiles/_newbpch.html#bpch2.isMine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.geoschemfiles.bpch2.isMine" title="Link to this definition"></a></dt>
+<dd><p>True if this file or object can be identified
+for use by this class. Useful to override for
+classes that can be initialized from disk.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.geoschemfiles.cspec">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.geoschemfiles.</span></span><span class="sig-name descname"><span class="pre">cspec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smv2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'smv2.log'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/geoschemfiles/_cspec.html#cspec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.geoschemfiles.cspec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.geoschemfiles.flightlogs">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.geoschemfiles.</span></span><span class="sig-name descname"><span class="pre">flightlogs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/geoschemfiles/_planelog.html#flightlogs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.geoschemfiles.flightlogs" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="PseudoNetCDF.core.html#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core._files.PseudoNetCDFFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">PseudoNetCDFFile</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.geoschemfiles.gcnc">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.geoschemfiles.</span></span><span class="sig-name descname"><span class="pre">gcnc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/geoschemfiles/_gcnc.html#gcnc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.geoschemfiles.gcnc" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">gcnc_base</span></code>, <a class="reference internal" href="PseudoNetCDF.core.html#PseudoNetCDF.core.netcdf" title="PseudoNetCDF.core._files.netcdf"><code class="xref py py-class docutils literal notranslate"><span class="pre">netcdf</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.geoschemfiles.geos">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.geoschemfiles.</span></span><span class="sig-name descname"><span class="pre">geos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/geoschemfiles/_geos.html#geos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.geoschemfiles.geos" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="PseudoNetCDF.core.html#PseudoNetCDF.core.PseudoNetCDFFile" title="PseudoNetCDF.core._files.PseudoNetCDFFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">PseudoNetCDFFile</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.geoschemfiles.ncf2bpch">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.geoschemfiles.</span></span><span class="sig-name descname"><span class="pre">ncf2bpch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ncffile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/geoschemfiles/_bpch.html#ncf2bpch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.geoschemfiles.ncf2bpch" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="PseudoNetCDF.epafiles.html" class="btn btn-neutral float-left" title="PseudoNetCDF.epafiles package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="PseudoNetCDF.icarttfiles.html" class="btn btn-neutral float-right" title="PseudoNetCDF.icarttfiles package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

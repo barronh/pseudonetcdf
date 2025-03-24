@@ -1,0 +1,438 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.cmaqfiles._griddesc &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.cmaqfiles._griddesc</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.cmaqfiles._griddesc</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pnc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncwarn</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._ioapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">ioapi_base</span>
+
+<span class="n">_prjp</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;GDTYP&#39;</span><span class="p">,</span> <span class="s1">&#39;P_ALP&#39;</span><span class="p">,</span> <span class="s1">&#39;P_BET&#39;</span><span class="p">,</span> <span class="s1">&#39;P_GAM&#39;</span><span class="p">,</span> <span class="s1">&#39;XCENT&#39;</span><span class="p">,</span> <span class="s1">&#39;YCENT&#39;</span><span class="p">)</span>
+<span class="n">_grdp</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s1">&#39;PRJNAME&#39;</span><span class="p">,</span> <span class="s1">&#39;XORIG&#39;</span><span class="p">,</span> <span class="s1">&#39;YORIG&#39;</span><span class="p">,</span> <span class="s1">&#39;XCELL&#39;</span><span class="p">,</span> <span class="s1">&#39;YCELL&#39;</span><span class="p">,</span> <span class="s1">&#39;NCOLS&#39;</span><span class="p">,</span> <span class="s1">&#39;NROWS&#39;</span><span class="p">,</span> <span class="s1">&#39;NTHIK&#39;</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="griddesc">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.cmaqfiles.html#PseudoNetCDF.cmaqfiles.griddesc">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">griddesc</span><span class="p">(</span><span class="n">ioapi_base</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    griddesc is designed to read IOAPI griddesc files and create</span>
+<span class="sd">    a file with basic CF metadata. An example format of GRIDDESC</span>
+<span class="sd">    is show below with two grids on one projection.</span>
+
+<span class="sd">&#39; &#39;</span>
+<span class="sd">&#39;LCC&#39;</span>
+<span class="sd">  2        33.000        45.000       -97.000       -97.000        40.000</span>
+<span class="sd">&#39; &#39;</span>
+<span class="sd">&#39;SE52BENCH&#39;</span>
+<span class="sd">&#39;LCC&#39;    792000.000  -1080000.000     12000.000     12000.000 100  80   1</span>
+<span class="sd">&#39;36US3&#39;</span>
+<span class="sd">&#39;LCC&#39;  -2952000.000  -2772000.000     36000.000     36000.000 172  148   1</span>
+<span class="sd">&#39; &#39;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">GDNAM</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">VGLVLS</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="n">VGTOP</span><span class="o">=</span><span class="mf">5000.</span><span class="p">,</span> <span class="n">FTYPE</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">VGTYP</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+        <span class="n">SDATE</span><span class="o">=-</span><span class="mi">635</span><span class="p">,</span> <span class="n">STIME</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">TSTEP</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">var_kwds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">withcf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">prop_kw</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        path : str or file-like</span>
+<span class="sd">            If path is has a read method, it will be used directly.</span>
+<span class="sd">            If path is a path to a file on disk, it will be read.</span>
+<span class="sd">            If none of these, treat the path as text content.</span>
+<span class="sd">            If path is None, load a griddesc using properties provided.</span>
+<span class="sd">        GDNAM : str</span>
+<span class="sd">            Name the grid to be used. If not provided, the first will be used</span>
+<span class="sd">        VGLVLS : tuple</span>
+<span class="sd">            Iterable of layer edge (k+1) values for the vertical grid.</span>
+<span class="sd">        VGTOP : float</span>
+<span class="sd">            Top of vertical grid.</span>
+<span class="sd">        VGTYP : int</span>
+<span class="sd">            Determines the units of VGLVLS and VGTOP. (7: WRF sigma-p,</span>
+<span class="sd">            6: meters asl, for more details see IOAPI documentation)</span>
+<span class="sd">        SDATE : int</span>
+<span class="sd">            Starting julian date (YYYYJJJ) or -635</span>
+<span class="sd">        STIME : int</span>
+<span class="sd">            Starting time as HHMMSS</span>
+<span class="sd">        TSTEP : int</span>
+<span class="sd">            IOAPI time step in HHMMSS</span>
+<span class="sd">        FTYPE : int</span>
+<span class="sd">            1 for gridded; 2 for boundary</span>
+<span class="sd">        var_kwds: tuple, list, or dict</span>
+<span class="sd">            See setdefvars; Defaults to {&#39;DUMMY&#39;: {&#39;units&#39;: &#39;unknown&#39;}}</span>
+<span class="sd">        nsteps : int</span>
+<span class="sd">            Number of time steps to use. Should be coupled with SDATE, STIME,</span>
+<span class="sd">            and TSTEP. nsteps &gt; 1 is not compatible with time independent</span>
+<span class="sd">            (TSTEP=0) or SDATE=-635</span>
+<span class="sd">        withcf : bool</span>
+<span class="sd">            If true, then CF compatible variables that describe dimensions</span>
+<span class="sd">            and time are added.</span>
+<span class="sd">        prop_kw: mappable</span>
+<span class="sd">            Can provide additional IOAPI (or other) properties for the file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="n">prj</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">grd</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;read&#39;</span><span class="p">):</span>
+            <span class="n">gdf</span> <span class="o">=</span> <span class="n">path</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;&lt;inline&gt;&#39;</span>
+        <span class="k">elif</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">required_props</span> <span class="o">=</span> <span class="n">_prjp</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">_grdp</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;GDNAM&#39;</span><span class="p">,)</span>
+            <span class="n">grid_kw</span> <span class="o">=</span> <span class="n">prop_kw</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">GDNAM</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">grid_kw</span><span class="p">[</span><span class="s1">&#39;GDNAM&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;UNKNOWN&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">grid_kw</span><span class="p">[</span><span class="s1">&#39;GDNAM&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">GDNAM</span>
+            <span class="n">grid_kw</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;NTHIK&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">grid_kw</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;PRJNAME&#39;</span><span class="p">,</span> <span class="s1">&#39;UNKNOWN&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">rpk</span> <span class="ow">in</span> <span class="n">required_props</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">rpk</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">grid_kw</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;GRIDDESC&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+                        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;GRIDDESC&#39;</span><span class="p">]</span>
+                        <span class="n">gdf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+                        <span class="k">break</span>
+                    <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">rpk</span><span class="si">}</span><span class="s1"> not found.&#39;</span>
+                        <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;If path is None, </span><span class="si">{</span><span class="n">required_props</span><span class="si">}</span><span class="s1"> are required&#39;</span>
+                    <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">gdf</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">&#39; &#39;</span>
+<span class="s2">&#39;</span><span class="si">{PRJNAME}</span><span class="s2">&#39;</span>
+<span class="si">{GDTYP}</span><span class="s2"> </span><span class="si">{P_ALP}</span><span class="s2"> </span><span class="si">{P_BET}</span><span class="s2"> </span><span class="si">{P_GAM}</span><span class="s2"> </span><span class="si">{XCENT}</span><span class="s2"> </span><span class="si">{YCENT}</span>
+<span class="s2">&#39; &#39;</span>
+<span class="s2">&#39;</span><span class="si">{GDNAM}</span><span class="s2">&#39;</span>
+<span class="s2">&#39;</span><span class="si">{PRJNAME}</span><span class="s2">&#39; </span><span class="si">{XORIG}</span><span class="s2"> </span><span class="si">{YORIG}</span><span class="s2"> </span><span class="si">{XCELL}</span><span class="s2"> </span><span class="si">{YCELL}</span><span class="s2"> </span><span class="si">{NCOLS}</span><span class="s2"> </span><span class="si">{NROWS}</span><span class="s2"> </span><span class="si">{NTHIK}</span>
+<span class="s2">&#39; &#39;&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">grid_kw</span><span class="p">))</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;&lt;inline&gt;&#39;</span>
+        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="n">gdf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gdf</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;&lt;inline&gt;&#39;</span>
+
+        <span class="n">gdtxt</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="c1"># Fortran allows exponential notation to use D or d</span>
+        <span class="c1"># instead of E or e, while Python does not.</span>
+        <span class="n">dble</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;([\d.])[Dd]([\d])&#39;</span><span class="p">)</span>
+        <span class="n">gdtxt</span> <span class="o">=</span> <span class="n">dble</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\1e\2&#39;</span><span class="p">,</span> <span class="n">gdtxt</span><span class="p">)</span>
+        <span class="n">gdlines</span> <span class="o">=</span> <span class="n">gdtxt</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">gdlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">gdlines</span><span class="p">]</span>
+        <span class="c1"># Remove comments that start with !</span>
+        <span class="n">gdlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;!&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">gdlines</span><span class="p">]</span>
+        <span class="c1"># IOAPI does not verify first line, simply discards.</span>
+        <span class="c1"># dscgrid.f#L153</span>
+        <span class="c1"># assert (gdlines[0].replace(&#39; &#39;, &#39;&#39;) == &quot;&#39;&#39;&quot;)</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">gdlines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;&#39;&#39;&quot;</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">blanks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">gdlines</span><span class="p">):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">gdlines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;&#39; &#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&#39;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+                <span class="n">blanks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">eval</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">gdlines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">blanks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">prj</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">_prjp</span><span class="p">,</span> <span class="n">parts</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">blanks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">grd</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">_grdp</span><span class="p">,</span> <span class="n">parts</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prj</span> <span class="o">=</span> <span class="n">prj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_grd</span> <span class="o">=</span> <span class="n">grd</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FTYPE</span> <span class="o">=</span> <span class="n">FTYPE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VGTYP</span> <span class="o">=</span> <span class="n">VGTYP</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VGTOP</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">VGTOP</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VGLVLS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">VGLVLS</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;f&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NLAYS</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">VGLVLS</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">UPNAM</span> <span class="o">=</span> <span class="s1">&#39;GRIDDESC&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EXEC_ID</span> <span class="o">=</span> <span class="s1">&#39;GRIDDESC&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FILEDESC</span> <span class="o">=</span> <span class="s1">&#39;GRIDDESC&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HISTORY</span> <span class="o">=</span> <span class="s1">&#39;made from &#39;</span> <span class="o">+</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CDATE</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y%j&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CTIME</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%H%M%S&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">WDATE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CDATE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">WTIME</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CTIME</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SDATE</span> <span class="o">=</span> <span class="n">SDATE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">STIME</span> <span class="o">=</span> <span class="n">STIME</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TSTEP</span> <span class="o">=</span> <span class="n">TSTEP</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_synthvars</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># user supplied properties should overwrite</span>
+        <span class="c1"># defaults above</span>
+        <span class="k">for</span> <span class="n">pk</span><span class="p">,</span> <span class="n">pv</span> <span class="ow">in</span> <span class="n">prop_kw</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setncattr</span><span class="p">(</span><span class="n">pk</span><span class="p">,</span> <span class="n">pv</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setdefvars</span><span class="p">(</span><span class="n">var_kwds</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addtime</span><span class="p">(</span><span class="n">nsteps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setgrid</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">GDNAM</span><span class="p">,</span> <span class="n">withcf</span><span class="o">=</span><span class="n">withcf</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updatemeta</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getVarlist</span><span class="p">()</span>
+
+<div class="viewcode-block" id="griddesc.setdefvars">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.cmaqfiles.html#PseudoNetCDF.cmaqfiles.griddesc.setdefvars">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setdefvars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_kwds</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        var_kwds: list, tuple, or dictionary</span>
+<span class="sd">            Variables with units or just a list of variables</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">var_kwds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">var_kwds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;DUMMY&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;unknown&#39;</span><span class="p">}}</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var_kwds</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+            <span class="n">var_kwds</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="s1">&#39;unknown&#39;</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">var_kwds</span><span class="p">}</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">var_kwds</span><span class="p">,</span> <span class="s1">&#39;items&#39;</span><span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;var_kwds should be a list, tuple, or dictionary&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_var_kwds</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">var_kwds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_var_kwds</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)}</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_var_kwds</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">_k</span><span class="p">:</span> <span class="n">_v</span> <span class="k">for</span> <span class="n">_k</span><span class="p">,</span> <span class="n">_v</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="s1">&#39;var_kwds should have either str values (units) or a dict&#39;</span>
+                    <span class="o">+</span> <span class="s1">&#39; of all properties&#39;</span>
+                <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="griddesc.setgrid">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.cmaqfiles.html#PseudoNetCDF.cmaqfiles.griddesc.setgrid">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setgrid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">withcf</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remakes the file to use the grid specified by key</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        key : str</span>
+<span class="sd">            GDNAM to set the grid of the file</span>
+<span class="sd">        withcf : bool</span>
+<span class="sd">            Passed to adddims</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;GDNAM&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">GDNAM</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_grd</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GDNAM</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">grd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grd</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">prj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prj</span><span class="p">[</span><span class="n">grd</span><span class="p">[</span><span class="s1">&#39;PRJNAME&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setncattr</span><span class="p">(</span><span class="s1">&#39;GDNAM&#39;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setncatts</span><span class="p">(</span><span class="n">prj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setncatts</span><span class="p">(</span><span class="n">grd</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adddims</span><span class="p">(</span><span class="n">withcf</span><span class="o">=</span><span class="n">withcf</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="griddesc.addtime">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.cmaqfiles.html#PseudoNetCDF.cmaqfiles.griddesc.addtime">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">addtime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds TFLAG variable</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        nsteps : int</span>
+<span class="sd">            Number of time steps to add</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="n">nsteps</span><span class="p">)</span><span class="o">.</span><span class="n">setunlimited</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;DATE-TIME&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NVARS</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var_kwds</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">NVARS</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">updatetflag</span><span class="p">(</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="n">tflag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+                <span class="s1">&#39;TFLAG&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="s1">&#39;DATE-TIME&#39;</span><span class="p">),</span>
+                <span class="n">units</span><span class="o">=</span><span class="s1">&#39;&lt;YYYYJJJ,HHMMSS&gt;&#39;</span><span class="p">,</span>
+                <span class="n">long_name</span><span class="o">=</span><span class="s1">&#39;TFLAG&#39;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span>
+                <span class="n">var_desc</span><span class="o">=</span><span class="s1">&#39;TFLAG&#39;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">80</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">tflag</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SDATE</span>
+            <span class="n">tflag</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="griddesc.adddims">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.cmaqfiles.html#PseudoNetCDF.cmaqfiles.griddesc.adddims">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">adddims</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">withcf</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add spatial dimensions</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        withcf : bool</span>
+<span class="sd">            If true, add Climate and Forecasting convention variables</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="s1">&#39;LAY ROW COL PERIM&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">NLAYS</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">FTYPE</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">NROWS</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;COL&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">NCOLS</span><span class="p">)</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="s1">&#39;ROW&#39;</span><span class="p">,</span> <span class="s1">&#39;COL&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">FTYPE</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">perim</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NCOLS</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">NROWS</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">NTHIK</span> <span class="o">*</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;PERIM&#39;</span><span class="p">,</span> <span class="n">perim</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">NTHIK</span><span class="p">)</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;LAY&#39;</span><span class="p">,</span> <span class="s1">&#39;PERIM&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Only supports FTYPE 1 or 2; received &#39;</span> <span class="o">+</span>
+                <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FTYPE</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">vark</span><span class="p">,</span> <span class="n">varkw</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var_kwds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+                <span class="n">vark</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span>
+                <span class="n">long_name</span><span class="o">=</span><span class="n">vark</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span>
+                <span class="n">var_desc</span><span class="o">=</span><span class="n">vark</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">80</span><span class="p">),</span>
+                <span class="o">**</span><span class="n">varkw</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_synthvars</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">oldkeys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_synthvars</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">withcf</span><span class="p">:</span>
+            <span class="n">pnc</span><span class="o">.</span><span class="n">conventions</span><span class="o">.</span><span class="n">ioapi</span><span class="o">.</span><span class="n">add_cf_from_ioapi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_synthvars</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_synthvars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">oldkeys</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">griddesc</span><span class="p">(</span><span class="s1">&#39;GRIDDESC&#39;</span><span class="p">,</span> <span class="s1">&#39;36US3&#39;</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,1073 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.test package &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PseudoNetCDF.testcase package" href="PseudoNetCDF.testcase.html" />
+    <link rel="prev" title="PseudoNetCDF.raob package" href="PseudoNetCDF.raob.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core Objects</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="PseudoNetCDF.html">PseudoNetCDF package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PseudoNetCDF.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.aermodfiles.html">PseudoNetCDF.aermodfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.camxfiles.html">PseudoNetCDF.camxfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.ceilometerfiles.html">PseudoNetCDF.ceilometerfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.cmaqfiles.html">PseudoNetCDF.cmaqfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.conventions.html">PseudoNetCDF.conventions package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.core.html">PseudoNetCDF.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.derived.html">PseudoNetCDF.derived package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.epafiles.html">PseudoNetCDF.epafiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.geoschemfiles.html">PseudoNetCDF.geoschemfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.icarttfiles.html">PseudoNetCDF.icarttfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.noaafiles.html">PseudoNetCDF.noaafiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.plotutil.html">PseudoNetCDF.plotutil package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.racmfiles.html">PseudoNetCDF.racmfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.raob.html">PseudoNetCDF.raob package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">PseudoNetCDF.test package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.test.test_arraytransforms">PseudoNetCDF.test.test_arraytransforms module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.test.test_camxfiles">PseudoNetCDF.test.test_camxfiles module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.test.test_ceilometer">PseudoNetCDF.test.test_ceilometer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.test.test_cmaqfiles">PseudoNetCDF.test.test_cmaqfiles module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.test.test_core">PseudoNetCDF.test.test_core module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.test.test_functions">PseudoNetCDF.test.test_functions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.test.test_geoschemfiles">PseudoNetCDF.test.test_geoschemfiles module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.test.test_icarttfiles">PseudoNetCDF.test.test_icarttfiles module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.test.test_pncopen">PseudoNetCDF.test.test_pncopen module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.test.test_textfiles">PseudoNetCDF.test.test_textfiles module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.test.test_toms">PseudoNetCDF.test.test_toms module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.test.test_version">PseudoNetCDF.test.test_version module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.test.test_woudc">PseudoNetCDF.test.test_woudc module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.test">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.testcase.html">PseudoNetCDF.testcase package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.textfiles.html">PseudoNetCDF.textfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.toms.html">PseudoNetCDF.toms package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.woudcfiles.html">PseudoNetCDF.woudcfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.wrffiles.html">PseudoNetCDF.wrffiles package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.ArrayTransforms">PseudoNetCDF.ArrayTransforms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.MetaNetCDF">PseudoNetCDF.MetaNetCDF module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.coordutil">PseudoNetCDF.coordutil module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.net_balance">PseudoNetCDF.net_balance module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.netcdf">PseudoNetCDF.netcdf module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncdump">PseudoNetCDF.pncdump module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pnceval">PseudoNetCDF.pnceval module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncgen">PseudoNetCDF.pncgen module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncload">PseudoNetCDF.pncload module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncparse">PseudoNetCDF.pncparse module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncview">PseudoNetCDF.pncview module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncwarn">PseudoNetCDF.pncwarn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.register">PseudoNetCDF.register module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.sci_var">PseudoNetCDF.sci_var module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.units">PseudoNetCDF.units module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.userfuncs">PseudoNetCDF.userfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.version">PseudoNetCDF.version module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.xarray_plugin">PseudoNetCDF.xarray_plugin module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="PseudoNetCDF.html">PseudoNetCDF package</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.test package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/PseudoNetCDF.test.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pseudonetcdf-test-package">
+<h1>PseudoNetCDF.test package<a class="headerlink" href="#pseudonetcdf-test-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-PseudoNetCDF.test.test_arraytransforms">
+<span id="pseudonetcdf-test-test-arraytransforms-module"></span><h2>PseudoNetCDF.test.test_arraytransforms module<a class="headerlink" href="#module-PseudoNetCDF.test.test_arraytransforms" title="Link to this heading"></a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_arraytransforms.test_interiorvertex">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_arraytransforms.</span></span><span class="sig-name descname"><span class="pre">test_interiorvertex</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_arraytransforms.test_interiorvertex" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestInteriorVertex</span></code></p>
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.test.test_camxfiles">
+<span id="pseudonetcdf-test-test-camxfiles-module"></span><h2>PseudoNetCDF.test.test_camxfiles module<a class="headerlink" href="#module-PseudoNetCDF.test.test_camxfiles" title="Link to this heading"></a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_cloud_rain_Memmap">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_cloud_rain_Memmap</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_cloud_rain_Memmap" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmap</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_height_pressure_Memmap">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_height_pressure_Memmap</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_height_pressure_Memmap" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmap</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_height_pressure_Read">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_height_pressure_Read</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_height_pressure_Read" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestRead</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_humidity_Memmap">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_humidity_Memmap</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_humidity_Memmap" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmap</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_humidity_Read">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_humidity_Read</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_humidity_Read" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestRead</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_ipr_Memmap">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_ipr_Memmap</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_ipr_Memmap" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmap</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_ipr_Read">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_ipr_Read</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_ipr_Read" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestRead</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_irr_Memmap">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_irr_Memmap</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_irr_Memmap" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmap</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_irr_Read">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_irr_Read</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_irr_Read" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestRead</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_landuse_Memmap">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_landuse_Memmap</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_landuse_Memmap" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmap</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_lateral_boundary_Memmap">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_lateral_boundary_Memmap</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_lateral_boundary_Memmap" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmap</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_one3d_Memmap">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_one3d_Memmap</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_one3d_Memmap" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmap</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_one3d_Read">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_one3d_Read</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_one3d_Read" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestRead</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_point_source_Memmap">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_point_source_Memmap</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_point_source_Memmap" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmap</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_point_source_Read">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_point_source_Read</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_point_source_Read" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestRead</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_temperature_Memmap">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_temperature_Memmap</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_temperature_Memmap" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmap</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_temperature_Read">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_temperature_Read</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_temperature_Read" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestRead</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_uamiv_Memmap">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_uamiv_Memmap</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_uamiv_Memmap" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmap</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_uamiv_Read">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_uamiv_Read</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_uamiv_Read" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestuamivRead</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_uamiv_Write">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_uamiv_Write</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_uamiv_Write" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmaps</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_vertical_diffusivity_Memmap">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_vertical_diffusivity_Memmap</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_vertical_diffusivity_Memmap" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmap</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_vertical_diffusivity_Read">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_vertical_diffusivity_Read</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_vertical_diffusivity_Read" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestRead</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_wind_Memmap">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_wind_Memmap</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_wind_Memmap" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmap</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_camxfiles.test_wind_Read">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_camxfiles.</span></span><span class="sig-name descname"><span class="pre">test_wind_Read</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_camxfiles.test_wind_Read" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestRead</span></code></p>
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.test.test_ceilometer">
+<span id="pseudonetcdf-test-test-ceilometer-module"></span><h2>PseudoNetCDF.test.test_ceilometer module<a class="headerlink" href="#module-PseudoNetCDF.test.test_ceilometer" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_ceilometer.test_vaisala">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_ceilometer.</span></span><span class="sig-name descname"><span class="pre">test_vaisala</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/ceilometerfiles/_vaisala.html#test_vaisala"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_ceilometer.test_vaisala" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TestCase</span></code></p>
+<p>Create an instance of the class that will use the named test
+method when executed. Raises a ValueError if the instance does
+not have a method with the specified name.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_ceilometer.test_vaisala.setUp">
+<span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/ceilometerfiles/_vaisala.html#test_vaisala.setUp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_ceilometer.test_vaisala.setUp" title="Link to this definition"></a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_ceilometer.test_vaisala.testVAISALA2NCF">
+<span class="sig-name descname"><span class="pre">testVAISALA2NCF</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/ceilometerfiles/_vaisala.html#test_vaisala.testVAISALA2NCF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_ceilometer.test_vaisala.testVAISALA2NCF" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.test.test_cmaqfiles">
+<span id="pseudonetcdf-test-test-cmaqfiles-module"></span><h2>PseudoNetCDF.test.test_cmaqfiles module<a class="headerlink" href="#module-PseudoNetCDF.test.test_cmaqfiles" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.IOAPITest">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_cmaqfiles.</span></span><span class="sig-name descname"><span class="pre">IOAPITest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#IOAPITest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.IOAPITest" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TestCase</span></code></p>
+<p>Create an instance of the class that will use the named test
+method when executed. Raises a ValueError if the instance does
+not have a method with the specified name.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.IOAPITest.setUp">
+<span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#IOAPITest.setUp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.setUp" title="Link to this definition"></a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testFromArrays">
+<span class="sig-name descname"><span class="pre">testFromArrays</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#IOAPITest.testFromArrays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testFromArrays" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testInterpSigma">
+<span class="sig-name descname"><span class="pre">testInterpSigma</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#IOAPITest.testInterpSigma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testInterpSigma" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testMeanCol">
+<span class="sig-name descname"><span class="pre">testMeanCol</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#IOAPITest.testMeanCol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testMeanCol" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testMeanLay">
+<span class="sig-name descname"><span class="pre">testMeanLay</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#IOAPITest.testMeanLay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testMeanLay" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testMeanRow">
+<span class="sig-name descname"><span class="pre">testMeanRow</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#IOAPITest.testMeanRow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testMeanRow" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testSliceCol">
+<span class="sig-name descname"><span class="pre">testSliceCol</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#IOAPITest.testSliceCol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testSliceCol" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testSliceLay">
+<span class="sig-name descname"><span class="pre">testSliceLay</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#IOAPITest.testSliceLay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testSliceLay" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testSliceRow">
+<span class="sig-name descname"><span class="pre">testSliceRow</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#IOAPITest.testSliceRow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testSliceRow" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testSubsetVariables">
+<span class="sig-name descname"><span class="pre">testSubsetVariables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#IOAPITest.testSubsetVariables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testSubsetVariables" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testTFLAG">
+<span class="sig-name descname"><span class="pre">testTFLAG</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#IOAPITest.testTFLAG"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testTFLAG" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testVarlist">
+<span class="sig-name descname"><span class="pre">testVarlist</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#IOAPITest.testVarlist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.IOAPITest.testVarlist" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.ProfileTest">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_cmaqfiles.</span></span><span class="sig-name descname"><span class="pre">ProfileTest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#ProfileTest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.ProfileTest" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TestCase</span></code></p>
+<p>Create an instance of the class that will use the named test
+method when executed. Raises a ValueError if the instance does
+not have a method with the specified name.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.ProfileTest.setUp">
+<span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#ProfileTest.setUp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.ProfileTest.setUp" title="Link to this definition"></a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.ProfileTest.testBcon">
+<span class="sig-name descname"><span class="pre">testBcon</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#ProfileTest.testBcon"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.ProfileTest.testBcon" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.ProfileTest.testIcon">
+<span class="sig-name descname"><span class="pre">testIcon</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#ProfileTest.testIcon"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.ProfileTest.testIcon" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.griddesc">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_cmaqfiles.</span></span><span class="sig-name descname"><span class="pre">griddesc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#griddesc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.griddesc" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TestCase</span></code></p>
+<p>Create an instance of the class that will use the named test
+method when executed. Raises a ValueError if the instance does
+not have a method with the specified name.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.griddesc.testDefaultGDNAM">
+<span class="sig-name descname"><span class="pre">testDefaultGDNAM</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#griddesc.testDefaultGDNAM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.griddesc.testDefaultGDNAM" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.griddesc.testGridParams">
+<span class="sig-name descname"><span class="pre">testGridParams</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#griddesc.testGridParams"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.griddesc.testGridParams" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.griddesc.testNamed">
+<span class="sig-name descname"><span class="pre">testNamed</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#griddesc.testNamed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.griddesc.testNamed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.griddesc.testPerimParams">
+<span class="sig-name descname"><span class="pre">testPerimParams</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#griddesc.testPerimParams"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.griddesc.testPerimParams" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.griddesc.testSave">
+<span class="sig-name descname"><span class="pre">testSave</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#griddesc.testSave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.griddesc.testSave" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.griddesc.testSpecificGDNAM">
+<span class="sig-name descname"><span class="pre">testSpecificGDNAM</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#griddesc.testSpecificGDNAM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.griddesc.testSpecificGDNAM" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.griddesc.testWrongFYPE">
+<span class="sig-name descname"><span class="pre">testWrongFYPE</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#griddesc.testWrongFYPE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.griddesc.testWrongFYPE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_cmaqfiles.griddesc.testWrongGDTYP">
+<span class="sig-name descname"><span class="pre">testWrongGDTYP</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_cmaqfiles.html#griddesc.testWrongGDTYP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_cmaqfiles.griddesc.testWrongGDTYP" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.test.test_core">
+<span id="pseudonetcdf-test-test-core-module"></span><h2>PseudoNetCDF.test.test_core module<a class="headerlink" href="#module-PseudoNetCDF.test.test_core" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_core.</span></span><span class="sig-name descname"><span class="pre">PseudoNetCDFFileTest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TestCase</span></code></p>
+<p>Create an instance of the class that will use the named test
+method when executed. Raises a ValueError if the instance does
+not have a method with the specified name.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.runTest">
+<span class="sig-name descname"><span class="pre">runTest</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.runTest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.runTest" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.setUp">
+<span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.setUp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.setUp" title="Link to this definition"></a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testAdd">
+<span class="sig-name descname"><span class="pre">testAdd</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testAdd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testAdd" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testApplyAlongDimensionsConvolve">
+<span class="sig-name descname"><span class="pre">testApplyAlongDimensionsConvolve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testApplyAlongDimensionsConvolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testApplyAlongDimensionsConvolve" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testApplyAlongDimensionsConvolveWithMax">
+<span class="sig-name descname"><span class="pre">testApplyAlongDimensionsConvolveWithMax</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testApplyAlongDimensionsConvolveWithMax"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testApplyAlongDimensionsConvolveWithMax" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testApplyAlongDimensionsMultiNamed">
+<span class="sig-name descname"><span class="pre">testApplyAlongDimensionsMultiNamed</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testApplyAlongDimensionsMultiNamed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testApplyAlongDimensionsMultiNamed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testApplyAlongDimensionsNamed">
+<span class="sig-name descname"><span class="pre">testApplyAlongDimensionsNamed</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testApplyAlongDimensionsNamed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testApplyAlongDimensionsNamed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testCopy">
+<span class="sig-name descname"><span class="pre">testCopy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testCopy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testCopy" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testCopyVariable">
+<span class="sig-name descname"><span class="pre">testCopyVariable</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testCopyVariable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testCopyVariable" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testCreateDimension">
+<span class="sig-name descname"><span class="pre">testCreateDimension</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testCreateDimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testCreateDimension" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testCreateVariable">
+<span class="sig-name descname"><span class="pre">testCreateVariable</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testCreateVariable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testCreateVariable" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testDelncattr">
+<span class="sig-name descname"><span class="pre">testDelncattr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testDelncattr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testDelncattr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testDiv">
+<span class="sig-name descname"><span class="pre">testDiv</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testDiv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testDiv" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testEval">
+<span class="sig-name descname"><span class="pre">testEval</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testEval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testEval" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testFromArrays">
+<span class="sig-name descname"><span class="pre">testFromArrays</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testFromArrays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testFromArrays" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testFromNCF">
+<span class="sig-name descname"><span class="pre">testFromNCF</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testFromNCF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testFromNCF" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testGetMap">
+<span class="sig-name descname"><span class="pre">testGetMap</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testGetMap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testGetMap" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testGetTimes">
+<span class="sig-name descname"><span class="pre">testGetTimes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testGetTimes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testGetTimes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testGetncatts">
+<span class="sig-name descname"><span class="pre">testGetncatts</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testGetncatts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testGetncatts" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testGetproj">
+<span class="sig-name descname"><span class="pre">testGetproj</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testGetproj"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testGetproj" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testIj2ll">
+<span class="sig-name descname"><span class="pre">testIj2ll</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testIj2ll"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testIj2ll" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testInsertDimension">
+<span class="sig-name descname"><span class="pre">testInsertDimension</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testInsertDimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testInsertDimension" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testInterpDimension">
+<span class="sig-name descname"><span class="pre">testInterpDimension</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testInterpDimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testInterpDimension" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testIsMine">
+<span class="sig-name descname"><span class="pre">testIsMine</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testIsMine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testIsMine" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testLl2ij">
+<span class="sig-name descname"><span class="pre">testLl2ij</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testLl2ij"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testLl2ij" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testLl2xy">
+<span class="sig-name descname"><span class="pre">testLl2xy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testLl2xy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testLl2xy" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testMask">
+<span class="sig-name descname"><span class="pre">testMask</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testMask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testMask" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testMod">
+<span class="sig-name descname"><span class="pre">testMod</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testMod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testMod" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testMul">
+<span class="sig-name descname"><span class="pre">testMul</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testMul"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testMul" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testNcattrs">
+<span class="sig-name descname"><span class="pre">testNcattrs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testNcattrs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testNcattrs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testNetCDFFileInit">
+<span class="sig-name descname"><span class="pre">testNetCDFFileInit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testNetCDFFileInit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testNetCDFFileInit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testNetCDFFileNew">
+<span class="sig-name descname"><span class="pre">testNetCDFFileNew</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testNetCDFFileNew"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testNetCDFFileNew" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testNetCDFVariables">
+<span class="sig-name descname"><span class="pre">testNetCDFVariables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testNetCDFVariables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testNetCDFVariables" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testNetcdf">
+<span class="sig-name descname"><span class="pre">testNetcdf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testNetcdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testNetcdf" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testOpenMFDataset">
+<span class="sig-name descname"><span class="pre">testOpenMFDataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testOpenMFDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testOpenMFDataset" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testPlot">
+<span class="sig-name descname"><span class="pre">testPlot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testPlot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testPlot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testPow">
+<span class="sig-name descname"><span class="pre">testPow</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testPow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testPow" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testRemoveSingleton">
+<span class="sig-name descname"><span class="pre">testRemoveSingleton</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testRemoveSingleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testRemoveSingleton" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testRenameDimensions">
+<span class="sig-name descname"><span class="pre">testRenameDimensions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testRenameDimensions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testRenameDimensions" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testRenameVariables">
+<span class="sig-name descname"><span class="pre">testRenameVariables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testRenameVariables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testRenameVariables" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSave">
+<span class="sig-name descname"><span class="pre">testSave</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testSave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSave" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSetncattr">
+<span class="sig-name descname"><span class="pre">testSetncattr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testSetncattr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSetncattr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSetncatts">
+<span class="sig-name descname"><span class="pre">testSetncatts</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testSetncatts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSetncatts" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSliceDimensionComboListInt">
+<span class="sig-name descname"><span class="pre">testSliceDimensionComboListInt</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testSliceDimensionComboListInt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSliceDimensionComboListInt" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSliceDimensionInt">
+<span class="sig-name descname"><span class="pre">testSliceDimensionInt</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testSliceDimensionInt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSliceDimensionInt" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSliceDimensionList">
+<span class="sig-name descname"><span class="pre">testSliceDimensionList</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testSliceDimensionList"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSliceDimensionList" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSliceDimensionMultiArray">
+<span class="sig-name descname"><span class="pre">testSliceDimensionMultiArray</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testSliceDimensionMultiArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSliceDimensionMultiArray" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSliceDimensionMultiSlice">
+<span class="sig-name descname"><span class="pre">testSliceDimensionMultiSlice</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testSliceDimensionMultiSlice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSliceDimensionMultiSlice" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSliceDimensionSlice">
+<span class="sig-name descname"><span class="pre">testSliceDimensionSlice</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testSliceDimensionSlice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSliceDimensionSlice" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testStack">
+<span class="sig-name descname"><span class="pre">testStack</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testStack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testStack" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSub">
+<span class="sig-name descname"><span class="pre">testSub</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testSub"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSub" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSubsetVariables">
+<span class="sig-name descname"><span class="pre">testSubsetVariables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testSubsetVariables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testSubsetVariables" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testTime2idx">
+<span class="sig-name descname"><span class="pre">testTime2idx</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testTime2idx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testTime2idx" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testTime2t">
+<span class="sig-name descname"><span class="pre">testTime2t</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testTime2t"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testTime2t" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testVal2idx">
+<span class="sig-name descname"><span class="pre">testVal2idx</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testVal2idx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testVal2idx" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testVal2idxBounds">
+<span class="sig-name descname"><span class="pre">testVal2idxBounds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testVal2idxBounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testVal2idxBounds" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testXAdd">
+<span class="sig-name descname"><span class="pre">testXAdd</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testXAdd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testXAdd" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testXy2ll">
+<span class="sig-name descname"><span class="pre">testXy2ll</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFFileTest.testXy2ll"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFFileTest.testXy2ll" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFVariableTest">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_core.</span></span><span class="sig-name descname"><span class="pre">PseudoNetCDFVariableTest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFVariableTest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFVariableTest" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TestCase</span></code></p>
+<p>Create an instance of the class that will use the named test
+method when executed. Raises a ValueError if the instance does
+not have a method with the specified name.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFVariableTest.setUp">
+<span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFVariableTest.setUp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFVariableTest.setUp" title="Link to this definition"></a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFVariableTest.testFromArray">
+<span class="sig-name descname"><span class="pre">testFromArray</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFVariableTest.testFromArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFVariableTest.testFromArray" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_core.PseudoNetCDFVariableTest.testVar">
+<span class="sig-name descname"><span class="pre">testVar</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_core.html#PseudoNetCDFVariableTest.testVar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_core.PseudoNetCDFVariableTest.testVar" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.test.test_functions">
+<span id="pseudonetcdf-test-test-functions-module"></span><h2>PseudoNetCDF.test.test_functions module<a class="headerlink" href="#module-PseudoNetCDF.test.test_functions" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_functions.</span></span><span class="sig-name descname"><span class="pre">TestFunc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TestCase</span></code></p>
+<p>Create an instance of the class that will use the named test
+method when executed. Raises a ValueError if the instance does
+not have a method with the specified name.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.runTest">
+<span class="sig-name descname"><span class="pre">runTest</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.runTest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.runTest" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.setUp">
+<span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.setUp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.setUp" title="Link to this definition"></a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testAddattr">
+<span class="sig-name descname"><span class="pre">testAddattr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testAddattr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testAddattr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testConvolvedim">
+<span class="sig-name descname"><span class="pre">testConvolvedim</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testConvolvedim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testConvolvedim" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testGetvarpnc">
+<span class="sig-name descname"><span class="pre">testGetvarpnc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testGetvarpnc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testGetvarpnc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testInterpvars">
+<span class="sig-name descname"><span class="pre">testInterpvars</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testInterpvars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testInterpvars" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testMaksvals">
+<span class="sig-name descname"><span class="pre">testMaksvals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testMaksvals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testMaksvals" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testManglenames">
+<span class="sig-name descname"><span class="pre">testManglenames</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testManglenames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testManglenames" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testMerge">
+<span class="sig-name descname"><span class="pre">testMerge</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testMerge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testMerge" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testMeshdim">
+<span class="sig-name descname"><span class="pre">testMeshdim</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testMeshdim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testMeshdim" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testPncbfunc">
+<span class="sig-name descname"><span class="pre">testPncbfunc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testPncbfunc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testPncbfunc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testPncbo">
+<span class="sig-name descname"><span class="pre">testPncbo</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testPncbo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testPncbo" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testPncexpr">
+<span class="sig-name descname"><span class="pre">testPncexpr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testPncexpr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testPncexpr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testPncfunc">
+<span class="sig-name descname"><span class="pre">testPncfunc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testPncfunc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testPncfunc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testPncrename">
+<span class="sig-name descname"><span class="pre">testPncrename</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testPncrename"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testPncrename" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testReducedim">
+<span class="sig-name descname"><span class="pre">testReducedim</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testReducedim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testReducedim" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testRemovesingleton">
+<span class="sig-name descname"><span class="pre">testRemovesingleton</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testRemovesingleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testRemovesingleton" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testSeqpncbo">
+<span class="sig-name descname"><span class="pre">testSeqpncbo</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testSeqpncbo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testSeqpncbo" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testSlicedim">
+<span class="sig-name descname"><span class="pre">testSlicedim</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testSlicedim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testSlicedim" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testSplitdim">
+<span class="sig-name descname"><span class="pre">testSplitdim</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testSplitdim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testSplitdim" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_functions.TestFunc.testStackfiles">
+<span class="sig-name descname"><span class="pre">testStackfiles</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_functions.html#TestFunc.testStackfiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_functions.TestFunc.testStackfiles" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.test.test_geoschemfiles">
+<span id="pseudonetcdf-test-test-geoschemfiles-module"></span><h2>PseudoNetCDF.test.test_geoschemfiles module<a class="headerlink" href="#module-PseudoNetCDF.test.test_geoschemfiles" title="Link to this heading"></a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_geoschemfiles.test_bpch">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_geoschemfiles.</span></span><span class="sig-name descname"><span class="pre">test_bpch</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_geoschemfiles.test_bpch" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmaps</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_geoschemfiles.test_bpch1">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_geoschemfiles.</span></span><span class="sig-name descname"><span class="pre">test_bpch1</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_geoschemfiles.test_bpch1" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmaps</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_geoschemfiles.test_bpch2">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_geoschemfiles.</span></span><span class="sig-name descname"><span class="pre">test_bpch2</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_geoschemfiles.test_bpch2" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmaps</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_geoschemfiles.test_geos">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_geoschemfiles.</span></span><span class="sig-name descname"><span class="pre">test_geos</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_geoschemfiles.test_geos" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestMemmaps</span></code></p>
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.test.test_icarttfiles">
+<span id="pseudonetcdf-test-test-icarttfiles-module"></span><h2>PseudoNetCDF.test.test_icarttfiles module<a class="headerlink" href="#module-PseudoNetCDF.test.test_icarttfiles" title="Link to this heading"></a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_icarttfiles.test_ffi1001">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_icarttfiles.</span></span><span class="sig-name descname"><span class="pre">test_ffi1001</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_icarttfiles.test_ffi1001" title="Link to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="PseudoNetCDF.icarttfiles.html#PseudoNetCDF.icarttfiles.ffi1001.TestFfi1001" title="PseudoNetCDF.icarttfiles.ffi1001.TestFfi1001"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestFfi1001</span></code></a></p>
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.test.test_pncopen">
+<span id="pseudonetcdf-test-test-pncopen-module"></span><h2>PseudoNetCDF.test.test_pncopen module<a class="headerlink" href="#module-PseudoNetCDF.test.test_pncopen" title="Link to this heading"></a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_pncopen.test_pncopen">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_pncopen.</span></span><span class="sig-name descname"><span class="pre">test_pncopen</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_pncopen.test_pncopen" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestPNCOPEN</span></code></p>
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.test.test_textfiles">
+<span id="pseudonetcdf-test-test-textfiles-module"></span><h2>PseudoNetCDF.test.test_textfiles module<a class="headerlink" href="#module-PseudoNetCDF.test.test_textfiles" title="Link to this heading"></a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_textfiles.test_csv">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_textfiles.</span></span><span class="sig-name descname"><span class="pre">test_csv</span></span><a class="headerlink" href="#PseudoNetCDF.test.test_textfiles.test_csv" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TestCsv</span></code></p>
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.test.test_toms">
+<span id="pseudonetcdf-test-test-toms-module"></span><h2>PseudoNetCDF.test.test_toms module<a class="headerlink" href="#module-PseudoNetCDF.test.test_toms" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_toms.test_tomsl3">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_toms.</span></span><span class="sig-name descname"><span class="pre">test_tomsl3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/toms/level3.html#test_tomsl3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_toms.test_tomsl3" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TestCase</span></code></p>
+<p>Create an instance of the class that will use the named test
+method when executed. Raises a ValueError if the instance does
+not have a method with the specified name.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_toms.test_tomsl3.setUp">
+<span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/toms/level3.html#test_tomsl3.setUp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_toms.test_tomsl3.setUp" title="Link to this definition"></a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_toms.test_tomsl3.testTOMS2NCF">
+<span class="sig-name descname"><span class="pre">testTOMS2NCF</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/toms/level3.html#test_tomsl3.testTOMS2NCF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_toms.test_tomsl3.testTOMS2NCF" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.test.test_version">
+<span id="pseudonetcdf-test-test-version-module"></span><h2>PseudoNetCDF.test.test_version module<a class="headerlink" href="#module-PseudoNetCDF.test.test_version" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_version.PNCVerstionTest">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_version.</span></span><span class="sig-name descname"><span class="pre">PNCVerstionTest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_version.html#PNCVerstionTest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_version.PNCVerstionTest" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TestCase</span></code></p>
+<p>Create an instance of the class that will use the named test
+method when executed. Raises a ValueError if the instance does
+not have a method with the specified name.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_version.PNCVerstionTest.testVersionString">
+<span class="sig-name descname"><span class="pre">testVersionString</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_version.html#PNCVerstionTest.testVersionString"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_version.PNCVerstionTest.testVersionString" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.test.test_woudc">
+<span id="pseudonetcdf-test-test-woudc-module"></span><h2>PseudoNetCDF.test.test_woudc module<a class="headerlink" href="#module-PseudoNetCDF.test.test_woudc" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_woudc.testsonde">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.test_woudc.</span></span><span class="sig-name descname"><span class="pre">testsonde</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_woudc.html#testsonde"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_woudc.testsonde" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TestCase</span></code></p>
+<p>Create an instance of the class that will use the named test
+method when executed. Raises a ValueError if the instance does
+not have a method with the specified name.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.test_woudc.testsonde.testSonde">
+<span class="sig-name descname"><span class="pre">testSonde</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test/test_woudc.html#testsonde.testSonde"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.test_woudc.testsonde.testSonde" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.test">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-PseudoNetCDF.test" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.test.compare_files">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.test.</span></span><span class="sig-name descname"><span class="pre">compare_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/test.html#compare_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.test.compare_files" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="PseudoNetCDF.raob.html" class="btn btn-neutral float-left" title="PseudoNetCDF.raob package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="PseudoNetCDF.testcase.html" class="btn btn-neutral float-right" title="PseudoNetCDF.testcase package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

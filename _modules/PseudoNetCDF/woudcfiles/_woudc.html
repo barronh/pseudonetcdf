@@ -1,0 +1,331 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.woudcfiles._woudc &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.woudcfiles._woudc</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.woudcfiles._woudc</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncwarn</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="n">_units</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">Pressure</span><span class="o">=</span><span class="s1">&#39;hPa&#39;</span><span class="p">,</span> <span class="n">O3PartialPressure</span><span class="o">=</span><span class="s1">&#39;mPa&#39;</span><span class="p">,</span>
+    <span class="n">Temperature</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">WindSpeed</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">,</span> <span class="n">WindDirection</span><span class="o">=</span><span class="s1">&#39;degrees from north&#39;</span><span class="p">,</span>
+    <span class="n">RelativeHumidity</span><span class="o">=</span><span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="n">LevelCode</span><span class="o">=</span><span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="n">Duration</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">GPHeight</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span>
+    <span class="n">SampleTemperature</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">Latitude</span><span class="o">=</span><span class="s1">&#39;degrees_north&#39;</span><span class="p">,</span> <span class="n">Longitude</span><span class="o">=</span><span class="s1">&#39;degrees_east&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="woudcsonde">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.woudcfiles.html#PseudoNetCDF.woudcfiles.woudcsonde">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">woudcsonde</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;wouldcsonde provides a NetCDF-like interface to csv files from the</span>
+<span class="sd">    ozonesonde data distributed by the Would Ozone and Ultraviolet</span>
+<span class="sd">    Radiation Data Center (wouldc)</span>
+
+<span class="sd">    http://woudc.org/data/products/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_addmetavars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">myf</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds metavariables for next two lines&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                <span class="s1">&#39;woudcsonde requires pandas; &#39;</span> <span class="o">+</span>
+                <span class="s1">&#39;install pandas (e.g., pip install pandas)&#39;</span><span class="p">)</span>
+        <span class="n">metalines</span> <span class="o">=</span> <span class="n">myf</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="n">nmetalines</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">newblock</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">nextline</span> <span class="o">=</span> <span class="n">myf</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="n">nstrip</span> <span class="o">=</span> <span class="n">nextline</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">nmetalines</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">nstrip</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">nstrip</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">nstrip</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#PROFILE&#39;</span><span class="p">):</span>
+                <span class="n">newblock</span> <span class="o">=</span> <span class="n">nstrip</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">nstrip</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">):</span>
+                <span class="n">nmetalines</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="n">newblock</span> <span class="o">=</span> <span class="n">nstrip</span><span class="o">.</span><span class="n">upper</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span>
+                <span class="n">nlines</span><span class="p">,</span> <span class="n">newblock</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_addmetavars</span><span class="p">(</span><span class="n">myf</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">newblock</span><span class="p">)</span>
+                <span class="n">nmetalines</span> <span class="o">+=</span> <span class="n">nlines</span>
+                <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">metalines</span> <span class="o">+=</span> <span class="n">nextline</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;TIMESTAMP_&#39;</span><span class="p">:</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;S64&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">locdata</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">metalines</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">()),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">nmetalines</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;PLATFORM_&#39;</span><span class="p">,</span> <span class="s1">&#39;LOCATION_&#39;</span><span class="p">):</span>
+            <span class="n">dim1</span> <span class="o">=</span> <span class="s1">&#39;site&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dim1</span> <span class="o">=</span> <span class="s1">&#39;flight&#39;</span>
+        <span class="k">for</span> <span class="n">colkey</span> <span class="ow">in</span> <span class="n">locdata</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>  <span class="c1"># dtype.names:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">locdata</span><span class="p">[</span><span class="n">colkey</span><span class="p">]</span>
+            <span class="n">varkey</span> <span class="o">=</span> <span class="n">key</span> <span class="o">+</span> <span class="n">colkey</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span>
+            <span class="n">odt</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;O&#39;</span><span class="p">:</span> <span class="s1">&#39;c&#39;</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+            <span class="n">dim</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;c&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">dim1</span><span class="p">,</span> <span class="s1">&#39;STRLEN&#39;</span><span class="p">),</span> <span class="s1">&#39;S&#39;</span><span class="p">:</span> <span class="p">(</span>
+                <span class="n">dim1</span><span class="p">,</span> <span class="s1">&#39;STRLEN&#39;</span><span class="p">)}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">odt</span><span class="p">,</span> <span class="p">(</span><span class="n">dim1</span><span class="p">,))</span>
+            <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="n">key</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">val</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+                <span class="n">dim</span> <span class="o">=</span> <span class="n">dim</span> <span class="o">+</span> <span class="p">(</span><span class="n">key</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],)</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">varkey</span><span class="p">,</span> <span class="n">odt</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+            <span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">colkey</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span>
+            <span class="n">var</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="n">colkey</span>
+            <span class="k">if</span> <span class="n">odt</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">):</span>
+                <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">val</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;S64&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="k">return</span> <span class="n">nmetalines</span><span class="p">,</span> <span class="n">newblock</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">na_values</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">        path - path or file-like object.</span>
+<span class="sd">        debug - boolean to show extra info</span>
+<span class="sd">        na_values - values to use a NaN; (default: [&#39;\s+&#39;, &#39;*&#39;, &#39;99999&#39;])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">na_values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">na_values</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;99999&#39;</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                <span class="s1">&#39;woudcsonde requires pandas; &#39;</span> <span class="o">+</span>
+                <span class="s1">&#39;install pandas (e.g., pip install pandas)&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;readline&#39;</span><span class="p">):</span>
+            <span class="n">myf</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">myf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+
+        <span class="n">meta</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">li</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;site&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;flight&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;STRLEN&#39;</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">myl</span> <span class="ow">in</span> <span class="n">myf</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">myl</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;#PROFILE&#39;</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="n">lines</span><span class="p">,</span> <span class="n">newblock</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_addmetavars</span><span class="p">(</span><span class="n">myf</span><span class="p">,</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+                <span class="n">li</span> <span class="o">+=</span> <span class="n">lines</span>
+                <span class="k">if</span> <span class="n">newblock</span> <span class="o">==</span> <span class="s1">&#39;PROFILE_&#39;</span><span class="p">:</span>
+                    <span class="n">li</span> <span class="o">-=</span> <span class="mi">1</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">meta</span> <span class="o">+=</span> <span class="n">myl</span>
+                <span class="n">li</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># after #PROFILE loop is broken</span>
+        <span class="n">myf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">readopts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s*,&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="n">li</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                        <span class="n">engine</span><span class="o">=</span><span class="s1">&#39;python&#39;</span><span class="p">,</span> <span class="n">na_values</span><span class="o">=</span><span class="n">na_values</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">readopts</span><span class="p">)</span>
+        <span class="c1"># indkey = data.columns[0]</span>
+        <span class="n">indkey</span> <span class="o">=</span> <span class="s1">&#39;level&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="n">indkey</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">meta</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;flight&#39;</span><span class="p">,</span> <span class="n">indkey</span><span class="p">,))</span>
+                <span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span>
+                <span class="n">var</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="n">key</span>
+                <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">values</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">warn</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;; &#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39; will not be written&#39;</span><span class="p">)</span>
+
+        <span class="n">datebytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TIMESTAMP_Date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;S64&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">datestr</span> <span class="o">=</span> <span class="n">datebytes</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%02d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">datestr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)])</span>
+        <span class="n">timebytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TIMESTAMP_Time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;S64&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">timestr</span> <span class="o">=</span> <span class="n">timebytes</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="p">(</span><span class="n">timestr</span> <span class="o">+</span> <span class="s1">&#39;:00&#39;</span><span class="p">)[:</span><span class="mi">8</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">time</span> <span class="o">==</span> <span class="s1">&#39;:00&#39;</span><span class="p">:</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="s1">&#39;00:00:00&#39;</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TIMESTAMP_UTCOffset&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span>
+            <span class="s1">&#39;S64&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">z</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">):</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">z</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;00&#39;</span>
+        <span class="k">elif</span> <span class="n">z</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">):</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">z</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;00&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="s1">&#39;+&#39;</span> <span class="o">+</span> <span class="n">z</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;00&#39;</span>
+        <span class="n">datestr</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> </span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="n">rdatestr</span> <span class="o">=</span> <span class="s1">&#39;1970-01-01 00:00:00+0000&#39;</span>
+        <span class="n">rdate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">rdatestr</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S%z&#39;</span><span class="p">)</span>
+        <span class="n">outdate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">datestr</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S%z&#39;</span><span class="p">)</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="p">(</span><span class="n">outdate</span> <span class="o">-</span> <span class="n">rdate</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+        <span class="n">tvar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;flight&#39;</span><span class="p">,))</span>
+        <span class="n">tvar</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;time&#39;</span>
+        <span class="n">tvar</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;seconds since &#39;</span> <span class="o">+</span> <span class="n">rdatestr</span>
+        <span class="n">tvar</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">dt</span>
+
+<div class="viewcode-block" id="woudcsonde.avgSigma">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.woudcfiles.html#PseudoNetCDF.woudcfiles.woudcsonde.avgSigma">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">avgSigma</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vglvls</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vgtop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hyai</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hybi</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">copyall</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">levelname</span><span class="o">=</span><span class="s1">&#39;LAY&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        vglvls - sigma coordinate</span>
+<span class="sd">        vgtop - top in Pa</span>
+
+<span class="sd">        hyai - hybrid eta-component hPa</span>
+<span class="sd">        hybi - hybrid sigma-component</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="n">outf</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">props</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                             <span class="n">variables</span><span class="o">=</span><span class="n">copyall</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">copyall</span><span class="p">)</span>
+        <span class="n">myp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;Pressure&#39;</span><span class="p">][:]</span>  <span class="c1"># hPa</span>
+        <span class="n">myo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;O3PartialPressure&#39;</span><span class="p">][:]</span> <span class="o">*</span> <span class="mf">1e1</span>  <span class="c1"># mPa -&gt; cPa</span>
+        <span class="n">psfc</span> <span class="o">=</span> <span class="n">myp</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">vglvls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">outpress_edges</span> <span class="o">=</span> <span class="n">vglvls</span> <span class="o">*</span> <span class="p">(</span><span class="n">psfc</span> <span class="o">-</span> <span class="n">vgtop</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span> <span class="o">+</span> <span class="n">vgtop</span> <span class="o">/</span> <span class="mi">100</span>
+            <span class="n">nlvls</span> <span class="o">=</span> <span class="n">vglvls</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">hyai</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">outpress_edges</span> <span class="o">=</span> <span class="n">hyai</span> <span class="o">+</span> <span class="n">hybi</span> <span class="o">*</span> <span class="n">psfc</span>
+            <span class="n">nlvls</span> <span class="o">=</span> <span class="n">hyai</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">outf</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="n">levelname</span><span class="p">,</span> <span class="n">nlvls</span><span class="p">)</span>
+        <span class="n">abovebottom</span> <span class="o">=</span> <span class="n">myp</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">outpress_edges</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">belowtop</span> <span class="o">=</span> <span class="n">myp</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">outpress_edges</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
+        <span class="n">invglvl</span> <span class="o">=</span> <span class="n">abovebottom</span> <span class="o">&amp;</span> <span class="n">belowtop</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_all</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">nlvls</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">li</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nlvls</span><span class="p">):</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">invglvl</span><span class="p">[:,</span> <span class="n">li</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">idx</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="k">continue</span>
+            <span class="n">lps</span> <span class="o">=</span> <span class="n">myp</span><span class="p">[:,</span> <span class="n">idx</span><span class="p">]</span>
+            <span class="n">lops</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="n">myo</span><span class="p">[:,</span> <span class="n">idx</span><span class="p">])</span>
+            <span class="n">lopsmask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">getmaskarray</span><span class="p">(</span><span class="n">lops</span><span class="p">)</span>
+            <span class="n">lp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">lopsmask</span><span class="p">,</span> <span class="n">lps</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">lop</span> <span class="o">=</span> <span class="n">lops</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">out</span><span class="p">[:,</span> <span class="n">li</span><span class="p">]</span> <span class="o">=</span> <span class="n">lop</span> <span class="o">/</span> <span class="n">lp</span>
+        <span class="n">outv</span> <span class="o">=</span> <span class="n">outf</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+            <span class="s1">&#39;O3&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;flight&#39;</span><span class="p">,</span> <span class="n">levelname</span><span class="p">),</span> <span class="n">fill_value</span><span class="o">=-</span><span class="mi">999</span><span class="p">)</span>
+        <span class="n">outv</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;ppm&#39;</span>
+        <span class="n">outv</span><span class="o">.</span><span class="n">missing_value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">999</span>
+        <span class="n">outv</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s1">&#39;Pressure-weighted average vmr in ppm&#39;</span>
+        <span class="n">outv</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">out</span><span class="p">[:]</span>
+        <span class="k">return</span> <span class="n">outf</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

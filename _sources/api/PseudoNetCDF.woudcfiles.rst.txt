@@ -1,0 +1,10 @@
+PseudoNetCDF.woudcfiles package
+===============================
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.woudcfiles
+   :members:
+   :show-inheritance:
+   :undoc-members:

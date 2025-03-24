@@ -1,0 +1,368 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.camxfiles.point_source.Write &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.camxfiles.point_source.Write</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.camxfiles.point_source.Write</h1><div class="highlight"><pre>
+<span></span><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;write_point&#39;</span><span class="p">]</span>
+<span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">.. _Write</span>
+<span class="s2">:mod:`Write` -- CAMx point_source writer</span>
+<span class="s2">============================================</span>
+
+<span class="s2">.. module:: Write</span>
+<span class="s2">   :platform: Unix, Windows</span>
+<span class="s2">   :synopsis: Provides :ref:`PseudoNetCDF` writer for CAMx</span>
+<span class="s2">              point_source files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile</span>
+<span class="s2">              for interface details</span>
+<span class="s2">.. moduleauthor:: Barron Henderson &lt;barronh@unc.edu&gt;</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="c1"># Distribution packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">operator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">reduce</span>
+
+<span class="c1"># Site-Packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># This Package modules</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.camxfiles.timetuple</span><span class="w"> </span><span class="kn">import</span> <span class="n">timeadd</span><span class="p">,</span> <span class="n">timerange</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.camxfiles.FortranFileUtil</span><span class="w"> </span><span class="kn">import</span> <span class="n">writeline</span><span class="p">,</span> <span class="n">Asc2Int</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF._getwriter</span><span class="w"> </span><span class="kn">import</span> <span class="n">registerwriter</span>
+
+<span class="n">_emiss_hdr_fmt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;note&#39;</span><span class="p">,</span> <span class="s1">&#39;itzon&#39;</span><span class="p">,</span> <span class="s1">&#39;nspec&#39;</span><span class="p">,</span> <span class="s1">&#39;ibdate&#39;</span><span class="p">,</span> <span class="s1">&#39;btime&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;iedate&#39;</span><span class="p">,</span> <span class="s1">&#39;etime&#39;</span><span class="p">,</span> <span class="s1">&#39;EPAD&#39;</span><span class="p">],</span>
+    <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;(10,4)&gt;S1&#39;</span><span class="p">,</span> <span class="s1">&#39;(60,4)&gt;S1&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">]))</span>
+
+<span class="n">_grid_hdr_fmt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">,</span> <span class="s1">&#39;plon&#39;</span><span class="p">,</span> <span class="s1">&#39;plat&#39;</span><span class="p">,</span> <span class="s1">&#39;iutm&#39;</span><span class="p">,</span> <span class="s1">&#39;xorg&#39;</span><span class="p">,</span> <span class="s1">&#39;yorg&#39;</span><span class="p">,</span> <span class="s1">&#39;delx&#39;</span><span class="p">,</span> <span class="s1">&#39;dely&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;nx&#39;</span><span class="p">,</span> <span class="s1">&#39;ny&#39;</span><span class="p">,</span> <span class="s1">&#39;nz&#39;</span><span class="p">,</span> <span class="s1">&#39;iproj&#39;</span><span class="p">,</span> <span class="s1">&#39;istag&#39;</span><span class="p">,</span> <span class="s1">&#39;tlat1&#39;</span><span class="p">,</span> <span class="s1">&#39;tlat2&#39;</span><span class="p">,</span> <span class="s1">&#39;rdum5&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;EPAD&#39;</span><span class="p">],</span>
+    <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">]))</span>
+
+<span class="n">_cell_hdr_fmt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">,</span> <span class="s1">&#39;ione1&#39;</span><span class="p">,</span> <span class="s1">&#39;ione2&#39;</span><span class="p">,</span> <span class="s1">&#39;nx&#39;</span><span class="p">,</span> <span class="s1">&#39;ny&#39;</span><span class="p">,</span> <span class="s1">&#39;EPAD&#39;</span><span class="p">],</span>
+    <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">]))</span>
+
+<span class="n">_time_hdr_fmt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">,</span> <span class="s1">&#39;ibdate&#39;</span><span class="p">,</span> <span class="s1">&#39;btime&#39;</span><span class="p">,</span> <span class="s1">&#39;iedate&#39;</span><span class="p">,</span> <span class="s1">&#39;etime&#39;</span><span class="p">,</span> <span class="s1">&#39;EPAD&#39;</span><span class="p">],</span>
+    <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">]))</span>
+
+
+<span class="n">_nstk_hdr_fmt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">,</span> <span class="s1">&#39;ione&#39;</span><span class="p">,</span> <span class="s1">&#39;nstk&#39;</span><span class="p">,</span> <span class="s1">&#39;EPAD&#39;</span><span class="p">],</span>
+    <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">]))</span>
+
+
+<div class="viewcode-block" id="ncf2point_source">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.html#PseudoNetCDF.camxfiles.Writers.ncf2point_source">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ncf2point_source</span><span class="p">(</span><span class="n">ncffile</span><span class="p">,</span> <span class="n">outpath</span><span class="p">):</span>
+    <span class="n">outfile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+    <span class="n">emiss_hdr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">_emiss_hdr_fmt</span><span class="p">)</span>
+    <span class="n">emiss_hdr</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">emiss_hdr</span><span class="p">[</span><span class="s1">&#39;EPAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">emiss_hdr</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">-</span> <span class="mi">8</span>
+    <span class="n">emiss_hdr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">][:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span>
+    <span class="n">emiss_hdr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">NAME</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;S1&#39;</span><span class="p">)</span>
+    <span class="n">emiss_hdr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;note&#39;</span><span class="p">][:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span>
+    <span class="n">emiss_hdr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;note&#39;</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">NOTE</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;S1&#39;</span><span class="p">)</span>
+    <span class="c1"># gdtype = getattr(ncffile, &#39;GDTYPE&#39;, -999)</span>
+    <span class="n">emiss_hdr</span><span class="p">[</span><span class="s1">&#39;itzon&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">ITZON</span>
+    <span class="n">tmps1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">SPC_NAMES</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;S1&#39;</span><span class="p">)</span>
+    <span class="n">tmps1</span> <span class="o">=</span> <span class="n">tmps1</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">16</span><span class="p">)[:,</span> <span class="p">:</span><span class="mi">10</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;&gt;S10&#39;</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">SPC_NAMES</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">tmps1</span><span class="p">]</span>
+    <span class="n">nspec</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">SPC_NAMES</span><span class="p">)</span>
+    <span class="n">emiss_hdr</span><span class="p">[</span><span class="s1">&#39;nspec&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nspec</span>
+
+    <span class="n">grid_hdr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">_grid_hdr_fmt</span><span class="p">)</span>
+    <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;EPAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">grid_hdr</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">-</span> <span class="mi">8</span>
+    <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;plon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">PLON</span>
+    <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;plat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">PLAT</span>
+    <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;iutm&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">IUTM</span>
+    <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;xorg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">XORIG</span>
+    <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;yorg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">YORIG</span>
+    <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;delx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">XCELL</span>
+    <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;dely&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">YCELL</span>
+    <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;nx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">NCOLS</span>
+    <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;ny&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">NROWS</span>
+    <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;nz&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">NLAYS</span>
+    <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;iproj&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">CPROJ</span>
+    <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;tlat1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">TLAT1</span>
+    <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;tlat2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">TLAT2</span>
+    <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;istag&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">ISTAG</span>
+    <span class="n">grid_hdr</span><span class="p">[</span><span class="s1">&#39;rdum5&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">100.</span>
+
+    <span class="n">cell_hdr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">_cell_hdr_fmt</span><span class="p">)</span>
+    <span class="n">cell_hdr</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_hdr</span><span class="p">[</span><span class="s1">&#39;EPAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_hdr</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">-</span> <span class="mi">8</span>
+    <span class="n">cell_hdr</span><span class="p">[</span><span class="s1">&#39;ione1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">cell_hdr</span><span class="p">[</span><span class="s1">&#39;ione2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">cell_hdr</span><span class="p">[</span><span class="s1">&#39;nx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">NCOLS</span>
+    <span class="n">cell_hdr</span><span class="p">[</span><span class="s1">&#39;ny&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">NROWS</span>
+    <span class="n">time_hdr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ncffile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">]),),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">_time_hdr_fmt</span><span class="p">)</span>
+    <span class="n">time_hdr</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_hdr</span><span class="p">[</span><span class="s1">&#39;EPAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_hdr</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">-</span> <span class="mi">8</span>
+    <span class="n">date</span><span class="p">,</span> <span class="n">time</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">edate</span><span class="p">,</span> <span class="n">etime</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;ETFLAG&#39;</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;&gt;f&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="mf">10000.</span>
+    <span class="n">date</span> <span class="o">=</span> <span class="n">date</span> <span class="o">%</span> <span class="p">(</span><span class="n">date</span> <span class="o">//</span> <span class="mi">100000</span> <span class="o">*</span> <span class="mi">100000</span><span class="p">)</span>
+    <span class="n">etime</span> <span class="o">=</span> <span class="n">etime</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;&gt;f&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="mf">10000.</span>
+    <span class="n">edate</span> <span class="o">=</span> <span class="n">edate</span> <span class="o">%</span> <span class="p">(</span><span class="n">edate</span> <span class="o">//</span> <span class="mi">100000</span> <span class="o">*</span> <span class="mi">100000</span><span class="p">)</span>
+    <span class="n">time_hdr</span><span class="p">[</span><span class="s1">&#39;ibdate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">date</span>
+    <span class="n">time_hdr</span><span class="p">[</span><span class="s1">&#39;btime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span>
+    <span class="n">time_hdr</span><span class="p">[</span><span class="s1">&#39;iedate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">edate</span>
+    <span class="n">time_hdr</span><span class="p">[</span><span class="s1">&#39;etime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">etime</span>
+    <span class="c1"># time_hdr[&#39;iedate&#39;] += time_hdr[&#39;etime&#39;] // 24</span>
+    <span class="c1"># time_hdr[&#39;etime&#39;] -= (time_hdr[&#39;etime&#39;] // 24) * 24</span>
+
+    <span class="n">emiss_hdr</span><span class="p">[</span><span class="s1">&#39;ibdate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_hdr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;ibdate&#39;</span><span class="p">]</span>
+    <span class="n">emiss_hdr</span><span class="p">[</span><span class="s1">&#39;btime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_hdr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;btime&#39;</span><span class="p">]</span>
+    <span class="n">emiss_hdr</span><span class="p">[</span><span class="s1">&#39;iedate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">EDATE</span>
+    <span class="n">emiss_hdr</span><span class="p">[</span><span class="s1">&#39;etime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">ETIME</span>
+
+    <span class="n">nspec</span> <span class="o">=</span> <span class="n">emiss_hdr</span><span class="p">[</span><span class="s1">&#39;nspec&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">_spc_hdr_fmt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">,</span> <span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;EPAD&#39;</span><span class="p">],</span> <span class="n">formats</span><span class="o">=</span><span class="p">[</span>
+                            <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;(</span><span class="si">%d</span><span class="s1">,10,4)&gt;S1&#39;</span> <span class="o">%</span> <span class="n">nspec</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">]))</span>
+    <span class="n">spc_hdr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">_spc_hdr_fmt</span><span class="p">)</span>
+    <span class="n">spc_hdr</span><span class="p">[</span><span class="s1">&#39;NAME&#39;</span><span class="p">][:]</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span>
+    <span class="n">spc_hdr</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spc_hdr</span><span class="p">[</span><span class="s1">&#39;EPAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spc_hdr</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">-</span> <span class="mi">8</span>
+    <span class="k">for</span> <span class="n">si</span><span class="p">,</span> <span class="n">spc</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">SPC_NAMES</span><span class="p">):</span>
+        <span class="n">spc_hdr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;NAME&#39;</span><span class="p">][</span><span class="n">si</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">spc</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">10</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;S1&#39;</span><span class="p">)</span>
+
+    <span class="n">nstk_hdr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">_nstk_hdr_fmt</span><span class="p">)</span>
+    <span class="n">nstk_hdr</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nstk_hdr</span><span class="p">[</span><span class="s1">&#39;EPAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nstk_hdr</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">-</span> <span class="mi">8</span>
+    <span class="n">nstk_hdr</span><span class="p">[</span><span class="s1">&#39;nstk&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ncffile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;NSTK&#39;</span><span class="p">])</span>
+
+    <span class="n">nstk</span> <span class="o">=</span> <span class="n">nstk_hdr</span><span class="p">[</span><span class="s1">&#39;nstk&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># (xstk(n),ystk(n),hstk(n),dstk(n),tstk(n),vstk(n),n=1,nstk)</span>
+    <span class="n">stk_prop_fmt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;xstk&#39;</span><span class="p">,</span> <span class="s1">&#39;ystk&#39;</span><span class="p">,</span> <span class="s1">&#39;hstk&#39;</span><span class="p">,</span> <span class="s1">&#39;dstk&#39;</span><span class="p">,</span> <span class="s1">&#39;tstk&#39;</span><span class="p">,</span> <span class="s1">&#39;vstk&#39;</span><span class="p">],</span>
+        <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">]))</span>
+    <span class="n">stk_prop</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([</span>
+        <span class="p">(</span><span class="s1">&#39;SPAD&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)),</span> <span class="p">(</span><span class="s1">&#39;DATA&#39;</span><span class="p">,</span> <span class="n">stk_prop_fmt</span><span class="p">,</span> <span class="n">nstk</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;EPAD&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+    <span class="p">]))</span>
+    <span class="n">stk_prop</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stk_prop</span><span class="p">[</span><span class="s1">&#39;EPAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stk_prop</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">-</span> <span class="mi">8</span>
+    <span class="n">stk_prop</span><span class="p">[</span><span class="s1">&#39;DATA&#39;</span><span class="p">][</span><span class="s1">&#39;xstk&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;XSTK&#39;</span><span class="p">][:]</span>
+    <span class="n">stk_prop</span><span class="p">[</span><span class="s1">&#39;DATA&#39;</span><span class="p">][</span><span class="s1">&#39;ystk&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;YSTK&#39;</span><span class="p">][:]</span>
+    <span class="n">stk_prop</span><span class="p">[</span><span class="s1">&#39;DATA&#39;</span><span class="p">][</span><span class="s1">&#39;hstk&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;HSTK&#39;</span><span class="p">][:]</span>
+    <span class="n">stk_prop</span><span class="p">[</span><span class="s1">&#39;DATA&#39;</span><span class="p">][</span><span class="s1">&#39;dstk&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;DSTK&#39;</span><span class="p">][:]</span>
+    <span class="n">stk_prop</span><span class="p">[</span><span class="s1">&#39;DATA&#39;</span><span class="p">][</span><span class="s1">&#39;tstk&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TSTK&#39;</span><span class="p">][:]</span>
+    <span class="n">stk_prop</span><span class="p">[</span><span class="s1">&#39;DATA&#39;</span><span class="p">][</span><span class="s1">&#39;vstk&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;VSTK&#39;</span><span class="p">][:]</span>
+
+    <span class="c1"># Start writing</span>
+    <span class="n">emiss_hdr</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span>
+    <span class="n">grid_hdr</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span>
+    <span class="n">cell_hdr</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span>
+    <span class="n">spc_hdr</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span>
+    <span class="n">nstk_hdr</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span>
+    <span class="n">spc_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">spc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;&gt;S10&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                 <span class="k">for</span> <span class="n">spc</span> <span class="ow">in</span> <span class="n">spc_hdr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;NAME&#39;</span><span class="p">]]</span>
+    <span class="n">stk_prop</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span>
+    <span class="n">ione</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">di</span><span class="p">,</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ncffile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">]):</span>
+        <span class="n">tempout</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span>
+        <span class="n">tempout</span> <span class="o">+=</span> <span class="n">time_hdr</span><span class="p">[</span><span class="n">di</span><span class="p">]</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+        <span class="n">tempout</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nstk</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+        <span class="c1"># (idum,idum,kcell(n),flow(n),plmht(n),n=1,nstk)</span>
+        <span class="n">time_prop_fmt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ione1&#39;</span><span class="p">,</span> <span class="s1">&#39;ione2&#39;</span><span class="p">,</span> <span class="s1">&#39;kcell&#39;</span><span class="p">,</span> <span class="s1">&#39;flow&#39;</span><span class="p">,</span> <span class="s1">&#39;plmht&#39;</span><span class="p">],</span>
+            <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;f&#39;</span><span class="p">]))</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span>
+            <span class="p">[(</span><span class="s1">&#39;SPAD&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)),</span>
+             <span class="p">(</span><span class="s1">&#39;DATA&#39;</span><span class="p">,</span> <span class="n">time_prop_fmt</span><span class="p">,</span> <span class="p">(</span><span class="n">nstk</span><span class="p">,)),</span>
+             <span class="p">(</span><span class="s1">&#39;EPAD&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,))]))</span>
+        <span class="n">props</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;EPAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">-</span> <span class="mi">8</span>
+        <span class="n">props</span><span class="p">[</span><span class="s1">&#39;DATA&#39;</span><span class="p">][</span><span class="s1">&#39;ione1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;IONE&#39;</span><span class="p">][</span><span class="n">di</span><span class="p">]</span>
+        <span class="n">props</span><span class="p">[</span><span class="s1">&#39;DATA&#39;</span><span class="p">][</span><span class="s1">&#39;ione2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;ITWO&#39;</span><span class="p">][</span><span class="n">di</span><span class="p">]</span>
+        <span class="n">props</span><span class="p">[</span><span class="s1">&#39;DATA&#39;</span><span class="p">][</span><span class="s1">&#39;kcell&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;KCELL&#39;</span><span class="p">][</span><span class="n">di</span><span class="p">]</span>
+        <span class="n">props</span><span class="p">[</span><span class="s1">&#39;DATA&#39;</span><span class="p">][</span><span class="s1">&#39;flow&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;FLOW&#39;</span><span class="p">][</span><span class="n">di</span><span class="p">]</span>
+        <span class="n">props</span><span class="p">[</span><span class="s1">&#39;DATA&#39;</span><span class="p">][</span><span class="s1">&#39;plmht&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;PLMHT&#39;</span><span class="p">][</span><span class="n">di</span><span class="p">]</span>
+        <span class="n">tempout</span> <span class="o">+=</span> <span class="n">props</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">spc_key</span><span class="p">,</span> <span class="n">spc_name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">spc_names</span><span class="p">,</span> <span class="n">spc_hdr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;NAME&#39;</span><span class="p">]):</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">ncffile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">spc_key</span><span class="p">]</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">var</span><span class="p">[</span><span class="n">di</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;&gt;f&#39;</span><span class="p">)</span>
+            <span class="n">buf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">4</span> <span class="o">+</span> <span class="mi">40</span> <span class="o">+</span> <span class="n">data</span><span class="o">.</span><span class="n">size</span> <span class="o">*</span> <span class="mi">4</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;&gt;i&#39;</span><span class="p">)</span>
+            <span class="n">tempout</span> <span class="o">+=</span> <span class="n">buf</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+            <span class="n">tempout</span> <span class="o">+=</span> <span class="n">ione</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+            <span class="n">tempout</span> <span class="o">+=</span> <span class="n">spc_name</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+            <span class="n">tempout</span> <span class="o">+=</span> <span class="n">data</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+            <span class="n">tempout</span> <span class="o">+=</span> <span class="n">buf</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+        <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tempout</span><span class="p">)</span>
+    <span class="n">outfile</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">outfile</span></div>
+
+
+
+<span class="n">registerwriter</span><span class="p">(</span><span class="s1">&#39;camxfiles.point_source&#39;</span><span class="p">,</span> <span class="n">ncf2point_source</span><span class="p">)</span>
+<span class="n">registerwriter</span><span class="p">(</span><span class="s1">&#39;point_source&#39;</span><span class="p">,</span> <span class="n">ncf2point_source</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="write_point">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.point_source.html#PseudoNetCDF.camxfiles.Writers.write_point">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_point</span><span class="p">(</span><span class="n">start_date</span><span class="p">,</span> <span class="n">start_time</span><span class="p">,</span> <span class="n">time_step</span><span class="p">,</span> <span class="n">hdr</span><span class="p">,</span> <span class="n">vals</span><span class="p">):</span>
+    <span class="c1"># Internalize header</span>
+    <span class="n">hdr</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">hdr</span><span class="p">]</span>
+    <span class="n">species</span> <span class="o">=</span> <span class="n">hdr</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
+    <span class="n">nstk</span> <span class="o">=</span> <span class="n">hdr</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">timeprops</span> <span class="o">=</span> <span class="n">hdr</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+
+    <span class="c1"># initialize hdr_fmts with species count</span>
+    <span class="n">hdr_fmts</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;10i60i3ifif&quot;</span><span class="p">,</span> <span class="s2">&quot;ffiffffiiiiifff&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;iiii&quot;</span><span class="p">,</span> <span class="s2">&quot;10i&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">),</span> <span class="s2">&quot;ii&quot;</span><span class="p">,</span> <span class="s2">&quot;ffffff&quot;</span> <span class="o">*</span> <span class="n">nstk</span><span class="p">]</span>
+
+    <span class="c1"># initialize output variable</span>
+    <span class="n">pt_string</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="c1"># Change name and note</span>
+    <span class="n">hdr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">:])</span>
+
+    <span class="c1"># Reducing stk props</span>
+    <span class="n">stkprops</span> <span class="o">=</span> <span class="n">hdr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">hdr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">stk</span> <span class="ow">in</span> <span class="n">stkprops</span><span class="p">:</span>
+        <span class="n">hdr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">stk</span><span class="p">)</span>
+    <span class="n">stk_time_prop_fmt</span> <span class="o">=</span> <span class="s2">&quot;iiiff&quot;</span> <span class="o">*</span> <span class="n">nstk</span>
+
+    <span class="n">stk_time_props</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">time</span> <span class="ow">in</span> <span class="n">timeprops</span><span class="p">:</span>
+        <span class="n">stk_time_props</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+        <span class="k">for</span> <span class="n">stk</span> <span class="ow">in</span> <span class="n">time</span><span class="p">:</span>
+            <span class="n">stk_time_props</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">stk</span><span class="p">)</span>
+
+    <span class="c1"># Change species names to array of characters</span>
+    <span class="n">hdr</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">concat</span><span class="p">,</span> <span class="p">[</span><span class="n">Asc2Int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">hdr</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]])</span>
+
+    <span class="c1"># for each item in the header, write it to output</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">hdr</span><span class="p">,</span> <span class="n">hdr_fmts</span><span class="p">)):</span>
+        <span class="n">pt_string</span> <span class="o">+=</span> <span class="n">writeline</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># create value format</span>
+    <span class="n">valfmt</span> <span class="o">=</span> <span class="s1">&#39;i10i&#39;</span> <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;f&#39;</span> <span class="o">*</span> <span class="n">nstk</span><span class="p">)</span>
+
+    <span class="c1"># Get end date</span>
+    <span class="p">(</span><span class="n">end_date</span><span class="p">,</span> <span class="n">end_time</span><span class="p">)</span> <span class="o">=</span> <span class="n">timeadd</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">start_date</span><span class="p">,</span> <span class="n">start_time</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_step</span> <span class="o">*</span> <span class="n">vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+    <span class="c1"># Write out values</span>
+    <span class="k">for</span> <span class="n">ti</span><span class="p">,</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">timerange</span><span class="p">((</span><span class="n">start_date</span><span class="p">,</span> <span class="n">start_time</span><span class="p">),</span>
+                                          <span class="p">(</span><span class="n">end_date</span><span class="p">,</span> <span class="n">end_time</span><span class="p">),</span>
+                                          <span class="n">time_step</span><span class="p">)):</span>
+        <span class="n">ed</span><span class="p">,</span> <span class="n">et</span> <span class="o">=</span> <span class="n">timeadd</span><span class="p">((</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_step</span><span class="p">))</span>
+        <span class="n">pt_string</span> <span class="o">+=</span> <span class="n">writeline</span><span class="p">((</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">ed</span><span class="p">,</span> <span class="n">et</span><span class="p">),</span> <span class="s1">&#39;ifif&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">pt_string</span> <span class="o">+=</span> <span class="n">writeline</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">nstk</span><span class="p">),</span> <span class="s1">&#39;ii&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">pt_string</span> <span class="o">+=</span> <span class="n">writeline</span><span class="p">(</span><span class="n">stk_time_props</span><span class="p">[</span><span class="n">ti</span><span class="p">],</span> <span class="n">stk_time_prop_fmt</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">si</span><span class="p">,</span> <span class="n">spc</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">species</span><span class="p">):</span>
+            <span class="c1"># Dummy variable,spc characters and values flattened</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">temp</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">Asc2Int</span><span class="p">(</span><span class="n">spc</span><span class="p">))</span>
+            <span class="n">temp</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="n">ti</span><span class="p">,</span> <span class="n">si</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
+            <span class="n">pt_string</span> <span class="o">+=</span> <span class="n">writeline</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">valfmt</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pt_string</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

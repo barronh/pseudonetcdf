@@ -1,0 +1,29 @@
+PseudoNetCDF.camxfiles.irr package
+==================================
+
+Submodules
+----------
+
+PseudoNetCDF.camxfiles.irr.Memmap module
+----------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.irr.Memmap
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.irr.Read module
+--------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.irr.Read
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.camxfiles.irr
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,842 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.pnceval &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.pnceval</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.pnceval</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_function</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;NO&#39;</span><span class="p">,</span> <span class="s1">&#39;NP&#39;</span><span class="p">,</span> <span class="s1">&#39;NOP&#39;</span><span class="p">,</span> <span class="s1">&#39;MO&#39;</span><span class="p">,</span> <span class="s1">&#39;MP&#39;</span><span class="p">,</span> <span class="s1">&#39;MdnO&#39;</span><span class="p">,</span> <span class="s1">&#39;MdnP&#39;</span><span class="p">,</span> <span class="s1">&#39;STDO&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;STDP&#39;</span><span class="p">,</span> <span class="s1">&#39;RM&#39;</span><span class="p">,</span> <span class="s1">&#39;RMdn&#39;</span><span class="p">,</span> <span class="s1">&#39;MB&#39;</span><span class="p">,</span> <span class="s1">&#39;MdnB&#39;</span><span class="p">,</span> <span class="s1">&#39;WDMB&#39;</span><span class="p">,</span> <span class="s1">&#39;WDMdnB&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;FB&#39;</span><span class="p">,</span> <span class="s1">&#39;MNB&#39;</span><span class="p">,</span> <span class="s1">&#39;MdnNB&#39;</span><span class="p">,</span> <span class="s1">&#39;NMB&#39;</span><span class="p">,</span> <span class="s1">&#39;NMdnB&#39;</span><span class="p">,</span> <span class="s1">&#39;USUTPB&#39;</span><span class="p">,</span> <span class="s1">&#39;PSUTMNPB&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;PSUTMdnNPB&#39;</span><span class="p">,</span> <span class="s1">&#39;PSUTNMPB&#39;</span><span class="p">,</span> <span class="s1">&#39;PSUTNMdnPB&#39;</span><span class="p">,</span> <span class="s1">&#39;ME&#39;</span><span class="p">,</span> <span class="s1">&#39;MdnE&#39;</span><span class="p">,</span> <span class="s1">&#39;WDME&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;WDMdnE&#39;</span><span class="p">,</span> <span class="s1">&#39;FE&#39;</span><span class="p">,</span> <span class="s1">&#39;MNE&#39;</span><span class="p">,</span> <span class="s1">&#39;MdnNE&#39;</span><span class="p">,</span> <span class="s1">&#39;NME&#39;</span><span class="p">,</span> <span class="s1">&#39;NMdnE&#39;</span><span class="p">,</span> <span class="s1">&#39;USUTPE&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;PSUTMNPE&#39;</span><span class="p">,</span> <span class="s1">&#39;PSUTMdnNPE&#39;</span><span class="p">,</span> <span class="s1">&#39;PSUTNMPE&#39;</span><span class="p">,</span> <span class="s1">&#39;PSUTNMdnPE&#39;</span><span class="p">,</span> <span class="s1">&#39;R2&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;RMSE&#39;</span><span class="p">,</span> <span class="s1">&#39;RMSEs&#39;</span><span class="p">,</span> <span class="s1">&#39;RMSEu&#39;</span><span class="p">,</span> <span class="s1">&#39;E1&#39;</span><span class="p">,</span> <span class="s1">&#39;IOA&#39;</span><span class="p">,</span> <span class="s1">&#39;d1&#39;</span><span class="p">,</span> <span class="s1">&#39;AC&#39;</span><span class="p">,</span> <span class="s1">&#39;WDIOA&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;WDRMSE&#39;</span><span class="p">,</span> <span class="s1">&#39;WDAC&#39;</span><span class="p">]</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.pncload</span><span class="w"> </span><span class="kn">import</span> <span class="n">createconsole</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<div class="viewcode-block" id="STDO">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.STDO">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">STDO</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Standard deviation of Observations &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="STDP">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.STDP">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">STDP</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Standard deviation of Predictions &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MNB">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.MNB">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">MNB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Mean Normalized Bias (%)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">((</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">)</span> <span class="o">/</span> <span class="n">obs</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span></div>
+
+
+
+<div class="viewcode-block" id="MNE">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.MNE">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">MNE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Mean Normalized Gross Error (%)&quot;&quot;&quot;</span>
+    <span class="n">ne</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">)</span> <span class="o">/</span> <span class="n">obs</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="n">ne</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span></div>
+
+
+
+<div class="viewcode-block" id="MdnNB">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.MdnNB">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">MdnNB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Median Normalized Bias (%)&quot;&quot;&quot;</span>
+    <span class="n">nb</span> <span class="o">=</span> <span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">)</span> <span class="o">/</span> <span class="n">obs</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="n">nb</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span></div>
+
+
+
+<div class="viewcode-block" id="MdnNE">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.MdnNE">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">MdnNE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Median Normalized Gross Error (%)&quot;&quot;&quot;</span>
+    <span class="n">ne</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">)</span> <span class="o">/</span> <span class="n">obs</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="n">ne</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span></div>
+
+
+
+<div class="viewcode-block" id="NO">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.NO">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">NO</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; N Observations (#)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">getmaskarray</span><span class="p">(</span><span class="n">obs</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="NOP">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.NOP">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">NOP</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; N Observations/Prediction Pairs (#)&quot;&quot;&quot;</span>
+    <span class="n">obsc</span><span class="p">,</span> <span class="n">modc</span> <span class="o">=</span> <span class="n">matchmasks</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">getmaskarray</span><span class="p">(</span><span class="n">obsc</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="NP">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.NP">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">NP</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; N Predictions (#)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">getmaskarray</span><span class="p">(</span><span class="n">mod</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MO">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.MO">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">MO</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Mean Observations (obs unit)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">obs</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MP">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.MP">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">MP</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Mean Predictions (model unit)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">mod</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MdnO">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.MdnO">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">MdnO</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Median Observations (obs unit)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MdnP">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.MdnP">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">MdnP</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Median Predictions (model unit)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RM">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.RM">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">RM</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Mean Ratio Observations/Predictions (none)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="n">obs</span> <span class="o">/</span> <span class="n">mod</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RMdn">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.RMdn">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">RMdn</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Median Ratio Observations/Predictions (none)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="n">obs</span> <span class="o">/</span> <span class="n">mod</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MB">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.MB">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">MB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Mean Bias&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MdnB">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.MdnB">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">MdnB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Median Bias&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="WDMB">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.WDMB">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">WDMB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Wind Direction Mean Bias&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">circlebias</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="WDMdnB">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.WDMdnB">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">WDMdnB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Wind Direction Median Bias&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">circlebias</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="NMB">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.NMB">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">NMB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Normalized Mean Bias (%)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">/</span> <span class="n">obs</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span></div>
+
+
+
+<div class="viewcode-block" id="NMdnB">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.NMdnB">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">NMdnB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Normalized Median Bias (%)&quot;&quot;&quot;</span>
+    <span class="n">mdnb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="n">mdno</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mdnb</span> <span class="o">/</span> <span class="n">mdno</span> <span class="o">*</span> <span class="mf">100.</span></div>
+
+
+
+<div class="viewcode-block" id="FB">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.FB">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">FB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Fractional Bias (%)&quot;&quot;&quot;</span>
+    <span class="n">halffb</span> <span class="o">=</span> <span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">mod</span> <span class="o">+</span> <span class="n">obs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="n">halffb</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">2.</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span></div>
+
+
+
+<div class="viewcode-block" id="ME">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.ME">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ME</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Mean Gross Error (model and obs unit)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MdnE">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.MdnE">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">MdnE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Median Gross Error (model and obs unit)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="WDME">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.WDME">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">WDME</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Wind Direction Mean Gross Error (model and obs unit)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">circlebias</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="WDMdnE">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.WDMdnE">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">WDMdnE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Wind Direction Median Gross Error (model and obs unit)&quot;&quot;&quot;</span>
+    <span class="n">cb</span> <span class="o">=</span> <span class="n">circlebias</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">cb</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="NME">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.NME">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">NME</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Normalized Mean Error (%)&quot;&quot;&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">/</span> <span class="n">obs</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">))</span> <span class="o">*</span> <span class="mi">100</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="NMdnE">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.NMdnE">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">NMdnE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Normalized Median Error (%)&quot;&quot;&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">/</span> \
+        <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="FE">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.FE">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">FE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Fractional Error (%)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">mod</span> <span class="o">+</span> <span class="n">obs</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">2.</span> <span class="o">*</span> <span class="mf">100.</span></div>
+
+
+
+<div class="viewcode-block" id="USUTPB">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.USUTPB">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">USUTPB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Unpaired Space/Unpaired Time Peak Bias (%)&quot;&quot;&quot;</span>
+    <span class="n">modmax</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="n">obsmax</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">modmax</span> <span class="o">-</span> <span class="n">obsmax</span><span class="p">)</span> <span class="o">/</span> <span class="n">obsmax</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span></div>
+
+
+
+<div class="viewcode-block" id="USUTPE">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.USUTPE">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">USUTPE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Unpaired Space/Unpaired Time Peak Error (%)&quot;&quot;&quot;</span>
+    <span class="n">obsmax</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">-</span> <span class="n">obsmax</span><span class="p">)</span> <span class="o">/</span> <span class="n">obsmax</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">MNPB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">paxis</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Mean Normalized Peak Bias (%)&quot;&quot;&quot;</span>
+    <span class="n">obsmax</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">paxis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">mod</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">paxis</span><span class="p">)</span> <span class="o">-</span> <span class="n">obsmax</span><span class="p">)</span> <span class="o">/</span> <span class="n">obsmax</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">MdnNPB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">paxis</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Median Normalized Peak Bias (%)&quot;&quot;&quot;</span>
+    <span class="n">obsmax</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">paxis</span><span class="p">)</span>
+    <span class="n">modmax</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">paxis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">((</span><span class="n">modmax</span> <span class="o">-</span> <span class="n">obsmax</span><span class="p">)</span> <span class="o">/</span> <span class="n">obsmax</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">MNPE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">paxis</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Mean Normalized Peak Error (%)&quot;&quot;&quot;</span>
+    <span class="n">modmax</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">paxis</span><span class="p">)</span>
+    <span class="n">obsmax</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">paxis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">modmax</span> <span class="o">-</span> <span class="n">obsmax</span><span class="p">))</span> <span class="o">/</span> <span class="n">obsmax</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">MdnNPE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">paxis</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Median Normalized Peak Bias (%)&quot;&quot;&quot;</span>
+    <span class="n">modmax</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">paxis</span><span class="p">)</span>
+    <span class="n">obsmax</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">paxis</span><span class="p">)</span>
+    <span class="n">pe</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">modmax</span> <span class="o">-</span> <span class="n">obsmax</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">((</span><span class="n">pe</span><span class="p">)</span> <span class="o">/</span> <span class="n">obsmax</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">NMPB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">paxis</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Normalized Mean Peak Bias (%)&quot;&quot;&quot;</span>
+    <span class="n">modmax</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">paxis</span><span class="p">)</span>
+    <span class="n">obsmax</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">paxis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">modmax</span> <span class="o">-</span> <span class="n">obsmax</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">/</span> <span class="n">obsmax</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">NMdnPB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">paxis</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Normalized Median Peak Bias (%)&quot;&quot;&quot;</span>
+    <span class="n">modmax</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">paxis</span><span class="p">)</span>
+    <span class="n">obsmax</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">paxis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">((</span><span class="n">modmax</span> <span class="o">-</span> <span class="n">obsmax</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">/</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">obsmax</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">NMPE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">paxis</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Normalized Mean Peak Error (%)&quot;&quot;&quot;</span>
+    <span class="n">modmax</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">paxis</span><span class="p">)</span>
+    <span class="n">obsmax</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">paxis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">modmax</span> <span class="o">-</span> <span class="n">obsmax</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">/</span>
+            <span class="n">obsmax</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">NMdnPE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">paxis</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Normalized Median Peak Bias (%)&quot;&quot;&quot;</span>
+    <span class="n">modmax</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">paxis</span><span class="p">)</span>
+    <span class="n">obsmax</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">paxis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">modmax</span> <span class="o">-</span> <span class="n">obsmax</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">/</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">obsmax</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="PSUTMNPB">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.PSUTMNPB">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">PSUTMNPB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Paired Space/Unpaired Time Mean Normalized Peak Bias (%)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">MNPB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">paxis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="PSUTMdnNPB">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.PSUTMdnNPB">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">PSUTMdnNPB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Paired Space/Unpaired Time Median Normalized Peak Bias (%)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">MdnNPB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">paxis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="PSUTMNPE">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.PSUTMNPE">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">PSUTMNPE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Paired Space/Unpaired Time Mean Normalized Peak Error (%)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">MNPE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">paxis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="PSUTMdnNPE">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.PSUTMdnNPE">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">PSUTMdnNPE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Paired Space/Unpaired Time Median Normalized Peak Error (%)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">MdnNPE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">paxis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="PSUTNMPB">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.PSUTNMPB">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">PSUTNMPB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Paired Space/Unpaired Time Normalized Mean Peak Bias (%)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">NMPB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">paxis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="PSUTNMPE">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.PSUTNMPE">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">PSUTNMPE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Paired Space/Unpaired Time Normalized Mean Peak Error (%)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">NMPE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">paxis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="PSUTNMdnPB">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.PSUTNMdnPB">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">PSUTNMdnPB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Paired Space/Unpaired Time Normalized Median Peak Bias (%)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">NMdnPB</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">paxis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="PSUTNMdnPE">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.PSUTNMdnPE">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">PSUTNMdnPE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Paired Space/Unpaired Time Normalized Median Peak Error (%)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">NMdnPE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">paxis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="R2">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.R2">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">R2</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Coefficient of Determination (unit squared)&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats.mstats</span><span class="w"> </span><span class="kn">import</span> <span class="n">pearsonr</span>
+    <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pearsonr</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">pearsonr</span>
+        <span class="k">return</span> <span class="n">apply_along_axis_2v</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">r</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">apply_along_axis_2v</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">v1r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rollaxis</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">v1</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="n">v2r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rollaxis</span><span class="p">(</span><span class="n">v2</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">v2</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">func</span><span class="p">(</span><span class="n">v1r</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">v2r</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+                       <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="n">v2r</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">1</span><span class="p">])])</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rollaxis</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">result</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<div class="viewcode-block" id="RMSE">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.RMSE">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">RMSE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Root Mean Square Error (model unit)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(((</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="WDRMSE">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.WDRMSE">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">WDRMSE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Wind Direction Root Mean Square Error (model unit)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(((</span><span class="n">circlebias</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="RMSEs">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.RMSEs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">RMSEs</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Root Mean Squared Error systematic (obs, mod_hat)&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats.mstats</span><span class="w"> </span><span class="kn">import</span> <span class="n">linregress</span>
+    <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">m</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">rval</span><span class="p">,</span> <span class="n">pval</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">linregress</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">)</span>
+            <span class="n">mod_hat</span> <span class="o">=</span> <span class="n">b</span> <span class="o">+</span> <span class="n">m</span> <span class="o">*</span> <span class="n">obs</span>
+            <span class="k">return</span> <span class="n">RMSE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod_hat</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">myvals</span> <span class="o">=</span> <span class="n">apply_along_axis_2v</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">linregress</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">axis</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">)</span>
+        <span class="n">myvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rollaxis</span><span class="p">(</span><span class="n">myvals</span><span class="p">,</span> <span class="n">myvals</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">m</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">rval</span><span class="p">,</span> <span class="n">pval</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">myvals</span>
+        <span class="n">mod_hat</span> <span class="o">=</span> <span class="n">b</span> <span class="o">+</span> <span class="n">m</span> <span class="o">*</span> <span class="n">obs</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">RMSE</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod_hat</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">matchmasks</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">):</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">getmaskarray</span><span class="p">(</span><span class="n">a1</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">getmaskarray</span><span class="p">(</span><span class="n">a2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">a1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">a2</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">matchedcompressed</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">):</span>
+    <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span> <span class="o">=</span> <span class="n">matchmasks</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">a1</span><span class="o">.</span><span class="n">compressed</span><span class="p">(),</span> <span class="n">a2</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="RMSEu">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.RMSEu">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">RMSEu</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Root Mean Squared Error unsystematic (mod_hat, mod)&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats.mstats</span><span class="w"> </span><span class="kn">import</span> <span class="n">linregress</span>
+    <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">m</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">rval</span><span class="p">,</span> <span class="n">pval</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">linregress</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">)</span>
+            <span class="n">mod_hat</span> <span class="o">=</span> <span class="n">b</span> <span class="o">+</span> <span class="n">m</span> <span class="o">*</span> <span class="n">obs</span>
+            <span class="k">return</span> <span class="n">RMSE</span><span class="p">(</span><span class="n">mod_hat</span><span class="p">,</span> <span class="n">mod</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">myvals</span> <span class="o">=</span> <span class="n">apply_along_axis_2v</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">linregress</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">axis</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">)</span>
+        <span class="n">myvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rollaxis</span><span class="p">(</span><span class="n">myvals</span><span class="p">,</span> <span class="n">myvals</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">m</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">rval</span><span class="p">,</span> <span class="n">pval</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">myvals</span>
+        <span class="n">mod_hat</span> <span class="o">=</span> <span class="n">b</span> <span class="o">+</span> <span class="n">m</span> <span class="o">*</span> <span class="n">obs</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">RMSE</span><span class="p">(</span><span class="n">mod_hat</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+<div class="viewcode-block" id="d1">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.d1">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">d1</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Modified Index of Agreement, d1&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">obs</span> <span class="o">-</span> <span class="n">mod</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">/</span>
+            <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">))</span> <span class="o">+</span>
+             <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">obs</span> <span class="o">-</span> <span class="n">obs</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="E1">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.E1">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">E1</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Modified Coefficient of Efficiency, E1&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">obs</span> <span class="o">-</span> <span class="n">mod</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">/</span>
+            <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">obs</span> <span class="o">-</span> <span class="n">obs</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="IOA">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.IOA">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">IOA</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Index of Agreement, IOA&quot;&quot;&quot;</span>
+    <span class="n">obsmean</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">obsmean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">obsmean</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span>
+            <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">obs</span> <span class="o">-</span> <span class="n">mod</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">/</span>
+            <span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obsmean</span><span class="p">)</span> <span class="o">+</span>
+              <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">obs</span> <span class="o">-</span> <span class="n">obsmean</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">))</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">circlebias</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">b</span> <span class="o">&gt;</span> <span class="mi">180</span><span class="p">,</span> <span class="n">b</span> <span class="o">-</span> <span class="mi">360</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">b</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">180</span><span class="p">,</span> <span class="n">b</span> <span class="o">+</span> <span class="mi">360</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">b</span>
+
+
+<div class="viewcode-block" id="WDIOA">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.WDIOA">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">WDIOA</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Wind Direction Index of Agreement, IOA&quot;&quot;&quot;</span>
+    <span class="n">obsmean</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">obsmean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">obsmean</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">circlebias</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs</span><span class="p">)</span>
+
+    <span class="n">bhat</span> <span class="o">=</span> <span class="n">circlebias</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obsmean</span><span class="p">)</span>
+
+    <span class="n">ohat</span> <span class="o">=</span> <span class="n">circlebias</span><span class="p">(</span><span class="n">obs</span> <span class="o">-</span> <span class="n">obsmean</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">b</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">/</span>
+            <span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">bhat</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ohat</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="AC">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.AC">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">AC</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Anomaly Correlation &quot;&quot;&quot;</span>
+    <span class="n">obs_bar</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">obs_bar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">obs_bar</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="n">p1</span> <span class="o">=</span> <span class="p">((</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs_bar</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">obs</span> <span class="o">-</span> <span class="n">obs_bar</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="n">p2</span> <span class="o">=</span> <span class="p">(((</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs_bar</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span>
+          <span class="p">((</span><span class="n">obs</span> <span class="o">-</span> <span class="n">obs_bar</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">))</span><span class="o">**</span><span class="mf">0.5</span>
+    <span class="k">return</span> <span class="n">p1</span> <span class="o">/</span> <span class="n">p2</span></div>
+
+
+
+<div class="viewcode-block" id="WDAC">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pnceval.WDAC">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">WDAC</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Wind Direction Anomaly Correlation &quot;&quot;&quot;</span>
+    <span class="n">obs_bar</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">obs_bar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">obs_bar</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="n">p1</span> <span class="o">=</span> <span class="p">(</span><span class="n">circlebias</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs_bar</span><span class="p">)</span> <span class="o">*</span>
+          <span class="n">circlebias</span><span class="p">(</span><span class="n">obs</span> <span class="o">-</span> <span class="n">obs_bar</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="n">p2</span> <span class="o">=</span> <span class="p">((</span><span class="n">circlebias</span><span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="n">obs_bar</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span>
+          <span class="p">(</span><span class="n">circlebias</span><span class="p">(</span><span class="n">obs</span> <span class="o">-</span> <span class="n">obs_bar</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">))</span><span class="o">**</span><span class="mf">0.5</span>
+    <span class="k">return</span> <span class="n">p1</span> <span class="o">/</span> <span class="n">p2</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">stat_spatial</span><span class="p">(</span><span class="n">ifile0</span><span class="p">,</span> <span class="n">ifile1</span><span class="p">,</span> <span class="n">funcs</span><span class="o">=</span><span class="n">__all__</span><span class="p">,</span>
+                 <span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;O3&#39;</span><span class="p">],</span> <span class="n">counties</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ifile0 - left hand side of equation</span>
+<span class="sd">    ifile1 - right hand side of equation</span>
+<span class="sd">    variables - list of variables to plot</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">mpl_toolkits.basemap</span><span class="w"> </span><span class="kn">import</span> <span class="n">Basemap</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="kn">import</span> <span class="n">figure</span><span class="p">,</span> <span class="n">show</span>
+    <span class="n">lonlatcoords</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ifile0</span><span class="p">,</span> <span class="s1">&#39;lonlatcoords&#39;</span><span class="p">,</span>
+                           <span class="nb">getattr</span><span class="p">(</span><span class="n">ifile1</span><span class="p">,</span> <span class="s1">&#39;lonlatcoords&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+    <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)),</span> <span class="n">lonlatcoords</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)))</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">latmin</span><span class="p">,</span> <span class="n">latmax</span> <span class="o">=</span> <span class="n">lat</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">lat</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">lonmin</span><span class="p">,</span> <span class="n">lonmax</span> <span class="o">=</span> <span class="n">lon</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">lon</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">bmap</span> <span class="o">=</span> <span class="n">Basemap</span><span class="p">(</span><span class="n">llcrnrlat</span><span class="o">=</span><span class="n">latmin</span><span class="p">,</span> <span class="n">llcrnrlon</span><span class="o">=</span><span class="n">lonmin</span><span class="p">,</span>
+                   <span class="n">urcrnrlat</span><span class="o">=</span><span class="n">latmax</span><span class="p">,</span> <span class="n">urcrnrlon</span><span class="o">=</span><span class="n">lonmax</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="s1">&#39;i&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">vark</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">statname</span> <span class="ow">in</span> <span class="n">funcs</span><span class="p">:</span>
+            <span class="n">statfunc</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">statname</span><span class="p">)</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">figure</span><span class="p">()</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">vark</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">statname</span><span class="p">)</span>
+            <span class="n">var_0</span> <span class="o">=</span> <span class="n">ifile0</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">vark</span><span class="p">]</span>
+            <span class="n">var_1</span> <span class="o">=</span> <span class="n">ifile1</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">vark</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">pidx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">var_0</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;points&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">pidx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">var_1</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;points&#39;</span><span class="p">)</span>
+            <span class="n">statvs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">sitei</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">var_0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">pidx</span><span class="p">]):</span>
+                <span class="n">val_0</span> <span class="o">=</span> <span class="n">var_0</span><span class="p">[:]</span><span class="o">.</span><span class="n">take</span><span class="p">([</span><span class="n">sitei</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="n">pidx</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+                <span class="n">val_1</span> <span class="o">=</span> <span class="n">var_1</span><span class="p">[:]</span><span class="o">.</span><span class="n">take</span><span class="p">([</span><span class="n">sitei</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="n">pidx</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+                <span class="n">statvs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">statfunc</span><span class="p">(</span><span class="n">val_0</span><span class="p">,</span> <span class="n">val_1</span><span class="p">))</span>
+            <span class="n">dots</span> <span class="o">=</span> <span class="n">bmap</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">lon</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">lat</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">statvs</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;jet&#39;</span><span class="p">)</span>
+
+            <span class="n">bmap</span><span class="o">.</span><span class="n">drawcoastlines</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+            <span class="n">bmap</span><span class="o">.</span><span class="n">drawcountries</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+            <span class="n">bmap</span><span class="o">.</span><span class="n">drawstates</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">dots</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">counties</span><span class="p">:</span>
+                <span class="n">bmap</span><span class="o">.</span><span class="n">counties</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+            <span class="n">show</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">stat_timeseries</span><span class="p">(</span><span class="n">ifile0</span><span class="p">,</span> <span class="n">ifile1</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;O3&#39;</span><span class="p">],</span> <span class="n">counties</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pylab</span><span class="w"> </span><span class="kn">import</span> <span class="n">figure</span><span class="p">,</span> <span class="n">show</span>
+    <span class="k">for</span> <span class="n">vark</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">statname</span> <span class="ow">in</span> <span class="n">__all__</span><span class="p">:</span>
+            <span class="n">statfunc</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">statname</span><span class="p">)</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">figure</span><span class="p">()</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">vark</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">statname</span><span class="p">)</span>
+            <span class="n">var_0</span> <span class="o">=</span> <span class="n">ifile0</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">vark</span><span class="p">]</span>
+            <span class="n">var_1</span> <span class="o">=</span> <span class="n">ifile1</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">vark</span><span class="p">]</span>
+            <span class="n">tidx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">var_0</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+            <span class="n">statvs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">timei</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">var_0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">tidx</span><span class="p">]):</span>
+                <span class="n">val_0</span> <span class="o">=</span> <span class="n">var_0</span><span class="p">[:]</span><span class="o">.</span><span class="n">take</span><span class="p">([</span><span class="n">timei</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="n">tidx</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+                <span class="n">val_1</span> <span class="o">=</span> <span class="n">var_1</span><span class="p">[:]</span><span class="o">.</span><span class="n">take</span><span class="p">([</span><span class="n">timei</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="n">tidx</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+                <span class="n">statvs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">statfunc</span><span class="p">(</span><span class="n">val_0</span><span class="p">,</span> <span class="n">val_1</span><span class="p">))</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">statvs</span><span class="p">)</span>
+            <span class="n">show</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">pnceval</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.core._functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncbfunc</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">variables</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">ifiles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">coordkeys</span><span class="p">)</span>
+    <span class="n">console</span> <span class="o">=</span> <span class="n">createconsole</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">ifiles</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+    <span class="n">ifile0</span><span class="p">,</span> <span class="n">ifile1</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">ifiles</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.coordutil</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettimes</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# ifile0=&#39;</span> <span class="o">+</span> <span class="n">args</span><span class="o">.</span><span class="n">ipath</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# ifile1=&#39;</span> <span class="o">+</span> <span class="n">args</span><span class="o">.</span><span class="n">ipath</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# Stats calculated as func(ifile0, ifile1)&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# Generally: func(obs, mod, ....)&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ipath</span><span class="p">,</span> <span class="n">ifile</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">ipath</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">ifiles</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# Meta-data from </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ipath</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">times</span> <span class="o">=</span> <span class="n">gettimes</span><span class="p">(</span><span class="n">ifile</span><span class="p">)</span>
+            <span class="n">tstart</span> <span class="o">=</span> <span class="n">times</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+            <span class="n">tstop</span> <span class="o">=</span> <span class="n">times</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# Date Range: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tstart</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; to &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tstop</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">lon</span> <span class="o">=</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;longitude&#39;</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# Longitude Range: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">lon</span><span class="o">.</span><span class="n">min</span><span class="p">()))</span> <span class="o">+</span>
+                  <span class="s1">&#39; to &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">lon</span><span class="o">.</span><span class="n">max</span><span class="p">())))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">lat</span> <span class="o">=</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;latitude&#39;</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# Latitude Range: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">lat</span><span class="o">.</span><span class="n">min</span><span class="p">()))</span> <span class="o">+</span>
+                  <span class="s1">&#39; to &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">lat</span><span class="o">.</span><span class="n">max</span><span class="p">())))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+    <span class="n">np</span><span class="o">.</span><span class="n">seterr</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">funcs</span><span class="p">:</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">locals</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">output</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">csv</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# </span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">strip</span><span class="p">()))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">locals</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="s1">&#39;_f&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ofile</span> <span class="o">=</span> <span class="n">pncbfunc</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">ifile0</span><span class="p">,</span> <span class="n">ifile1</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Skipped &quot;</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s1">&#39;;&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">vk</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">vk</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;TFLAG&#39;</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">csv</span><span class="p">:</span>
+                <span class="n">outv</span> <span class="o">=</span> <span class="n">ofile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">vk</span><span class="p">][:]</span>
+                <span class="n">outv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">outv</span><span class="p">)</span>
+                <span class="n">output</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">vk</span><span class="p">]</span> <span class="o">=</span> <span class="n">outv</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">,</span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vk</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                                       <span class="n">k</span><span class="p">,</span> <span class="n">ofile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">vk</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">csv</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;VAR&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">args</span><span class="o">.</span><span class="n">funcs</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">vk</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">vk</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">output</span><span class="p">[</span><span class="n">fk</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">vk</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+                                   <span class="k">for</span> <span class="n">fk</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">funcs</span><span class="p">]))</span>
+
+    <span class="n">np</span><span class="o">.</span><span class="n">seterr</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;warn&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">interactive</span><span class="p">:</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">interact</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.pncparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">getparser</span><span class="p">,</span> <span class="n">pncparse</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">getparser</span><span class="p">(</span><span class="n">has_ofile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot_options</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--csv&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;csv&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Print all data in CSV format&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--funcs&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">__all__</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Functions to evaluate split by , &#39;</span> <span class="o">+</span>
+                              <span class="s1">&#39;(default: </span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__all__</span><span class="p">))</span>
+
+    <span class="n">ifiles</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">pncparse</span><span class="p">(</span><span class="n">has_ofile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="n">parser</span><span class="p">)</span>
+    <span class="n">args</span><span class="o">.</span><span class="n">ifiles</span> <span class="o">=</span> <span class="n">ifiles</span>
+    <span class="n">pnceval</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

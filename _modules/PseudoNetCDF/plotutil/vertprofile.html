@@ -1,0 +1,539 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.plotutil.vertprofile &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../plotutil.html">PseudoNetCDF.plotutil</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.plotutil.vertprofile</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.plotutil.vertprofile</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">netCDF4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">glob</span><span class="w"> </span><span class="kn">import</span> <span class="n">glob</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">AggCommaString</span>
+
+<span class="n">unitconvert</span> <span class="o">=</span> <span class="p">{(</span><span class="s1">&#39;ppmV&#39;</span><span class="p">,</span> <span class="s1">&#39;ppb&#39;</span><span class="p">):</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="mf">1000.</span><span class="p">}</span>
+
+
+<div class="viewcode-block" id="add_vertprofile_options">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.plotutil.html#PseudoNetCDF.plotutil.vertprofile.add_vertprofile_options">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_vertprofile_options</span><span class="p">(</span><span class="n">vertparser</span><span class="p">):</span>
+    <span class="n">vpadd</span> <span class="o">=</span> <span class="n">vertparser</span><span class="o">.</span><span class="n">add_argument</span>
+    <span class="n">vpadd</span><span class="p">(</span><span class="s2">&quot;--sigma&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;sigma&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Plot on sigma coordinate instead of pressure&quot;</span><span class="p">)</span>
+
+    <span class="n">vpadd</span><span class="p">(</span><span class="s2">&quot;--scale&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;scale&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;log&#39;</span><span class="p">,</span>
+          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Defaults to log, but linear and semilog are also options.&quot;</span><span class="p">)</span>
+
+    <span class="n">vpadd</span><span class="p">(</span><span class="s2">&quot;--minmax&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;minmax&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;None,None&quot;</span><span class="p">,</span>
+          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Use values to set range (xmin, xmax); defaults None,None.&quot;</span><span class="p">)</span>
+
+    <span class="n">vpadd</span><span class="p">(</span><span class="s2">&quot;--mask-zeros&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;maskzeros&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+          <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Defaults False.&quot;</span><span class="p">)</span>
+
+    <span class="n">vpadd</span><span class="p">(</span><span class="s2">&quot;--minmaxq&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;minmaxq&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;0,100&#39;</span><span class="p">,</span>
+          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Use quartiles to set range (xmin, xmax); defaults 0,100.&quot;</span><span class="p">)</span>
+
+    <span class="n">vpadd</span><span class="p">(</span><span class="s2">&quot;--out-unit&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;outunit&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;ppb&#39;</span><span class="p">,</span>
+          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Defaults ppb.&quot;</span><span class="p">)</span>
+
+    <span class="n">vpadd</span><span class="p">(</span><span class="s2">&quot;--tes-paths&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;tespaths&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+          <span class="n">action</span><span class="o">=</span><span class="n">AggCommaString</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Plot tes on top of boundary from paths; defaults to []&quot;</span><span class="p">)</span>
+
+    <span class="n">vpadd</span><span class="p">(</span><span class="s2">&quot;--omi-paths&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;omipaths&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+          <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">AggCommaString</span><span class="p">,</span>
+          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Plot omi on top of boundary from paths; defaults to []&quot;</span><span class="p">)</span>
+
+    <span class="n">vpadd</span><span class="p">(</span><span class="s2">&quot;--itertime&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;itertime&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Iterate over times and plot each one.&quot;</span><span class="p">)</span>
+
+    <span class="n">vpadd</span><span class="p">(</span><span class="s2">&quot;--edges&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;edges&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Plot S,E,N,W edges instead of a single plot.&quot;</span><span class="p">)</span></div>
+
+
+<span class="c1"># vertparser = getparser(has_ofile = True, plot_options = True,</span>
+<span class="c1">#                        interactive = False)</span>
+<span class="c1"># add_vertprofile_options(vertparser)</span>
+<span class="c1"># vertparser.epilog = &quot;&quot;&quot;</span>
+<span class="c1"># Example:</span>
+<span class="c1"># $ pncvertprofile.py outputs/ts20120301.bpch.BCON.nc test_profile -v O3 \</span>
+<span class="c1">#    --edges #--minmaxq .5,99.5 --tes-paths=~/Data/test/*</span>
+<span class="c1"># &quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="maskfilled">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.plotutil.html#PseudoNetCDF.plotutil.vertprofile.maskfilled">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">maskfilled</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_values</span><span class="p">(</span><span class="n">v</span><span class="p">[:],</span> <span class="n">v</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;_FillValue&#39;</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="plot_omi">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.plotutil.html#PseudoNetCDF.plotutil.vertprofile.plot_omi">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_omi</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">lon_bnds</span><span class="p">,</span> <span class="n">lat_bnds</span><span class="p">,</span> <span class="n">omipaths</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;O3Profile&#39;</span><span class="p">,</span>
+             <span class="n">airden</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">airdenvert</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+    <span class="c1"># from scipy.constants import Avogadro</span>
+    <span class="n">allx</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ally</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">lon_bnds</span> <span class="o">=</span> <span class="n">lon_bnds</span><span class="p">[:]</span>
+    <span class="n">lat_bnds</span> <span class="o">=</span> <span class="n">lat_bnds</span><span class="p">[:]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">omipaths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="n">outomipaths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">omipath</span> <span class="ow">in</span> <span class="n">omipaths</span><span class="p">:</span>
+        <span class="n">outomipaths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">glob</span><span class="p">(</span><span class="n">omipath</span><span class="p">))</span>
+    <span class="n">omipaths</span> <span class="o">=</span> <span class="n">outomipaths</span>
+    <span class="n">omipaths</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">omipaths</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">swaths</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;HDFEOS&#39;</span><span class="p">][</span><span class="s1">&#39;SWATHS&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">latsv</span> <span class="o">=</span> <span class="n">swaths</span><span class="p">[</span><span class="s1">&#39;Geolocation Fields&#39;</span><span class="p">][</span><span class="s1">&#39;Latitude&#39;</span><span class="p">]</span>
+        <span class="n">lonsv</span> <span class="o">=</span> <span class="n">swaths</span><span class="p">[</span><span class="s1">&#39;Geolocation Fields&#39;</span><span class="p">][</span><span class="s1">&#39;Longitude&#39;</span><span class="p">]</span>
+        <span class="n">lats</span> <span class="o">=</span> <span class="n">maskfilled</span><span class="p">(</span><span class="n">latsv</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">lons</span> <span class="o">=</span> <span class="n">maskfilled</span><span class="p">(</span><span class="n">lonsv</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">inboth</span> <span class="o">=</span> <span class="n">matchspace</span><span class="p">(</span><span class="n">lons</span><span class="p">,</span> <span class="n">lats</span><span class="p">,</span> <span class="n">lon_bnds</span><span class="p">,</span> <span class="n">lat_bnds</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">inboth</span><span class="o">.</span><span class="n">filled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;******** FOUND ******&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+            <span class="n">pressurev</span> <span class="o">=</span> <span class="n">swaths</span><span class="p">[</span><span class="s1">&#39;Geolocation Fields&#39;</span><span class="p">][</span><span class="s1">&#39;Pressure&#39;</span><span class="p">]</span>
+            <span class="n">altitudev</span> <span class="o">=</span> <span class="n">swaths</span><span class="p">[</span><span class="s1">&#39;Geolocation Fields&#39;</span><span class="p">][</span><span class="s1">&#39;Altitude&#39;</span><span class="p">]</span>
+            <span class="n">nk</span> <span class="o">=</span> <span class="n">pressurev</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">speciesv</span> <span class="o">=</span> <span class="n">swaths</span><span class="p">[</span><span class="s1">&#39;Data Fields&#39;</span><span class="p">][</span><span class="s1">&#39;O3&#39;</span><span class="p">]</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="n">maskfilled</span><span class="p">(</span><span class="n">speciesv</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">nk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+            <span class="c1"># Pressure is from top to bottom</span>
+            <span class="n">pressure</span> <span class="o">=</span> <span class="n">maskfilled</span><span class="p">(</span><span class="n">pressurev</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">nk</span><span class="p">)</span>
+            <span class="n">altitude</span> <span class="o">=</span> <span class="n">maskfilled</span><span class="p">(</span><span class="n">altitudev</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">nk</span><span class="p">)</span>
+            <span class="n">dz</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">altitude</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">altitude</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="mf">1000.</span> <span class="o">*</span> <span class="mf">100.</span>
+            <span class="c1"># Lacis 1990 1 DU = 2.69e16 molecules cm-2</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="n">species</span> <span class="o">*</span> <span class="mf">.001</span> <span class="o">/</span> <span class="n">dz</span>  <span class="c1"># cm /cm # vrm</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">pressure</span><span class="p">[</span><span class="n">inboth</span><span class="p">]</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">species</span><span class="p">[</span><span class="n">inboth</span><span class="p">]</span>
+            <span class="n">allx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">ally</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">wtmp</span> <span class="o">=</span> <span class="s1">&#39;No data found for </span><span class="si">%s</span><span class="s1">: lons (</span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">) and lats (</span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">); &#39;</span>
+            <span class="n">wtmp</span> <span class="o">+=</span> <span class="s1">&#39;lonbs (</span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">) and latbs (</span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">);&#39;</span>
+            <span class="n">wvals</span> <span class="o">=</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">lons</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">lons</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">lats</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">lats</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="n">wvals</span> <span class="o">=</span> <span class="n">wvals</span> <span class="o">+</span> <span class="p">(</span><span class="n">lon_bnds</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">lon_bnds</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">lat_bnds</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+            <span class="n">wvals</span> <span class="o">=</span> <span class="n">wvals</span> <span class="o">+</span> <span class="p">(</span><span class="n">lat_bnds</span><span class="o">.</span><span class="n">max</span><span class="p">(),)</span>
+            <span class="n">warn</span><span class="p">(</span><span class="n">wtmp</span> <span class="o">%</span> <span class="n">wvals</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">allx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;*&#39;</span> <span class="o">*</span> <span class="mi">80</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">No OMI DATA FOUND AT ALL</span><span class="se">\n\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;*&#39;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="n">var</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_values</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">ally</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mf">999.</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e9</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">vertcrd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_values</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+        <span class="n">allx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mf">999.</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># .reshape(-1, 2).mean(1)</span>
+    <span class="n">omil</span><span class="p">,</span> <span class="n">omir</span> <span class="o">=</span> <span class="n">minmaxmean</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">vertcrd</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span>
+                            <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">.2</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;OMI&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">.05</span><span class="p">,</span> <span class="mf">.7</span><span class="p">,</span> <span class="s1">&#39;OMI = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">omil</span><span class="p">,</span> <span class="n">omir</span></div>
+
+
+
+<div class="viewcode-block" id="matchspace">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.plotutil.html#PseudoNetCDF.plotutil.vertprofile.matchspace">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">matchspace</span><span class="p">(</span><span class="n">lons</span><span class="p">,</span> <span class="n">lats</span><span class="p">,</span> <span class="n">lon_bnds</span><span class="p">,</span> <span class="n">lat_bnds</span><span class="p">):</span>
+    <span class="n">slicer</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">lon_bnds</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">inlon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">lons</span><span class="p">[</span><span class="n">slicer</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">lon_bnds</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                           <span class="n">lons</span><span class="p">[</span><span class="n">slicer</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">lon_bnds</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">inlat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">lats</span><span class="p">[</span><span class="n">slicer</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">lat_bnds</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                           <span class="n">lats</span><span class="p">[</span><span class="n">slicer</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">lat_bnds</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">inboth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">inlon</span><span class="p">,</span> <span class="n">inlat</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">inlon</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">inboth</span></div>
+
+
+
+<div class="viewcode-block" id="plot_tes">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.plotutil.html#PseudoNetCDF.plotutil.vertprofile.plot_tes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_tes</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">lon_bnds</span><span class="p">,</span> <span class="n">lat_bnds</span><span class="p">,</span> <span class="n">tespaths</span><span class="p">):</span>
+    <span class="n">allx</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ally</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">lon_bnds</span> <span class="o">=</span> <span class="n">lon_bnds</span><span class="p">[:]</span>
+    <span class="n">lat_bnds</span> <span class="o">=</span> <span class="n">lat_bnds</span><span class="p">[:]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tespaths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="n">outtespaths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">tespath</span> <span class="ow">in</span> <span class="n">tespaths</span><span class="p">:</span>
+        <span class="n">outtespaths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">glob</span><span class="p">(</span><span class="n">tespath</span><span class="p">))</span>
+    <span class="n">tespaths</span> <span class="o">=</span> <span class="n">outtespaths</span>
+    <span class="n">tespaths</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">tespaths</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">lats</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;latitude&#39;</span><span class="p">][:][:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">lons</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;longitude&#39;</span><span class="p">][:][:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">pressure</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;pressure&#39;</span><span class="p">]</span>
+        <span class="n">species</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;species&#39;</span><span class="p">]</span>
+        <span class="n">inboth</span> <span class="o">=</span> <span class="n">matchspace</span><span class="p">(</span><span class="n">lons</span><span class="p">,</span> <span class="n">lats</span><span class="p">,</span> <span class="n">lon_bnds</span><span class="p">,</span> <span class="n">lat_bnds</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">inboth</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;******** FOUND ******&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">pressure</span><span class="p">[</span><span class="n">inboth</span><span class="p">]</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">species</span><span class="p">[</span><span class="n">inboth</span><span class="p">]</span>
+            <span class="n">allx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">ally</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No data found for </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">allx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_values</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">ally</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mf">999.</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e9</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">vertcrd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_values</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">allx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mf">999.</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">tesl</span><span class="p">,</span> <span class="n">tesr</span> <span class="o">=</span> <span class="n">minmaxmean</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">vertcrd</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span>
+                            <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">.2</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;TES (</span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">tesl</span><span class="p">,</span> <span class="n">tesr</span></div>
+
+
+
+<div class="viewcode-block" id="minmaxmean">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.plotutil.html#PseudoNetCDF.plotutil.vertprofile.minmaxmean">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">minmaxmean</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">vertcrd</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+    <span class="n">minval</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">meanval</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">maxval</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">linekwds</span> <span class="o">=</span> <span class="n">kwds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">linekwds</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">linekwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;facecolor&#39;</span><span class="p">)</span>
+    <span class="n">linekwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;edgecolor&#39;</span><span class="p">)</span>
+    <span class="n">linekwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">)</span>
+    <span class="n">fillkwds</span> <span class="o">=</span> <span class="n">kwds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">fillkwds</span><span class="p">[</span><span class="s1">&#39;ls&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;solid&#39;</span>
+
+    <span class="n">line</span><span class="p">,</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">meanval</span><span class="p">,</span> <span class="n">vertcrd</span><span class="p">,</span> <span class="o">**</span><span class="n">linekwds</span><span class="p">)</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">minval</span><span class="p">[:</span><span class="n">vertcrd</span><span class="o">.</span><span class="n">size</span><span class="p">],</span> <span class="n">maxval</span><span class="p">[:</span><span class="n">vertcrd</span><span class="o">.</span><span class="n">size</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">vertcrd</span><span class="p">[:],</span> <span class="n">vertcrd</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">mask</span> <span class="o">|</span> <span class="n">y</span><span class="o">.</span><span class="n">mask</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span>
+    <span class="nb">range</span><span class="p">,</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">fillkwds</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">line</span><span class="p">,</span> <span class="nb">range</span></div>
+
+
+
+<div class="viewcode-block" id="plotprofile">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.plotutil.html#PseudoNetCDF.plotutil.vertprofile.plotprofile">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plotprofile</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">vertprofileplot</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">ifiles</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="vertprofileplot">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.plotutil.html#PseudoNetCDF.plotutil.vertprofile.vertprofileplot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">vertprofileplot</span><span class="p">(</span><span class="n">ifiles</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">variables</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;User must specify variable(s) to plot:</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
+                         <span class="s1">&#39;</span><span class="se">\n\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ifiles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.coordutil</span><span class="w"> </span><span class="kn">import</span> <span class="n">getsigmamid</span><span class="p">,</span> <span class="n">getpresmid</span><span class="p">,</span> <span class="n">gettimes</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;text.usetex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1"># from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm</span>
+    <span class="c1"># from matplotlib.colors import LogNorm</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">scale</span>
+    <span class="n">minmax</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">minmax</span><span class="p">)</span>
+    <span class="n">minmaxq</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">minmaxq</span><span class="p">)</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">sigma</span>
+    <span class="n">maskzeros</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">maskzeros</span>
+    <span class="n">outunit</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">outunit</span>
+    <span class="n">tespaths</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">tespaths</span>
+    <span class="n">omipaths</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">omipaths</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">edges</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">f</span><span class="p">,</span> <span class="o">=</span> <span class="n">ifiles</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;curtain plot expects one file when done. &#39;</span> <span class="o">+</span>
+                         <span class="s1">&#39;Try stack time --stack=time to concatenate&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Add CF conventions if necessary</span>
+    <span class="k">if</span> <span class="s1">&#39;latitude_bounds&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF</span><span class="w"> </span><span class="kn">import</span> <span class="n">getvarpnc</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.conventions.ioapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_cf_from_ioapi</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">getvarpnc</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">add_cf_from_ioapi</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">if</span> <span class="n">sigma</span><span class="p">:</span>
+        <span class="n">vertcrd</span> <span class="o">=</span> <span class="n">getsigmamid</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">vertcrd</span> <span class="o">=</span> <span class="n">getpresmid</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">pref</span><span class="o">=</span><span class="mf">101325.</span><span class="p">,</span> <span class="n">ptop</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;VGTOP&#39;</span><span class="p">,</span> <span class="mi">10000</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">vertcrd</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">2000</span><span class="p">:</span>
+            <span class="n">vertcrd</span> <span class="o">/=</span> <span class="mf">100.</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">lonb</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;geos_longitude_bounds&#39;</span><span class="p">]</span>
+        <span class="n">latb</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;geos_latitude_bounds&#39;</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">lonb</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;longitude_bounds&#39;</span><span class="p">]</span>
+        <span class="n">latb</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;latitude_bounds&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">eval</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">)[:]</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">temp</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">var_name</span><span class="p">][:]</span>
+        <span class="k">if</span> <span class="n">maskzeros</span><span class="p">:</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_values</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">vkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">temp</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">vkeys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">unit</span> <span class="ow">in</span> <span class="n">unitconvert</span><span class="p">:</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">unitconvert</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">unit</span><span class="p">,</span> <span class="n">outunit</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)(</span><span class="n">var</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outunit</span> <span class="o">=</span> <span class="n">unit</span>
+        <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">compressed</span><span class="p">(</span><span class="n">var</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="nb">list</span><span class="p">(</span><span class="n">minmaxq</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">minmax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">vmin</span> <span class="o">=</span> <span class="n">minmax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">minmax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">vmax</span> <span class="o">=</span> <span class="n">minmax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">edges</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+            <span class="n">offset</span> <span class="o">=</span> <span class="mf">0.05</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">.1</span> <span class="o">-</span> <span class="n">offset</span><span class="p">,</span> <span class="mf">.15</span><span class="p">,</span> <span class="mf">.22</span><span class="p">,</span> <span class="mf">.725</span><span class="p">])</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">.325</span> <span class="o">-</span> <span class="n">offset</span><span class="p">,</span> <span class="mf">.15</span><span class="p">,</span> <span class="mf">.22</span><span class="p">,</span> <span class="mf">.725</span><span class="p">])</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">.55</span> <span class="o">-</span> <span class="n">offset</span><span class="p">,</span> <span class="mf">.15</span><span class="p">,</span> <span class="mf">.22</span><span class="p">,</span> <span class="mf">.725</span><span class="p">])</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">.775</span> <span class="o">-</span> <span class="n">offset</span><span class="p">,</span> <span class="mf">.15</span><span class="p">,</span> <span class="mf">.22</span><span class="p">,</span> <span class="mf">.725</span><span class="p">])</span>
+            <span class="n">ss</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">se</span> <span class="o">=</span> <span class="n">ss</span> <span class="o">+</span> <span class="n">f</span><span class="o">.</span><span class="n">NCOLS</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">es</span> <span class="o">=</span> <span class="n">se</span>
+            <span class="n">ee</span> <span class="o">=</span> <span class="n">se</span> <span class="o">+</span> <span class="n">f</span><span class="o">.</span><span class="n">NROWS</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">ns</span> <span class="o">=</span> <span class="n">ee</span>
+            <span class="n">ne</span> <span class="o">=</span> <span class="n">ee</span> <span class="o">+</span> <span class="n">f</span><span class="o">.</span><span class="n">NCOLS</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">ws</span> <span class="o">=</span> <span class="n">ne</span>
+            <span class="n">we</span> <span class="o">=</span> <span class="n">ws</span> <span class="o">+</span> <span class="n">f</span><span class="o">.</span><span class="n">NROWS</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">axs</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">axes</span>
+            <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">NullFormatter</span><span class="p">())</span>
+
+            <span class="nb">vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">var</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">ss</span><span class="p">:</span><span class="n">se</span><span class="p">],</span> <span class="n">var</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">es</span><span class="p">:</span><span class="n">ee</span><span class="p">],</span> <span class="n">var</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">ns</span><span class="p">:</span><span class="n">ne</span><span class="p">]</span>
+                    <span class="p">[:,</span> <span class="p">:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">var</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">ws</span><span class="p">:</span><span class="n">we</span><span class="p">][:,</span> <span class="p">:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">lonbss</span> <span class="o">=</span> <span class="p">[</span><span class="n">lonb</span><span class="p">[</span><span class="n">ss</span><span class="p">:</span><span class="n">se</span><span class="p">],</span> <span class="n">lonb</span><span class="p">[</span><span class="n">es</span><span class="p">:</span><span class="n">ee</span><span class="p">],</span>
+                      <span class="n">lonb</span><span class="p">[</span><span class="n">ns</span><span class="p">:</span><span class="n">ne</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">lonb</span><span class="p">[</span><span class="n">ws</span><span class="p">:</span><span class="n">we</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">latbss</span> <span class="o">=</span> <span class="p">[</span><span class="n">latb</span><span class="p">[</span><span class="n">ss</span><span class="p">:</span><span class="n">se</span><span class="p">],</span> <span class="n">latb</span><span class="p">[</span><span class="n">es</span><span class="p">:</span><span class="n">ee</span><span class="p">],</span>
+                      <span class="n">latb</span><span class="p">[</span><span class="n">ns</span><span class="p">:</span><span class="n">ne</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">latb</span><span class="p">[</span><span class="n">ws</span><span class="p">:</span><span class="n">we</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+            <span class="n">axs</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">axes</span>
+            <span class="nb">vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">var</span><span class="p">]</span>
+            <span class="n">ismultidimcoord</span> <span class="o">=</span> <span class="p">(</span><span class="n">lonb</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">==</span> <span class="p">(</span><span class="s1">&#39;longitude&#39;</span><span class="p">,</span> <span class="s1">&#39;nv&#39;</span><span class="p">)</span> <span class="ow">and</span>
+                               <span class="n">latb</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">==</span> <span class="p">(</span><span class="s1">&#39;latitude&#39;</span><span class="p">,</span> <span class="s1">&#39;nv&#39;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">ismultidimcoord</span><span class="p">:</span>
+                <span class="n">lonbss</span> <span class="o">=</span> <span class="p">[</span><span class="n">lonb</span><span class="p">[:][</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]]</span>
+                <span class="n">latbss</span> <span class="o">=</span> <span class="p">[</span><span class="n">latb</span><span class="p">[:][:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lonbss</span> <span class="o">=</span> <span class="p">[</span><span class="n">lonb</span><span class="p">[:]]</span>
+                <span class="n">latbss</span> <span class="o">=</span> <span class="p">[</span><span class="n">latb</span><span class="p">[:]]</span>
+        <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="n">lonbs</span><span class="p">,</span> <span class="n">latbs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axs</span><span class="p">,</span> <span class="nb">vars</span><span class="p">,</span> <span class="n">lonbss</span><span class="p">,</span> <span class="n">latbss</span><span class="p">):</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">modl</span><span class="p">,</span> <span class="n">modr</span> <span class="o">=</span> <span class="n">minmaxmean</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">vertcrd</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span>
+                                    <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">.2</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                                    <span class="n">label</span><span class="o">=</span><span class="s1">&#39;mod (</span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                    <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+            <span class="n">llines</span> <span class="o">=</span> <span class="p">[(</span><span class="n">modl</span><span class="p">,</span> <span class="n">modr</span><span class="p">)]</span>
+            <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">vertcrd</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">vertcrd</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ymax</span><span class="p">,</span> <span class="n">ymin</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="p">)</span>
+            <span class="c1"># if scale == &#39;log&#39;:</span>
+            <span class="c1">#   ax.set_xticklabels([&#39;%.1f&#39; % (10**x) for x in ax.get_xticks()])</span>
+
+            <span class="k">if</span> <span class="s1">&#39;TFLAG&#39;</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">SDATE</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">][:][</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+                <span class="n">EDATE</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">][:][</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+                <span class="n">STIME</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">][:][</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="n">ETIME</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">][:][</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">SDATE</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">SDATE</span> <span class="o">=</span> <span class="mi">1900001</span>
+                    <span class="n">EDATE</span> <span class="o">=</span> <span class="mi">1900001</span>
+                <span class="n">sdate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span>
+                    <span class="s1">&#39;</span><span class="si">%07d</span><span class="s1"> </span><span class="si">%06d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">SDATE</span><span class="p">,</span> <span class="n">STIME</span><span class="p">),</span> <span class="s1">&#39;%Y%j %H%M%S&#39;</span><span class="p">)</span>
+                <span class="n">edate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span>
+                    <span class="s1">&#39;</span><span class="si">%07d</span><span class="s1"> </span><span class="si">%06d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">EDATE</span><span class="p">,</span> <span class="n">ETIME</span><span class="p">),</span> <span class="s1">&#39;%Y%j %H%M%S&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="s1">&#39;tau0&#39;</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">sdate</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">1985</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> \
+                    <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;tau0&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">edate</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">1985</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> \
+                    <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;tau1&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">times</span> <span class="o">=</span> <span class="n">gettimes</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="n">sdate</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">edate</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tespaths</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">tesl</span><span class="p">,</span> <span class="n">tesr</span> <span class="o">=</span> <span class="n">plot_tes</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">lonbs</span><span class="p">,</span> <span class="n">latbs</span><span class="p">,</span> <span class="n">tespaths</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">tesl</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">llines</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">tesl</span><span class="p">,</span> <span class="n">tesr</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">omipaths</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">airdenvals</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;AIRDEN&#39;</span><span class="p">][:]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">omil</span><span class="p">,</span> <span class="n">omir</span> <span class="o">=</span> <span class="n">plot_omi</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">lonbs</span><span class="p">,</span> <span class="n">latbs</span><span class="p">,</span> <span class="n">omipaths</span><span class="p">,</span>
+                                      <span class="n">airden</span><span class="o">=</span><span class="n">airdenvals</span><span class="p">,</span> <span class="n">airdenvert</span><span class="o">=</span><span class="n">vertcrd</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">omil</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">llines</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">omil</span><span class="p">,</span> <span class="n">omir</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sdate</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span>
+                <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">),</span> <span class="n">edate</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="n">var_name</span>
+        <span class="k">if</span> <span class="n">sigma</span><span class="p">:</span>
+            <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;sigma&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;pressure&#39;</span><span class="p">)</span>
+
+        <span class="n">xmax</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="n">xmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">:</span>
+            <span class="n">tmp_xmin</span><span class="p">,</span> <span class="n">tmp_xmax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">()</span>
+            <span class="n">xmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">tmp_xmax</span><span class="p">,</span> <span class="n">xmax</span><span class="p">)</span>
+            <span class="n">xmin</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">tmp_xmin</span><span class="p">,</span> <span class="n">xmin</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">outunit</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;South&#39;</span><span class="p">)</span>
+            <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;East&#39;</span><span class="p">)</span>
+            <span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;North&#39;</span><span class="p">)</span>
+            <span class="n">axs</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;West&#39;</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="mf">.90</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">outunit</span><span class="p">),</span>
+                     <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">nl</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">axs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_lines</span><span class="p">())</span> <span class="o">&gt;</span> <span class="n">nl</span><span class="p">:</span>
+                <span class="n">nl</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_lines</span><span class="p">())</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">sca</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+
+        <span class="n">llabels</span> <span class="o">=</span> <span class="p">[</span><span class="n">_l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span> <span class="k">for</span> <span class="n">_l</span> <span class="ow">in</span> <span class="n">llines</span><span class="p">]</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">llines</span><span class="p">,</span> <span class="n">llabels</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">.1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                   <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper left&#39;</span><span class="p">,</span> <span class="n">bbox_transform</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">transFigure</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">edges</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.975</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span>
+                     <span class="n">verticalalignment</span><span class="o">=</span><span class="s2">&quot;top&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.025</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span>
+                     <span class="n">verticalalignment</span><span class="o">=</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">figpath</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">outpath</span> <span class="o">+</span> <span class="n">var_name</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">args</span><span class="o">.</span><span class="n">figformat</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">figpath</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saved fig&#39;</span><span class="p">,</span> <span class="n">figpath</span><span class="p">)</span>
+        <span class="c1"># plt.close(fig)</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,368 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.plotutil package &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PseudoNetCDF.racmfiles package" href="PseudoNetCDF.racmfiles.html" />
+    <link rel="prev" title="PseudoNetCDF.noaafiles package" href="PseudoNetCDF.noaafiles.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core Objects</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="PseudoNetCDF.html">PseudoNetCDF package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PseudoNetCDF.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.aermodfiles.html">PseudoNetCDF.aermodfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.camxfiles.html">PseudoNetCDF.camxfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.ceilometerfiles.html">PseudoNetCDF.ceilometerfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.cmaqfiles.html">PseudoNetCDF.cmaqfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.conventions.html">PseudoNetCDF.conventions package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.core.html">PseudoNetCDF.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.derived.html">PseudoNetCDF.derived package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.epafiles.html">PseudoNetCDF.epafiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.geoschemfiles.html">PseudoNetCDF.geoschemfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.icarttfiles.html">PseudoNetCDF.icarttfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.noaafiles.html">PseudoNetCDF.noaafiles package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">PseudoNetCDF.plotutil package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.plotutil.colors">PseudoNetCDF.plotutil.colors module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.plotutil.pnc2d">PseudoNetCDF.plotutil.pnc2d module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.plotutil.pncmap">PseudoNetCDF.plotutil.pncmap module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.plotutil.pncscatter">PseudoNetCDF.plotutil.pncscatter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.plotutil.pncts">PseudoNetCDF.plotutil.pncts module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.plotutil.vertprofile">PseudoNetCDF.plotutil.vertprofile module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-PseudoNetCDF.plotutil">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.racmfiles.html">PseudoNetCDF.racmfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.raob.html">PseudoNetCDF.raob package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.test.html">PseudoNetCDF.test package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.testcase.html">PseudoNetCDF.testcase package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.textfiles.html">PseudoNetCDF.textfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.toms.html">PseudoNetCDF.toms package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.woudcfiles.html">PseudoNetCDF.woudcfiles package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PseudoNetCDF.wrffiles.html">PseudoNetCDF.wrffiles package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.ArrayTransforms">PseudoNetCDF.ArrayTransforms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.MetaNetCDF">PseudoNetCDF.MetaNetCDF module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.coordutil">PseudoNetCDF.coordutil module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.net_balance">PseudoNetCDF.net_balance module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.netcdf">PseudoNetCDF.netcdf module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncdump">PseudoNetCDF.pncdump module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pnceval">PseudoNetCDF.pnceval module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncgen">PseudoNetCDF.pncgen module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncload">PseudoNetCDF.pncload module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncparse">PseudoNetCDF.pncparse module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncview">PseudoNetCDF.pncview module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.pncwarn">PseudoNetCDF.pncwarn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.register">PseudoNetCDF.register module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.sci_var">PseudoNetCDF.sci_var module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.units">PseudoNetCDF.units module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.userfuncs">PseudoNetCDF.userfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.version">PseudoNetCDF.version module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF.xarray_plugin">PseudoNetCDF.xarray_plugin module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PseudoNetCDF.html#module-PseudoNetCDF">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="PseudoNetCDF.html">PseudoNetCDF package</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.plotutil package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/PseudoNetCDF.plotutil.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pseudonetcdf-plotutil-package">
+<h1>PseudoNetCDF.plotutil package<a class="headerlink" href="#pseudonetcdf-plotutil-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-PseudoNetCDF.plotutil.colors">
+<span id="pseudonetcdf-plotutil-colors-module"></span><h2>PseudoNetCDF.plotutil.colors module<a class="headerlink" href="#module-PseudoNetCDF.plotutil.colors" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.colors.get_cmap">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.colors.</span></span><span class="sig-name descname"><span class="pre">get_cmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/matplotlib/cm.html#get_cmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.colors.get_cmap" title="Link to this definition"></a></dt>
+<dd><p>[<em>Deprecated</em>] Get a colormap instance, defaulting to rc values if <em>name</em> is None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<cite>~matplotlib.colors.Colormap</cite> or str or None, default: None) – If a <cite>.Colormap</cite> instance, it will be returned. Otherwise, the name of
+a colormap known to Matplotlib, which will be resampled by <em>lut</em>. The
+default, None, means <a href="#id1"><span class="problematic" id="id2">:rc:`image.cmap`</span></a>.</p></li>
+<li><p><strong>lut</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>default: None</em>) – If <em>name</em> is not already a Colormap instance and <em>lut</em> is not None, the
+colormap will be resampled to have <em>lut</em> entries in the lookup table.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Colormap</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 3.7: </span>Use <code class="docutils literal notranslate"><span class="pre">matplotlib.colormaps[name]</span></code> or <code class="docutils literal notranslate"><span class="pre">matplotlib.colormaps.get_cmap()</span></code> or <code class="docutils literal notranslate"><span class="pre">pyplot.get_cmap()</span></code> instead.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.colors.get_norm">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.colors.</span></span><span class="sig-name descname"><span class="pre">get_norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/colors.html#get_norm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.colors.get_norm" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.colors.register">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.colors.</span></span><span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmap</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PseudoNetCDF.plotutil.colors.register" title="Link to this definition"></a></dt>
+<dd><p>Register a new colormap.</p>
+<p>The colormap name can then be used as a string argument to any <code class="docutils literal notranslate"><span class="pre">cmap</span></code>
+parameter in Matplotlib. It is also available in <code class="docutils literal notranslate"><span class="pre">pyplot.get_cmap</span></code>.</p>
+<p>The colormap registry stores a copy of the given colormap, so that
+future changes to the original colormap instance do not affect the
+registered colormap. Think of this as the registry taking a snapshot
+of the colormap at registration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cmap</strong> (<em>matplotlib.colors.Colormap</em>) – The colormap to register.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name for the colormap. If not given, <code class="docutils literal notranslate"><span class="pre">cmap.name</span></code> is used.</p></li>
+<li><p><strong>force</strong> (<em>bool</em><em>, </em><em>default: False</em>) – If False, a ValueError is raised if trying to overwrite an already
+registered name. True supports overwriting registered colormaps
+other than the builtin colormaps.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.colors.register_norm">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.colors.</span></span><span class="sig-name descname"><span class="pre">register_norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/colors.html#register_norm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.colors.register_norm" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.plotutil.pnc2d">
+<span id="pseudonetcdf-plotutil-pnc2d-module"></span><h2>PseudoNetCDF.plotutil.pnc2d module<a class="headerlink" href="#module-PseudoNetCDF.plotutil.pnc2d" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.pnc2d.make2ds">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.pnc2d.</span></span><span class="sig-name descname"><span class="pre">make2ds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/pnc2d.html#make2ds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.pnc2d.make2ds" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.plotutil.pncmap">
+<span id="pseudonetcdf-plotutil-pncmap-module"></span><h2>PseudoNetCDF.plotutil.pncmap module<a class="headerlink" href="#module-PseudoNetCDF.plotutil.pncmap" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.pncmap.makemaps">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.pncmap.</span></span><span class="sig-name descname"><span class="pre">makemaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/pncmap.html#makemaps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.pncmap.makemaps" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.plotutil.pncscatter">
+<span id="pseudonetcdf-plotutil-pncscatter-module"></span><h2>PseudoNetCDF.plotutil.pncscatter module<a class="headerlink" href="#module-PseudoNetCDF.plotutil.pncscatter" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.pncscatter.pncscatter">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.pncscatter.</span></span><span class="sig-name descname"><span class="pre">pncscatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/pncscatter.html#pncscatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.pncscatter.pncscatter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.plotutil.pncts">
+<span id="pseudonetcdf-plotutil-pncts-module"></span><h2>PseudoNetCDF.plotutil.pncts module<a class="headerlink" href="#module-PseudoNetCDF.plotutil.pncts" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.pncts.plotts">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.pncts.</span></span><span class="sig-name descname"><span class="pre">plotts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/pncts.html#plotts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.pncts.plotts" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.plotutil.vertprofile">
+<span id="pseudonetcdf-plotutil-vertprofile-module"></span><h2>PseudoNetCDF.plotutil.vertprofile module<a class="headerlink" href="#module-PseudoNetCDF.plotutil.vertprofile" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.vertprofile.add_vertprofile_options">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.vertprofile.</span></span><span class="sig-name descname"><span class="pre">add_vertprofile_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertparser</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/vertprofile.html#add_vertprofile_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.vertprofile.add_vertprofile_options" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.vertprofile.maskfilled">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.vertprofile.</span></span><span class="sig-name descname"><span class="pre">maskfilled</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/vertprofile.html#maskfilled"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.vertprofile.maskfilled" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.vertprofile.matchspace">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.vertprofile.</span></span><span class="sig-name descname"><span class="pre">matchspace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_bnds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat_bnds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/vertprofile.html#matchspace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.vertprofile.matchspace" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.vertprofile.minmaxmean">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.vertprofile.</span></span><span class="sig-name descname"><span class="pre">minmaxmean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertcrd</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/vertprofile.html#minmaxmean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.vertprofile.minmaxmean" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.vertprofile.plot_omi">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.vertprofile.</span></span><span class="sig-name descname"><span class="pre">plot_omi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_bnds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat_bnds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omipaths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'O3Profile'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">airden</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">airdenvert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/vertprofile.html#plot_omi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.vertprofile.plot_omi" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.vertprofile.plot_tes">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.vertprofile.</span></span><span class="sig-name descname"><span class="pre">plot_tes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_bnds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat_bnds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tespaths</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/vertprofile.html#plot_tes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.vertprofile.plot_tes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.vertprofile.plotprofile">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.vertprofile.</span></span><span class="sig-name descname"><span class="pre">plotprofile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/vertprofile.html#plotprofile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.vertprofile.plotprofile" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.vertprofile.vertprofileplot">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.vertprofile.</span></span><span class="sig-name descname"><span class="pre">vertprofileplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ifiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/vertprofile.html#vertprofileplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.vertprofile.vertprofileplot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-PseudoNetCDF.plotutil">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-PseudoNetCDF.plotutil" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.SegmentedLogNorm">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.</span></span><span class="sig-name descname"><span class="pre">SegmentedLogNorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncolors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_levels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil.html#SegmentedLogNorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.SegmentedLogNorm" title="Link to this definition"></a></dt>
+<dd><p>Create BoundaryNorm with (N=bins) log spacing.  If full_levels,
+then colorbar will start on a full log level and end on a full
+log level.</p>
+<p>boundaries = np.logspace(np.log10(vmin), np.log10(vmax), bins + 1)
+return BoundaryNorm(boundaries, ncolors)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.SegmentedNorm">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.</span></span><span class="sig-name descname"><span class="pre">SegmentedNorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncolors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil.html#SegmentedNorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.SegmentedNorm" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.add_vertprofile_options">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.</span></span><span class="sig-name descname"><span class="pre">add_vertprofile_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertparser</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/vertprofile.html#add_vertprofile_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.add_vertprofile_options" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.plot">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.</span></span><span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotfunc=&lt;function</span> <span class="pre">plot&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil.html#plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.plot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.plot2d">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.</span></span><span class="sig-name descname"><span class="pre">plot2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil.html#plot2d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.plot2d" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.plotcontour">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.</span></span><span class="sig-name descname"><span class="pre">plotcontour</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil.html#plotcontour"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.plotcontour" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.plotcontourf">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.</span></span><span class="sig-name descname"><span class="pre">plotcontourf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil.html#plotcontourf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.plotcontourf" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.plotprofile">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.</span></span><span class="sig-name descname"><span class="pre">plotprofile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/vertprofile.html#plotprofile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.plotprofile" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.plotscatter">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.</span></span><span class="sig-name descname"><span class="pre">plotscatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PseudoNetCDF.plotutil.plotscatter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PseudoNetCDF.plotutil.plotts">
+<span class="sig-prename descclassname"><span class="pre">PseudoNetCDF.plotutil.</span></span><span class="sig-name descname"><span class="pre">plotts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PseudoNetCDF/plotutil/pncts.html#plotts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PseudoNetCDF.plotutil.plotts" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="PseudoNetCDF.noaafiles.html" class="btn btn-neutral float-left" title="PseudoNetCDF.noaafiles package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="PseudoNetCDF.racmfiles.html" class="btn btn-neutral float-right" title="PseudoNetCDF.racmfiles package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

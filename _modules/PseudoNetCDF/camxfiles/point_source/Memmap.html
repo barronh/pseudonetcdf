@@ -1,0 +1,449 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.camxfiles.point_source.Memmap &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.camxfiles.point_source.Memmap</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.camxfiles.point_source.Memmap</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">unicode_literals</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;point_source&#39;</span><span class="p">]</span>
+<span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">.. _Memmap</span>
+<span class="s2">:mod:`Memmap` -- point_source Memmap interface</span>
+<span class="s2">============================================</span>
+
+<span class="s2">.. module:: Memmap</span>
+<span class="s2">   :platform: Unix, Windows</span>
+<span class="s2">   :synopsis: Provides :ref:`PseudoNetCDF` memory map for CAMx</span>
+<span class="s2">              point_source files.  See PseudoNetCDF.sci_var.PseudoNetCDFFile</span>
+<span class="s2">              for interface details</span>
+<span class="s2">.. moduleauthor:: Barron Henderson &lt;barronh@gmail.com&gt;</span>
+<span class="s2">.. modulecontributor:: Yoann Long (little endian support)</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="c1"># Distribution packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">unittest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
+
+<span class="c1"># Site-Packages</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">zeros</span><span class="p">,</span> <span class="n">array</span><span class="p">,</span> <span class="n">memmap</span><span class="p">,</span> <span class="n">dtype</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="c1"># This Package modules</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span><span class="p">,</span> <span class="n">PseudoNetCDFVariable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFVariables</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.ArrayTransforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvertCAMxTime</span>
+
+<span class="c1"># for use in identifying uncaught nan</span>
+<span class="n">listnan</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s1">&#39;&gt;f&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\xff\xc0\x00\x00</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">checkarray</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span>
+<span class="n">checkarray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">listnan</span>
+<span class="n">array_nan</span> <span class="o">=</span> <span class="n">checkarray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="point_source">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.point_source.html#PseudoNetCDF.camxfiles.Memmaps.point_source">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">point_source</span><span class="p">(</span><span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    point_source provides a PseudoNetCDF interface for CAMx</span>
+<span class="sd">    point_source files.  Where possible, the inteface follows</span>
+<span class="sd">    IOAPI conventions (see www.baronams.com).</span>
+
+<span class="sd">    ex:</span>
+<span class="sd">        &gt;&gt;&gt; point_source_path = &#39;camx_point_source.bin&#39;</span>
+<span class="sd">        &gt;&gt;&gt; rows,cols = 65,83</span>
+<span class="sd">        &gt;&gt;&gt; point_sourcefile = point_source(point_source_path,rows,cols)</span>
+<span class="sd">        &gt;&gt;&gt; point_sourcefile.variables.keys()</span>
+<span class="sd">        [&#39;TFLAG&#39;, &#39;ETFLAG&#39;, &#39;TFLAG&#39;, &#39;XSTK&#39;, &#39;YSTK&#39;, &#39;HSTK&#39;, &#39;DSTK&#39;, &#39;TSTK&#39;,</span>
+<span class="sd">         &#39;VSTK&#39;, &#39;KCELL&#39;, &#39;FLOW&#39;, &#39;PLMHT&#39;, &#39;NSTKS&#39;, &#39;NO&#39;, &#39;NO2&#39;, ...]</span>
+<span class="sd">        &gt;&gt;&gt; tflag = point_sourcefile.variables[&#39;TFLAG&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; tflag.dimensions</span>
+<span class="sd">        (&#39;TSTEP&#39;, &#39;VAR&#39;, &#39;DATE-TIME&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; tflag[0,0,:]</span>
+<span class="sd">        array([2005185,       0])</span>
+<span class="sd">        &gt;&gt;&gt; tflag[-1,0,:]</span>
+<span class="sd">        array([2005185,  240000])</span>
+<span class="sd">        &gt;&gt;&gt; v = point_sourcefile.variables[&#39;XSTK&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; v.dimensions</span>
+<span class="sd">        (&#39;NSTK&#39;,)</span>
+<span class="sd">        &gt;&gt;&gt; v.shape</span>
+<span class="sd">        (38452,)</span>
+<span class="sd">        &gt;&gt;&gt; v = point_sourcefile.variables[&#39;NO2&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; v.dimensions</span>
+<span class="sd">        (&#39;TSTEP&#39;, &#39;NSTK&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; v.shape</span>
+<span class="sd">        (25, 38452)</span>
+<span class="sd">        &gt;&gt;&gt; point_sourcefile.dimensions</span>
+<span class="sd">        {&#39;TSTEP&#39;: 25, &#39;NSTK&#39;: 38452}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="point_source.isMine">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.camxfiles.point_source.html#PseudoNetCDF.camxfiles.Memmaps.point_source.isMine">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">isMine</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">point_source</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rf</span><span class="p">,</span> <span class="n">endian</span><span class="o">=</span><span class="s1">&#39;big&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialization included reading the header and learning</span>
+<span class="sd">        about the format.</span>
+
+<span class="sd">        see __readheader and __gettimestep() for more info</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__rffile</span> <span class="o">=</span> <span class="n">rf</span>
+
+        <span class="n">ep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__endianprefix</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">big</span><span class="o">=</span><span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="n">little</span><span class="o">=</span><span class="s1">&#39;&lt;&#39;</span><span class="p">)[</span><span class="n">endian</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">kwds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span> <span class="o">=</span> <span class="n">memmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__rffile</span><span class="p">,</span> <span class="n">ep</span> <span class="o">+</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__emiss_hdr_fmt</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;note&#39;</span><span class="p">,</span> <span class="s1">&#39;itzon&#39;</span><span class="p">,</span> <span class="s1">&#39;nspec&#39;</span><span class="p">,</span> <span class="s1">&#39;ibdate&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;btime&#39;</span><span class="p">,</span> <span class="s1">&#39;iedate&#39;</span><span class="p">,</span> <span class="s1">&#39;etime&#39;</span><span class="p">,</span> <span class="s1">&#39;EPAD&#39;</span><span class="p">],</span>
+            <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;(10,4)S1&#39;</span><span class="p">,</span> <span class="s1">&#39;(60,4)S1&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">]))</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">(</span><span class="n">ep</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr_fmt</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">,</span> <span class="s1">&#39;plon&#39;</span><span class="p">,</span> <span class="s1">&#39;plat&#39;</span><span class="p">,</span> <span class="s1">&#39;iutm&#39;</span><span class="p">,</span> <span class="s1">&#39;xorg&#39;</span><span class="p">,</span> <span class="s1">&#39;yorg&#39;</span><span class="p">,</span> <span class="s1">&#39;delx&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;dely&#39;</span><span class="p">,</span> <span class="s1">&#39;nx&#39;</span><span class="p">,</span> <span class="s1">&#39;ny&#39;</span><span class="p">,</span> <span class="s1">&#39;nz&#39;</span><span class="p">,</span> <span class="s1">&#39;iproj&#39;</span><span class="p">,</span> <span class="s1">&#39;istag&#39;</span><span class="p">,</span> <span class="s1">&#39;tlat1&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;tlat2&#39;</span><span class="p">,</span> <span class="s1">&#39;rdum5&#39;</span><span class="p">,</span> <span class="s1">&#39;EPAD&#39;</span><span class="p">],</span>
+            <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">]))</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">(</span><span class="n">ep</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__cell_hdr_fmt</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">,</span> <span class="s1">&#39;ione1&#39;</span><span class="p">,</span> <span class="s1">&#39;ione2&#39;</span><span class="p">,</span> <span class="s1">&#39;nx&#39;</span><span class="p">,</span> <span class="s1">&#39;ny&#39;</span><span class="p">,</span> <span class="s1">&#39;EPAD&#39;</span><span class="p">],</span>
+            <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">]))</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">(</span><span class="n">ep</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__spc_hdr_fmt</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="s1">&#39;(10,4)&#39;</span> <span class="o">+</span> <span class="s1">&#39;S1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">(</span><span class="n">ep</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__time_hdr_fmt</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">,</span> <span class="s1">&#39;ibdate&#39;</span><span class="p">,</span> <span class="s1">&#39;btime&#39;</span><span class="p">,</span> <span class="s1">&#39;iedate&#39;</span><span class="p">,</span> <span class="s1">&#39;etime&#39;</span><span class="p">,</span> <span class="s1">&#39;EPAD&#39;</span><span class="p">],</span>
+            <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">]))</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">(</span><span class="n">ep</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__nstk_hdr_fmt</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">,</span> <span class="s1">&#39;ione&#39;</span><span class="p">,</span> <span class="s1">&#39;nstk&#39;</span><span class="p">,</span> <span class="s1">&#39;EPAD&#39;</span><span class="p">],</span>
+            <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">]))</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">(</span><span class="n">ep</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__stk_prop_fmt</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;XSTK&#39;</span><span class="p">,</span> <span class="s1">&#39;YSTK&#39;</span><span class="p">,</span> <span class="s1">&#39;HSTK&#39;</span><span class="p">,</span> <span class="s1">&#39;DSTK&#39;</span><span class="p">,</span> <span class="s1">&#39;TSTK&#39;</span><span class="p">,</span> <span class="s1">&#39;VSTK&#39;</span><span class="p">],</span>
+            <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">]))</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">(</span><span class="n">ep</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__stk_time_prop_fmt</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;IONE&#39;</span><span class="p">,</span> <span class="s1">&#39;ITWO&#39;</span><span class="p">,</span> <span class="s1">&#39;KCELL&#39;</span><span class="p">,</span> <span class="s1">&#39;FLOW&#39;</span><span class="p">,</span> <span class="s1">&#39;PLMHT&#39;</span><span class="p">],</span>
+            <span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">]))</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">(</span><span class="n">ep</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__globalheader</span><span class="p">()</span>
+        <span class="n">varkeys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ETFLAG&#39;</span><span class="p">,</span> <span class="s1">&#39;TFLAG&#39;</span><span class="p">,</span> <span class="s1">&#39;XSTK&#39;</span><span class="p">,</span> <span class="s1">&#39;YSTK&#39;</span><span class="p">,</span> <span class="s1">&#39;HSTK&#39;</span><span class="p">,</span> <span class="s1">&#39;DSTK&#39;</span><span class="p">,</span> <span class="s1">&#39;TSTK&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;VSTK&#39;</span><span class="p">,</span> <span class="s1">&#39;IONE&#39;</span><span class="p">,</span> <span class="s1">&#39;ITWO&#39;</span><span class="p">,</span> <span class="s1">&#39;KCELL&#39;</span><span class="p">,</span> <span class="s1">&#39;FLOW&#39;</span><span class="p">,</span> <span class="s1">&#39;PLMHT&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;NSTKS&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__spc_names</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SPC_NAMES</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__spc_names</span><span class="p">])</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;VAR-LIST&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">varkeys</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__variables</span><span class="p">,</span> <span class="n">varkeys</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__time_stks</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;NSTK&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__nstk_hdr</span><span class="p">[</span><span class="s1">&#39;nstk&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__globalheader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        __readheader reads the header section of the ipr file</span>
+<span class="sd">        it initializes each header field (see CAMx Users Manual for a list)</span>
+<span class="sd">        as properties of the ipr class</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__endianprefix</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">stop</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__emiss_hdr_fmt</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">//</span> <span class="mi">4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__emiss_hdr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span>\
+                               <span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__emiss_hdr_fmt</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__emiss_hdr</span><span class="o">.</span><span class="n">nbytes</span> <span class="o">//</span> <span class="mi">4</span>
+        <span class="k">assert</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">__emiss_hdr</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">__emiss_hdr</span><span class="p">[</span><span class="s1">&#39;EPAD&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+
+        <span class="n">stop</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr_fmt</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">//</span> <span class="mi">4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr_fmt</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="o">.</span><span class="n">nbytes</span> <span class="o">//</span> <span class="mi">4</span>
+
+        <span class="k">assert</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="p">[</span><span class="s1">&#39;EPAD&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NAME</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__emiss_hdr</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;S10&#39;</span><span class="p">)[</span>
+            <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NOTE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__emiss_hdr</span><span class="p">[</span><span class="s1">&#39;note&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;S60&#39;</span><span class="p">)[</span>
+            <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">XORIG</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="p">[</span><span class="s1">&#39;xorg&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">YORIG</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="p">[</span><span class="s1">&#39;yorg&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">XCELL</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="p">[</span><span class="s1">&#39;delx&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">YCELL</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="p">[</span><span class="s1">&#39;dely&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NCOLS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="p">[</span><span class="s1">&#39;nx&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NROWS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="p">[</span><span class="s1">&#39;ny&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NLAYS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="p">[</span><span class="s1">&#39;nz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PLON</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="p">[</span><span class="s1">&#39;plon&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PLAT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="p">[</span><span class="s1">&#39;plat&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TLAT1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="p">[</span><span class="s1">&#39;tlat1&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TLAT2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="p">[</span><span class="s1">&#39;tlat2&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">IUTM</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="p">[</span><span class="s1">&#39;iutm&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ISTAG</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="p">[</span><span class="s1">&#39;istag&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CPROJ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__grid_hdr</span><span class="p">[</span><span class="s1">&#39;iproj&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">stop</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cell_hdr_fmt</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">//</span> <span class="mi">4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__cell_hdr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__cell_hdr_fmt</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cell_hdr</span><span class="o">.</span><span class="n">nbytes</span> <span class="o">//</span> <span class="mi">4</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">assert</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">__cell_hdr</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cell_hdr</span><span class="p">[</span><span class="s1">&#39;EPAD&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+
+        <span class="n">nspec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__emiss_hdr</span><span class="p">[</span><span class="s1">&#39;nspec&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ITZON</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__emiss_hdr</span><span class="p">[</span><span class="s1">&#39;itzon&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">stop</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__spc_hdr_fmt</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">//</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">nspec</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__spc_hdr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span>\
+                             <span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">ep</span> <span class="o">+</span> <span class="s1">&#39;S1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nspec</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__spc_hdr</span><span class="o">.</span><span class="n">nbytes</span> <span class="o">//</span> <span class="mi">4</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="n">spc_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">char</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="n">spc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;S10&#39;</span><span class="p">))[</span>
+            <span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">spc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__spc_hdr</span><span class="p">]</span>
+        <span class="n">spc_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">spc</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">spc</span><span class="p">,</span> <span class="s1">&#39;decode&#39;</span><span class="p">)</span>
+                     <span class="k">else</span> <span class="n">spc</span> <span class="k">for</span> <span class="n">spc</span> <span class="ow">in</span> <span class="n">spc_names</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__spc_names</span> <span class="o">=</span> <span class="n">spc_names</span>
+        <span class="n">stop</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__nstk_hdr_fmt</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">//</span> <span class="mi">4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__nstk_hdr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__nstk_hdr_fmt</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__nstk_hdr</span><span class="o">.</span><span class="n">nbytes</span> <span class="o">//</span> <span class="mi">4</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">assert</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">__nstk_hdr</span><span class="p">[</span><span class="s1">&#39;SPAD&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">__nstk_hdr</span><span class="p">[</span><span class="s1">&#39;EPAD&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+
+        <span class="n">nstk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__nstk_hdr</span><span class="p">[</span><span class="s1">&#39;nstk&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;NSTK&#39;</span><span class="p">,</span> <span class="n">nstk</span><span class="p">)</span>
+
+        <span class="n">stop</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stk_prop_fmt</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">//</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">nstk</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__stk_props</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="n">nstk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stk_prop_fmt</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__stk_prop_fmt</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stk_props</span><span class="o">.</span><span class="n">nbytes</span> <span class="o">//</span> <span class="mi">4</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data_start</span> <span class="o">=</span> <span class="n">offset</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SDATE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__emiss_hdr</span><span class="p">[</span><span class="s1">&#39;ibdate&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">STIME</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__emiss_hdr</span><span class="p">[</span><span class="s1">&#39;btime&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EDATE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__emiss_hdr</span><span class="p">[</span><span class="s1">&#39;iedate&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ETIME</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__emiss_hdr</span><span class="p">[</span><span class="s1">&#39;etime&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__getspcidx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spc</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__spc_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">spc</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__time_stks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__endianprefix</span>
+        <span class="n">nspcs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__spc_names</span><span class="p">)</span>
+        <span class="n">nstks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;NSTK&#39;</span><span class="p">])</span>
+        <span class="n">date_block_size</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="n">stk_block_size</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">stk_props_size</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">nstks</span> <span class="o">*</span> <span class="mi">5</span>
+        <span class="n">emiss_block_size</span> <span class="o">=</span> <span class="n">nspcs</span> <span class="o">*</span> <span class="p">(</span><span class="n">nstks</span> <span class="o">+</span> <span class="mi">13</span><span class="p">)</span>
+        <span class="n">hour_block_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">date_block_size</span> <span class="o">+</span> <span class="n">stk_block_size</span> <span class="o">+</span>
+                           <span class="n">stk_props_size</span> <span class="o">+</span> <span class="n">emiss_block_size</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__memmap</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__data_start</span><span class="p">:]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">size</span> <span class="o">//</span> <span class="n">hour_block_size</span><span class="p">,</span> <span class="n">hour_block_size</span><span class="p">)</span>
+        <span class="n">ntimes</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="n">ntimes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;DATE-TIME&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">date_block_size</span>
+        <span class="n">date_times</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+        <span class="n">dates</span> <span class="o">=</span> <span class="n">date_times</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">ep</span> <span class="o">+</span> <span class="s1">&#39;i&#39;</span><span class="p">)</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="n">date_times</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]]</span>
+
+        <span class="n">start</span> <span class="o">=</span> <span class="n">end</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">stk_block_size</span>
+        <span class="n">nstk_hdr</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">ep</span> <span class="o">+</span> <span class="s1">&#39;i&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">nstks</span> <span class="o">==</span> <span class="n">nstk_hdr</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Number of stacks varies with time&quot;</span><span class="p">)</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">end</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">stk_props_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__hourly_stk_props</span> <span class="o">=</span> \
+            <span class="n">data</span><span class="p">[:,</span> <span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ntimes</span><span class="p">,</span> <span class="n">nstks</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">start</span> <span class="o">=</span> <span class="n">end</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">emiss_block_size</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">end</span> <span class="o">==</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Incorrect shape&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__emiss_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">start</span><span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="n">ntimes</span><span class="p">,</span> <span class="n">nspcs</span><span class="p">,</span> <span class="mi">13</span> <span class="o">+</span> <span class="n">nstks</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="mi">12</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">bdates</span> <span class="o">=</span> <span class="n">dates</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">btimes</span> <span class="o">=</span> <span class="n">times</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">edates</span> <span class="o">=</span> <span class="n">dates</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">etimes</span> <span class="o">=</span> <span class="n">times</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NSTEPS</span> <span class="o">=</span> <span class="n">ntimes</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__spc_names</span><span class="p">)</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ConvertCAMxTime</span><span class="p">(</span>
+            <span class="n">bdates</span><span class="p">,</span> <span class="n">btimes</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;VAR&#39;</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;ETFLAG&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ConvertCAMxTime</span><span class="p">(</span>
+            <span class="n">edates</span><span class="p">,</span> <span class="n">etimes</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;VAR&#39;</span><span class="p">]))</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;NSTKS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;NSTKS&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,),</span> <span class="n">values</span><span class="o">=</span><span class="n">array</span><span class="p">(</span><span class="n">nstk_hdr</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]))</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;#&#39;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;NSTKS&#39;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">var_desc</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">long_name</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">,</span> <span class="s1">&#39;ETFLAG&#39;</span><span class="p">,</span> <span class="s1">&#39;NSTKS&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;XSTK&#39;</span><span class="p">,</span> <span class="s1">&#39;YSTK&#39;</span><span class="p">,</span> <span class="s1">&#39;HSTK&#39;</span><span class="p">,</span> <span class="s1">&#39;DSTK&#39;</span><span class="p">,</span> <span class="s1">&#39;TSTK&#39;</span><span class="p">,</span> <span class="s1">&#39;VSTK&#39;</span><span class="p">]:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;NSTK&#39;</span><span class="p">,),</span> <span class="n">values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__stk_props</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;XSTK&#39;</span><span class="p">:</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;YSTK&#39;</span><span class="p">:</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;HSTK&#39;</span><span class="p">:</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;DSTK&#39;</span><span class="p">:</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;TSTK&#39;</span><span class="p">:</span> <span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="s1">&#39;VSTK&#39;</span><span class="p">:</span> <span class="s1">&#39;m/h&#39;</span><span class="p">}[</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">var_desc</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">v</span>
+        <span class="k">elif</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;IONE&#39;</span><span class="p">,</span> <span class="s1">&#39;ITWO&#39;</span><span class="p">,</span> <span class="s1">&#39;KCELL&#39;</span><span class="p">,</span> <span class="s1">&#39;FLOW&#39;</span><span class="p">,</span> <span class="s1">&#39;PLMHT&#39;</span><span class="p">]:</span>
+            <span class="n">data_type</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;IONE&#39;</span><span class="p">:</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;ITWO&#39;</span><span class="p">:</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;KCELL&#39;</span><span class="p">:</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;FLOW&#39;</span><span class="p">:</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;PLMHT&#39;</span><span class="p">:</span> <span class="s1">&#39;f&#39;</span><span class="p">}[</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">data_type</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;NSTK&#39;</span><span class="p">))</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;IONE&#39;</span><span class="p">:</span> <span class="s1">&#39;#&#39;</span><span class="p">,</span> <span class="s1">&#39;ITWO&#39;</span><span class="p">:</span> <span class="s1">&#39;#&#39;</span><span class="p">,</span> <span class="s1">&#39;KCELL&#39;</span><span class="p">:</span> <span class="s1">&#39;#&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;FLOW&#39;</span><span class="p">:</span> <span class="s1">&#39;m**3/hr&#39;</span><span class="p">,</span> <span class="s1">&#39;PLMHT&#39;</span><span class="p">:</span> <span class="s1">&#39;m&#39;</span><span class="p">}[</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">var_desc</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hourly_stk_props</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">[</span>
+                <span class="s1">&#39;IONE&#39;</span><span class="p">,</span> <span class="s1">&#39;ITWO&#39;</span><span class="p">,</span> <span class="s1">&#39;KCELL&#39;</span><span class="p">,</span> <span class="s1">&#39;FLOW&#39;</span><span class="p">,</span> <span class="s1">&#39;PLMHT&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span>
+            <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;&gt;&#39;</span> <span class="o">+</span> <span class="n">data_type</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">v</span>
+        <span class="k">elif</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__spc_names</span><span class="p">:</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__emiss_data</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getspcidx</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="p">:]</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;NSTK&#39;</span><span class="p">),</span>
+                                     <span class="n">values</span><span class="o">=</span><span class="n">vals</span><span class="p">)</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;mole/hr&#39;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">var_desc</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">v</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Unknown key </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">k</span><span class="p">)</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestMemmap</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">runTest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testPT</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF.testcase</span>
+        <span class="n">emissfile</span> <span class="o">=</span> <span class="n">point_source</span><span class="p">(</span>
+            <span class="n">PseudoNetCDF</span><span class="o">.</span><span class="n">testcase</span><span class="o">.</span><span class="n">camxfiles_paths</span><span class="p">[</span><span class="s1">&#39;point_source&#39;</span><span class="p">])</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">emissfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;NO2&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="n">v</span><span class="p">[:]</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">3.12931000e+02</span><span class="p">,</span> <span class="mf">1.23599997e+01</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span>
+             <span class="mf">5.27999992e+01</span><span class="p">,</span> <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">3.12931000e+02</span><span class="p">,</span> <span class="mf">1.23599997e+01</span><span class="p">,</span>
+             <span class="mf">0.00000000e+00</span><span class="p">,</span> <span class="mf">5.27999992e+01</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;f&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">testNCF2PT</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF.testcase</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncgen</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncgen</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+        <span class="n">inpath</span> <span class="o">=</span> <span class="n">PseudoNetCDF</span><span class="o">.</span><span class="n">testcase</span><span class="o">.</span><span class="n">camxfiles_paths</span><span class="p">[</span><span class="s1">&#39;point_source&#39;</span><span class="p">]</span>
+        <span class="n">outpath</span> <span class="o">=</span> <span class="n">inpath</span> <span class="o">+</span> <span class="s1">&#39;.check&#39;</span>
+        <span class="n">infile</span> <span class="o">=</span> <span class="n">point_source</span><span class="p">(</span><span class="n">inpath</span><span class="p">)</span>
+        <span class="n">pncgen</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;camxfiles.point_source&#39;</span><span class="p">)</span>
+        <span class="n">orig</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="c1"># outfile=point_source(outpath)</span>
+        <span class="c1"># for k, v0 in infile.variables.items():</span>
+        <span class="c1">#    v1 = outfile.variables[k]</span>
+        <span class="c1">#    print(k, (v0[:] == v1[:]).all())</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">orig</span> <span class="o">==</span> <span class="n">new</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">outpath</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

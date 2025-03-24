@@ -1,0 +1,387 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.derived.met &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.derived.met</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.derived.met</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFMaskedVariable</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">PseudoNetCDFVariable</span> <span class="o">=</span> <span class="n">PseudoNetCDFMaskedVariable</span>
+
+
+<div class="viewcode-block" id="add_derived_met">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.derived.html#PseudoNetCDF.derived.met.add_derived_met">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_derived_met</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">(</span><span class="n">results</span><span class="p">,)</span>
+    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">result</span><span class="o">.</span><span class="n">short_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span></div>
+
+
+
+<div class="viewcode-block" id="wmr_ptd">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.derived.html#PseudoNetCDF.derived.met.wmr_ptd">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">wmr_ptd</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">td</span><span class="p">,</span> <span class="n">gkg</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Inputs:</span>
+<span class="sd">       p = surface pressure in mb;</span>
+<span class="sd">       Td = dew point in deg C;</span>
+<span class="sd">    Calculates</span>
+<span class="sd">       e = vapor pressure in mb;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">       q = specific humidity in kg/kg.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dimensions</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s1">&#39;dimensions&#39;</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">td</span><span class="p">,</span> <span class="s1">&#39;dimensions&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">))</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="mf">6.112</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="mf">17.67</span> <span class="o">*</span> <span class="n">td</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">td</span> <span class="o">+</span> <span class="mf">243.5</span><span class="p">))</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.622</span> <span class="o">*</span> <span class="n">e</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="p">(</span><span class="mf">0.378</span> <span class="o">*</span> <span class="n">e</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">gkg</span><span class="p">:</span>
+        <span class="n">q</span> <span class="o">*=</span> <span class="mf">1000.</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;g/kg&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;kg/kg&#39;</span>
+    <span class="n">Q</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="n">q</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span>
+                             <span class="n">long_name</span><span class="o">=</span><span class="s1">&#39;specific humidity in kg/kg&#39;</span><span class="p">,</span>
+                             <span class="n">short_name</span><span class="o">=</span><span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">q</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Q</span></div>
+
+
+
+<div class="viewcode-block" id="relhum_ttd">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.derived.html#PseudoNetCDF.derived.met.relhum_ttd">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">relhum_ttd</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">td</span><span class="p">,</span> <span class="n">percent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    t - temperature in K</span>
+<span class="sd">    td - dewpoint temperature in K</span>
+
+
+<span class="sd">    ;</span>
+<span class="sd">    ; Calculate relative humidity given temperature (K)</span>
+<span class="sd">    ; and dew point temperature (K)</span>
+<span class="sd">    ;</span>
+<span class="sd">    ; reference: John Dutton, Ceaseless Wind, 1976</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dimensions</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;dimensions&#39;</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="n">td</span><span class="p">,</span> <span class="s1">&#39;dimensions&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;unknown&#39;</span><span class="p">,)))</span>
+    <span class="n">gc</span> <span class="o">=</span> <span class="mf">461.5</span>                        <span class="c1"># [j/{kg-k}]   gas constant water vapor</span>
+    <span class="n">gc</span> <span class="o">=</span> <span class="n">gc</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1000.</span> <span class="o">*</span> <span class="mf">4.186</span><span class="p">)</span>             <span class="c1"># [cal/{g-k}]  change units</span>
+    <span class="c1"># lhv=latent heat vap</span>
+    <span class="n">lhv</span> <span class="o">=</span> <span class="p">(</span><span class="mf">597.3</span> <span class="o">-</span> <span class="mf">0.57</span> <span class="o">*</span> <span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="mf">273.</span><span class="p">))</span>      <span class="c1"># dutton top p273 [empirical]</span>
+
+    <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">lhv</span> <span class="o">/</span> <span class="n">gc</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">t</span> <span class="o">-</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">td</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">percent</span><span class="p">:</span>
+        <span class="n">values</span> <span class="o">*=</span> <span class="mf">100.</span>
+
+    <span class="n">rh</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;RH&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">rh</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s2">&quot;relative humidity&quot;</span>
+    <span class="k">if</span> <span class="n">percent</span><span class="p">:</span>
+        <span class="n">rh</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;%&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rh</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;fraction&quot;</span>
+    <span class="n">rh</span><span class="o">.</span><span class="n">short_name</span> <span class="o">=</span> <span class="s1">&#39;RH&#39;</span>
+    <span class="k">return</span> <span class="n">rh</span></div>
+
+
+
+<div class="viewcode-block" id="wmrq_ptd">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.derived.html#PseudoNetCDF.derived.met.wmrq_ptd">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">wmrq_ptd</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">td</span><span class="p">,</span> <span class="n">dry</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kgkg</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    p - pressure in Pa</span>
+<span class="sd">    td - temperature in degrees celcius</span>
+<span class="sd">    dry - return results in mixing ratio or specific humidity in dry air</span>
+<span class="sd">    kgkg - return results in kg/kg instead of g/kg</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dimensions</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s1">&#39;dimensions&#39;</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="n">td</span><span class="p">,</span> <span class="s1">&#39;dimensions&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;unknown&#39;</span><span class="p">,)))</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+    <span class="n">td</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">td</span><span class="p">)</span>
+    <span class="c1"># ncl:   q = mixhum_ptd (p,td,option)   [ q=g/kg ]</span>
+    <span class="c1">#                        p  - PA</span>
+    <span class="c1">#                        td - K</span>
+    <span class="c1"># local</span>
+    <span class="c1"># INTEGER  N</span>
+    <span class="c1"># DOUBLE PRECISION T0, PA2MB</span>
+    <span class="c1"># DATA     T0    /273.15d0/</span>
+    <span class="c1"># DATA     PA2MB /0.01d0  /</span>
+    <span class="n">T0</span> <span class="o">=</span> <span class="mf">273.15</span>
+    <span class="n">PA2MB</span> <span class="o">=</span> <span class="mf">.01</span>
+
+    <span class="c1"># mixing ratio (kg/kg)</span>
+    <span class="c1"># the function wants hPA (mb) and degrees centigrade</span>
+    <span class="n">WMR</span> <span class="o">=</span> <span class="n">wmr_skewt_pt</span><span class="p">(</span><span class="n">p</span> <span class="o">*</span> <span class="n">PA2MB</span><span class="p">,</span> <span class="n">td</span> <span class="o">-</span> <span class="n">T0</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.001</span>
+
+    <span class="c1"># if iswit=2 calculate specific humidity (kg/kg)</span>
+
+    <span class="k">if</span> <span class="n">dry</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;W&#39;</span>
+        <span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;mass of water per mass of dry air&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Q&#39;</span>
+        <span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;mass of water per mass of air (dry+wet)&#39;</span>
+        <span class="n">WMR</span> <span class="o">=</span> <span class="n">WMR</span> <span class="o">/</span> <span class="p">(</span><span class="n">WMR</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="c1"># if iswit &lt; 0 then return g/kg</span>
+
+    <span class="k">if</span> <span class="n">kgkg</span><span class="p">:</span>
+        <span class="n">WMR</span> <span class="o">*=</span> <span class="mf">1000.</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;g/kg&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;kg/kg&#39;</span>
+    <span class="n">wmr</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">WMR</span><span class="p">,</span>
+                               <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">long_name</span><span class="o">=</span><span class="n">long_name</span><span class="p">)</span>
+    <span class="n">wmr</span><span class="o">.</span><span class="n">short_name</span> <span class="o">=</span> <span class="n">name</span>
+    <span class="k">return</span> <span class="n">wmr</span></div>
+
+
+
+<div class="viewcode-block" id="wmr_skewt_pt">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.derived.html#PseudoNetCDF.derived.met.wmr_skewt_pt">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">wmr_skewt_pt</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    p - pressure in mb</span>
+<span class="sd">    t - temperature in degrees C</span>
+<span class="sd">    this function approximates the mixing ratio wmr (grams of water</span>
+<span class="sd">    vapor per kilogram of dry air) given the pressure p (mb) and the</span>
+<span class="sd">    temperature t (celsius). the formula used is given on p. 302 of the</span>
+<span class="sd">    smithsonian meteorological tables by roland list (6th edition).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># eps = ratio of the mean molecular weight of water (18.016 g/mole)</span>
+    <span class="c1">#      to that of dry air (28.966 g/mole)</span>
+    <span class="n">EPS</span> <span class="o">=</span> <span class="mf">0.62197</span>
+
+    <span class="c1"># the next two lines contain a formula by herman wobus for the</span>
+    <span class="c1"># correction factor wfw for the departure of the mixture of air</span>
+    <span class="c1"># and water vapor from the ideal gas law. the formula fits values</span>
+    <span class="c1"># in table 89, p. 340 of the smithsonian meteorological tables,</span>
+    <span class="c1"># but only for temperatures and pressures normally encountered in</span>
+    <span class="c1"># in the atmosphere.</span>
+
+    <span class="n">X</span> <span class="o">=</span> <span class="mf">0.02</span> <span class="o">*</span> <span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="mf">12.5</span> <span class="o">+</span> <span class="mf">7500.</span> <span class="o">/</span> <span class="n">p</span><span class="p">)</span>
+    <span class="n">WFW</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">+</span> <span class="mf">4.5e-06</span> <span class="o">*</span> <span class="n">p</span> <span class="o">+</span> <span class="mf">1.4e-03</span> <span class="o">*</span> <span class="n">X</span> <span class="o">*</span> <span class="n">X</span>
+    <span class="n">FWESW</span> <span class="o">=</span> <span class="n">WFW</span> <span class="o">*</span> <span class="n">esw_skewt_t</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">R</span> <span class="o">=</span> <span class="n">EPS</span> <span class="o">*</span> <span class="n">FWESW</span> <span class="o">/</span> <span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="n">FWESW</span><span class="p">)</span>
+
+    <span class="c1"># convert r from a dimensionless ratio to grams/kilogram.</span>
+
+    <span class="k">return</span> <span class="mf">1000.</span> <span class="o">*</span> <span class="n">R</span></div>
+
+
+
+<div class="viewcode-block" id="esw_skewt_t">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.derived.html#PseudoNetCDF.derived.met.esw_skewt_t">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">esw_skewt_t</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        t - temperature in degrees C</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        esw - Saturation vapor pressure in millibars</span>
+<span class="sd">    Adapted from NCL</span>
+<span class="sd">    this function returns the saturation vapor pressure esw (millibars)</span>
+<span class="sd">    over liquid water given the temperature t (celsius). the polynomial</span>
+<span class="sd">    approximation below is due to herman wobus, a mathematician who</span>
+<span class="sd">    worked at the navy weather research facility, norfolk, virginia,</span>
+<span class="sd">    but who is now retired. the coefficients of the polynomial were</span>
+<span class="sd">    chosen to fit the values in table 94 on pp. 351-353 of the smith-</span>
+<span class="sd">    sonian meteorological tables by roland list (6th edition). the</span>
+<span class="sd">    approximation is valid for -50 &lt; t &lt; 100c.</span>
+
+<span class="sd">    es0 = saturation vapor ressure over liquid water at 0c</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ES0</span> <span class="o">=</span> <span class="mf">6.1078e0</span>
+
+    <span class="n">POL</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.99999683e0</span> <span class="o">+</span> <span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.90826951e-02</span> <span class="o">+</span>
+                               <span class="n">t</span> <span class="o">*</span>
+                               <span class="p">(</span><span class="mf">0.78736169e-04</span> <span class="o">+</span>
+                                <span class="n">t</span> <span class="o">*</span>
+                                <span class="p">(</span><span class="o">-</span><span class="mf">0.61117958e-06</span> <span class="o">+</span>
+                                 <span class="n">t</span> <span class="o">*</span>
+                                 <span class="p">(</span><span class="mf">0.43884187e-08</span> <span class="o">+</span>
+                                  <span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.29883885e-10</span> <span class="o">+</span>
+                                       <span class="n">t</span> <span class="o">*</span>
+                                       <span class="p">(</span><span class="mf">0.21874425e-12</span> <span class="o">+</span>
+                                        <span class="n">t</span> <span class="o">*</span>
+                                        <span class="p">(</span><span class="o">-</span><span class="mf">0.17892321e-14</span> <span class="o">+</span>
+                                         <span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.11112018e-16</span> <span class="o">+</span>
+                                              <span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.30994571e-19</span><span class="p">)</span>
+                                              <span class="p">)</span>
+                                         <span class="p">)</span>
+                                        <span class="p">)</span>
+                                       <span class="p">)</span>
+                                  <span class="p">)</span>
+                                 <span class="p">)</span>
+                                <span class="p">)</span>
+                               <span class="p">)</span>
+           <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ES0</span> <span class="o">/</span> <span class="n">POL</span><span class="o">**</span><span class="mi">8</span></div>
+
+
+
+<div class="viewcode-block" id="uv_wswd">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.derived.html#PseudoNetCDF.derived.met.uv_wswd">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">uv_wswd</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="n">wd</span><span class="p">,</span> <span class="n">isradians</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        ws - wind speed array</span>
+<span class="sd">        wd - wind direction array (in degrees unless isradians is set to true)</span>
+<span class="sd">        isradians - False if WD is in degrees</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        U, V - u-component and v-component winds</span>
+
+<span class="sd">    https://www.eol.ucar.edu/projects/ceop/dm/documents/</span>
+<span class="sd">    refdata_report/eqns.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dimensions</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="s1">&#39;dimensions&#39;</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="n">wd</span><span class="p">,</span> <span class="s1">&#39;dimensions&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;unknown&#39;</span><span class="p">,)))</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">isradians</span><span class="p">:</span>
+        <span class="n">direction</span> <span class="o">=</span> <span class="n">wd</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">wd</span><span class="p">)</span>
+    <span class="n">wind_speed</span> <span class="o">=</span> <span class="n">ws</span>
+    <span class="n">U</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span> <span class="o">*</span> <span class="n">wind_speed</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span> <span class="o">*</span> <span class="n">wind_speed</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;U&#39;</span><span class="p">,</span> <span class="n">U</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">,</span>
+                             <span class="n">dimensions</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">U</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">short_name</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">)</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="n">V</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">,</span>
+                             <span class="n">dimensions</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">V</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">short_name</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span></div>
+
+
+
+<div class="viewcode-block" id="wswd_uv">
+<a class="viewcode-back" href="../../../api/PseudoNetCDF.derived.html#PseudoNetCDF.derived.met.wswd_uv">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">wswd_uv</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">return_radians</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        u - array of u-component winds</span>
+<span class="sd">        v - array of v-domponent winds</span>
+<span class="sd">        return_radians - convert direction to radians</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        ws, wd - wind speed and direction (from direction)</span>
+
+<span class="sd">    https://www.eol.ucar.edu/projects/ceop/dm/documents/refdata_report/</span>
+<span class="sd">    eqns.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dimensions</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="s1">&#39;dimensions&#39;</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="n">v</span><span class="p">,</span> <span class="s1">&#39;dimensions&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;unknown&#39;</span><span class="p">,)))</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">))</span>
+    <span class="n">wind_speed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">u</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">v</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">uvarctan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="n">u</span> <span class="o">/</span> <span class="n">v</span><span class="p">)</span>
+    <span class="n">wind_direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">v</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">uvarctan</span> <span class="o">*</span> <span class="mf">180.</span> <span class="o">/</span>
+                              <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">uvarctan</span> <span class="o">*</span> <span class="mf">180.</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">+</span> <span class="mf">180.</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">return_radians</span><span class="p">:</span>
+        <span class="n">wind_direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">wind_direction</span><span class="p">)</span>
+    <span class="n">ws</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;WS&#39;</span><span class="p">,</span> <span class="n">wind_speed</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">,</span>
+                              <span class="n">dimensions</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">wind_speed</span><span class="p">,</span>
+                              <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">short_name</span><span class="o">=</span><span class="s1">&#39;WS&#39;</span><span class="p">)</span>
+    <span class="n">dirunit</span> <span class="o">=</span> <span class="s1">&#39;radians&#39;</span> <span class="k">if</span> <span class="n">return_radians</span> <span class="k">else</span> <span class="s1">&#39;degrees&#39;</span>
+    <span class="n">wd</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;WD&#39;</span><span class="p">,</span> <span class="n">wind_speed</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">,</span>
+                              <span class="n">values</span><span class="o">=</span><span class="n">wind_direction</span><span class="p">,</span>
+                              <span class="n">units</span><span class="o">=</span><span class="n">dirunit</span><span class="p">,</span> <span class="n">short_name</span><span class="o">=</span><span class="s1">&#39;WD&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ws</span><span class="p">,</span> <span class="n">wd</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

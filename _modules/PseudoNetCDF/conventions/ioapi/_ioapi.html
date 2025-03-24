@@ -1,0 +1,588 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.conventions.ioapi._ioapi &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.conventions.ioapi._ioapi</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.conventions.ioapi._ioapi</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncwarn</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="n">_withlatlon</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">pyproj</span>
+    <span class="n">_withlatlon</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;pyproj could not be found, so IO/API coordinates cannot be &#39;</span> <span class="o">+</span>
+         <span class="s1">&#39;converted to lat/lon; to fix, install pyproj or basemap &#39;</span> <span class="o">+</span>
+         <span class="s1">&#39;(e.g., `pip install pyproj)`&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">add_lay_coordinates</span><span class="p">(</span><span class="n">ifileo</span><span class="p">):</span>
+    <span class="k">if</span> <span class="s1">&#39;LAY&#39;</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+        <span class="n">nlay</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;LAY&#39;</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;NLAYS&#39;</span><span class="p">):</span>
+        <span class="n">nlay</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">NLAYS</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;VGLVLS&#39;</span><span class="p">):</span>
+        <span class="n">nlay</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">VGLVLS</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="s1">&#39;layer&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;layer&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;LAY&#39;</span><span class="p">,))</span>
+        <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nlay</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;model layers&#39;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s1">&#39;layer&#39;</span>
+    <span class="k">if</span> <span class="s1">&#39;level&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;level&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;LAY&#39;</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;VGLVLS&#39;</span><span class="p">):</span>
+            <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">VGLVLS</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">VGLVLS</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nlay</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;sigma&#39;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">positive</span> <span class="o">=</span> <span class="s1">&#39;down&#39;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s1">&#39;level&#39;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">_CoordinateAxisType</span> <span class="o">=</span> <span class="s2">&quot;GeoZ&quot;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">_CoordinateZisPositive</span> <span class="o">=</span> <span class="s2">&quot;down&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">add_time_variables</span><span class="p">(</span><span class="n">ifileo</span><span class="p">):</span>
+    <span class="n">add_time_variable</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
+    <span class="n">add_time_variable</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;time_bounds&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">add_time_variable</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
+    <span class="n">strptime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span>
+
+    <span class="n">sdate</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">SDATE</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">sdate</span> <span class="o">&lt;</span> <span class="mi">1400000</span><span class="p">:</span>
+        <span class="n">sdate</span> <span class="o">+=</span> <span class="mi">2000000</span>
+    <span class="n">sdate</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="n">sdate</span> <span class="o">//</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span> <span class="o">+</span> \
+        <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="p">(</span><span class="n">sdate</span> <span class="o">%</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">sdate</span> <span class="o">=</span> <span class="n">sdate</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">ifileo</span><span class="o">.</span><span class="n">STIME</span> <span class="o">/</span> <span class="mf">240000.</span><span class="p">)</span>
+    <span class="n">rdate</span> <span class="o">=</span> <span class="n">strptime</span><span class="p">(</span><span class="s1">&#39;1970-01-01 00:00:00+0000&#39;</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S%z&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">TSTEP</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">tmpseconds</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;</span><span class="si">%06d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">TSTEP</span><span class="p">)</span>
+        <span class="n">htmp</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">mtmp</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+        <span class="n">stmp</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+        <span class="n">tmpseconds</span> <span class="o">=</span> <span class="mi">3600</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">htmp</span><span class="p">)</span> <span class="o">+</span> <span class="mi">60</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">mtmp</span><span class="p">)</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">stmp</span><span class="p">)</span>
+
+    <span class="n">time_unit</span> <span class="o">=</span> <span class="s2">&quot;seconds since </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rdate</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S%z&#39;</span><span class="p">),)</span>
+    <span class="k">if</span> <span class="s1">&#39;TFLAG&#39;</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+        <span class="n">tflag</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">jdays</span> <span class="o">=</span> <span class="n">tflag</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">hhmmsss</span> <span class="o">=</span> <span class="n">tflag</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">jdays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">jdays</span> <span class="o">=</span> <span class="p">[</span><span class="n">ifileo</span><span class="o">.</span><span class="n">SDATE</span><span class="p">]</span>
+        <span class="n">dates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">strptime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%7d</span><span class="s1"> </span><span class="si">%06d</span><span class="s1">+0000&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jday</span><span class="p">,</span> <span class="n">hhmmss</span><span class="p">),</span>
+                                   <span class="s1">&#39;%Y%j %H%M%S%z&#39;</span><span class="p">)</span>
+                          <span class="k">for</span> <span class="n">jday</span><span class="p">,</span> <span class="n">hhmmss</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">jdays</span><span class="p">,</span> <span class="n">hhmmsss</span><span class="p">)])</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">date</span> <span class="o">-</span> <span class="n">rdate</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">dates</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;time_bounds&#39;</span><span class="p">:</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">time</span><span class="p">,</span> <span class="n">time</span> <span class="o">+</span> <span class="n">tmpseconds</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;tnv&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;tnv&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">ifileo</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;tnv&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sdate</span> <span class="o">=</span> <span class="n">strptime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%07d</span><span class="s1"> </span><span class="si">%06d</span><span class="s1">+0000&#39;</span> <span class="o">%</span>
+                         <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;SDATE&#39;</span><span class="p">,</span> <span class="mi">1970001</span><span class="p">),</span>
+                          <span class="nb">getattr</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;STIME&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
+                         <span class="s1">&#39;%Y%j %H%M%S%z&#39;</span><span class="p">)</span>
+        <span class="n">off</span> <span class="o">=</span> <span class="p">(</span><span class="n">sdate</span> <span class="o">-</span> <span class="n">rdate</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span>
+            <span class="n">tmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">]))</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tmax</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;i&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="n">tmpseconds</span> <span class="o">+</span> <span class="n">off</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,)</span>
+        <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;time_bounds&#39;</span><span class="p">:</span>
+            <span class="n">tmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">]))</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tmax</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;i&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="n">tmpseconds</span> <span class="o">+</span> <span class="n">off</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;tnv&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;tnv&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">ifileo</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;tnv&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="s1">&#39;time variables are time and time_bounds, got </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">time</span>
+
+    <span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">time_unit</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">_CoordinateAxisType</span> <span class="o">=</span> <span class="s2">&quot;Time&quot;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="s1">&#39;time_bounds&#39;</span>
+
+    <span class="n">var</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;synthesized time coordinate from SDATE, &quot;</span> <span class="o">+</span>
+                     <span class="s2">&quot;STIME, STEP global attributes&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># 0 Clarke 1866</span>
+<span class="c1"># 1 Clarke 1880</span>
+<span class="c1"># 2 Bessel</span>
+<span class="c1"># 3 New International 1967</span>
+<span class="c1"># 4 International 1909</span>
+<span class="c1"># 5 WGS 72</span>
+<span class="c1"># 6 Everest</span>
+<span class="c1"># 7 WGS 66</span>
+<span class="c1"># 8 GRS 1980</span>
+<span class="c1"># 9 Airy</span>
+<span class="c1"># 10 Modified Everest</span>
+<span class="c1"># 11 Modified Airy</span>
+<span class="c1"># 12 WGS 84</span>
+<span class="c1"># 13 Southeast Asia</span>
+<span class="c1"># 14 Australian National</span>
+<span class="c1"># 15 Krassovsky</span>
+<span class="c1"># 16 Hough</span>
+<span class="c1"># 17 Mercury 1960</span>
+<span class="c1"># 18 Modified Mercury 1968</span>
+<span class="c1"># 19 Normal Sphere</span>
+<span class="c1"># 20 MM5 Sphere</span>
+<span class="c1"># 21 WRF-NMM Sphere</span>
+<span class="n">_AXIS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">6378206.4</span><span class="p">,</span> <span class="mf">6378249.145</span><span class="p">,</span> <span class="mf">6377397.155</span><span class="p">,</span> <span class="mf">6378157.5</span><span class="p">,</span> <span class="mf">6378388.0</span><span class="p">,</span>
+                  <span class="mf">6378135.0</span><span class="p">,</span> <span class="mf">6377276.3452</span><span class="p">,</span> <span class="mf">6378145.0</span><span class="p">,</span> <span class="mf">6378137.0</span><span class="p">,</span> <span class="mf">6377563.396</span><span class="p">,</span>
+                  <span class="mf">6377304.063</span><span class="p">,</span> <span class="mf">6377340.189</span><span class="p">,</span> <span class="mf">6378137.0</span><span class="p">,</span> <span class="mf">6378155.</span><span class="p">,</span> <span class="mf">6378160.0</span><span class="p">,</span>
+                  <span class="mf">6378245.0</span><span class="p">,</span> <span class="mf">6378270.0</span><span class="p">,</span> <span class="mf">6378166.0</span><span class="p">,</span> <span class="mf">6378150.0</span><span class="p">,</span> <span class="mf">6370997.0</span><span class="p">,</span>
+                  <span class="mf">6370000.0</span><span class="p">,</span> <span class="mf">6371200.0</span><span class="p">])</span>
+<span class="n">_BXIS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">6356583.8</span><span class="p">,</span> <span class="mf">6356514.86955</span><span class="p">,</span> <span class="mf">6356078.96284</span><span class="p">,</span> <span class="mf">6356772.2</span><span class="p">,</span>
+                  <span class="mf">6356911.94613</span><span class="p">,</span> <span class="mf">6356750.519915</span><span class="p">,</span> <span class="mf">6356075.4133</span><span class="p">,</span> <span class="mf">6356759.769356</span><span class="p">,</span>
+                  <span class="mf">6356752.314140</span><span class="p">,</span> <span class="mf">6356256.91</span><span class="p">,</span> <span class="mf">6356103.039</span><span class="p">,</span> <span class="mf">6356034.448</span><span class="p">,</span>
+                  <span class="mf">6356752.314245</span><span class="p">,</span> <span class="mf">6356773.3205</span><span class="p">,</span> <span class="mf">6356774.719</span><span class="p">,</span> <span class="mf">6356863.0188</span><span class="p">,</span>
+                  <span class="mf">6356794.343479</span><span class="p">,</span> <span class="mf">6356784.283666</span><span class="p">,</span> <span class="mf">6356768.337303</span><span class="p">,</span> <span class="mf">6370997.0</span><span class="p">,</span>
+                  <span class="mf">6370000.0</span><span class="p">,</span> <span class="mf">6371200.0</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="get_ioapi_sphere">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.conventions.ioapi.html#PseudoNetCDF.conventions.ioapi.get_ioapi_sphere">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ioapi_sphere</span><span class="p">():</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+    <span class="n">ENV_IOAPI_ISPH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;IOAPI_ISPH&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ENV_IOAPI_ISPH</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ENV_IOAPI_ISPH</span> <span class="o">=</span> <span class="s1">&#39;6370000.&#39;</span>
+        <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;IOAPI_ISPH is assumed to be &#39;</span> <span class="o">+</span>
+             <span class="n">ENV_IOAPI_ISPH</span> <span class="o">+</span> <span class="s1">&#39;; consistent with WRF&#39;</span><span class="p">)</span>
+    <span class="n">isph_parts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">eval</span><span class="p">(</span><span class="n">ip</span><span class="p">)</span> <span class="k">for</span> <span class="n">ip</span> <span class="ow">in</span> <span class="n">ENV_IOAPI_ISPH</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">isph_parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;IOAPI_ISPH must be 1 or 2 parameters (got: </span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span>
+                         <span class="nb">str</span><span class="p">(</span><span class="n">isph_parts</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">isph_parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">isph_parts</span>
+    <span class="k">elif</span> <span class="n">isph_parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">isph_parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">_AXIS</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_AXIS</span><span class="p">[</span><span class="n">isph_parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">_BXIS</span><span class="p">[</span><span class="n">isph_parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">isph_parts</span> <span class="o">*</span> <span class="mi">2</span></div>
+
+
+
+<span class="n">_gdnames</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;latitude_longitude&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;lambert_conformal_conic&quot;</span><span class="p">,</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;mercator&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">:</span> <span class="s2">&quot;transverse_mercator&quot;</span><span class="p">,</span>
+            <span class="mi">7</span><span class="p">:</span> <span class="s2">&quot;mercator&quot;</span><span class="p">,</span> <span class="mi">6</span><span class="p">:</span> <span class="s2">&quot;polar_stereographic&quot;</span><span class="p">}</span>
+
+
+<div class="viewcode-block" id="getmapdef">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.conventions.ioapi.html#PseudoNetCDF.conventions.ioapi.getmapdef">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">getmapdef</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">gdtyp</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">GDTYP</span>
+    <span class="n">gridname</span> <span class="o">=</span> <span class="n">_gdnames</span><span class="p">[</span><span class="n">gdtyp</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">add</span><span class="p">:</span>
+        <span class="n">mapdef</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">gridname</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">())</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFVariable</span>
+        <span class="n">mapdef</span> <span class="o">=</span> <span class="n">PseudoNetCDFVariable</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="n">gridname</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">())</span>
+    <span class="n">mapdef</span><span class="o">.</span><span class="n">grid_mapping_name</span> <span class="o">=</span> <span class="n">gridname</span>
+    <span class="k">if</span> <span class="n">mapdef</span><span class="o">.</span><span class="n">grid_mapping_name</span> <span class="o">==</span> <span class="s2">&quot;latitude_longitude&quot;</span><span class="p">:</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">latitude_of_projection_origin</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">YORIG</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">longitude_of_central_meridian</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">XORIG</span>
+    <span class="k">elif</span> <span class="n">mapdef</span><span class="o">.</span><span class="n">grid_mapping_name</span> <span class="o">==</span> <span class="s2">&quot;polar_stereographic&quot;</span><span class="p">:</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">latitude_of_projection_origin</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">P_ALP</span> <span class="o">*</span> <span class="mi">90</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">straight_vertical_longitude_from_pole</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">P_GAM</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">standard_parallel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ifileo</span><span class="o">.</span><span class="n">P_BET</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mapdef</span><span class="o">.</span><span class="n">grid_mapping_name</span> <span class="o">==</span> <span class="s2">&quot;mercator&quot;</span> <span class="ow">and</span> <span class="n">gdtyp</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncwarn</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+        <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;mercator is untested. Be cautious.&#39;</span><span class="p">)</span>
+        <span class="c1"># IOAPI documentation sys YCENT/XCENT same as P_ALP/P_BET</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">P_ALP</span> <span class="o">==</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">YCENT</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">P_BET</span> <span class="o">==</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">XCENT</span><span class="p">)</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">standard_parallel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ifileo</span><span class="o">.</span><span class="n">P_GAM</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mapdef</span><span class="o">.</span><span class="n">grid_mapping_name</span> <span class="o">==</span> <span class="s2">&quot;mercator&quot;</span> <span class="ow">and</span> <span class="n">gdtyp</span> <span class="o">==</span> <span class="mi">7</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">P_ALP</span> <span class="o">==</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">YCENT</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">P_GAM</span> <span class="o">==</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">XCENT</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mapdef</span><span class="o">.</span><span class="n">grid_mapping_name</span> <span class="o">==</span> <span class="s2">&quot;transverse_mercator&quot;</span> <span class="ow">and</span> <span class="n">gdtyp</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncwarn</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+        <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;UTM is untested. Be cautious.&#39;</span><span class="p">)</span>
+        <span class="c1"># diagnosted using</span>
+        <span class="c1"># proj = pyproj.Proj(&#39;+proj=utm +zone=18 +R=6370000&#39;)</span>
+        <span class="c1"># cf = proj.crs.to_cf()</span>
+        <span class="c1"># {k: v for k, v in cf.items() if k not in (&#39;crs_wkt&#39;,)}</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">latitude_of_projection_origin</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">longitude_of_central_meridian</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">P_ALP</span> <span class="o">*</span> <span class="mi">6</span> <span class="o">+</span> <span class="o">-</span><span class="mi">183</span>
+        <span class="c1"># where did this come from?</span>
+        <span class="c1"># mapdef.scale_factor_at_central_meridian: 0.9996</span>
+    <span class="k">elif</span> <span class="n">mapdef</span><span class="o">.</span><span class="n">grid_mapping_name</span> <span class="o">==</span> <span class="s2">&quot;transverse_mercator&quot;</span> <span class="ow">and</span> <span class="n">gdtyp</span> <span class="o">==</span> <span class="mi">8</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.pncwarn</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+        <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;transverse_mercator is untested. Be cautious.&#39;</span><span class="p">)</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">standard_parallel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ifileo</span><span class="o">.</span><span class="n">P_ALP</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">scale_factor_at_central_meridian</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">P_BET</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">longitude_of_central_meridian</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">P_GAM</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">P_ALP</span> <span class="o">==</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">YCENT</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">P_GAM</span> <span class="o">==</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">XCENT</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">standard_parallel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">ifileo</span><span class="o">.</span><span class="n">P_ALP</span><span class="p">,</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">P_BET</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">gdtyp</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>  <span class="c1"># not in latitude_longitude UTM</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">latitude_of_projection_origin</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">YCENT</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">longitude_of_central_meridian</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">XCENT</span>
+
+    <span class="k">if</span> <span class="n">gdtyp</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,):</span>  <span class="c1"># not in latitude_longitude</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">false_northing</span> <span class="o">=</span> <span class="o">-</span><span class="n">ifileo</span><span class="o">.</span><span class="n">YORIG</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">false_easting</span> <span class="o">=</span> <span class="o">-</span><span class="n">ifileo</span><span class="o">.</span><span class="n">XORIG</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">_CoordinateTransformType</span> <span class="o">=</span> <span class="s2">&quot;Projection&quot;</span>
+        <span class="n">mapdef</span><span class="o">.</span><span class="n">_CoordinateAxes</span> <span class="o">=</span> <span class="s2">&quot;x y&quot;</span>
+
+    <span class="n">ioapi_sphere</span> <span class="o">=</span> <span class="n">get_ioapi_sphere</span><span class="p">()</span>
+    <span class="n">mapdef</span><span class="o">.</span><span class="n">semi_major_axis</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;semi_major_axis&#39;</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;earth_radius&#39;</span><span class="p">,</span> <span class="n">ioapi_sphere</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="n">mapdef</span><span class="o">.</span><span class="n">semi_minor_axis</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;semi_minor_axis&#39;</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;earth_radius&#39;</span><span class="p">,</span> <span class="n">ioapi_sphere</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">mapdef</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">add_lcc_coordinates</span><span class="p">(</span><span class="n">ifileo</span><span class="p">):</span>
+    <span class="n">mapdef</span> <span class="o">=</span> <span class="n">getmapdef</span><span class="p">(</span><span class="n">ifileo</span><span class="p">)</span>
+    <span class="n">gridname</span> <span class="o">=</span> <span class="n">mapdef</span><span class="o">.</span><span class="n">grid_mapping_name</span>
+    <span class="k">if</span> <span class="s1">&#39;PERIM&#39;</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">xdim</span> <span class="o">=</span> <span class="s1">&#39;PERIM&#39;</span>
+        <span class="n">ydim</span> <span class="o">=</span> <span class="s1">&#39;PERIM&#39;</span>
+        <span class="n">_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">ifileo</span><span class="o">.</span><span class="n">XCELL</span><span class="p">,</span> <span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">NCOLS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">XCELL</span><span class="p">,</span>
+                       <span class="n">ifileo</span><span class="o">.</span><span class="n">XCELL</span><span class="p">)</span> <span class="o">+</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">XORIG</span> <span class="o">+</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">XCELL</span> <span class="o">/</span> <span class="mf">2.</span>
+        <span class="n">_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">ifileo</span><span class="o">.</span><span class="n">YCELL</span><span class="p">,</span> <span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">NROWS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">YCELL</span><span class="p">,</span>
+                       <span class="n">ifileo</span><span class="o">.</span><span class="n">YCELL</span><span class="p">)</span> <span class="o">+</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">YORIG</span> <span class="o">+</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">YCELL</span> <span class="o">/</span> <span class="mf">2.</span>
+        <span class="n">bx</span> <span class="o">=</span> <span class="n">_x</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">by</span> <span class="o">=</span> <span class="n">_y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">NCOLS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ex</span> <span class="o">=</span> <span class="n">_x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">NROWS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ey</span> <span class="o">=</span> <span class="n">_y</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">tx</span> <span class="o">=</span> <span class="n">_x</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ty</span> <span class="o">=</span> <span class="n">_y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">NCOLS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">wx</span> <span class="o">=</span> <span class="n">_x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">ifileo</span><span class="o">.</span><span class="n">NROWS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">wy</span> <span class="o">=</span> <span class="n">_y</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">lcc_x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">bx</span><span class="p">,</span> <span class="n">ex</span><span class="p">,</span> <span class="n">tx</span><span class="p">,</span> <span class="n">wx</span><span class="p">])</span>
+        <span class="n">lcc_y</span> <span class="o">=</span> <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">by</span><span class="p">,</span> <span class="n">ey</span><span class="p">,</span> <span class="n">ty</span><span class="p">,</span> <span class="n">wy</span><span class="p">])</span>
+        <span class="n">XCELL</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">XCELL</span>
+        <span class="n">YCELL</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">YCELL</span>
+        <span class="n">lcc_xe</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span> <span class="o">-</span> <span class="n">XCELL</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">XCELL</span> <span class="o">/</span>
+                           <span class="mf">2.</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">XCELL</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">,</span> <span class="n">x</span> <span class="o">-</span> <span class="n">XCELL</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">lcc_ye</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">y</span> <span class="o">-</span> <span class="n">YCELL</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="n">YCELL</span> <span class="o">/</span>
+                           <span class="mf">2.</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">YCELL</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">YCELL</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">latlon_dim</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;PERIM&#39;</span><span class="p">,)</span>
+        <span class="n">latlone_dim</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;PERIM&#39;</span><span class="p">,</span> <span class="s1">&#39;nv&#39;</span><span class="p">)</span>
+        <span class="n">latlon_coord</span> <span class="o">=</span> <span class="s1">&#39;PERIM&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">xdim</span> <span class="o">=</span> <span class="s1">&#39;COL&#39;</span>
+        <span class="n">ydim</span> <span class="o">=</span> <span class="s1">&#39;ROW&#39;</span>
+        <span class="n">latlon_dim</span> <span class="o">=</span> <span class="p">(</span><span class="n">ydim</span><span class="p">,</span> <span class="n">xdim</span><span class="p">)</span>
+        <span class="n">latlon_coord</span> <span class="o">=</span> <span class="s1">&#39;latitude longitude&#39;</span>
+        <span class="n">latlone_dim</span> <span class="o">=</span> <span class="p">(</span><span class="n">ydim</span><span class="p">,</span> <span class="n">xdim</span><span class="p">,</span> <span class="s1">&#39;nv&#39;</span><span class="p">)</span>
+        <span class="n">xe</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">NCOLS</span><span class="p">)</span> <span class="o">*</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">XCELL</span> <span class="o">+</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">XORIG</span>
+        <span class="n">ye</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">NROWS</span><span class="p">)</span> <span class="o">*</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">YCELL</span> <span class="o">+</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">YORIG</span>
+        <span class="n">lcc_xe</span><span class="p">,</span> <span class="n">lcc_ye</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">xe</span><span class="p">,</span> <span class="n">ye</span><span class="p">)</span>
+        <span class="n">lcc_xe</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">lcc_xe</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">],</span>
+                                 <span class="n">lcc_xe</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">XCELL</span><span class="p">,</span>
+                                 <span class="n">lcc_xe</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">XCELL</span><span class="p">,</span>
+                                 <span class="n">lcc_xe</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">lcc_ye</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">lcc_ye</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">lcc_ye</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">],</span>
+                                 <span class="n">lcc_ye</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">YCELL</span><span class="p">,</span>
+                                 <span class="n">lcc_ye</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">YCELL</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">NCOLS</span><span class="p">)</span> <span class="o">*</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">XCELL</span> <span class="o">+</span> \
+            <span class="n">ifileo</span><span class="o">.</span><span class="n">XCELL</span> <span class="o">/</span> <span class="mf">2.</span> <span class="o">+</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">XORIG</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">NROWS</span><span class="p">)</span> <span class="o">*</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">YCELL</span> <span class="o">+</span> \
+            <span class="n">ifileo</span><span class="o">.</span><span class="n">YCELL</span> <span class="o">/</span> <span class="mf">2.</span> <span class="o">+</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">YORIG</span>
+        <span class="n">lcc_x</span><span class="p">,</span> <span class="n">lcc_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">_withlatlon</span><span class="p">:</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">mapdef</span><span class="o">.</span><span class="n">getncattr</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">mapdef</span><span class="o">.</span><span class="n">ncattrs</span><span class="p">()}</span>
+        <span class="k">if</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">GDTYP</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">mapstrs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;+proj=lcc&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;+a=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mapdef</span><span class="o">.</span><span class="n">semi_major_axis</span><span class="p">,</span>
+                       <span class="s1">&#39;+b=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mapdef</span><span class="o">.</span><span class="n">semi_minor_axis</span><span class="p">,</span>
+                       <span class="s1">&#39;+lon_0=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mapdef</span><span class="o">.</span><span class="n">longitude_of_central_meridian</span><span class="p">,</span>
+                       <span class="s1">&#39;+lat_1=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mapdef</span><span class="o">.</span><span class="n">standard_parallel</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                       <span class="s1">&#39;+lat_2=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mapdef</span><span class="o">.</span><span class="n">standard_parallel</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                       <span class="s1">&#39;+lat_0=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mapdef</span><span class="o">.</span><span class="n">latitude_of_projection_origin</span><span class="p">]</span>
+            <span class="n">mapstr</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mapstrs</span><span class="p">)</span>
+            <span class="n">mapproj</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Proj</span><span class="p">(</span><span class="n">mapstr</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">GDTYP</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s1">&#39;zone&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">P_ALP</span>
+            <span class="n">mapstr</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s1">&#39;+proj=utm +zone=</span><span class="si">{zone:.0f}</span><span class="s1"> +a=</span><span class="si">{semi_major_axis}</span><span class="s1">&#39;</span>
+                <span class="o">+</span> <span class="s1">&#39; +b=</span><span class="si">{semi_minor_axis}</span><span class="s1">&#39;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">props</span><span class="p">)</span>
+            <span class="n">mapproj</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Proj</span><span class="p">(</span><span class="n">mapstr</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">GDTYP</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+            <span class="n">mapstr</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;+proj=stere +a=</span><span class="si">{3}</span><span class="s1"> +b=</span><span class="si">{4}</span><span class="s1"> &#39;</span> <span class="o">+</span>
+                      <span class="s1">&#39;+lon_0=</span><span class="si">{0}</span><span class="s1"> +lat_0=</span><span class="si">{1}</span><span class="s1"> +lat_ts=</span><span class="si">{2}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                          <span class="n">mapdef</span><span class="o">.</span><span class="n">straight_vertical_longitude_from_pole</span><span class="p">,</span>
+                          <span class="n">mapdef</span><span class="o">.</span><span class="n">latitude_of_projection_origin</span><span class="p">,</span>
+                          <span class="n">mapdef</span><span class="o">.</span><span class="n">standard_parallel</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                          <span class="n">mapdef</span><span class="o">.</span><span class="n">semi_major_axis</span><span class="p">,</span>
+                          <span class="n">mapdef</span><span class="o">.</span><span class="n">semi_minor_axis</span><span class="p">)</span>
+            <span class="n">mapproj</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Proj</span><span class="p">(</span><span class="n">mapstr</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">GDTYP</span> <span class="o">==</span> <span class="mi">7</span><span class="p">:</span>
+            <span class="n">mapstr</span> <span class="o">=</span> <span class="s1">&#39;+proj=merc +a=</span><span class="si">%s</span><span class="s1"> +b=</span><span class="si">%s</span><span class="s1"> +lat_ts=0 +lon_0=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">mapdef</span><span class="o">.</span><span class="n">semi_major_axis</span><span class="p">,</span> <span class="n">mapdef</span><span class="o">.</span><span class="n">semi_minor_axis</span><span class="p">,</span>
+                <span class="n">mapdef</span><span class="o">.</span><span class="n">longitude_of_central_meridian</span><span class="p">)</span>
+            <span class="n">mapproj</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Proj</span><span class="p">(</span><span class="n">mapstr</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">GDTYP</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">mapproj</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">inverse</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">CRS</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="o">.</span><span class="n">from_cf</span><span class="p">(</span><span class="n">props</span><span class="p">)</span>
+            <span class="n">mapproj</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Proj</span><span class="p">(</span><span class="n">CRS</span><span class="p">)</span>
+
+        <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">mapproj</span><span class="p">(</span><span class="n">lcc_x</span><span class="p">,</span> <span class="n">lcc_y</span><span class="p">,</span> <span class="n">inverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">lone</span><span class="p">,</span> <span class="n">late</span> <span class="o">=</span> <span class="n">mapproj</span><span class="p">(</span><span class="n">lcc_xe</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">lcc_ye</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">inverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">lone</span> <span class="o">=</span> <span class="n">lone</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">lcc_xe</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">late</span> <span class="o">=</span> <span class="n">late</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">lcc_ye</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;x&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="n">xdim</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Not necessary for cdo</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">,</span> <span class="p">(</span><span class="n">xdim</span><span class="p">,))</span>
+        <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:]</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;km&#39;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">_CoordinateAxisType</span> <span class="o">=</span> <span class="s2">&quot;GeoX&quot;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;synthesized coordinate from XORIG XCELL &quot;</span> <span class="o">+</span>
+                         <span class="s2">&quot;global attributes&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;y&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="n">ydim</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Not necessary for cdo</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">,</span> <span class="p">(</span><span class="n">ydim</span><span class="p">,))</span>
+        <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[:]</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;km&#39;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">_CoordinateAxisType</span> <span class="o">=</span> <span class="s2">&quot;GeoY&quot;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;synthesized coordinate from YORIG YCELL &quot;</span> <span class="o">+</span>
+                         <span class="s2">&quot;global attributes&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">_withlatlon</span> <span class="ow">and</span> <span class="s1">&#39;latitude&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;latitude&#39;</span><span class="p">,</span> <span class="n">lat</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">,</span> <span class="n">latlon_dim</span><span class="p">)</span>
+        <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">lat</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;degrees_north&#39;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s1">&#39;latitude&#39;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="s1">&#39;latitude_bounds&#39;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">coordinates</span> <span class="o">=</span> <span class="n">latlon_coord</span>
+
+    <span class="k">if</span> <span class="n">_withlatlon</span> <span class="ow">and</span> <span class="s1">&#39;longitude&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;longitude&#39;</span><span class="p">,</span> <span class="n">lon</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">,</span> <span class="n">latlon_dim</span><span class="p">)</span>
+        <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">lon</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;degrees_east&#39;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s1">&#39;longitude&#39;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="s1">&#39;longitude_bounds&#39;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">coordinates</span> <span class="o">=</span> <span class="n">latlon_coord</span>
+
+    <span class="k">if</span> <span class="n">_withlatlon</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">dk</span><span class="p">,</span> <span class="n">dl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">latlone_dim</span><span class="p">,</span> <span class="n">late</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">dk</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+                <span class="n">ifileo</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="n">dk</span><span class="p">,</span> <span class="n">dl</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">_withlatlon</span> <span class="ow">and</span> <span class="s1">&#39;latitude_bounds&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+            <span class="s1">&#39;latitude_bounds&#39;</span><span class="p">,</span> <span class="n">lat</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">,</span> <span class="n">latlone_dim</span><span class="p">)</span>
+        <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">late</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;degrees_north&#39;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s1">&#39;latitude_bounds&#39;</span>
+
+    <span class="k">if</span> <span class="n">_withlatlon</span> <span class="ow">and</span> <span class="s1">&#39;longitude_bounds&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+            <span class="s1">&#39;longitude_bounds&#39;</span><span class="p">,</span> <span class="n">lon</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">,</span> <span class="n">latlone_dim</span><span class="p">)</span>
+        <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">lone</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;degrees_east&#39;</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s1">&#39;longitude_bounds&#39;</span>
+
+    <span class="k">for</span> <span class="n">varkey</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varkey</span><span class="p">]</span>
+        <span class="c1"># this must have been a fix for dictionaries that</span>
+        <span class="c1"># reproduced variables on demand</span>
+        <span class="c1"># we should find a better fix for this</span>
+        <span class="c1"># try:</span>
+        <span class="c1">#    ifileo.variables[varkey] = var</span>
+        <span class="c1"># except Exception:</span>
+        <span class="c1">#    pass</span>
+        <span class="n">olddims</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">olddims</span><span class="p">]</span>  <span class="c1"># Why was I excluding time  if d != &#39;time&#39;</span>
+        <span class="k">if</span> <span class="n">_withlatlon</span><span class="p">:</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">io2cf</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;ROW&#39;</span><span class="p">:</span> <span class="s1">&#39;latitude&#39;</span><span class="p">,</span> <span class="s1">&#39;COL&#39;</span><span class="p">:</span> <span class="s1">&#39;longitude&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;TSTEP&#39;</span><span class="p">:</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;LAY&#39;</span><span class="p">:</span> <span class="s1">&#39;level&#39;</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">io2cf</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">olddims</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">olddims</span> <span class="o">!=</span> <span class="n">dims</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">varkey</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;latitude&#39;</span><span class="p">,</span> <span class="s1">&#39;longitude&#39;</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="p">(</span><span class="s1">&#39;PERIM&#39;</span> <span class="ow">in</span> <span class="n">dims</span> <span class="ow">or</span>
+                 <span class="p">(</span><span class="s1">&#39;latitude&#39;</span> <span class="ow">in</span> <span class="n">dims</span> <span class="ow">and</span> <span class="s1">&#39;longitude&#39;</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">))):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">var</span><span class="o">.</span><span class="n">coordinates</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span>
+                    <span class="n">var</span><span class="o">.</span><span class="n">grid_mapping</span> <span class="o">=</span> <span class="n">gridname</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">warn</span><span class="p">((</span><span class="s1">&#39;coordinates=&quot;</span><span class="si">{0}</span><span class="s1">&quot; and gridmapping=&quot;</span><span class="si">{1}</span><span class="s1">&quot; &#39;</span> <span class="o">+</span>
+                          <span class="s1">&#39;not added to variables:</span><span class="se">\n\t</span><span class="si">{3}</span><span class="s1">&#39;</span>
+                          <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dims</span><span class="p">),</span> <span class="n">gridname</span><span class="p">,</span> <span class="n">varkey</span><span class="p">,</span> <span class="n">e</span><span class="p">),</span>
+                         <span class="n">category</span><span class="o">=</span><span class="ne">UserWarning</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="add_ioapi_from_cf">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.conventions.ioapi.html#PseudoNetCDF.conventions.ioapi.add_ioapi_from_cf">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_ioapi_from_cf</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="n">coordkeys</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">...coordutil</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettimes</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">gettimes</span><span class="p">(</span><span class="n">ifileo</span><span class="p">)</span>
+    <span class="n">jdays</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y%j&#39;</span><span class="p">))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">])</span>
+    <span class="n">itimes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%H%M%S&#39;</span><span class="p">))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">])</span>
+    <span class="n">outkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+               <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;ETFLAG&#39;</span><span class="p">,</span> <span class="s1">&#39;TFLAG&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coordkeys</span><span class="p">]</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;VAR-LIST&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outkeys</span><span class="p">))</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;NVARS&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">outkeys</span><span class="p">))</span>
+    <span class="n">ifileo</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">NVARS</span><span class="p">)</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;SDATE&#39;</span><span class="p">,</span> <span class="n">jdays</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;STIME&#39;</span><span class="p">,</span> <span class="n">itimes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;EDATE&#39;</span><span class="p">,</span> <span class="n">jdays</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="s1">&#39;ETIME&#39;</span><span class="p">,</span> <span class="n">itimes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">tflag</span> <span class="o">=</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;TFLAG&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;TSTEP&#39;</span><span class="p">,</span> <span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="s1">&#39;DATE-TIME&#39;</span><span class="p">))</span>
+    <span class="n">tflag</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">jdays</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">tflag</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">itimes</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">tflag</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;&lt;YYYYDDD,HHMMSS&gt;&quot;</span>
+    <span class="n">tflag</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s2">&quot;TFLAG           &quot;</span>
+    <span class="n">tflag</span><span class="o">.</span><span class="n">var_desc</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Timestep-valid flags: &quot;</span> <span class="o">+</span>
+                      <span class="s2">&quot; (1) YYYYDDD or (2) HHMMSS&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">80</span><span class="p">)</span></div>
+
+
+
+<span class="n">add_ioapi_from_ioapi</span> <span class="o">=</span> <span class="n">add_ioapi_from_cf</span>
+
+
+<div class="viewcode-block" id="add_cf_from_ioapi">
+<a class="viewcode-back" href="../../../../api/PseudoNetCDF.conventions.ioapi.html#PseudoNetCDF.conventions.ioapi.add_cf_from_ioapi">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_cf_from_ioapi</span><span class="p">(</span><span class="n">ifileo</span><span class="p">,</span> <span class="n">coordkeys</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">add_lay_coordinates</span><span class="p">(</span><span class="n">ifileo</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">add_time_variables</span><span class="p">(</span><span class="n">ifileo</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">if</span> <span class="n">ifileo</span><span class="o">.</span><span class="n">GDTYP</span> <span class="ow">in</span> <span class="n">_gdnames</span><span class="p">:</span>
+        <span class="n">add_lcc_coordinates</span><span class="p">(</span><span class="n">ifileo</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;PNC IOAPI aware of </span><span class="si">{</span><span class="n">_gdnames</span><span class="si">}</span><span class="s1">; got </span><span class="si">{</span><span class="n">ifileo</span><span class="o">.</span><span class="n">GDTYP</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">ifileo</span><span class="o">.</span><span class="n">Conventions</span> <span class="o">=</span> <span class="s1">&#39;CF-1.6&#39;</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

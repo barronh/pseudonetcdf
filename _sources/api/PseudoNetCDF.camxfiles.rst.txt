@@ -1,0 +1,106 @@
+PseudoNetCDF.camxfiles package
+==============================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 1
+
+   PseudoNetCDF.camxfiles.cloud_rain
+   PseudoNetCDF.camxfiles.finst
+   PseudoNetCDF.camxfiles.height_pressure
+   PseudoNetCDF.camxfiles.humidity
+   PseudoNetCDF.camxfiles.ipr
+   PseudoNetCDF.camxfiles.irr
+   PseudoNetCDF.camxfiles.landuse
+   PseudoNetCDF.camxfiles.lateral_boundary
+   PseudoNetCDF.camxfiles.one3d
+   PseudoNetCDF.camxfiles.point_source
+   PseudoNetCDF.camxfiles.temperature
+   PseudoNetCDF.camxfiles.uamiv
+   PseudoNetCDF.camxfiles.vertical_diffusivity
+   PseudoNetCDF.camxfiles.wind
+
+Submodules
+----------
+
+PseudoNetCDF.camxfiles.ArrayTransforms module
+---------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.ArrayTransforms
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.FortranFileUtil module
+---------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.FortranFileUtil
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.Memmaps module
+-------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.Memmaps
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.Readers module
+-------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.Readers
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.Writers module
+-------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.Writers
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.aerosol\_names module
+--------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.aerosol_names
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.timetuple module
+---------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.timetuple
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.units module
+-----------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.units
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.util module
+----------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.util
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.camxfiles
+   :members:
+   :show-inheritance:
+   :undoc-members:

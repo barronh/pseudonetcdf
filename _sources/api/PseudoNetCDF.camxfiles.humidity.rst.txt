@@ -1,0 +1,45 @@
+PseudoNetCDF.camxfiles.humidity package
+=======================================
+
+Submodules
+----------
+
+PseudoNetCDF.camxfiles.humidity.Memmap module
+---------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.humidity.Memmap
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.humidity.Read module
+-------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.humidity.Read
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.humidity.Transforms module
+-------------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.humidity.Transforms
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PseudoNetCDF.camxfiles.humidity.Write module
+--------------------------------------------
+
+.. automodule:: PseudoNetCDF.camxfiles.humidity.Write
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: PseudoNetCDF.camxfiles.humidity
+   :members:
+   :show-inheritance:
+   :undoc-members:

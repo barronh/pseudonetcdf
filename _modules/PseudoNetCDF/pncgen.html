@@ -1,0 +1,423 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PseudoNetCDF.pncgen &mdash; PseudoNetCDF 3.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=149be4c9"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            PseudoNetCDF
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">PseudoNetCDF User’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Example Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readers.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Core Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/PseudoNetCDF.html">PseudoNetCDF package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../issues.html">Get in touch</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PseudoNetCDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">PseudoNetCDF.pncgen</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for PseudoNetCDF.pncgen</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">MethodType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.netcdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">NetCDFVariable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">PseudoNetCDFFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.sci_var</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_ncf_object</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PseudoNetCDF.camxfiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Writers</span> <span class="k">as</span> <span class="n">CAMxWriters</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF.geoschemfiles</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">geoschemwriters</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">PseudoNetCDF.icarttfiles.ffi1001</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">icarttwriters</span>
+
+
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,):</span>
+    <span class="n">long</span> <span class="o">=</span> <span class="nb">int</span>
+
+
+<div class="viewcode-block" id="Pseudo2NetCDF">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncgen.Pseudo2NetCDF">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Pseudo2NetCDF</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pseudo2NetCDF is a base class for conversion.  Properties and methods can</span>
+<span class="sd">    be overwritten to facilitate conversion of special PseudoNetCDFFiles.</span>
+
+<span class="sd">    Specifically: ignore_global_properties and ignore_variable_properties lists</span>
+<span class="sd">    can be overwritten so that class properties and methods are not written</span>
+<span class="sd">    to a netCDF file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+    <span class="n">ignore_global_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;^_\w*(__\w*)?&#39;</span><span class="p">)</span>
+    <span class="n">ignore_variable_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;^_\w*(__\w*)?&#39;</span><span class="p">)</span>
+    <span class="n">ignore_global_properties</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;variables&#39;</span><span class="p">,</span> <span class="s1">&#39;dimensions&#39;</span><span class="p">]</span>
+    <span class="n">ignore_variable_properties</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;typecode&#39;</span><span class="p">,</span> <span class="s1">&#39;dimensions&#39;</span><span class="p">]</span>
+    <span class="n">special_properties</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_fillvalue&#39;</span><span class="p">,</span> <span class="s1">&#39;_FillValue&#39;</span><span class="p">]</span>
+    <span class="n">unlimited_dimensions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">create_variable_kwds</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datafirst</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datafirst</span> <span class="o">=</span> <span class="n">datafirst</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+
+<div class="viewcode-block" id="Pseudo2NetCDF.convert">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncgen.Pseudo2NetCDF.convert">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pfile</span><span class="p">,</span> <span class="n">npath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inmode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">outmode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span>
+                <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;NETCDF4&#39;</span><span class="p">):</span>
+        <span class="n">pfile</span> <span class="o">=</span> <span class="n">get_ncf_object</span><span class="p">(</span><span class="n">pfile</span><span class="p">,</span> <span class="n">inmode</span><span class="p">)</span>
+        <span class="n">nfile</span> <span class="o">=</span> <span class="n">get_ncf_object</span><span class="p">(</span><span class="n">npath</span><span class="p">,</span> <span class="n">outmode</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Adding dimensions&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addDimensions</span><span class="p">(</span><span class="n">pfile</span><span class="p">,</span> <span class="n">nfile</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Adding globals&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addGlobalProperties</span><span class="p">(</span><span class="n">pfile</span><span class="p">,</span> <span class="n">nfile</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Adding variables&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addVariables</span><span class="p">(</span><span class="n">pfile</span><span class="p">,</span> <span class="n">nfile</span><span class="p">)</span>
+        <span class="n">nfile</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">nfile</span></div>
+
+
+<div class="viewcode-block" id="Pseudo2NetCDF.addDimensions">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncgen.Pseudo2NetCDF.addDimensions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">addDimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pfile</span><span class="p">,</span> <span class="n">nfile</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">pfile</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addDimension</span><span class="p">(</span><span class="n">pfile</span><span class="p">,</span> <span class="n">nfile</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Pseudo2NetCDF.addDimension">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncgen.Pseudo2NetCDF.addDimension">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">addDimension</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pfile</span><span class="p">,</span> <span class="n">nfile</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">pfile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
+        <span class="n">unlim</span> <span class="o">=</span> <span class="p">(</span><span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unlimited_dimensions</span> <span class="ow">or</span> <span class="n">v</span><span class="o">.</span><span class="n">isunlimited</span><span class="p">())</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">long</span><span class="p">))</span> <span class="ow">and</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">unlim</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nfile</span><span class="p">,</span> <span class="n">PseudoNetCDFFile</span><span class="p">):</span>
+                <span class="n">nd</span> <span class="o">=</span> <span class="n">nfile</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+                <span class="n">nd</span><span class="o">.</span><span class="n">setunlimited</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">nd</span> <span class="o">=</span> <span class="n">nfile</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nd</span> <span class="o">=</span> <span class="n">nfile</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+        <span class="n">nfile</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Pseudo2NetCDF.addGlobalProperties">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncgen.Pseudo2NetCDF.addGlobalProperties">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">addGlobalProperties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pfile</span><span class="p">,</span> <span class="n">nfile</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">pfile</span><span class="o">.</span><span class="n">ncattrs</span><span class="p">()</span>
+                  <span class="k">if</span> <span class="p">(</span><span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignore_global_properties</span> <span class="ow">and</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">ignore_global_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)]:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pfile</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">MethodType</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">nfile</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                        <span class="nb">setattr</span><span class="p">(</span><span class="n">nfile</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">e</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Could not add </span><span class="si">%s</span><span class="s2"> to file; </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">e</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Pseudo2NetCDF.addVariableProperties">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncgen.Pseudo2NetCDF.addVariableProperties">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">addVariableProperties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pvar</span><span class="p">,</span> <span class="n">nvar</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">pvar</span><span class="o">.</span><span class="n">ncattrs</span><span class="p">()</span>
+                  <span class="k">if</span> <span class="p">((</span><span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignore_variable_properties</span> <span class="ow">and</span>
+                       <span class="bp">self</span><span class="o">.</span><span class="n">ignore_variable_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span>
+                      <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">special_properties</span><span class="p">)]:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pvar</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nvar</span><span class="p">,</span> <span class="n">NetCDFVariable</span><span class="p">)</span> <span class="ow">and</span> <span class="n">a</span> <span class="o">==</span> <span class="s1">&#39;_FillValue&#39;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">MethodType</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">nvar</span><span class="o">.</span><span class="n">setncattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                    <span class="c1"># setattr(nvar,a,value)</span>
+                <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                        <span class="n">nvar</span><span class="o">.</span><span class="n">setncattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">e</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;long_name&#39;</span> <span class="ow">in</span> <span class="n">pvar</span><span class="o">.</span><span class="n">ncattrs</span><span class="p">():</span>
+                        <span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Could not add </span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2"> to variable </span><span class="si">%s</span><span class="s2">; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                             <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">pvar</span><span class="o">.</span><span class="n">long_name</span><span class="p">),</span> <span class="n">e</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Could not add </span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2"> to variable; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                             <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="n">e</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Pseudo2NetCDF.addVariable">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncgen.Pseudo2NetCDF.addVariable">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">addVariable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pfile</span><span class="p">,</span> <span class="n">nfile</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">pvar</span> <span class="o">=</span> <span class="n">pfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">typecode</span> <span class="o">=</span> <span class="n">pvar</span><span class="o">.</span><span class="n">typecode</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">typecode</span> <span class="o">=</span> <span class="n">pvar</span><span class="p">[</span><span class="o">...</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span>
+
+        <span class="n">create_variable_kwds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_variable_kwds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pvar</span><span class="p">,</span> <span class="s1">&#39;missing_value&#39;</span><span class="p">):</span>
+            <span class="n">create_variable_kwds</span><span class="p">[</span><span class="s1">&#39;fill_value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pvar</span><span class="o">.</span><span class="n">missing_value</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pvar</span><span class="p">,</span> <span class="s1">&#39;fill_value&#39;</span><span class="p">):</span>
+            <span class="n">create_variable_kwds</span><span class="p">[</span><span class="s1">&#39;fill_value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pvar</span><span class="o">.</span><span class="n">fill_value</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pvar</span><span class="p">,</span> <span class="s1">&#39;_FillValue&#39;</span><span class="p">):</span>
+            <span class="n">create_variable_kwds</span><span class="p">[</span><span class="s1">&#39;fill_value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pvar</span><span class="o">.</span><span class="n">_FillValue</span>
+
+        <span class="n">nvar</span> <span class="o">=</span> <span class="n">nfile</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+            <span class="n">k</span><span class="p">,</span> <span class="n">typecode</span><span class="p">,</span> <span class="n">pvar</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span> <span class="o">**</span><span class="n">create_variable_kwds</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addVariableProperties</span><span class="p">(</span><span class="n">pvar</span><span class="p">,</span> <span class="n">nvar</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addVariableData</span><span class="p">(</span><span class="n">pfile</span><span class="p">,</span> <span class="n">nfile</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+            <span class="n">nfile</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">nfile</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">del</span> <span class="n">pvar</span><span class="p">,</span> <span class="n">nvar</span></div>
+
+
+<div class="viewcode-block" id="Pseudo2NetCDF.addVariableData">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncgen.Pseudo2NetCDF.addVariableData">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">addVariableData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pfile</span><span class="p">,</span> <span class="n">nfile</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.ma</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaskedArray</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">isscalar</span>
+        <span class="n">nvar</span> <span class="o">=</span> <span class="n">nfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="n">pvar</span> <span class="o">=</span> <span class="n">pfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">isscalar</span><span class="p">(</span><span class="n">nvar</span><span class="p">)</span> <span class="ow">or</span> <span class="n">nvar</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pvar</span><span class="p">,</span> <span class="n">NetCDFVariable</span><span class="p">):</span>
+                <span class="n">pvar</span> <span class="o">=</span> <span class="n">pvar</span><span class="p">[</span><span class="o">...</span><span class="p">]</span>
+            <span class="n">nvar</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">pvar</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pvar</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">MaskedArray</span><span class="p">):</span>
+            <span class="n">nvar</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">pvar</span><span class="p">[</span><span class="o">...</span><span class="p">]</span><span class="o">.</span><span class="n">filled</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">nvar</span><span class="p">,</span> <span class="s1">&#39;fill_value&#39;</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span>
+                <span class="n">nvar</span><span class="p">,</span> <span class="s1">&#39;_FillValue&#39;</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pvar</span><span class="p">,</span> <span class="s1">&#39;missing_value&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">9999</span><span class="p">))))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nvar</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">pvar</span><span class="p">[</span><span class="o">...</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Pseudo2NetCDF.addVariables">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncgen.Pseudo2NetCDF.addVariables">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">addVariables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pfile</span><span class="p">,</span> <span class="n">nfile</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">pfile</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Defining&quot;</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addVariable</span><span class="p">(</span><span class="n">pfile</span><span class="p">,</span> <span class="n">nfile</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">datafirst</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">datafirst</span><span class="p">:</span>
+            <span class="n">nfile</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">datafirst</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">pfile</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Populating&quot;</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addVariableData</span><span class="p">(</span><span class="n">pfile</span><span class="p">,</span> <span class="n">nfile</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+            <span class="n">nfile</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="pywriter">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncgen.pywriter">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pywriter</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;# Import Libraries and Functions</span>
+<span class="s2">from netCDF4 import Dataset</span>
+<span class="s2">from numpy import *</span>
+<span class="s2">from numpy.ma import masked_array</span>
+
+<span class="s2"># Open file for writing</span>
+<span class="s2">outpath = &#39;</span><span class="si">%s</span><span class="s2">&#39;</span>
+<span class="s2">outfile = Dataset(outpath, &#39;w&#39;)</span>
+
+<span class="s2">&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">outpath</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;# Define Dimensions&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">dk</span><span class="p">,</span> <span class="n">dv</span> <span class="ow">in</span> <span class="n">ifile</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">dl</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dv</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dv</span><span class="o">.</span><span class="n">isunlimited</span><span class="p">():</span>
+            <span class="n">dl</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dim_</span><span class="si">%s</span><span class="s2"> = outfile.createDimension(&#39;</span><span class="si">%s</span><span class="s2">&#39;, </span><span class="si">%s</span><span class="s2">); # </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span>
+              <span class="p">(</span><span class="n">dk</span><span class="p">,</span> <span class="n">dk</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dv</span><span class="p">)))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;# Add global properties&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">pk</span> <span class="ow">in</span> <span class="n">ifile</span><span class="o">.</span><span class="n">ncattrs</span><span class="p">():</span>
+        <span class="n">pv</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">pk</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pv</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="n">pv</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pv</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;setattr(outfile, &#39;</span><span class="si">%s</span><span class="s2">&#39;, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pk</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">pv</span><span class="p">)))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;## Define Variables&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;vars = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">vk</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;# Defining &quot;</span> <span class="o">+</span> <span class="n">vk</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;var = vars[&#39;</span><span class="si">%s</span><span class="s2">&#39;] = outfile.createVariable(&#39;</span><span class="si">%s</span><span class="s2">&#39;, &#39;</span><span class="si">%s</span><span class="s2">&#39;, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">vk</span><span class="p">,</span> <span class="n">vk</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">dimensions</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">pk</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">ncattrs</span><span class="p">():</span>
+            <span class="n">pv</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">pk</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;setattr(var, &#39;</span><span class="si">%s</span><span class="s2">&#39;, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pk</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">pv</span><span class="p">)))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;## Populate Variables&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">vk</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ifile</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;# Populating &quot;</span> <span class="o">+</span> <span class="n">vk</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">):</span>
+                <span class="n">vtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">vtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;var = vars[&#39;</span><span class="si">%s</span><span class="s2">&#39;]&quot;</span> <span class="o">%</span> <span class="n">vk</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;var[:] = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">v</span><span class="p">[:]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">vtype</span><span class="p">))))</span></div>
+
+
+
+<div class="viewcode-block" id="pncgen">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncgen.pncgen">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pncgen</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">inmode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">outmode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;NETCDF4_CLASSIC&#39;</span><span class="p">,</span>
+           <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">complevel</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">writer_kw</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ifile - input file to write out</span>
+<span class="sd">    outpath - path to outputfile</span>
+<span class="sd">    inmode - how is file read (if ifile is a path)</span>
+<span class="sd">    outmode - w, w+s</span>
+<span class="sd">    format - any PseudoNetCDF or Dataset option</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">writer_kw</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">writer_kw</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="nb">format</span><span class="p">[:</span><span class="mi">6</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;NETCDF&#39;</span><span class="p">:</span>
+        <span class="n">p2n</span> <span class="o">=</span> <span class="n">Pseudo2NetCDF</span><span class="p">()</span>
+        <span class="n">p2n</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="k">if</span> <span class="n">complevel</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">p2n</span><span class="o">.</span><span class="n">create_variable_kwds</span><span class="p">[</span><span class="s1">&#39;zlib&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">p2n</span><span class="o">.</span><span class="n">create_variable_kwds</span><span class="p">[</span><span class="s1">&#39;complevel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">complevel</span>
+        <span class="k">return</span> <span class="n">p2n</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">inmode</span><span class="o">=</span><span class="n">inmode</span><span class="p">,</span> <span class="n">outmode</span><span class="o">=</span><span class="n">outmode</span><span class="p">,</span>
+                           <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">)</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">._getwriter</span><span class="w"> </span><span class="kn">import</span> <span class="n">getwriterdict</span>
+    <span class="n">writerdict</span> <span class="o">=</span> <span class="n">getwriterdict</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;python&#39;</span><span class="p">:</span>
+        <span class="n">pywriter</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">outpath</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;csv&#39;</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.textfiles._delimited</span><span class="w"> </span><span class="kn">import</span> <span class="n">ncf2csv</span>
+        <span class="n">ncf2csv</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">outpath</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">format</span> <span class="ow">in</span> <span class="n">writerdict</span><span class="p">:</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">writerdict</span><span class="p">[</span><span class="nb">format</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">writer</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="o">**</span><span class="n">writer_kw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">writers</span> <span class="ow">in</span> <span class="p">[</span><span class="n">CAMxWriters</span><span class="p">,</span> <span class="n">geoschemwriters</span><span class="p">,</span> <span class="n">icarttwriters</span><span class="p">]:</span>
+            <span class="n">writer</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">writers</span><span class="p">,</span> <span class="s1">&#39;ncf2</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">format</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">writer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">writer</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="o">**</span><span class="n">writer_kw</span><span class="p">)</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Unknown output file type &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="nb">format</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../api/PseudoNetCDF.html#PseudoNetCDF.pncgen.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.pncparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">pncparse</span>
+    <span class="n">ifiles</span><span class="p">,</span> <span class="n">options</span> <span class="o">=</span> <span class="n">pncparse</span><span class="p">(</span><span class="n">has_ofile</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ifiles</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+            <span class="s1">&#39;pncgen can output only 1 file; user requested </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">ifiles</span><span class="p">))</span>
+    <span class="n">ifile</span><span class="p">,</span> <span class="o">=</span> <span class="n">ifiles</span>
+    <span class="k">return</span> <span class="n">pncgen</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">outpath</span><span class="p">,</span> <span class="n">outmode</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span>
+                  <span class="nb">format</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">outformat</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">verbose</span><span class="p">),</span> <span class="n">options</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Barron H. Henderson.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
