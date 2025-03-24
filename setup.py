@@ -1,8 +1,5 @@
 from __future__ import print_function
-try:
-    from setuptools import setup
-except Exception:
-    from distutils.core import setup
+from setuptools import setup
 import os
 import sys
 
@@ -80,6 +77,12 @@ extra_requires_dict = {
     'projections': ['pyproj'],
     'mapping': ['basemap'],
 }
+project_urls = {
+    'Documentation': "https://barronh.github.io/pseudonetcdf",
+    'homepage': "https://github.com/barronh/pseudonetcdf/",
+    'issue-tracker': "https://github.com/barronh/pseudonetcdf/issues",
+    'source-code': "https://github.com/barronh/pseudonetcdf",
+}
 
 setup(
     name='pseudonetcdf',
@@ -105,12 +108,12 @@ setup(
     },
     url='http://github.com/barronh/pseudonetcdf/',
     classifiers=[
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
         'Topic :: Scientific/Engineering',
         'Topic :: Scientific/Engineering :: Atmospheric Science',
-    ]
+    ],
+    project_urls=project_urls
 )

@@ -1,14 +1,15 @@
-import importlib
-import unittest
-from distutils.version import LooseVersion
-
-
 def _importorskip(modname, minversion=None):
+    import importlib
+    import unittest
+    try:
+        from packaging.version import Version
+    except Exception:
+        from distutils.version import LooseVersion as Version
     try:
         mod = importlib.import_module(modname)
         has = True
         if minversion is not None:
-            if LooseVersion(mod.__version__) < LooseVersion(minversion):
+            if Version(mod.__version__) < Version(minversion):
                 raise ImportError('Minimum version not satisfied')
     except ImportError:
         has = False
