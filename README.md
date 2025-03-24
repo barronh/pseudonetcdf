@@ -1,7 +1,7 @@
 # PseudoNetCDF like NetCDF except for many scientific format backends
 
 [![Docs](https://github.com/barronh/pseudonetcdf/actions/workflows/documentation.yml/badge.svg)](https://barronh.github.io/pseudonetcdf)
-[![Tests](https://github.com/barronh/pseudonetcdf/actions/workflows/tests.yml/badge.svg)]()
+[![Tests](https://github.com/barronh/pseudonetcdf/actions/workflows/tests.yml/badge.svg)](https://github.com/barronh/pseudonetcdf/actions/workflows/tests.yml)
 [![Publish](https://github.com/barronh/pseudonetcdf/actions/workflows/python-publish.yml/badge.svg)](https://pypi.org/p/pseudonetcdf)
 
 # Overview
@@ -16,7 +16,7 @@ PseudoNetCDF provides read, plot, and sometimes write capabilities for atmospher
 * GEOS-Chem Binary Punch/NetCDF files
 * and many more, for a full list of formats see `pncdump --list-formats`
 
-Documentation on PseudoNetCDF is available at https://pseudonetcdf.readthedocs.io/
+Documentation on PseudoNetCDF is available at https://barronh.github.io/pseudonetcdf
 
 # Example code
 
