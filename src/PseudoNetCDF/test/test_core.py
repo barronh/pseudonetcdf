@@ -718,6 +718,8 @@ class PseudoNetCDFFileTest(unittest.TestCase):
             np_all_close(to3, cncf.variables['O3'][:])
             sncf = cncf.subset(['O3'])
             np_all_close(to3, sncf.variables['O3'][:])
+            cncf.close()
+            del cncf
             os.remove(tmppath)
 
     def testNcattrs(self):
@@ -931,7 +933,7 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         from ..core import netcdf
         tncf = self.testncf.copy()
         to3 = tncf.variables['O3'][:]
-        with tempfile.TemporaryDirectory() as tmpdirname:
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmpdirname:
             tmppath1 = os.path.join(tmpdirname, 'test1.nc')
             tmppath2 = os.path.join(tmpdirname, 'test2.nc')
             tncf.save(tmppath1).close()
@@ -941,9 +943,11 @@ class PseudoNetCDFFileTest(unittest.TestCase):
             np_all_close(cncf.variables['O3'][:nt], to3)
             np_all_close(cncf.variables['O3'][nt:], to3)
             cncf.close()
-            del cncf
-            os.remove(tmppath1)
-            os.remove(tmppath2)
+            try:
+                os.remove(tmppath1)
+                os.remove(tmppath2)
+            except Exception:
+                pass
 
     def runTest(self):
         pass

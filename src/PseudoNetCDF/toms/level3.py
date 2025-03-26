@@ -166,6 +166,7 @@ class test_tomsl3(unittest.TestCase):
         for k, ncv in ncfile.variables.items():
             vpv = vfile.variables[k]
             np.testing.assert_allclose(ncv[...], vpv[...])
+        ncfile.close()
         os.remove(outpath)
 
 

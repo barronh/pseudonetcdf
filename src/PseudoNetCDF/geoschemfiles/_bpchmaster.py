@@ -57,8 +57,9 @@ class TestMemmaps(unittest.TestCase):
             bpchfile = bpch(self.bpchpath, noscale=True)
         outpath = self.bpchpath + '.check'
         from PseudoNetCDF.pncgen import pncgen
-        pncgen(bpchfile, outpath, inmode='r',
-               outmode='w', format='bpch', verbose=0)
+        tmpf = pncgen(bpchfile, outpath, inmode='r',
+                outmode='w', format='bpch', verbose=0)
+        tmpf.close()
         orig = open(self.bpchpath, 'rb').read()
         new = open(outpath, 'rb').read()
         assert (orig == new)
@@ -96,7 +97,11 @@ class TestMemmaps(unittest.TestCase):
             bpchfile = bpch(outpath)
         ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']
         np.testing.assert_allclose(ALD2, ALD2_check_slided_reduced)
-        os.remove(outpath)
+        bpchfile.close()
+        try:
+            os.remove(outpath)
+        except Exception:
+            pass
 
     def testBPCH(self):
         import warnings

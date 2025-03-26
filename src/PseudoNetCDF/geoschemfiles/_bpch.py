@@ -1299,7 +1299,10 @@ class TestMemmaps(unittest.TestCase):
         for k, ncv in ncfile.variables.items():
             bpv = bpchfile.variables[k]
             np.testing.assert_allclose(ncv[...], bpv[...])
-        os.remove(outpath)
+        try:
+            os.remove(outpath)
+        except Exception:
+            pass
 
     def testNCF2BPCH1(self):
         import warnings
@@ -1313,7 +1316,8 @@ class TestMemmaps(unittest.TestCase):
         pncgen(bpchfile, outpath, inmode='r',
                outmode='w', format='bpch', verbose=0)
         orig = open(self.bpchpath, 'rb').read()
-        new = open(outpath, 'rb').read()
+        with open(outpath, 'rb') as newf:
+            new = newf.read()
         assert (orig == new)
         os.remove(outpath)
         from PseudoNetCDF.sci_var import reduce_dim, slice_dim
@@ -1349,7 +1353,10 @@ class TestMemmaps(unittest.TestCase):
             bpchfile = bpch1(outpath)
         ALD2 = bpchfile.variables['IJ-AVG-$_ALD2']
         np.testing.assert_allclose(ALD2, ALD2_check_slided_reduced)
-        os.remove(outpath)
+        try:
+            os.remove(outpath)
+        except Exception:
+            pass
 
     def testBPCH1(self):
         import warnings
