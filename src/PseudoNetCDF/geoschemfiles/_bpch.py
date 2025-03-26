@@ -1302,6 +1302,7 @@ class TestMemmaps(unittest.TestCase):
         try:
             os.remove(outpath)
         except Exception:
+            self.addCleanup(os.remove, outpath)
             pass
 
     def testNCF2BPCH1(self):
@@ -1356,6 +1357,7 @@ class TestMemmaps(unittest.TestCase):
         try:
             os.remove(outpath)
         except Exception:
+            self.addCleanup(os.remove, outpath)
             pass
 
     def testBPCH1(self):

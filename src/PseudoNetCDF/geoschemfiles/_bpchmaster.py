@@ -101,6 +101,7 @@ class TestMemmaps(unittest.TestCase):
         try:
             os.remove(outpath)
         except Exception:
+            self.addCleanup(os.remove, outpath)
             pass
 
     def testBPCH(self):

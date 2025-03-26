@@ -939,23 +939,31 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         tmpdirname = tempfile.gettempdir()
         tmppath1 = os.path.join(tmpdirname, 'test1.nc')
         tmppath2 = os.path.join(tmpdirname, 'test2.nc')
-        tncf.save(tmppath1).close()
-        tncf.save(tmppath2).close()
+        tmpf1 = tncf.save(tmppath1)
+        tmpf2 = tncf.save(tmppath2)
+        tmpf1.sync()
+        tmpf1.close()
+        tmpf2.sync()
+        tmpf2.close()
         nt = len(tncf.dimensions['TSTEP'])
         cncf = netcdf.open_mfdataset(tmppath1, tmppath2, stackdim='TSTEP')
         np_all_close(cncf.variables['O3'][:nt], to3)
         np_all_close(cncf.variables['O3'][nt:], to3)
         cncf.close()
-        # to ensure compatibility with windows, removing any references to
-        # underlying files so they can be deleted.
         del cncf
         gc.collect()
         try:
+            # to ensure compatibility with windows, removing any references to
+            # underlying files so they can be deleted.
             os.remove(tmppath1)
             os.remove(tmppath2)
         except Exception:
             warnings.warn(f'Could not delete {tmppath1} and {tmppath2}')
             pass
+        if os.path.exists(tmppath1):
+            self.addCleanup(os.remove, tmppath1)
+        if os.path.exists(tmppath2):
+            self.addCleanup(os.remove, tmppath2)
 
     def runTest(self):
         pass
