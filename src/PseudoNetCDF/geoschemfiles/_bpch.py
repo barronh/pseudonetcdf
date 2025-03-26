@@ -1311,7 +1311,7 @@ class TestMemmaps(unittest.TestCase):
                 'ignore', 'Not scaling variables; good for direct writing'
             )
             bpchfile = bpch1(self.bpchpath, noscale=True)
-        outpath = self.bpchpath + '.check'
+        outpath = self.bpchpath + '.check1'
         from PseudoNetCDF.pncgen import pncgen
         pncgen(bpchfile, outpath, inmode='r',
                outmode='w', format='bpch', verbose=0)

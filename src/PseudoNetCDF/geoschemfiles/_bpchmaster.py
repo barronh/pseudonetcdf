@@ -48,14 +48,14 @@ class TestMemmaps(unittest.TestCase):
         from PseudoNetCDF.testcase import geoschemfiles_paths
         self.bpchpath = geoschemfiles_paths['bpch']
 
-    def testNCF2BPCH(self):
+    def testNCF2BPCHM(self):
         import warnings
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 'ignore', 'Not scaling variables; good for direct writing'
             )
             bpchfile = bpch(self.bpchpath, noscale=True)
-        outpath = self.bpchpath + '.check'
+        outpath = self.bpchpath + '.checkm'
         from PseudoNetCDF.pncgen import pncgen
         tmpf = pncgen(bpchfile, outpath, inmode='r',
                       outmode='w', format='bpch', verbose=0)

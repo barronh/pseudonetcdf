@@ -931,23 +931,31 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         import tempfile
         import os
         from ..core import netcdf
+        import warnings
+        import gc
+
         tncf = self.testncf.copy()
         to3 = tncf.variables['O3'][:]
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            tmppath1 = os.path.join(tmpdirname, 'test1.nc')
-            tmppath2 = os.path.join(tmpdirname, 'test2.nc')
-            tncf.save(tmppath1).close()
-            tncf.save(tmppath2).close()
-            nt = len(tncf.dimensions['TSTEP'])
-            cncf = netcdf.open_mfdataset(tmppath1, tmppath2, stackdim='TSTEP')
-            np_all_close(cncf.variables['O3'][:nt], to3)
-            np_all_close(cncf.variables['O3'][nt:], to3)
-            cncf.close()
-            try:
-                os.remove(tmppath1)
-                os.remove(tmppath2)
-            except Exception:
-                pass
+        tmpdirname = tempfile.gettempdir()
+        tmppath1 = os.path.join(tmpdirname, 'test1.nc')
+        tmppath2 = os.path.join(tmpdirname, 'test2.nc')
+        tncf.save(tmppath1).close()
+        tncf.save(tmppath2).close()
+        nt = len(tncf.dimensions['TSTEP'])
+        cncf = netcdf.open_mfdataset(tmppath1, tmppath2, stackdim='TSTEP')
+        np_all_close(cncf.variables['O3'][:nt], to3)
+        np_all_close(cncf.variables['O3'][nt:], to3)
+        cncf.close()
+        # to ensure compatibility with windows, removing any references to
+        # underlying files so they can be deleted.
+        del cncf
+        gc.collect()
+        try:
+            os.remove(tmppath1)
+            os.remove(tmppath2)
+        except Exception:
+            warnings.warn(f'Could not delete {tmppath1} and {tmppath2}')
+            pass
 
     def runTest(self):
         pass

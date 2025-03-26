@@ -405,15 +405,16 @@ class TestMemmaps(unittest.TestCase):
         from PseudoNetCDF.testcase import geoschemfiles_paths
         self.bpchpath = geoschemfiles_paths['bpch']
 
-    def testNCF2BPCH(self):
-        bpchfile = bpch2(self.bpchpath, noscale=True)
+    def testNCF2BPCH2(self):
         from PseudoNetCDF.pncgen import pncgen
-        pncgen(bpchfile, self.bpchpath + '.check', inmode='r',
+        bpchfile = bpch2(self.bpchpath, noscale=True)
+        outpath = self.bpchpath + '.check2'
+        pncgen(bpchfile, outpath, inmode='r',
                outmode='w', format='bpch', verbose=0)
         orig = open(self.bpchpath, 'rb').read()
-        new = open(self.bpchpath + '.check', 'rb').read()
+        new = open(outpath, 'rb').read()
         assert (orig == new)
-        os.remove(self.bpchpath + '.check')
+        os.remove(outpath)
 
     def testBPCH2(self):
         bpchfile = bpch2(self.bpchpath)
