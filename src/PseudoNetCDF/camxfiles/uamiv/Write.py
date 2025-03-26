@@ -341,8 +341,9 @@ class TestMemmaps(unittest.TestCase):
         from PseudoNetCDF.camxfiles.Memmaps import uamiv
         uamivfile = uamiv(self.uamivpath)
         from PseudoNetCDF.pncgen import pncgen
-        pncgen(uamivfile, self.uamivpath + '.check', inmode='r',
-               outmode='w', format='uamiv', verbose=0)
+        tmpf = pncgen(uamivfile, self.uamivpath + '.check', inmode='r',
+                      outmode='w', format='uamiv', verbose=0)
+        tmpf.close()
         check = True
         uamivfile2 = uamiv(self.uamivpath + '.check')
         for k, v in uamivfile.variables.items():

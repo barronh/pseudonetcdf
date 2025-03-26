@@ -156,6 +156,7 @@ class test_vaisala(unittest.TestCase):
         for k, ncv in ncfile.variables.items():
             vpv = vfile.variables[k]
             np.testing.assert_allclose(ncv[...], vpv[...])
+        ncfile.close()
         os.remove(outpath)
 
 

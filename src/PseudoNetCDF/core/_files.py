@@ -2693,7 +2693,8 @@ class netcdf(PseudoNetCDFFile, NetCDFFile):
             return True
         elif hdftest == b'HDF':
             try:
-                cls(path, *args, **kwds)
+                tmpf = cls(path, *args, **kwds)
+                tmpf.close()
                 return True
             except Exception:
                 return False

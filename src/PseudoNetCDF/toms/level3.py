@@ -10,14 +10,14 @@ from datetime import datetime
 import unittest
 
 
-dayre = compile(' Day:\s+(?P<jday>\d+) (?P<daystring>.{12})\s+EP/' +
-                'TOMS CORRECTED OZONE GEN:\d+\.\d+\sV\d ALECT:\s+\d+' +
-                ':\d+ [AP]M ')
+dayre = compile(r' Day:\s+(?P<jday>\d+) (?P<daystring>.{12})\s+EP/' +
+                r'TOMS CORRECTED OZONE GEN:\d+\.\d+\sV\d ALECT:\s+\d+' +
+                r':\d+ [AP]M ')
 edgere = compile(
-    '.+(?P<bins>\d+)\s+bins.*' +
-    '\s+[-+]?(?P<start>\d+\.\d+)\s*(?P<startdir>[WENS]).*' +
-    '\s+[-+]?(?P<end>\d+\.\d+)\s*(?P<enddir>[WENS])\s+.*' +
-    '\((?P<step>\d+.\d+)\s*degree steps.+')
+    r'.+(?P<bins>\d+)\s+bins.*' +
+    r'\s+[-+]?(?P<start>\d+\.\d+)\s*(?P<startdir>[WENS]).*' +
+    r'\s+[-+]?(?P<end>\d+\.\d+)\s*(?P<enddir>[WENS])\s+.*' +
+    r'\((?P<step>\d+.\d+)\s*degree steps.+')
 
 
 def _groupdict(reo, line):

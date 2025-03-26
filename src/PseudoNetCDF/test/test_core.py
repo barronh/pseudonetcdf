@@ -883,7 +883,8 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         tncf = self.testncf.copy()
         with tempfile.TemporaryDirectory() as tmpdirname:
             tmppath = os.path.join(tmpdirname, 'test.nc')
-            tncf.save(tmppath).close()
+            tmpf = tncf.save(tmppath)
+            tmpf.close()
             assert ~PseudoNetCDFFile.isMine(tmppath)
             assert netcdf.isMine(tmppath)
             os.remove(tmppath)

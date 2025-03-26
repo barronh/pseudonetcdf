@@ -25,8 +25,8 @@ class Pseudo2NetCDF:
     to a netCDF file
     """
     import re
-    ignore_global_re = re.compile('^_\w*(__\w*)?')
-    ignore_variable_re = re.compile('^_\w*(__\w*)?')
+    ignore_global_re = re.compile(r'^_\w*(__\w*)?')
+    ignore_variable_re = re.compile(r'^_\w*(__\w*)?')
     ignore_global_properties = ['variables', 'dimensions']
     ignore_variable_properties = ['typecode', 'dimensions']
     special_properties = ['_fillvalue', '_FillValue']

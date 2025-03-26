@@ -86,13 +86,17 @@ class woudcsonde(PseudoNetCDFFile):
 
     def __init__(self, path, debug=False, na_values=None):
         """
-        Arguments:
-        path - path or file-like object.
-        debug - boolean to show extra info
-        na_values - values to use a NaN; (default: ['\s+', '*', '99999'])
+        Arguments
+        ---------
+        path : str
+            path or file-like object.
+        debug : bool
+            boolean to show extra info
+        na_values : list
+            values to use a NaN; (default: ['\\s+', '*', '99999'])
         """
         if na_values is None:
-            na_values = ['\s+', '*', '99999']
+            na_values = [r'\s+', '*', '99999']
         try:
             import pandas as pd
         except Exception:
@@ -127,7 +131,7 @@ class woudcsonde(PseudoNetCDFFile):
 
         # after #PROFILE loop is broken
         myf.close()
-        readopts = dict(sep='\s*,', skiprows=li + 1,
+        readopts = dict(sep=r'\s*,', skiprows=li + 1,
                         engine='python', na_values=na_values, comment='*')
         data = pd.read_csv(path, **readopts)
         # indkey = data.columns[0]
@@ -173,11 +177,21 @@ class woudcsonde(PseudoNetCDFFile):
     def avgSigma(self, vglvls=None, vgtop=None, hyai=None, hybi=None,
                  inplace=False, copyall=True, levelname='LAY'):
         """
-        vglvls - sigma coordinate
-        vgtop - top in Pa
+        Arguments
+        ---------
+        vglvls : array-like
+            sigma coordinate
+        vgtop : float
+            top in Pa
+        hyai : array-like
+            hybrid eta-component hPa
+        hybi : array like
+            hybrid sigma-component
 
-        hyai - hybrid eta-component hPa
-        hybi - hybrid sigma-component
+        Returns
+        -------
+        sigf : PseudoNetCDFFile
+           File on sigma coordinates
         """
         if inplace:
             outf = self

@@ -116,7 +116,7 @@ class griddesc(ioapi_base):
         gdtxt = gdf.read().replace(',', ' ').strip()
         # Fortran allows exponential notation to use D or d
         # instead of E or e, while Python does not.
-        dble = re.compile('([\d.])[Dd]([\d])')
+        dble = re.compile(r'([\d.])[Dd]([\d])')
         gdtxt = dble.sub(r'\1e\2', gdtxt)
         gdlines = gdtxt.split('\n')
         gdlines = [line.strip() for line in gdlines]

@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest"]
+        os: ["ubuntu-latest", "macos-latest"]
         # Bookend python versions
         python-version: ["3.9", "3.12"]
     steps:

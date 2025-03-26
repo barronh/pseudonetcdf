@@ -101,7 +101,7 @@ class griddesc(unittest.TestCase):
             gf.save(tmppath).close()
             gfref = pncopen(tmppath, format='ioapi')
             compare_files(gf, gfref)
-            os.remove(tmppath)
+            gfref.close()
 
 
 class IOAPITest(unittest.TestCase):

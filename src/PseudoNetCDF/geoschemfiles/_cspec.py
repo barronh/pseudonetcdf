@@ -20,7 +20,7 @@ def cspec(path, smv2='smv2.log'):
 
 def get_cspec(smvpath):
     text = open(smvpath, 'r').read()
-    reo = re.compile('(?:NBR NAME\s+MW BKGAS\(VMRAT\))(?P<active>.*)' +
+    reo = re.compile(r'(?:NBR NAME\s+MW BKGAS\(VMRAT\))(?P<active>.*)' +
                      '(?:INACTIVE SPECIES FOR THIS RUN ARE:)' +
                      '(?P<inactive>.*)(?:THE DEAD SPECIES FOR THIS RUN ARE:)' +
                      '(?P<dead>.*?)(?:=====)', re.M | re.DOTALL)
