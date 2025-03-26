@@ -933,9 +933,7 @@ class PseudoNetCDFFileTest(unittest.TestCase):
         from ..core import netcdf
         tncf = self.testncf.copy()
         to3 = tncf.variables['O3'][:]
-        with tempfile.TemporaryDirectory(
-            ignore_cleanup_errors=True
-        ) as tmpdirname:
+        with tempfile.TemporaryDirectory() as tmpdirname:
             tmppath1 = os.path.join(tmpdirname, 'test1.nc')
             tmppath2 = os.path.join(tmpdirname, 'test2.nc')
             tncf.save(tmppath1).close()
