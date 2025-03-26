@@ -224,9 +224,13 @@ class TestMemmap(unittest.TestCase):
         outpath = PseudoNetCDF.testcase.camxfiles_paths['landuse'] + '.check'
         infile = landuse(inpath, 4, 5)
         pncgen(infile, outpath, format='camxfiles.landuse')
-        orig = open(inpath, 'rb').read()
-        new = open(outpath, 'rb').read()
+        origf = open(inpath, 'rb')
+        newf = open(outpath, 'rb')
+        orig = origf.read()
+        new = newf.read()
         assert (orig == new)
+        origf.close()
+        newf.close()
         os.remove(outpath)
 
 

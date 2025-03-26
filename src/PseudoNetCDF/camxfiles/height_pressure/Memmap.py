@@ -209,9 +209,13 @@ class TestMemmap(unittest.TestCase):
         outpath = inpath + '.check'
         infile = height_pressure(inpath, 4, 5)
         pncgen(infile, outpath, format='camxfiles.height_pressure')
-        orig = open(inpath, 'rb').read()
-        new = open(outpath, 'rb').read()
+        origf = open(inpath, 'rb')
+        newf = open(outpath, 'rb')
+        orig = origf.read()
+        new = newf.read()
         assert (orig == new)
+        origf.close()
+        newf.close()
         os.remove(outpath)
 
 

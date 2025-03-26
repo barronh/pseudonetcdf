@@ -17,3 +17,4 @@ three examples used to illustrate its power.
    examples/cmaqbcon
    examples/oddsandends
    examples/icartt
+   examples/xarray

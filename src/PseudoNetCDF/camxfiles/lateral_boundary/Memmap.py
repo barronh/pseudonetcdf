@@ -350,9 +350,13 @@ class TestMemmap(unittest.TestCase):
         outpath = inpath + '.check'
         infile = lateral_boundary(inpath)
         pncgen(infile, outpath, format='camxfiles.lateral_boundary')
-        orig = open(inpath, 'rb').read()
-        new = open(outpath, 'rb').read()
+        origf = open(inpath, 'rb')
+        orig = origf.read()
+        newf = open(outpath, 'rb')
+        new = newf.read()
         assert (orig == new)
+        origf.close()
+        newf.close()
         os.remove(outpath)
 
 

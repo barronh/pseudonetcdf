@@ -321,13 +321,17 @@ class TestMemmap(unittest.TestCase):
         outpath = inpath + '.check'
         infile = point_source(inpath)
         pncgen(infile, outpath, format='camxfiles.point_source')
-        orig = open(inpath, 'rb').read()
-        new = open(outpath, 'rb').read()
+        origf = open(inpath, 'rb')
+        newf = open(outpath, 'rb')
+        orig = origf.read()
+        new = newf.read()
+        assert (orig == new)
+        origf.close()
+        newf.close()
         # outfile=point_source(outpath)
         # for k, v0 in infile.variables.items():
         #    v1 = outfile.variables[k]
         #    print(k, (v0[:] == v1[:]).all())
-        assert (orig == new)
         os.remove(outpath)
 
 

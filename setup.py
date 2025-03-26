@@ -86,7 +86,7 @@ project_urls = {
 
 setup(
     name='pseudonetcdf',
-    version='3.4.1',
+    version='3.5.0',
     author='Barron Henderson',
     author_email='barronh@gmail.com',
     maintainer='Barron Henderson',

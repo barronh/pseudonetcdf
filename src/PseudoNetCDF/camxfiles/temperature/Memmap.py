@@ -220,9 +220,13 @@ class TestMemmap(unittest.TestCase):
         outpath = inpath + '.check'
         infile = temperature(inpath, 4, 5)
         pncgen(infile, outpath, format='camxfiles.temperature')
-        orig = open(inpath, 'rb').read()
-        new = open(outpath, 'rb').read()
+        origf = open(inpath, 'rb')
+        orig = origf.read()
+        newf = open(outpath, 'rb')
+        new = newf.read()
         assert (orig == new)
+        origf.close()
+        newf.close()
         os.remove(outpath)
 
 

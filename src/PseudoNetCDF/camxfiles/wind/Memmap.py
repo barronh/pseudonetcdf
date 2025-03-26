@@ -215,10 +215,14 @@ class TestMemmap(unittest.TestCase):
         outpath = PseudoNetCDF.testcase.camxfiles_paths['wind'] + '.check'
         infile = wind(inpath, 4, 5)
         pncgen(infile, outpath, format='camxfiles.wind')
-        orig = open(inpath, 'rb').read()
-        new = open(outpath, 'rb').read()
-        os.remove(outpath)
+        origf = open(inpath, 'rb')
+        newf = open(outpath, 'rb')
+        orig = origf.read()
+        new = newf.read()
         assert (orig == new)
+        origf.close()
+        newf.close()
+        os.remove(outpath)
 
 
 # TestSuite = unittest.makeSuite(TestMemmap, 'test')

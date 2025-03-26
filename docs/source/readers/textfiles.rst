@@ -1,4 +1,4 @@
-.. Text Based Files
+.. Miscellaneous Files
 
 Text-based Files
 ----------------
@@ -24,3 +24,8 @@ EPA Files
 
 * :class:`aermodfiles.reader <PseudoNetCDF.PseudoNetCDF.aermodfiles._aermod_plotfile.reader>`: AERMOD Output
 * :class:`aqsraw <PseudoNetCDF.PseudoNetCDF.epafiles._aqsraw.aqsraw>`: AQS "raw" output.
+
+HDF-based Files
+---------------
+
+* :class:`ceilometerl2 <PseudoNetCDF.ceilometerfiles.ceilometerl2>`: Reader for ceilometer level 2 outputs.

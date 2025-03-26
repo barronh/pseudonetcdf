@@ -44,7 +44,7 @@ ratios (VMR) from 2008-06-28T14:22:18Z to 2008-06-28T21:22:36Z with 7s samples.
   # convert PseudoNetCDF to DataFrame
   df = pd.DataFrame({k: f.variables[k] for k in keys})
   # add time element
-  refdate = pd.to_datetime('2008-06-28T00Z')
+  refdate = pd.to_datetime(f.SDATE.replace(', ', '-'))
   df['time'] = refdate + pd.to_timedelta(df['Mid_UTC'], unit='s')
   # group by time at specified frequency
   mdg = df.groupby(pd.Grouper(key='time', freq=freq))

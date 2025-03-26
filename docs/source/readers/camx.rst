@@ -9,8 +9,8 @@ If you're using CAMx with NetCDF outputs, you can use the CMAQ reader.
 
 * New NetCDF Inpput/Output Files:
 
-    * :class:`ioapi <PseudoNetCDF.netcdf>`: NetCDF IOAPI metadata reader, or
-    * :class:`netcdf PseudoNetCDF.PseudoNetCDF.core._files.netcdf>`: Standard NetCDF.
+    * :class:`ioapi <PseudoNetCDF.cmaqfiles.ioapi>`: NetCDF IOAPI metadata reader, or
+    * :class:`netcdf <PseudoNetCDF.PseudoNetCDF.core._files.netcdf>`: Standard NetCDF.
 
 
 * Fortran Formatted Outputs:
