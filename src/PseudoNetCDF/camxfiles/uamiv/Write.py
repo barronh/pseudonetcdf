@@ -351,4 +351,7 @@ class TestMemmaps(unittest.TestCase):
             check = check & bool((nv[...] == v[...]).all())
         assert (check)
         uamivfile2.close()
-        os.remove(self.uamivpath + '.check')
+        try:
+            os.remove(self.uamivpath + '.check')
+        except Exception:
+            pass

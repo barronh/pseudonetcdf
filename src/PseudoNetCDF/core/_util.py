@@ -31,9 +31,9 @@ def get_ncf_object(path_or_object, mode, format='NETCDF4_CLASSIC'):
     ):
         return path_or_object
     elif path_or_object is None and mode not in read_only:
-        with tnf(mode='w+b') as tfile:
-            npath = tfile.name
-            ncf_object = NetCDFFile(npath, mode)
+        tfile = tnf(mode='w+b')
+        npath = tfile.name
+        ncf_object = NetCDFFile(npath, mode)
     else:
         raise ValueError("Not a path; not a netCDF file; not a " +
                          "PseudoNetCDF file... I don't know what to do")
