@@ -58,7 +58,7 @@ class TestMemmaps(unittest.TestCase):
         outpath = self.bpchpath + '.check'
         from PseudoNetCDF.pncgen import pncgen
         tmpf = pncgen(bpchfile, outpath, inmode='r',
-                outmode='w', format='bpch', verbose=0)
+                      outmode='w', format='bpch', verbose=0)
         tmpf.close()
         orig = open(self.bpchpath, 'rb').read()
         new = open(outpath, 'rb').read()
