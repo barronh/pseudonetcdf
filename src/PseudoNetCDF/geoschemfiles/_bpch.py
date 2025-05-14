@@ -199,6 +199,76 @@ class _diag_group(PseudoNetCDFFile):
             else:
                 raise e
 
+def getlat(yres, sj=0, nj=None, halfpolar=1, edges=False):
+    """
+    Arguments
+    ---------
+    yres : float
+        resolution in degrees
+    sj : int
+        Starting cell
+    nj : int
+        Number of cells
+    halfpolar : int
+        Have cells over the poles have the size of others (0 = no, 1 = yes)
+    edges : bool
+        If True, return (nj, 2) array of latitude edges.
+        If False (default), return latitude centers
+
+    Returns
+    -------
+    data : array
+        If edges is False, latitude centers in degrees (nj,)
+        If edges is True, latitude edges in degrees (nj, 2)
+    """
+    if halfpolar == 1:
+        data = concatenate(
+            [[-90.], arange(-90. + yres / 2., 90., yres), [90.]])
+    else:
+        data = arange(-90, 90 + yres, yres)
+    if edges:
+        data = data.repeat(2, 0)[1:-1].reshape(-1, 2)
+    else:
+        data = data[:-1] + diff(data) / 2.
+    if nj is None:
+        nj = data.shape[0] - sj
+    data = data[sj:sj + nj]
+    return data
+
+
+def getlon(xres, si=0, ni=None, center180=1, edges=False):
+    """
+    Arguments
+    ---------
+    xres : float
+        resolution in degrees
+    si : int
+        Starting cell
+    ni : int
+        Number of cells
+    center180 : int
+        Have the last cell centered on 180 (0 = no, 1 = yes)
+    edges : bool
+        If True, return (nlon, 2) array of longitude edges.
+        If False (default), return longitude centers
+
+    Returns
+    -------
+    data : array
+        If edges is False, longitude centers in degrees (nlon,)
+        If edges is True, longitude edges in degrees (nlon, 2)
+    """
+    i = arange(0, 360 + xres, xres)
+    data = i - (180 + xres / 2. * center180)
+    if edges:
+        data = data.repeat(2, 0)[1:-1].reshape(-1, 2)
+    else:
+        data = data[:-1] + diff(data) / 2.
+    if ni is None:
+        ni = data.shape[0] - si
+
+    return data[si:si + ni]
+
 # This class is designed to operate like a dictionary, but
 # dynamically create variables to return to the user
 
@@ -236,44 +306,42 @@ class _tracer_lookup(defaultpseudonetcdfvariable):
         from ._vertcoord import geos_hyam, geos_hybm
         if key in ('latitude', 'latitude_bounds'):
             yres = self._parent.modelres[1]
-            if self._parent.halfpolar == 1:
-                data = concatenate(
-                    [[-90.], arange(-90. + yres / 2., 90., yres), [90.]])
-            else:
-                data = arange(-90, 90 + yres, yres)
-
+            example = self[self._example_key]
+            sj = getattr(example, 'STARTJ', 0)
+            nlat = example.shape[2]
+            edges = key == 'latitude_bounds'
+            data = getlat(
+                yres, sj=sj, nj=nlat, halfpolar=self._parent.halfpolar,
+                edges=edges
+            )
             dims = ('latitude',)
             dtype = 'f'
             kwds = dict(standard_name="latitude", long_name="latitude",
                         units="degrees_north", base_units="degrees_north",
                         axis="Y")
             if key == 'latitude':
-                data = data[:-1] + diff(data) / 2.
                 kwds['bounds'] = 'latitude_bounds'
             else:
                 dims += ('nv',)
-                data = data.repeat(2, 0)[1:-1].reshape(-1, 2)
-            example = self[self._example_key]
-            sj = getattr(example, 'STARTJ', 0)
-            data = data[sj:sj + example.shape[2]]
         elif key in ('longitude', 'longitude_bounds'):
             xres = self._parent.modelres[0]
-            i = arange(0, 360 + xres, xres)
-            data = i - (180 + xres / 2. * self._parent.center180)
+            edges = key == 'longitude_bounds'
+            example = self[self._example_key]
+            nlon = example.shape[3]
+            si = getattr(example, 'STARTI', 0)
+            data = getlon(
+                xres, si=si, ni=nlon,
+                center180=self._parent.center180, edges=edges
+            )
             dims = ('longitude',)
             dtype = 'f'
             kwds = dict(standard_name="longitude", long_name="longitude",
                         units="degrees_east", base_units="degrees_east",
                         axis="X")
             if key == 'longitude':
-                data = data[:-1] + diff(data) / 2.
                 kwds['bounds'] = 'longitude_bounds'
             else:
                 dims += ('nv',)
-                data = data.repeat(2, 0)[1:-1].reshape(-1, 2)
-            example = self[self._example_key]
-            si = getattr(example, 'STARTI', 0)
-            data = data[si:si + example.shape[3]]
         elif key == 'AREA':
             lon = self['longitude']
             xres = self._parent.modelres[0]
@@ -1193,6 +1261,7 @@ class bpch1(bpch_base):
 
 
 def ncf2bpch(ncffile, outpath, verbose=0):
+    from ..pncwarn import warn
     outfile = open(outpath, 'wb')
     _general_header_type = np.dtype(dict(
         names=['SPAD1', 'ftype', 'EPAD1', 'SPAD2', 'toptitle', 'EPAD2'],
@@ -1235,6 +1304,17 @@ def ncf2bpch(ncffile, outpath, verbose=0):
         tdv['header']['SPAD2'] = tdv['header']['EPAD2'] = 168
 
     ttz = zip(ncffile.variables['tau0'], ncffile.variables['tau1'])
+    fulllat = getlat(ncffile.modelres[1], halfpolar=ncffile.halfpolar)
+    fulllon = getlon(ncffile.modelres[0], center180=ncffile.center180)
+    inlat = ncffile.variables['latitude']
+    defsj = np.where(np.isclose(fulllat, inlat[0]))[0][0]
+    inlon = ncffile.variables['longitude']
+    defsi = np.where(np.isclose(fulllon, inlon[0]))[0][0]
+    inlay = ncffile.variables['layer']
+    defsk = inlay[0] - 1
+    if defsk > 0.1:
+        warn('Sliced vertical structures are currently not supported.')
+    first = True
     for ti, (tau0, tau1) in enumerate(ttz):
         for varkey in varkeys:
             var = ncffile.variables[varkey]
@@ -1252,9 +1332,18 @@ def ncf2bpch(ncffile, outpath, verbose=0):
             header['tracerid'] = var.tracerid
             header['category'] = var.category.ljust(40)
             header['unit'] = var.base_units
-            header['dim'] = (list(vals.shape[::-1]) +
-                             [getattr(var, k_, 0) + 1
-                              for k_ in 'STARTI STARTJ STARTK'.split()])
+            si = getattr(var, 'STARTI', defsi)
+            sj = getattr(var, 'STARTJ', defsj)
+            sk = getattr(var, 'STARTK', defsk)
+            if first:
+                if si != defsi:
+                    warn(f'STARTI prop {si} != {defsi} guess from longitude')
+                if sj != defsj:
+                    warn(f'STARTJ prop {sj} != {defsj} guess from latitude')
+                if sk != defsk:
+                    warn(f'STARTK prop {sk} != {defsk} guess from layer')
+                first = False
+            header['dim'] = list(vals.shape[::-1]) + [si + 1, sj + 1, sk + 1]
 
             tdv['SPAD1'] = tdv['EPAD1'] = np.prod(vals.shape) * 4
             header['skip'] = tdv['SPAD1'] + 8
