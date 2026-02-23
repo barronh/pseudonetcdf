@@ -67,7 +67,7 @@ class PseudoNetCDFVariable(np.ndarray):
                 coordi = list(self.dimensions).index(coordn)
                 coordv = np.arange(self.shape[coordi])
             else:
-                coordv = (v.dimensions, v.xarray(iscoord=True))
+                coordv = (v.dimensions, v.array())
         else:
             coordi = list(self.dimensions).index(coordn)
             coordv = np.arange(self.shape[coordi])
