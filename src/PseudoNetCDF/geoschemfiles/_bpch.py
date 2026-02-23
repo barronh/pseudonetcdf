@@ -199,6 +199,7 @@ class _diag_group(PseudoNetCDFFile):
             else:
                 raise e
 
+
 def getlat(yres, sj=0, nj=None, halfpolar=1, edges=False):
     """
     Arguments
