@@ -31,7 +31,6 @@ def getreader(*args, **kwds):
     -------
     reader : class
     """
-    global _readers
     format = kwds.pop('format', None)
     if not os.path.isfile(args[0]):
         warn(('The first argument (%s) does not exist as a file.  ' +
@@ -71,7 +70,6 @@ def getreader(*args, **kwds):
 
 
 def registerreader(name, reader):
-    global _readers, pncopen
     if name not in [k for k, v in _readers]:
         _readers.insert(0, (name, reader))
         if pncopen.__doc__ is not None:

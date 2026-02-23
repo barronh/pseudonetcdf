@@ -55,6 +55,14 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
     methods that a file should present to act like a netCDF file
     using the Scientific.IO.NetCDF.NetCDFFile interface.
     """
+    def xarray(self):
+        import xarray as xr
+        data_vars = {
+            k: v.xarray() for k, v in self.variables.items()
+            if k not in self.dimensions
+        }
+        attrs = {k: self.getncattr(k) for k in self.ncattrs()}
+        return xr.Dataset(data_vars, attrs=attrs)
 
     def getMap(self, maptype='basemap_auto', **kwds):
         """
@@ -113,7 +121,7 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             raise ValueError(
                 'maptype must be basemap, basemap_auto, or cartopy')
 
-    def getproj(self, withgrid=False, projformat='pyproj'):
+    def getproj(self, withgrid=False, projformat='pyproj', fromorigin=False):
         """
         Description
 
@@ -125,6 +133,8 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
             'pyproj' (default), 'proj4' or 'wkt' allows function to
             return a pyproj projection object or a string in the
             format of proj4 or WKT
+        fromorigin : boolean
+            Ignore false easting and false northing offsets
 
         Returns
         -------
@@ -133,13 +143,13 @@ class PseudoNetCDFFile(PseudoNetCDFSelfReg, object):
         """
         if projformat == 'pyproj':
             from PseudoNetCDF.coordutil import getproj
-            return getproj(self, withgrid=withgrid)
+            return getproj(self, withgrid=withgrid, fromorigin=fromorigin)
         elif projformat == 'proj4':
             from PseudoNetCDF.coordutil import getproj4
-            return getproj4(self, withgrid=withgrid)
+            return getproj4(self, withgrid=withgrid, fromorigin=fromorigin)
         elif projformat == 'wkt':
             from PseudoNetCDF.coordutil import getprojwkt
-            return getprojwkt(self, withgrid=withgrid)
+            return getprojwkt(self, withgrid=withgrid, fromorigin=fromorigin)
         else:
             raise ValueError('projformat must be pyproj, proj4 or wkt')
 

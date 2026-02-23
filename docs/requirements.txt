@@ -5,13 +5,14 @@ h5netcdf
 matplotlib
 pytest
 flake8
-numpy
-pandas
+numpy>=1.2,<2
+pandas<3
 scipy
 pyyaml
 netcdf4
 xarray
 pyproj
+packaging
 sphinx
 sphinx-rtd-theme
 sphinx-gallery

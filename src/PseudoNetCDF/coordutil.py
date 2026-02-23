@@ -423,9 +423,9 @@ def getcdo(ifile):
     """ % outdict
 
 
-def getprojwkt(ifile, withgrid=False):
+def getprojwkt(ifile, withgrid=False, fromorigin=False):
     import osr
-    proj4str = getproj4(ifile, withgrid=withgrid)
+    proj4str = getproj4(ifile, withgrid=withgrid, fromorigin=fromorigin)
 
     srs = osr.SpatialReference()
     # Imports WKT to Spatial Reference Object
@@ -434,11 +434,11 @@ def getprojwkt(ifile, withgrid=False):
     return srs.ExportToWkt()
 
 
-def basemap_from_file(ifile, withgrid=False, **kwds):
+def basemap_from_file(ifile, withgrid=False, fromorigin=False, **kwds):
     """
     Typically, the user will need to provide some options
     """
-    proj4 = getproj4(ifile, withgrid=withgrid)
+    proj4 = getproj4(ifile, withgrid=withgrid, fromorigin=fromorigin)
     basemap_options = basemap_options_from_proj4(proj4, **kwds)
     if 'llcrnrx' in basemap_options:
         if 'urcrnrx' in kwds:
@@ -522,7 +522,7 @@ def basemap_from_proj4(proj4, **kwds):
     return bmap
 
 
-def getproj4_from_cf_var(gridmapping, withgrid=False):
+def getproj4_from_cf_var(gridmapping, withgrid=False, fromorigin=False):
     mapstr_bits = OrderedDict()
     gname = getattr(gridmapping, 'grid_mapping_name')
     pv4s = dict(lambert_conformal_conic='lcc',
@@ -558,9 +558,9 @@ def getproj4_from_cf_var(gridmapping, withgrid=False):
             mapstr_bits['lon_0'] = pv
         elif pk == 'latitude_of_projection_origin':
             mapstr_bits['lat_0'] = pv
-        elif pk == 'false_easting':
+        elif pk == 'false_easting' and not fromorigin:
             mapstr_bits['x_0'] = pv
-        elif pk == 'false_northing':
+        elif pk == 'false_northing' and not fromorigin:
             mapstr_bits['y_0'] = pv
         elif pk == 'scale_factor_at_projection_origin':
             mapstr_bits['k_0'] = pv
@@ -588,9 +588,9 @@ def getproj4_from_cf_var(gridmapping, withgrid=False):
     return mapstr
 
 
-def getproj(ifile, withgrid=False):
+def getproj(ifile, withgrid=False, fromorigin=False):
     import pyproj
-    proj4str = getproj4(ifile, withgrid=withgrid)
+    proj4str = getproj4(ifile, withgrid=withgrid, fromorigin=fromorigin)
     preserve_units = withgrid
     # pyproj adds +units=m, which is not right for latlon/lonlat
     if '+proj=lonlat' in proj4str or '+proj=latlon' in proj4str:
@@ -598,7 +598,7 @@ def getproj(ifile, withgrid=False):
     return pyproj.Proj(proj4str, preserve_units=preserve_units)
 
 
-def getproj4(ifile, withgrid=False):
+def getproj4(ifile, withgrid=False, fromorigin=False):
     """
     Arguments:
       ifile - PseudoNetCDF file
@@ -614,7 +614,7 @@ def getproj4(ifile, withgrid=False):
              for k in 'P_GAM P_ALP P_BET XORIG YORIG XCELL YCELL'.split()])
     ):
         gridmapping = getmapdef(ifile, add=False)
-        mapstr = getproj4_from_cf_var(gridmapping, withgrid=withgrid)
+        mapstr = getproj4_from_cf_var(gridmapping, withgrid=withgrid, fromorigin=fromorigin)
         if withgrid:
             dx = min(ifile.XCELL, ifile.YCELL)
             if ifile.XCELL != ifile.YCELL:
@@ -656,7 +656,7 @@ def getproj4(ifile, withgrid=False):
                 mapstr = '+proj=lonlat'
             else:
                 gridmapping = ifile.variables[gridmappings[0]]
-                mapstr = getproj4_from_cf_var(gridmapping, withgrid=withgrid)
+                mapstr = getproj4_from_cf_var(gridmapping, withgrid=withgrid, fromorigin=fromorigin)
     else:
         warn('No known grid mapping; assuming lonlat')
         mapstr = '+proj=lonlat'

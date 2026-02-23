@@ -65,7 +65,7 @@ script_list = [
 ]
 
 requires_list = [
-    'numpy>=1.2', 'netCDF4', 'scipy', 'matplotlib', 'pyyaml', 'pandas',
+    'numpy>=1.2,<2', 'netCDF4', 'scipy', 'matplotlib', 'pyyaml', 'pandas<3', 'packaging'
 ]
 
 if sys.version_info.major == 3:
@@ -109,6 +109,10 @@ setup(
     url='http://github.com/barronh/pseudonetcdf/',
     classifiers=[
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',

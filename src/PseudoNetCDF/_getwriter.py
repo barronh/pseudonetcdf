@@ -12,7 +12,6 @@ def testwriter(writer, *args, **kwds):
 
 
 def registerwriter(name, writer):
-    global _writers
     _writers.insert(0, (name, writer))
 
 
