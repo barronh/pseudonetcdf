@@ -4,7 +4,12 @@ def _importorskip(modname, minversion=None):
     try:
         from packaging.version import Version
     except Exception:
-        from distutils.version import LooseVersion as Version
+        msg = 'packaging (python>=3.8) was not available.'
+        try:
+            from distutils.version import LooseVersion as Version
+        except Exception:
+            msg += ' distutils (python<3.12) was not available'
+            raise ImportError(msg)
     try:
         mod = importlib.import_module(modname)
         has = True
