@@ -14,12 +14,10 @@ _registered_norms = {}
 
 
 def get_norm(name):
-    global _registered_norms
     return _registered_norms[name]
 
 
 def register_norm(name, norm):
-    global _registered_norms
     if isinstance(norm, Normalize):
         _registered_norms[name] = norm
     else:

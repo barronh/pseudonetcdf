@@ -28,7 +28,6 @@ def warn(*args, **kwds):
 
 def clean_showwarning(message, category, filename, lineno, file=None,
                       line=None):
-    global _first_read_only
     if file is None:
         file = sys.stderr
         if file is None:
