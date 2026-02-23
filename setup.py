@@ -65,7 +65,7 @@ script_list = [
 ]
 
 requires_list = [
-    'numpy>=1.2', 'netCDF4', 'scipy', 'matplotlib', 'pyyaml', 'pandas',
+    'numpy>=1.2,<2', 'netCDF4', 'scipy', 'matplotlib', 'pyyaml', 'pandas<3', 'packaging'
 ]
 
 if sys.version_info.major == 3:
