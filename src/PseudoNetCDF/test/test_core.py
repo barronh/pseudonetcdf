@@ -49,6 +49,16 @@ class PseudoNetCDFVariableTest(unittest.TestCase):
         assert (var.dimensions == ('y', 'x'))
         np_all_close(var[:], self.myarray)
 
+    def testArrayFinalizeFallsBackToExistingDimensions(self):
+        var = PseudoNetCDFVariable.from_array(
+            'unknown', self.myarray, ('y', 'x'),
+            units='unknown', long_name='unknown'
+        )
+        viewed = np.asarray(var).view(type(var))
+        object.__setattr__(viewed, 'dimensions', ('fallback',))
+        viewed.__array_finalize__(np.asarray(var))
+        assert (viewed.dimensions == ('fallback',))
+
 
 class PseudoNetCDFFileTest(unittest.TestCase):
     def setUp(self):

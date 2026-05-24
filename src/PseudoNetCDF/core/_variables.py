@@ -245,7 +245,7 @@ class PseudoNetCDFVariable(np.ndarray):
         object.__setattr__(self, '_name', _name)
         ntypecode = getattr(obj, 'typecode', lambda: self.dtype.char)
         object.__setattr__(self, 'typecode', ntypecode)
-        ndimensions = getattr(obj, 'dimensions', lambda: self.dtype.char)
+        ndimensions = getattr(obj, 'dimensions', getattr(self, 'dimensions', ()))
         object.__setattr__(self, 'dimensions', ndimensions)
         nncattrs = getattr(obj, '_ncattrs', getattr(self, '_ncattrs', ()))
         object.__setattr__(self, '_ncattrs', nncattrs)
