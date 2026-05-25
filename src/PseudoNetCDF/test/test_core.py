@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 from PseudoNetCDF import PseudoNetCDFFile, PseudoNetCDFVariables
 from PseudoNetCDF import PseudoNetCDFVariable, pncopen
+from PseudoNetCDF.core._variables import PseudoNetCDFMaskedVariable
 from . import requires_basemap, requires_pyproj, requires_matplotlib
 from . import compare_files
 from PseudoNetCDF.pncwarn import warn
@@ -48,6 +49,24 @@ class PseudoNetCDFVariableTest(unittest.TestCase):
         assert (var.dtype.char == 'f')
         assert (var.dimensions == ('y', 'x'))
         np_all_close(var[:], self.myarray)
+
+    def testMaskedArrayFinalizeCopiesPseudoNetCDFMetadata(self):
+        parent = PseudoNetCDFFile()
+        parent.createDimension('y', 1)
+        parent.createDimension('x', 5)
+        masked = np.ma.array(self.myarray[:1], mask=[[0, 1, 0, 1, 0]])
+        var = PseudoNetCDFMaskedVariable(
+            parent, 'unknown', 'f', ('y', 'x'),
+            values=masked, units='unknown', long_name='masked variable'
+        )
+
+        copied = var.copy()
+
+        assert (copied.dimensions == ('y', 'x'))
+        assert (copied.getncatts() == {
+            'units': 'unknown', 'long_name': 'masked variable',
+        })
+        np.testing.assert_array_equal(copied.mask, masked.mask)
 
 
 class PseudoNetCDFFileTest(unittest.TestCase):
