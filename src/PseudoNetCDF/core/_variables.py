@@ -345,6 +345,7 @@ class PseudoNetCDFMaskedVariable(PseudoNetCDFVariable, np.ma.MaskedArray):
 
     def __array_finalize__(self, obj):
         np.ma.MaskedArray.__array_finalize__(self, obj)
+        PseudoNetCDFVariable.__array_finalize__(self, obj)
 
     def _update_from(self, obj):
         dt = self.dtype.char
