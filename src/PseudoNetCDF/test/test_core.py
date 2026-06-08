@@ -57,7 +57,7 @@ class PseudoNetCDFVariableTest(unittest.TestCase):
         )
         del var.dimensions
         viewed = var.view(PseudoNetCDFVariable)
-        refdims = tuple([f'phony_dim_{i + 1}' for i in range(ta.ndim)])
+        refdims = tuple([f'phony_dim_{i}' for i in range(ta.ndim)])
         assert (viewed.dimensions == refdims)
 
 
