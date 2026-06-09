@@ -49,6 +49,17 @@ class PseudoNetCDFVariableTest(unittest.TestCase):
         assert (var.dimensions == ('y', 'x'))
         np_all_close(var[:], self.myarray)
 
+    def testArrayFinalizeFallsBackToPhonyDimensions(self):
+        ta = np.array([[1, 2, 3, 4, 5]] * 2)
+        var = PseudoNetCDFVariable.from_array(
+            'unknown', ta, ('y', 'x'),
+            units='unknown', long_name='unknown'
+        )
+        del var.dimensions
+        viewed = var.view(PseudoNetCDFVariable)
+        refdims = tuple([f'phony_dim_{i}' for i in range(ta.ndim)])
+        assert (viewed.dimensions == refdims)
+
 
 class PseudoNetCDFFileTest(unittest.TestCase):
     def setUp(self):
